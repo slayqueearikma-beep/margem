@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_theme.dart';
-import '../home/home_shell.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
+import '../buyer/buyer_home_screen.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -16,23 +17,22 @@ class SearchScreen extends ConsumerStatefulWidget {
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   String _query = '';
-  String? _category;
 
   @override
   Widget build(BuildContext context) {
-    final city = ref.watch(selectedCityProvider);
+    final city = ref.watch(buyerCityProvider);
 
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Search', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 TextField(
                   autofocus: true,
                   decoration: const InputDecoration(
@@ -46,7 +46,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
           Expanded(
             child: FutureBuilder<List<SellerModel>>(
-              future: apiServiceProvider.fetchSellers(city: city, category: _category, query: _query),
+              future: apiServiceProvider.fetchSellers(city: city, query: _query),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -59,22 +59,25 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   return const Center(child: Text('No businesses found'));
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
                   itemCount: sellers.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (_, index) {
                     final seller = sellers[index];
                     return ListTile(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       tileColor: Theme.of(context).cardTheme.color,
-                      leading: CircleAvatar(child: Text(seller.businessName[0])),
+                      leading: CircleAvatar(
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                        child: Text(seller.businessName[0], style: const TextStyle(color: AppColors.primary)),
+                      ),
                       title: Text(seller.businessName, style: const TextStyle(fontWeight: FontWeight.w600)),
                       subtitle: Text('${seller.averageRating} ★ · ${seller.city}'),
                       trailing: seller.achievementStars > 0
                           ? Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.star, color: AppColors.orange, size: 16),
+                                const Icon(Icons.star, color: AppColors.star, size: 16),
                                 Text('${seller.achievementStars}'),
                               ],
                             )

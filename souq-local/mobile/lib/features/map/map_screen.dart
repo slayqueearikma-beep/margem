@@ -5,22 +5,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_theme.dart';
-import '../home/home_shell.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
+import '../buyer/buyer_home_screen.dart';
 
-class MapScreen extends ConsumerStatefulWidget {
+class MapScreen extends ConsumerWidget {
   const MapScreen({super.key});
 
   @override
-  ConsumerState<MapScreen> createState() => _MapScreenState();
-}
-
-class _MapScreenState extends ConsumerState<MapScreen> {
-  GoogleMapController? _controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final city = ref.watch(selectedCityProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final city = ref.watch(buyerCityProvider);
 
     return FutureBuilder<(List<MapPinModel>, List<WarningZoneModel>)>(
       future: _loadMapData(city),
@@ -58,38 +52,40 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
         final initial = pins.isNotEmpty
             ? LatLng(pins.first.latitude, pins.first.longitude)
-            : const LatLng(33.5731, -7.5898); // Casablanca
+            : const LatLng(33.5731, -7.5898);
 
         return Stack(
           children: [
             GoogleMap(
               initialCameraPosition: CameraPosition(target: initial, zoom: 13),
               markers: {...sellerMarkers, ...warningMarkers},
-              onMapCreated: (controller) => _controller = controller,
               myLocationButtonEnabled: true,
               myLocationEnabled: true,
             ),
             Positioned(
               top: MediaQuery.of(context).padding.top + 12,
-              left: 16,
-              right: 16,
+              left: AppSpacing.screenHorizontal,
+              right: AppSpacing.screenHorizontal,
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, color: AppColors.orange),
-                      const SizedBox(width: 8),
+                      const Icon(Icons.location_on_outlined, color: AppColors.primary),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(city, style: const TextStyle(fontWeight: FontWeight.w600)),
                       const Spacer(),
                       if (warnings.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.12),
+                            color: AppColors.danger.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text('${warnings.length} warning zone(s)', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                          child: Text(
+                            '${warnings.length} warning zone(s)',
+                            style: const TextStyle(color: AppColors.danger, fontSize: 12),
+                          ),
                         ),
                     ],
                   ),

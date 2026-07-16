@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_colors.dart';
 
 class SellerDetailScreen extends StatefulWidget {
   const SellerDetailScreen({super.key, required this.sellerId});
@@ -72,7 +72,7 @@ class _SellerDetailScreenState extends State<SellerDetailScreen> {
                         children: [
                           RatingBarIndicator(
                             rating: seller.averageRating,
-                            itemBuilder: (_, __) => const Icon(Icons.star, color: AppColors.orange),
+                            itemBuilder: (_, __) => const Icon(Icons.star, color: AppColors.star),
                             itemCount: 5,
                             itemSize: 20,
                           ),
@@ -82,7 +82,7 @@ class _SellerDetailScreenState extends State<SellerDetailScreen> {
                             const Spacer(),
                             ...List.generate(
                               seller.achievementStars.clamp(0, 5),
-                              (_) => const Icon(Icons.star, color: AppColors.orange),
+                                (_) => const Icon(Icons.star, color: AppColors.star),
                             ),
                           ],
                         ],
@@ -166,7 +166,7 @@ class _SellerDetailScreenState extends State<SellerDetailScreen> {
                                       children: [
                                         Text(r.buyerDisplayName),
                                         const SizedBox(width: 8),
-                                        ...List.generate(r.rating, (_) => const Icon(Icons.star, size: 14, color: AppColors.orange)),
+                                        ...List.generate(r.rating, (_) => const Icon(Icons.star, size: 14, color: AppColors.star)),
                                       ],
                                     ),
                                     subtitle: Text(r.comment),
@@ -206,7 +206,7 @@ class _SellerDetailScreenState extends State<SellerDetailScreen> {
               RatingBar.builder(
                 initialRating: rating,
                 minRating: 1,
-                itemBuilder: (_, __) => const Icon(Icons.star, color: AppColors.orange),
+                itemBuilder: (_, __) => const Icon(Icons.star, color: AppColors.star),
                 onRatingUpdate: (value) => rating = value,
               ),
               const SizedBox(height: 16),
@@ -294,7 +294,7 @@ class _CatalogCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    if (price != null) Text('${price!.toStringAsFixed(0)} MAD', style: const TextStyle(color: AppColors.orange)),
+                    if (price != null) Text('${price!.toStringAsFixed(0)} MAD', style: const TextStyle(color: AppColors.primary)),
                   ],
                 ),
               ),

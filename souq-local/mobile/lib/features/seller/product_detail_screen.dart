@@ -3,7 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_colors.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   const ProductDetailScreen({
@@ -27,7 +27,9 @@ class ProductDetailScreen extends StatelessWidget {
         final seller = snapshot.data!;
         final product = seller.products.firstWhere(
           (p) => p.id == productId,
-          orElse: () => seller.products.isNotEmpty ? seller.products.first : const ProductModel(id: '', name: 'Product', description: ''),
+          orElse: () => seller.products.isNotEmpty
+              ? seller.products.first
+              : const ProductModel(id: '', name: 'Product', description: ''),
         );
 
         return Scaffold(
@@ -40,7 +42,7 @@ class ProductDetailScreen extends StatelessWidget {
                 child: Card(
                   clipBehavior: Clip.antiAlias,
                   child: Container(
-                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35),
+                    color: AppColors.primary.withValues(alpha: 0.08),
                     child: product.imageUrl.isEmpty ? const Icon(Icons.image_outlined, size: 72) : null,
                   ),
                 ),
@@ -50,7 +52,7 @@ class ProductDetailScreen extends StatelessWidget {
                 Text(
                   '${product.priceMad!.toStringAsFixed(2)} MAD',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppColors.orange,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w700,
                       ),
                 ),
@@ -59,7 +61,7 @@ class ProductDetailScreen extends StatelessWidget {
                 children: [
                   RatingBarIndicator(
                     rating: seller.averageRating,
-                    itemBuilder: (_, __) => const Icon(Icons.star, color: AppColors.orange),
+                    itemBuilder: (_, __) => const Icon(Icons.star, color: AppColors.star),
                     itemCount: 5,
                     itemSize: 18,
                   ),
