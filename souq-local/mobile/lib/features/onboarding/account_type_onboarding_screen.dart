@@ -48,7 +48,7 @@ class _AccountTypeOnboardingScreenState extends State<AccountTypeOnboardingScree
             subtitle: l10n.sellerSubtitle,
             icon: Icons.store_mall_directory_outlined,
             selected: _selected == AccountType.seller,
-            accentColor: const Color(0xFF6236FF),
+            accentColor: AppColors.primary,
             bulletPoints: [l10n.sellerBullet1, l10n.sellerBullet2, l10n.sellerBullet3, l10n.sellerBullet4],
             onTap: () => setState(() => _selected = AccountType.seller),
           ),

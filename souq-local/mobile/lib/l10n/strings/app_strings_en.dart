@@ -2,7 +2,9 @@ import 'app_strings.dart';
 
 class AppStringsEn extends AppStrings {
   @override
-  String get appName => 'Souq Local';
+  String get appName => 'MarGem';
+  @override
+  String get appTagline => 'Discover Morocco\'s Hidden Gems';
   @override
   String get selectLanguage => 'Choose your language';
   @override
@@ -56,7 +58,7 @@ class AppStringsEn extends AppStrings {
   @override
   String get chooseAccountType => 'Choose your account type';
   @override
-  String get chooseAccountTypeSubtitle => 'Select how you want to use Souq Local. You can always update your profile later.';
+  String get chooseAccountTypeSubtitle => 'Select how you want to use MarGem. You can always update your profile later.';
   @override
   String get buyer => 'Buyer';
   @override

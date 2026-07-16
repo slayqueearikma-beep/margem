@@ -2,7 +2,10 @@ import 'app_strings_en.dart';
 
 class AppStringsAr extends AppStringsEn {
   @override
-  String get appName => 'سوق محلي';
+  @override
+  String get appName => 'MarGem';
+  @override
+  String get appTagline => 'اكتشف كنوز المغرب المخفية';
   @override
   String get selectLanguage => 'اختر لغتك';
   @override
@@ -56,7 +59,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get chooseAccountType => 'اختر نوع حسابك';
   @override
-  String get chooseAccountTypeSubtitle => 'حدد كيف تريد استخدام سوق محلي. يمكنك تحديث ملفك لاحقاً.';
+  String get chooseAccountTypeSubtitle => 'حدد كيف تريد استخدام MarGem. يمكنك تحديث ملفك لاحقاً.';
   @override
   String get buyer => 'مشتري';
   @override

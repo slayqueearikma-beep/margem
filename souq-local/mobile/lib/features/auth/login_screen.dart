@@ -6,7 +6,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
-import '../../core/widgets/app_logo_placeholder.dart';
+import '../../core/widgets/app_brand_logo.dart';
 import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -70,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: AppSpacing.xl),
-              const Center(child: AppLogoPlaceholder(size: 72)),
+              const Center(child: AppBrandLogo(variant: AppBrandLogoVariant.full, width: 240)),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 l10n.welcomeBack,

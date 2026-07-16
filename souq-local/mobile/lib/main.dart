@@ -5,5 +5,5 @@ import 'app.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: SouqLocalApp()));
+  runApp(const ProviderScope(child: MarGemApp()));
 }

@@ -31,7 +31,7 @@ class SellerDashboardScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        const AppLogoPlaceholder(size: 32),
+                        const AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 32),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Column(

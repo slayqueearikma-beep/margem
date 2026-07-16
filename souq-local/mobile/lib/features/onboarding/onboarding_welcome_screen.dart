@@ -5,7 +5,7 @@ import '../../core/config/app_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
-import '../../core/widgets/app_logo_placeholder.dart';
+import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
@@ -25,7 +25,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
         _SlideData(
           title: l10n.discoverTitle,
           subtitle: l10n.discoverSubtitle,
-          backgroundColor: AppColors.illustrationPurple,
+          backgroundColor: AppColors.illustrationBurgundy,
           icon: Icons.storefront_rounded,
         ),
         _SlideData(
@@ -87,16 +87,8 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
                         ),
                         const SizedBox(height: AppSpacing.xl),
                         if (index == 0) ...[
-                          const AppLogoPlaceholder(size: 48),
+                          const AppBrandLogo(variant: AppBrandLogoVariant.full, width: 220),
                           const SizedBox(height: AppSpacing.md),
-                          Text(
-                            l10n.appName,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
                         ],
                         Text(
                           slide.title,

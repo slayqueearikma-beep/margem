@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import 'app_logo_placeholder.dart';
+import 'app_brand_logo.dart';
 
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
@@ -101,7 +101,7 @@ class AppScreenHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (showLogo) ...[
-          const Center(child: AppLogoPlaceholder(size: 56)),
+          const Center(child: AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 56)),
           const SizedBox(height: AppSpacing.lg),
         ],
         Text(

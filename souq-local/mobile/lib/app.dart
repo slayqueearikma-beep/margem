@@ -53,8 +53,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class SouqLocalApp extends ConsumerWidget {
-  const SouqLocalApp({super.key});
+class MarGemApp extends ConsumerWidget {
+  const MarGemApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,7 +69,7 @@ class SouqLocalApp extends ConsumerWidget {
     });
 
     return MaterialApp.router(
-      title: 'Souq Local',
+      title: 'MarGem',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: AppTheme.light(),

@@ -7,4 +7,4 @@ from app.main import health
 async def test_health():
     result = await health()
     assert result["status"] == "ok"
-    assert result["service"] == "Souq Local API"
+    assert result["service"] == "MarGem API"

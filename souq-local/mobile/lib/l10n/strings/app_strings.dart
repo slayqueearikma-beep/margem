@@ -5,6 +5,7 @@ import 'app_strings_fr.dart';
 /// All translatable strings for the application.
 abstract class AppStrings {
   String get appName;
+  String get appTagline;
   String get selectLanguage;
   String get selectLanguageSubtitle;
   String get english;

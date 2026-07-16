@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/app_logo_placeholder.dart';
+import '../../core/widgets/app_brand_logo.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -22,7 +22,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
-    _scale = Tween<double>(begin: 0.7, end: 1).animate(
+    _scale = Tween<double>(begin: 0.85, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
     _fade = Tween<double>(begin: 0, end: 1).animate(
@@ -77,7 +77,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
           opacity: _fade,
           child: ScaleTransition(
             scale: _scale,
-            child: const AppLogoPlaceholder(size: 140, onPurpleBackground: true),
+            child: const AppBrandLogo(variant: AppBrandLogoVariant.full, width: 280),
           ),
         ),
       ),

@@ -1,4 +1,4 @@
-# Souq Local — Morocco Local Business Marketplace
+# MarGem — Discover Morocco's Hidden Gems
 
 A mobile marketplace that centralizes local businesses with physical stores across Morocco. Buyers discover nearby shops, products, and services; sellers get an online presence without building their own website.
 

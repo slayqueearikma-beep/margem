@@ -87,7 +87,7 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                 )
               else
                 const SizedBox(height: AppSpacing.lg),
-              const Center(child: AppLogoPlaceholder(size: 56)),
+              const Center(child: AppBrandLogo(variant: AppBrandLogoVariant.full, width: 220)),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 l10n.selectLanguage,

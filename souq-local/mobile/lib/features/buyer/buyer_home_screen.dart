@@ -86,7 +86,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      const AppLogoPlaceholder(size: 32),
+                      const AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 32),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Column(
@@ -310,7 +310,7 @@ class _BuyerProfileTab extends ConsumerWidget {
         child: Column(
           children: [
             const SizedBox(height: AppSpacing.lg),
-            const AppLogoPlaceholder(size: 56),
+            const AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 56),
             const SizedBox(height: AppSpacing.md),
             Text(session?.name ?? l10n.buyerLabel, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
             Text(session?.email ?? '', style: const TextStyle(color: AppColors.textSecondary)),

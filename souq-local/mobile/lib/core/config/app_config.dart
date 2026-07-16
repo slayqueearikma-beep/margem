@@ -5,7 +5,8 @@ class AppConfig {
     defaultValue: 'http://10.0.2.2:8000',
   );
 
-  static const String appName = 'Souq Local';
+  static const String appName = 'MarGem';
+  static const String appTagline = 'Discover Morocco\'s Hidden Gems';
 
   static const List<String> moroccanCities = [
     'Casablanca',
