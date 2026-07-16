@@ -72,54 +72,66 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (widget.fromSettings)
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                  ),
-                )
-              else
-                const SizedBox(height: AppSpacing.lg),
-              const Center(child: AppBrandLogo(variant: AppBrandLogoVariant.full, width: 220)),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                l10n.selectLanguage,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (widget.fromSettings)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: IconButton(
+                  onPressed: () => context.pop(),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.selectLanguageSubtitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary, height: 1.4),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (!widget.fromSettings) const SizedBox(height: AppSpacing.md),
+                    const Center(child: AppBrandLogo(variant: AppBrandLogoVariant.full, width: 200)),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(
+                      l10n.selectLanguage,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      l10n.selectLanguageSubtitle,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary, height: 1.4),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    ..._options(l10n).map((option) => _LanguageCard(
+                          flag: option.flag,
+                          label: option.label,
+                          selected: _selected == option.code,
+                          onTap: () {
+                            if (widget.fromSettings) {
+                              _applyLanguage(option.code);
+                            } else {
+                              setState(() => _selected = option.code);
+                            }
+                          },
+                        )),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.xl),
-              ..._options(l10n).map((option) => _LanguageCard(
-                    flag: option.flag,
-                    label: option.label,
-                    selected: _selected == option.code,
-                    onTap: () {
-                      if (widget.fromSettings) {
-                        _applyLanguage(option.code);
-                      } else {
-                        setState(() => _selected = option.code);
-                      }
-                    },
-                  )),
-              const Spacer(),
-              if (!widget.fromSettings) ...[
-                PrimaryButton(label: l10n.continueLabel, onPressed: _continue),
-                const SizedBox(height: AppSpacing.lg),
-              ],
-            ],
-          ),
+            ),
+            if (!widget.fromSettings)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenHorizontal,
+                  AppSpacing.sm,
+                  AppSpacing.screenHorizontal,
+                  AppSpacing.lg,
+                ),
+                child: PrimaryButton(label: l10n.continueLabel, onPressed: _continue),
+              ),
+          ],
         ),
       ),
     );
