@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
@@ -264,7 +265,7 @@ class DashboardMenuTile extends StatelessWidget {
                   color: AppColors.warning.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('Soon', style: TextStyle(fontSize: 10, color: AppColors.warning)),
+                child: Text(context.l10n.soon, style: const TextStyle(fontSize: 10, color: AppColors.warning)),
               ),
             ],
           ],

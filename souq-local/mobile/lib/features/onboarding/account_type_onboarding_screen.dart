@@ -6,6 +6,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
+import '../../l10n/app_localizations.dart';
 
 class AccountTypeOnboardingScreen extends StatefulWidget {
   const AccountTypeOnboardingScreen({super.key});
@@ -19,44 +20,36 @@ class _AccountTypeOnboardingScreenState extends State<AccountTypeOnboardingScree
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return OnboardingScaffold(
       showBack: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppScreenHeader(
-            title: 'Choose your account type',
-            subtitle: 'Select how you want to use Souq Local. You can always update your profile later.',
+          AppScreenHeader(
+            title: l10n.chooseAccountType,
+            subtitle: l10n.chooseAccountTypeSubtitle,
             showLogo: true,
           ),
           const SizedBox(height: AppSpacing.xl),
           SelectionCard(
-            title: 'Buyer',
-            subtitle: 'Discover and support local businesses in your city.',
+            title: l10n.buyer,
+            subtitle: l10n.buyerSubtitle,
             icon: Icons.shopping_bag_outlined,
             selected: _selected == AccountType.buyer,
             accentColor: const Color(0xFF4D96FF),
-            bulletPoints: const [
-              'Discover nearby stores',
-              'Browse products',
-              'Read reviews',
-              'Find businesses on the map',
-            ],
+            bulletPoints: [l10n.buyerBullet1, l10n.buyerBullet2, l10n.buyerBullet3, l10n.buyerBullet4],
             onTap: () => setState(() => _selected = AccountType.buyer),
           ),
           const SizedBox(height: AppSpacing.md),
           SelectionCard(
-            title: 'Seller',
-            subtitle: 'Create your online presence and reach more customers.',
+            title: l10n.seller,
+            subtitle: l10n.sellerSubtitle,
             icon: Icons.store_mall_directory_outlined,
             selected: _selected == AccountType.seller,
             accentColor: const Color(0xFF6236FF),
-            bulletPoints: const [
-              'Create your business profile',
-              'Upload products and services',
-              'Manage customers',
-              'Grow your visibility',
-            ],
+            bulletPoints: [l10n.sellerBullet1, l10n.sellerBullet2, l10n.sellerBullet3, l10n.sellerBullet4],
             onTap: () => setState(() => _selected = AccountType.seller),
           ),
         ],
@@ -64,7 +57,7 @@ class _AccountTypeOnboardingScreenState extends State<AccountTypeOnboardingScree
       bottom: Column(
         children: [
           PrimaryButton(
-            label: 'Continue',
+            label: l10n.continueLabel,
             onPressed: _selected == null
                 ? null
                 : () {
@@ -75,7 +68,7 @@ class _AccountTypeOnboardingScreenState extends State<AccountTypeOnboardingScree
                     }
                   },
           ),
-          SecondaryTextButton(label: 'Back', onPressed: () => context.pop()),
+          SecondaryTextButton(label: l10n.back, onPressed: () => context.pop()),
         ],
       ),
     );

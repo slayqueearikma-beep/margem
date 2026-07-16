@@ -7,6 +7,7 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 
 class MapScreen extends ConsumerWidget {
@@ -14,6 +15,7 @@ class MapScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final city = ref.watch(buyerCityProvider);
 
     return FutureBuilder<(List<MapPinModel>, List<WarningZoneModel>)>(
@@ -82,10 +84,7 @@ class MapScreen extends ConsumerWidget {
                             color: AppColors.danger.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            '${warnings.length} warning zone(s)',
-                            style: const TextStyle(color: AppColors.danger, fontSize: 12),
-                          ),
+                          child: Text(l10n.warningZones(warnings.length), style: const TextStyle(color: AppColors.danger, fontSize: 12)),
                         ),
                     ],
                   ),

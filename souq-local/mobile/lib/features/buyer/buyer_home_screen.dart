@@ -11,8 +11,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_logo_placeholder.dart';
 import '../../core/widgets/content_widgets.dart';
-import '../map/map_screen.dart';
-import '../search/search_screen.dart';
+import '../../l10n/app_localizations.dart';
+import '../settings/language_settings_tile.dart';
 
 final buyerCityProvider = StateProvider<String>((ref) {
   final session = ref.watch(userSessionProvider);
@@ -38,6 +38,7 @@ class _BuyerHomeShellState extends ConsumerState<BuyerHomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final pages = [
       const BuyerHomeScreen(),
       const SearchScreen(),
@@ -50,11 +51,11 @@ class _BuyerHomeShellState extends ConsumerState<BuyerHomeShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.search), label: 'Search'),
-          NavigationDestination(icon: Icon(Icons.map_outlined), selectedIcon: Icon(Icons.map_rounded), label: 'Map'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person_rounded), label: 'Profile'),
+        destinations: [
+          NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home_rounded), label: l10n.navHome),
+          NavigationDestination(icon: const Icon(Icons.search), label: l10n.navSearch),
+          NavigationDestination(icon: const Icon(Icons.map_outlined), selectedIcon: const Icon(Icons.map_rounded), label: l10n.navMap),
+          NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person_rounded), label: l10n.navProfile),
         ],
       ),
     );
@@ -66,6 +67,7 @@ class BuyerHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final city = ref.watch(buyerCityProvider);
     final sellersAsync = ref.watch(buyerSellersProvider);
@@ -89,7 +91,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Good morning${session != null ? ', ${session.name.split(' ').first}' : ''}',
+                              l10n.goodMorning(session?.name.split(' ').first ?? ''),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
                             ),
                             GestureDetector(
@@ -112,7 +114,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                     readOnly: true,
                     onTap: () {},
                     decoration: InputDecoration(
-                      hintText: 'Search shops, products, services…',
+                      hintText: l10n.searchHint,
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
                       fillColor: Theme.of(context).inputDecorationTheme.fillColor,
@@ -128,7 +130,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: AppSpacing.lg),
-                  const SectionHeader(title: 'Categories'),
+                  SectionHeader(title: l10n.categories),
                   const SizedBox(height: AppSpacing.sm),
                   SizedBox(
                     height: 40,
@@ -174,8 +176,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                           child: ListTile(
                             dense: true,
                             leading: const Icon(Icons.near_me, color: AppColors.primary),
-                            title: const Text('Explore on the map', style: TextStyle(fontWeight: FontWeight.w600)),
-                            subtitle: Text('View all businesses in $city'),
+                            title: Text(l10n.exploreOnMap, style: const TextStyle(fontWeight: FontWeight.w600)),
+                            subtitle: Text(l10n.exploreOnMapSubtitle(city)),
                             trailing: const Icon(Icons.chevron_right_rounded),
                             onTap: () {},
                           ),
@@ -191,7 +193,7 @@ class BuyerHomeScreen extends ConsumerWidget {
             data: (sellers) {
               if (sellers.isEmpty) {
                 return const SliverFillRemaining(
-                  child: Center(child: Text('No businesses found in this city yet.')),
+                  child: Center(child: Text(l10n.noBusinessesInCity)),
                 );
               }
 
@@ -201,7 +203,7 @@ class BuyerHomeScreen extends ConsumerWidget {
 
               return SliverList(
                 delegate: SliverChildListDelegate([
-                  const SectionHeader(title: 'Featured businesses', actionLabel: 'See all'),
+                  SectionHeader(title: l10n.featuredBusinesses, actionLabel: l10n.seeAll),
                   const SizedBox(height: AppSpacing.sm),
                   SizedBox(
                     height: 220,
@@ -226,7 +228,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  const SectionHeader(title: 'Nearby businesses'),
+                  SectionHeader(title: l10n.nearbyBusinesses),
                   const SizedBox(height: AppSpacing.sm),
                   ...nearby.take(3).map(
                         (s) => SellerCard(
@@ -240,7 +242,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                         ),
                       ),
                   const SizedBox(height: AppSpacing.lg),
-                  const SectionHeader(title: 'Top-rated sellers'),
+                  SectionHeader(title: l10n.topRatedSellers),
                   const SizedBox(height: AppSpacing.sm),
                   ...topRated.take(3).map(
                         (s) => Padding(
@@ -253,7 +255,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                               child: Text(s.businessName[0], style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
                             ),
                             title: Text(s.businessName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                            subtitle: Text('${s.averageRating} ★ · ${s.reviewCount} reviews'),
+                            subtitle: Text('${s.averageRating} ★ · ${l10n.reviewsCount(s.reviewCount)}'),
                             trailing: s.achievementStars > 0
                                 ? Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -272,7 +274,7 @@ class BuyerHomeScreen extends ConsumerWidget {
               );
             },
             loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-            error: (e, _) => SliverFillRemaining(child: Center(child: Text('Could not load businesses\n$e', textAlign: TextAlign.center))),
+            error: (e, _) => SliverFillRemaining(child: Center(child: Text('${l10n.couldNotLoadBusinesses}\n$e', textAlign: TextAlign.center))),
           ),
         ],
       ),
@@ -297,6 +299,7 @@ class _BuyerProfileTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
 
     return SafeArea(
@@ -307,17 +310,18 @@ class _BuyerProfileTab extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             const AppLogoPlaceholder(size: 56),
             const SizedBox(height: AppSpacing.md),
-            Text(session?.name ?? 'Buyer', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(session?.name ?? l10n.buyerLabel, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
             Text(session?.email ?? '', style: const TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: AppSpacing.xl),
             ListTile(
               leading: const Icon(Icons.location_city_outlined),
-              title: const Text('City'),
+              title: Text(l10n.city),
               subtitle: Text(session?.city ?? '—'),
             ),
+            const LanguageSettingsTile(),
             ListTile(
               leading: const Icon(Icons.dark_mode_outlined),
-              title: const Text('Dark mode'),
+              title: Text(l10n.darkMode),
               trailing: Switch(
                 value: Theme.of(context).brightness == Brightness.dark,
                 onChanged: (_) {
@@ -334,7 +338,7 @@ class _BuyerProfileTab extends ConsumerWidget {
                 ref.read(userSessionProvider.notifier).state = null;
                 if (context.mounted) context.go('/login');
               },
-              child: const Text('Log out'),
+              child: Text(l10n.logOut),
             ),
           ],
         ),

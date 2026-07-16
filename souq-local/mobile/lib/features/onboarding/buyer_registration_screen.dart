@@ -11,6 +11,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
+import '../../l10n/app_localizations.dart';
 
 class BuyerRegistrationScreen extends ConsumerStatefulWidget {
   const BuyerRegistrationScreen({super.key});
@@ -36,18 +37,16 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 800);
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 800);
     if (image != null) setState(() => _profileImage = image);
   }
 
   Future<void> _submit() async {
+    final l10n = context.l10n;
     if (_nameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
         _passwordController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields (password min 6 characters).')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
       return;
     }
 
@@ -72,15 +71,14 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return OnboardingScaffold(
       showBack: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppScreenHeader(
-            title: 'Create your buyer account',
-            subtitle: 'Start discovering trusted local businesses in minutes.',
-          ),
+          AppScreenHeader(title: l10n.createBuyerAccount, subtitle: l10n.createBuyerSubtitle),
           const SizedBox(height: AppSpacing.xl),
           Center(
             child: GestureDetector(
@@ -96,30 +94,28 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
             ),
           ),
           const SizedBox(height: 8),
-          const Center(
-            child: Text('Profile picture (optional)', style: TextStyle(color: Colors.grey, fontSize: 13)),
-          ),
+          Center(child: Text(l10n.profilePictureOptional, style: const TextStyle(color: Colors.grey, fontSize: 13))),
           const SizedBox(height: AppSpacing.lg),
-          AppTextField(label: 'Full name', controller: _nameController, hint: 'Your name'),
+          AppTextField(label: l10n.fullName, controller: _nameController, hint: l10n.yourName),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
-            label: 'Email',
+            label: l10n.email,
             controller: _emailController,
-            hint: 'you@example.com',
+            hint: l10n.emailHint,
             keyboardType: TextInputType.emailAddress,
             prefixIcon: Icons.email_outlined,
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
-            label: 'Password',
+            label: l10n.password,
             controller: _passwordController,
-            hint: 'Minimum 6 characters',
+            hint: l10n.passwordHint,
             obscureText: true,
             prefixIcon: Icons.lock_outline,
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
-            label: 'City',
+            label: l10n.city,
             hint: _city,
             readOnly: true,
             prefixIcon: Icons.location_city_outlined,
@@ -128,12 +124,7 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
                 context: context,
                 builder: (ctx) => ListView(
                   children: AppConfig.moroccanCities
-                      .map(
-                        (city) => ListTile(
-                          title: Text(city),
-                          onTap: () => Navigator.pop(ctx, city),
-                        ),
-                      )
+                      .map((city) => ListTile(title: Text(city), onTap: () => Navigator.pop(ctx, city)))
                       .toList(),
                 ),
               );
@@ -142,7 +133,7 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
           ),
         ],
       ),
-      bottom: PrimaryButton(label: 'Create account', onPressed: _submit, isLoading: _loading),
+      bottom: PrimaryButton(label: l10n.createAccount, onPressed: _submit, isLoading: _loading),
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/app_logo_placeholder.dart';
+import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -29,10 +30,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _login() async {
+    final l10n = context.l10n;
     if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email and password.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.enterEmailPassword)));
       return;
     }
 
@@ -42,11 +42,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final storage = ref.read(appStorageProvider);
     if (storage == null) return;
 
-    // Demo login: restore last session type or default to buyer
     final existing = storage.getSession();
     final session = existing ??
         UserSession(
-          name: 'Returning User',
+          name: l10n.returningUser,
           email: _emailController.text.trim(),
           accountType: AccountType.buyer,
           city: 'Casablanca',
@@ -61,6 +60,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -72,13 +73,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const Center(child: AppLogoPlaceholder(size: 72)),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                'Welcome back',
+                l10n.welcomeBack,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Log in to continue discovering trusted local businesses.',
+                l10n.loginSubtitle,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
               ),
@@ -86,17 +87,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
-                ),
+                decoration: InputDecoration(labelText: l10n.email, prefixIcon: const Icon(Icons.email_outlined)),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscure,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: l10n.password,
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -105,12 +103,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              PrimaryButton(label: 'Log in', onPressed: _login, isLoading: _loading),
+              PrimaryButton(label: l10n.logIn, onPressed: _login, isLoading: _loading),
               const SizedBox(height: AppSpacing.md),
-              LinkTextButton(
-                label: 'Create an account',
-                onPressed: () => context.go('/onboarding/account-type'),
-              ),
+              LinkTextButton(label: l10n.createAccount, onPressed: () => context.go('/onboarding/account-type')),
             ],
           ),
         ),

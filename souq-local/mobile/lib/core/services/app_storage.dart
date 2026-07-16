@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,9 +32,21 @@ class AppStorage {
   static const _userEmailKey = 'user_email';
   static const _userCityKey = 'user_city';
   static const _businessNameKey = 'business_name';
+  static const _languageCodeKey = 'language_code';
+  static const _languageSelectedKey = 'language_selected';
 
   bool get isOnboardingComplete => _prefs.getBool(_onboardingCompleteKey) ?? false;
   bool get isLoggedIn => _prefs.getBool(_loggedInKey) ?? false;
+  bool get isLanguageSelected => _prefs.getBool(_languageSelectedKey) ?? false;
+
+  String get languageCode => _prefs.getString(_languageCodeKey) ?? 'en';
+
+  Locale getLocale() => Locale(languageCode);
+
+  Future<void> saveLanguage(String languageCode) async {
+    await _prefs.setString(_languageCodeKey, languageCode);
+    await _prefs.setBool(_languageSelectedKey, true);
+  }
 
   Future<void> completeOnboarding() => _prefs.setBool(_onboardingCompleteKey, true);
 

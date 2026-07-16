@@ -6,6 +6,7 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -20,6 +21,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final city = ref.watch(buyerCityProvider);
 
     return SafeArea(
@@ -31,12 +33,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Search', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+                Text(l10n.search, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(height: AppSpacing.md),
                 TextField(
                   autofocus: true,
                   decoration: const InputDecoration(
-                    hintText: 'Business name or keyword',
+                    hintText: l10n.businessKeyword,
                     prefixIcon: Icon(Icons.search),
                   ),
                   onChanged: (value) => setState(() => _query = value),
@@ -56,7 +58,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 }
                 final sellers = snapshot.data ?? [];
                 if (sellers.isEmpty) {
-                  return const Center(child: Text('No businesses found'));
+                  return Center(child: Text(l10n.noBusinessesFound));
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),

@@ -43,6 +43,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       return _navigateNext();
     }
 
+    if (!storage.isLanguageSelected) {
+      context.go('/language');
+      return;
+    }
+
     final session = storage.getSession();
     if (session != null) {
       context.go(session.accountType == AccountType.buyer ? '/buyer/home' : '/seller/dashboard');

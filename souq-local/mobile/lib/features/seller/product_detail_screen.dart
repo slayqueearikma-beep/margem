@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 
 class ProductDetailScreen extends StatelessWidget {
@@ -70,7 +71,7 @@ class ProductDetailScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Text(product.description.isEmpty ? 'No description provided.' : product.description),
+              Text(product.description.isEmpty ? context.l10n.noDescription : product.description),
             ],
           ),
         );

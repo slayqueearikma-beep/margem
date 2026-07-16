@@ -10,6 +10,8 @@ import '../../core/config/app_config.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/strings/app_strings.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
@@ -108,10 +110,9 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
   }
 
   void _next() {
+    final l10n = context.l10n;
     if (!_validateStep()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields before continuing.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
       return;
     }
     if (_step < _totalSteps) {
@@ -152,6 +153,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return OnboardingScaffold(
       showBack: true,
       onBack: _back,
@@ -159,72 +161,68 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       progressTotal: _totalSteps,
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
-        child: _buildStep(),
+        child: _buildStep(l10n),
       ),
       bottom: Column(
         children: [
           PrimaryButton(
-            label: _step == _totalSteps ? 'Submit & create account' : 'Next',
+            label: _step == _totalSteps ? l10n.submitCreateAccount : l10n.next,
             onPressed: _next,
             isLoading: _loading,
           ),
-          if (_step < _totalSteps) SecondaryTextButton(label: 'Back', onPressed: _back),
+          if (_step < _totalSteps) SecondaryTextButton(label: l10n.back, onPressed: _back),
         ],
       ),
     );
   }
 
-  Widget _buildStep() {
+  Widget _buildStep(AppStrings l10n) {
     return switch (_step) {
-      1 => _buildStep1(),
-      2 => _buildStep2(),
-      3 => _buildStep3(),
-      4 => _buildStep4(),
-      _ => _buildStep5(),
+      1 => _buildStep1(l10n),
+      2 => _buildStep2(l10n),
+      3 => _buildStep3(l10n),
+      4 => _buildStep4(l10n),
+      _ => _buildStep5(l10n),
     };
   }
 
-  Widget _buildStep1() {
+  Widget _buildStep1(AppStrings l10n) {
     return Column(
       key: const ValueKey(1),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AppScreenHeader(
-          title: 'Business account',
-          subtitle: 'Step 1 of 5 — Tell us about you and your business.',
-        ),
+        AppScreenHeader(title: l10n.sellerStep1Title, subtitle: l10n.sellerStep1Subtitle),
         const SizedBox(height: AppSpacing.xl),
-        AppTextField(label: 'Business name', controller: _businessNameController, hint: 'e.g. Hana Chicken'),
+        AppTextField(label: l10n.businessName, controller: _businessNameController, hint: l10n.businessNameHint),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: 'Owner name', controller: _ownerNameController, hint: 'Your full name'),
+        AppTextField(label: l10n.ownerName, controller: _ownerNameController, hint: l10n.ownerNameHint),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: 'Email', controller: _emailController, hint: 'business@example.com', keyboardType: TextInputType.emailAddress),
+        AppTextField(label: l10n.email, controller: _emailController, hint: l10n.emailHint, keyboardType: TextInputType.emailAddress),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: 'Password', controller: _passwordController, hint: 'Minimum 6 characters', obscureText: true),
+        AppTextField(label: l10n.password, controller: _passwordController, hint: l10n.passwordHint, obscureText: true),
       ],
     );
   }
 
-  Widget _buildStep2() {
+  Widget _buildStep2(AppStrings l10n) {
     return Column(
       key: const ValueKey(2),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AppScreenHeader(
-          title: 'Location & contact',
-          subtitle: 'Step 2 of 5 — Help buyers find your physical store.',
-        ),
+        AppScreenHeader(title: l10n.sellerStep2Title, subtitle: l10n.sellerStep2Subtitle),
         const SizedBox(height: AppSpacing.xl),
         AppTextField(
-          label: 'Business category',
-          hint: _category,
+          label: l10n.businessCategory,
+          hint: l10n.categoryLabel(_category),
           readOnly: true,
           prefixIcon: Icons.category_outlined,
           onTap: () async {
             final selected = await showModalBottomSheet<String>(
               context: context,
               builder: (ctx) => ListView(
-                children: _categories.map((c) => ListTile(title: Text(c), onTap: () => Navigator.pop(ctx, c))).toList(),
+                children: _categories
+                    .map((c) => ListTile(title: Text(l10n.categoryLabel(c)), onTap: () => Navigator.pop(ctx, c)))
+                    .toList(),
               ),
             );
             if (selected != null) setState(() => _category = selected);
@@ -232,7 +230,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
-          label: 'City',
+          label: l10n.city,
           hint: _city,
           readOnly: true,
           prefixIcon: Icons.location_city_outlined,
@@ -247,11 +245,11 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: 'Full address', controller: _addressController, hint: 'Street, neighborhood'),
+        AppTextField(label: l10n.fullAddress, controller: _addressController, hint: l10n.addressHint),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: 'Phone number', controller: _phoneController, hint: '+212 6XX XXX XXX', keyboardType: TextInputType.phone),
+        AppTextField(label: l10n.phoneNumber, controller: _phoneController, hint: l10n.phoneHint, keyboardType: TextInputType.phone),
         const SizedBox(height: AppSpacing.md),
-        Text('Store location', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary)),
+        Text(l10n.storeLocation, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary)),
         const SizedBox(height: AppSpacing.sm),
         ClipRRect(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -267,56 +265,36 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Text(
-          'Tap the map to set your store pin.',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-        ),
+        Text(l10n.tapMapToSetPin, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
       ],
     );
   }
 
-  Widget _buildStep3() {
+  Widget _buildStep3(AppStrings l10n) {
     return Column(
       key: const ValueKey(3),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AppScreenHeader(
-          title: 'Business profile',
-          subtitle: 'Step 3 of 5 — Make your store stand out.',
-        ),
+        AppScreenHeader(title: l10n.sellerStep3Title, subtitle: l10n.sellerStep3Subtitle),
         const SizedBox(height: AppSpacing.xl),
-        AppTextField(label: 'Business description', controller: _descriptionController, hint: 'Tell buyers what makes your business special…', maxLines: 4),
+        AppTextField(label: l10n.businessDescription, controller: _descriptionController, hint: l10n.descriptionHint, maxLines: 4),
         const SizedBox(height: AppSpacing.md),
         Row(
           children: [
-            Expanded(
-              child: _ImagePickerBox(
-                label: 'Business logo',
-                file: _logoImage,
-                onTap: () => _pickImage((f) => _logoImage = f),
-                height: 100,
-              ),
-            ),
+            Expanded(child: _ImagePickerBox(label: l10n.businessLogo, file: _logoImage, onTap: () => _pickImage((f) => _logoImage = f), height: 100)),
             const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: _ImagePickerBox(
-                label: 'Cover photo',
-                file: _coverImage,
-                onTap: () => _pickImage((f) => _coverImage = f),
-                height: 100,
-              ),
-            ),
+            Expanded(child: _ImagePickerBox(label: l10n.coverPhoto, file: _coverImage, onTap: () => _pickImage((f) => _coverImage = f), height: 100)),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Opening hours', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+        Text(l10n.openingHours, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _openDays.entries.map((entry) {
             return FilterChip(
-              label: Text(entry.key),
+              label: Text(l10n.dayLabel(entry.key)),
               selected: entry.value,
               onSelected: (v) => setState(() => _openDays[entry.key] = v),
             );
@@ -325,24 +303,21 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
         const SizedBox(height: AppSpacing.md),
         Row(
           children: [
-            Expanded(child: _TimePickerTile(label: 'Opens', time: _openTime, onPick: (t) => setState(() => _openTime = t))),
+            Expanded(child: _TimePickerTile(label: l10n.opens, time: _openTime, onPick: (t) => setState(() => _openTime = t))),
             const SizedBox(width: AppSpacing.md),
-            Expanded(child: _TimePickerTile(label: 'Closes', time: _closeTime, onPick: (t) => setState(() => _closeTime = t))),
+            Expanded(child: _TimePickerTile(label: l10n.closes, time: _closeTime, onPick: (t) => setState(() => _closeTime = t))),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildStep4() {
+  Widget _buildStep4(AppStrings l10n) {
     return Column(
       key: const ValueKey(4),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AppScreenHeader(
-          title: 'First products & services',
-          subtitle: 'Step 4 of 5 — Add at least one item to your catalog.',
-        ),
+        AppScreenHeader(title: l10n.sellerStep4Title, subtitle: l10n.sellerStep4Subtitle),
         const SizedBox(height: AppSpacing.xl),
         ..._products.asMap().entries.map((entry) {
           final index = entry.key;
@@ -353,23 +328,13 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 children: [
-                  _ImagePickerBox(
-                    label: 'Product image',
-                    file: product.image,
-                    onTap: () => _pickImage((f) => setState(() => product.image = f)),
-                    height: 120,
-                  ),
+                  _ImagePickerBox(label: l10n.productImage, file: product.image, onTap: () => _pickImage((f) => setState(() => product.image = f)), height: 120),
                   const SizedBox(height: AppSpacing.md),
-                  AppTextField(label: 'Name', controller: product.nameController, hint: 'Product or service name'),
+                  AppTextField(label: l10n.name, controller: product.nameController, hint: l10n.productNameHint),
                   const SizedBox(height: AppSpacing.sm),
-                  AppTextField(label: 'Description', controller: product.descriptionController, hint: 'Short description', maxLines: 2),
+                  AppTextField(label: l10n.description, controller: product.descriptionController, hint: l10n.productDescriptionHint, maxLines: 2),
                   const SizedBox(height: AppSpacing.sm),
-                  AppTextField(
-                    label: 'Price (MAD, optional)',
-                    controller: product.priceController,
-                    hint: 'e.g. 49.99',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
+                  AppTextField(label: l10n.priceOptional, controller: product.priceController, hint: l10n.priceHint, keyboardType: const TextInputType.numberWithOptions(decimal: true)),
                   if (_products.length > 1)
                     Align(
                       alignment: Alignment.centerRight,
@@ -378,7 +343,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
                           product.dispose();
                           _products.removeAt(index);
                         }),
-                        child: const Text('Remove', style: TextStyle(color: AppColors.danger)),
+                        child: Text(l10n.remove, style: const TextStyle(color: AppColors.danger)),
                       ),
                     ),
                 ],
@@ -389,30 +354,28 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
         OutlinedButton.icon(
           onPressed: () => setState(() => _products.add(_ProductDraft())),
           icon: const Icon(Icons.add),
-          label: const Text('Add another item'),
+          label: Text(l10n.addAnotherItem),
         ),
       ],
     );
   }
 
-  Widget _buildStep5() {
+  Widget _buildStep5(AppStrings l10n) {
+    final productCount = _products.where((p) => p.nameController.text.isNotEmpty).length;
     return Column(
       key: const ValueKey(5),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AppScreenHeader(
-          title: 'Review & submit',
-          subtitle: 'Step 5 of 5 — Confirm your information before creating your account.',
-        ),
+        AppScreenHeader(title: l10n.sellerStep5Title, subtitle: l10n.sellerStep5Subtitle),
         const SizedBox(height: AppSpacing.xl),
-        _ReviewRow('Business', _businessNameController.text),
-        _ReviewRow('Owner', _ownerNameController.text),
-        _ReviewRow('Email', _emailController.text),
-        _ReviewRow('Category', _category),
-        _ReviewRow('City', _city),
-        _ReviewRow('Address', _addressController.text),
-        _ReviewRow('Phone', _phoneController.text),
-        _ReviewRow('Products', '${_products.where((p) => p.nameController.text.isNotEmpty).length} item(s)'),
+        _ReviewRow(l10n.reviewBusiness, _businessNameController.text),
+        _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
+        _ReviewRow(l10n.email, _emailController.text),
+        _ReviewRow(l10n.reviewCategory, l10n.categoryLabel(_category)),
+        _ReviewRow(l10n.reviewCity, _city),
+        _ReviewRow(l10n.reviewAddress, _addressController.text),
+        _ReviewRow(l10n.reviewPhone, _phoneController.text),
+        _ReviewRow(l10n.reviewProducts, l10n.itemsCount(productCount)),
         const SizedBox(height: AppSpacing.lg),
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -424,12 +387,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
             children: [
               const Icon(Icons.info_outline, color: AppColors.primary),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  'Your business profile will be visible to buyers in $_city once your account is created.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
+              Expanded(child: Text(l10n.sellerVisibilityNote(_city), style: Theme.of(context).textTheme.bodySmall)),
             ],
           ),
         ),
@@ -490,12 +448,12 @@ class _ImagePickerBox extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
                     child: Image.file(File(file!.path), fit: BoxFit.cover),
                   )
-                : const Column(
+                : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add_photo_alternate_outlined, color: AppColors.textSecondary),
-                      SizedBox(height: 4),
-                      Text('Upload', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      const Icon(Icons.add_photo_alternate_outlined, color: AppColors.textSecondary),
+                      const SizedBox(height: 4),
+                      Text(context.l10n.upload, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                     ],
                   ),
           ),
