@@ -9,6 +9,7 @@ import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
+import '../../l10n/strings/app_strings.dart';
 
 class OnboardingWelcomeScreen extends StatefulWidget {
   const OnboardingWelcomeScreen({super.key});
