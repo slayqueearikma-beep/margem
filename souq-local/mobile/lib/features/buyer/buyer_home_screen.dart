@@ -12,6 +12,8 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_logo_placeholder.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../l10n/app_localizations.dart';
+import '../map/map_screen.dart';
+import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
 
 final buyerCityProvider = StateProvider<String>((ref) {
