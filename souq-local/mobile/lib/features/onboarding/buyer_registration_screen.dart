@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/form_widgets.dart';
@@ -51,22 +53,44 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
     }
 
     setState(() => _loading = true);
-    final storage = ref.read(appStorageProvider);
-    if (storage == null) return;
+    try {
+      final auth = ref.read(authServiceProvider);
+      final session = await auth.register(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        accountType: 'buyer',
+        displayName: _nameController.text.trim(),
+      );
 
-    final session = UserSession(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      accountType: AccountType.buyer,
-      city: _city,
-    );
+      final prefs = await ref.read(sharedPreferencesProvider.future);
+      await auth.persistToken(prefs);
 
-    await storage.completeOnboarding();
-    await storage.saveSession(session);
-    ref.read(userSessionProvider.notifier).state = session;
+      final storage = ref.read(appStorageProvider);
+      if (storage == null) return;
 
-    if (!mounted) return;
-    context.go('/buyer/home');
+      final userSession = UserSession(
+        name: session.user.displayName,
+        email: session.user.email,
+        accountType: AccountType.buyer,
+        city: _city,
+      );
+
+      await storage.completeOnboarding();
+      await storage.saveSession(userSession);
+      ref.read(userSessionProvider.notifier).state = userSession;
+      ref.read(authSessionProvider.notifier).state = session;
+
+      if (!mounted) return;
+      context.go('/buyer/home');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override

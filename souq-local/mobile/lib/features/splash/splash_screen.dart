@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/app_storage.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_brand_logo.dart';
 
@@ -42,6 +43,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       if (!mounted) return;
       return _navigateNext();
     }
+
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    await ref.read(authServiceProvider).loadStoredToken(prefs);
 
     if (!storage.isLanguageSelected) {
       context.go('/language');

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
@@ -37,25 +39,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     setState(() => _loading = true);
-    await Future<void>.delayed(const Duration(milliseconds: 600));
+    try {
+      final auth = ref.read(authServiceProvider);
+      final session = await auth.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
-    final storage = ref.read(appStorageProvider);
-    if (storage == null) return;
+      final prefs = await ref.read(sharedPreferencesProvider.future);
+      await auth.persistToken(prefs);
 
-    final existing = storage.getSession();
-    final session = existing ??
-        UserSession(
-          name: l10n.returningUser,
-          email: _emailController.text.trim(),
-          accountType: AccountType.buyer,
-          city: 'Casablanca',
-        );
+      final storage = ref.read(appStorageProvider);
+      if (storage == null) return;
 
-    await storage.saveSession(session);
-    ref.read(userSessionProvider.notifier).state = session;
+      final userSession = UserSession(
+        name: session.user.displayName.isNotEmpty ? session.user.displayName : l10n.returningUser,
+        email: session.user.email,
+        accountType: session.user.isSeller ? AccountType.seller : AccountType.buyer,
+        city: 'Casablanca',
+      );
 
-    if (!mounted) return;
-    context.go(session.accountType == AccountType.buyer ? '/buyer/home' : '/seller/dashboard');
+      await storage.saveSession(userSession);
+      ref.read(userSessionProvider.notifier).state = userSession;
+      ref.read(authSessionProvider.notifier).state = session;
+
+      if (!mounted) return;
+      context.go(session.user.isSeller ? '/seller/dashboard' : '/buyer/home');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.couldNotLoadBusinesses}: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override

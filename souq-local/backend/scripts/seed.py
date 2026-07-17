@@ -1,9 +1,10 @@
 """Seed categories and demo data for local development."""
 
 import asyncio
-import uuid
+from app.auth import new_local_firebase_uid
+from app.services.security import hash_password
 
-from sqlalchemy import select
+DEMO_PASSWORD = "demo1234"
 
 from app.database import SessionLocal, engine
 from app.models import AccountType, Base, Category, SellerProfile, User, WarningZone
@@ -34,8 +35,9 @@ async def seed() -> None:
         if buyer.scalar_one_or_none() is None:
             session.add(
                 User(
-                    firebase_uid="demo-buyer-uid",
+                    firebase_uid=new_local_firebase_uid(),
                     email="buyer@demo.local",
+                    password_hash=hash_password(DEMO_PASSWORD),
                     account_type=AccountType.BUYER,
                     display_name="Demo Buyer",
                 )
@@ -47,8 +49,9 @@ async def seed() -> None:
         seller_user = seller_user_result.scalar_one_or_none()
         if seller_user is None:
             seller_user = User(
-                firebase_uid="demo-seller-uid",
+                firebase_uid=new_local_firebase_uid(),
                 email="seller@demo.local",
+                password_hash=hash_password(DEMO_PASSWORD),
                 account_type=AccountType.SELLER,
                 display_name="Demo Seller",
             )

@@ -1,3 +1,6 @@
+import secrets
+from uuid import UUID
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
@@ -6,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
 from app.models import User
+from app.services.security import decode_access_token
 
 security = HTTPBearer(auto_error=False)
 
@@ -15,7 +19,6 @@ async def get_current_user(
     session: AsyncSession = Depends(get_db),
 ) -> User:
     if settings.auth_dev_bypass:
-        # Dev mode: accept X-Dev-User-Id header or default test user
         result = await session.execute(select(User).limit(1))
         user = result.scalar_one_or_none()
         if user is None:
@@ -28,7 +31,19 @@ async def get_current_user(
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
 
-    firebase_uid = await verify_firebase_token(credentials.credentials)
+    token = credentials.credentials
+
+    # MarGem JWT (email/password accounts)
+    user_id = decode_access_token(token)
+    if user_id is not None:
+        result = await session.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        return user
+
+    # Firebase ID token (mobile Firebase Auth)
+    firebase_uid = await verify_firebase_token(token)
     result = await session.execute(select(User).where(User.firebase_uid == firebase_uid))
     user = result.scalar_one_or_none()
     if user is None:
@@ -73,3 +88,7 @@ async def require_buyer(user: User = Depends(get_current_user)) -> User:
     if user.account_type != AccountType.BUYER:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Buyer account required")
     return user
+
+
+def new_local_firebase_uid() -> str:
+    return f"local-{secrets.token_hex(16)}"

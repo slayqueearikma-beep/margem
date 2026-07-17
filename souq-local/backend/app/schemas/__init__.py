@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class AccountType(str, Enum):
@@ -11,10 +11,22 @@ class AccountType(str, Enum):
 
 
 class UserRegister(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    account_type: AccountType
+    display_name: str = Field(default="", max_length=120)
+
+
+class UserRegisterFirebase(BaseModel):
     firebase_uid: str
-    email: str
+    email: EmailStr
     account_type: AccountType
     display_name: str = ""
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=128)
 
 
 class UserOut(BaseModel):
@@ -26,6 +38,12 @@ class UserOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserOut
 
 
 class CategoryOut(BaseModel):

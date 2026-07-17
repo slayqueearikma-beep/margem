@@ -7,7 +7,10 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/models/auth_models.dart';
+import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
@@ -134,23 +137,77 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
 
   Future<void> _submit() async {
     setState(() => _loading = true);
-    final storage = ref.read(appStorageProvider);
-    if (storage == null) return;
+    try {
+      final auth = ref.read(authServiceProvider);
+      final session = await auth.register(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        accountType: 'seller',
+        displayName: _ownerNameController.text.trim(),
+      );
 
-    final session = UserSession(
-      name: _ownerNameController.text.trim(),
-      email: _emailController.text.trim(),
-      accountType: AccountType.seller,
-      city: _city,
-      businessName: _businessNameController.text.trim(),
-    );
+      final prefs = await ref.read(sharedPreferencesProvider.future);
+      await auth.persistToken(prefs);
 
-    await storage.completeOnboarding();
-    await storage.saveSession(session);
-    ref.read(userSessionProvider.notifier).state = session;
+      final slug = sellerCategorySlugMap[_category] ?? 'food';
+      final categoryId = await apiServiceProvider.categoryIdForSlug(slug);
 
-    if (!mounted) return;
-    context.go('/seller/dashboard');
+      final sellerId = await apiServiceProvider.createSeller(
+        SellerCreatePayload(
+          businessName: _businessNameController.text.trim(),
+          description: _descriptionController.text.trim(),
+          address: _addressController.text.trim(),
+          city: _city,
+          latitude: _location.latitude,
+          longitude: _location.longitude,
+          phone: _phoneController.text.trim(),
+          categoryIds: categoryId != null ? [categoryId] : [],
+        ),
+      );
+
+      for (final product in _products) {
+        final name = product.nameController.text.trim();
+        if (name.isEmpty) continue;
+        final price = double.tryParse(product.priceController.text.trim());
+        await apiServiceProvider.addProduct(
+          sellerId,
+          ProductCreatePayload(
+            name: name,
+            description: product.descriptionController.text.trim(),
+            priceMad: price,
+          ),
+        );
+      }
+
+      final storage = ref.read(appStorageProvider);
+      if (storage == null) return;
+
+      final userSession = UserSession(
+        name: _ownerNameController.text.trim(),
+        email: session.user.email,
+        accountType: AccountType.seller,
+        city: _city,
+        businessName: _businessNameController.text.trim(),
+      );
+
+      await storage.completeOnboarding();
+      await storage.saveSession(userSession);
+      ref.read(userSessionProvider.notifier).state = userSession;
+      ref.read(authSessionProvider.notifier).state = session;
+
+      if (!mounted) return;
+      context.go('/seller/dashboard');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.completeRequiredStep)),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override

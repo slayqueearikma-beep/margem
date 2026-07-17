@@ -1,66 +1,25 @@
-# MarGem — Discover Morocco's Hidden Gems
+# MarGem — Morocco local business marketplace
 
-A mobile marketplace that centralizes local businesses with physical stores across Morocco. Buyers discover nearby shops, products, and services; sellers get an online presence without building their own website.
+Discover Morocco's hidden gems. Buyers find shops and services; sellers get an online presence.
 
-## Architecture
+## Stack
 
-```text
-Flutter (iOS + Android)
-  -> Firebase Auth (JWT)
-  -> FastAPI Backend
-  -> PostgreSQL
-  -> Azure Blob Storage (images)
-  -> Google Maps API (map + directions)
-  -> Firebase Cloud Messaging (notifications)
-  -> Azure Container Apps (hosting)
-```
+| Layer | Technology |
+|-------|------------|
+| Mobile | Flutter, Riverpod, go_router |
+| API | FastAPI, SQLAlchemy, PostgreSQL |
+| Auth | JWT (email/password) + optional Firebase |
+| Cloud | Azure Container Apps, PostgreSQL, Blob Storage, Key Vault |
+| Maps | Google Maps Platform |
 
-## Repository structure
-
-```text
-souq-local/
-├── backend/          # FastAPI API
-├── mobile/           # Flutter app
-├── docs/             # Architecture and API notes
-└── docker-compose.yml
-```
-
-## MVP features
-
-| Area | Features |
-|------|----------|
-| Auth | Register, login, buyer vs seller account type |
-| Sellers | Profile, address, map location, photos, categories |
-| Buyers | Browse by city, search, filter, reviews, directions |
-| Map | Seller pins, category filter, warning zones |
-| Reputation | 1–5 stars; 1 achievement star per 100 five-star reviews |
-
-## Local development
-
-### Backend
+## Quick start (local)
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# Start PostgreSQL (see docker-compose at repo root)
-uvicorn app.main:app --reload --port 8000
+cd souq-local
+docker compose up
 ```
 
-API docs: http://localhost:8000/docs
-
-### Database
-
-```bash
-docker compose up -d postgres
-cd backend && alembic upgrade head
-```
-
-### Mobile
-
-Requires [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.16+.
+In another terminal:
 
 ```bash
 cd mobile
@@ -68,20 +27,34 @@ flutter pub get
 flutter run
 ```
 
-Set API base URL in `mobile/lib/core/config/app_config.dart`.
+**Demo API accounts** (after seed):
+- `buyer@demo.local` / `demo1234`
+- `seller@demo.local` / `demo1234`
 
-## Environment variables
+API docs: http://localhost:8000/docs
 
-See `backend/.env.example` for backend configuration. Mobile uses Firebase config files (not committed) and Google Maps API keys per platform.
+## Production deployment
 
-## Design
+See [.azure/deployment-plan.md](.azure/deployment-plan.md) for Azure setup (~$50–90/month).
 
-Modern, minimal UI inspired by card-based discovery apps:
+## Security features
 
-- Light and dark themes (purple accent in dark mode, orange CTAs)
-- Rounded cards, generous spacing, clear typography hierarchy
-- Screens: Home, Search, Map, Seller profile, Product detail, Reviews, Auth
+- bcrypt password hashing
+- JWT access tokens (7-day expiry, configurable)
+- Rate limiting (120 req/min default)
+- Security headers (HSTS, X-Frame-Options, nosniff)
+- CORS restricted via environment
+- `AUTH_DEV_BYPASS=false` in production
+- Azure Key Vault for secrets
+- PostgreSQL SSL in Azure
 
-## License
+## Project structure
 
-Private — all rights reserved.
+```
+souq-local/
+├── backend/          # FastAPI API + Alembic migrations
+├── mobile/           # Flutter app (MarGem)
+├── infra/            # Azure Bicep templates
+├── .azure/           # Deployment guide
+└── docker-compose.yml
+```
