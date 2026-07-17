@@ -7,26 +7,25 @@
 - Google Maps API key with Maps SDK enabled
 - Firebase project (for auth + FCM in production)
 
-## Google Maps
+## Google Maps (required for map tab)
 
-### Android
-
-Add to `android/app/src/main/AndroidManifest.xml`:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create/select a project → **APIs & Services → Library**
+3. Enable **Maps SDK for Android** (and iOS if needed)
+4. **Credentials → Create credentials → API key**
+5. Replace the placeholder in `android/app/src/main/AndroidManifest.xml`:
 
 ```xml
 <meta-data
     android:name="com.google.android.geo.API_KEY"
-    android:value="YOUR_GOOGLE_MAPS_API_KEY"/>
+    android:value="AIzaSy...your_real_key"/>
 ```
 
-### iOS
+6. Rebuild the app (`flutter run`). A blank/gray map means the key is missing or invalid.
 
-Add to `ios/Runner/AppDelegate.swift` or `Info.plist`:
+**Seller registration:** the map opens on a separate full screen (tap the location row on step 2). Do not embed `GoogleMap` inside scrollable forms — it crashes on Android.
 
-```xml
-<key>GMSApiKey</key>
-<string>YOUR_GOOGLE_MAPS_API_KEY</string>
-```
+**Demo mode:** if the backend API is offline, the map tab shows sample businesses automatically.
 
 ## Run
 
