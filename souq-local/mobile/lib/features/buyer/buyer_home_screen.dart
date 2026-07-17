@@ -78,6 +78,30 @@ class BuyerHomeScreen extends ConsumerWidget {
     return SafeArea(
       child: CustomScrollView(
         slivers: [
+          if (apiServiceProvider.isUsingDemoData)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal, AppSpacing.sm, AppSpacing.screenHorizontal, 0),
+                child: Card(
+                  color: AppColors.warning.withValues(alpha: 0.12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.wifi_off_rounded, color: AppColors.warning, size: 20),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            'Offline demo mode — start the backend at ${AppConfig.apiBaseUrl} for live data.',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal, AppSpacing.md, AppSpacing.screenHorizontal, 0),
@@ -276,7 +300,17 @@ class BuyerHomeScreen extends ConsumerWidget {
               );
             },
             loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-            error: (e, _) => SliverFillRemaining(child: Center(child: Text('${l10n.couldNotLoadBusinesses}\n$e', textAlign: TextAlign.center))),
+            error: (e, _) => SliverFillRemaining(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+                  child: Text(
+                    '${l10n.couldNotLoadBusinesses}\n\nStart the MarGem API on your PC:\ncd souq-local && docker compose up',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),

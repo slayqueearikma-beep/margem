@@ -15,6 +15,12 @@ class AppConfig {
   static bool get hasGoogleMapsApiKey =>
       googleMapsApiKey.isNotEmpty && googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY';
 
+  /// When true (default), show sample businesses if the API is unreachable.
+  static const bool demoFallbackOnError = bool.fromEnvironment(
+    'DEMO_FALLBACK',
+    defaultValue: true,
+  );
+
   static const String appName = 'MarGem';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';
 
