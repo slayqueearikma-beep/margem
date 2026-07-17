@@ -47,7 +47,7 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
     final l10n = context.l10n;
     if (_nameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
-        _passwordController.text.length < 6) {
+        _passwordController.text.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
       return;
     }

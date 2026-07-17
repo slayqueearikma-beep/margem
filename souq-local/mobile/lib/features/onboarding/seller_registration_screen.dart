@@ -102,7 +102,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
         return _businessNameController.text.trim().isNotEmpty &&
             _ownerNameController.text.trim().isNotEmpty &&
             _emailController.text.trim().isNotEmpty &&
-            _passwordController.text.length >= 6;
+            _passwordController.text.length >= 8;
       case 2:
         return _addressController.text.trim().isNotEmpty && _phoneController.text.trim().isNotEmpty;
       case 3:

@@ -221,9 +221,40 @@ class ApiService {
   void _ensureSuccess(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
     throw ApiException(
-      'Request failed (${response.statusCode})',
+      _messageFromErrorResponse(response),
       statusCode: response.statusCode,
     );
+  }
+
+  String _messageFromErrorResponse(http.Response response) {
+    try {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) {
+        final detail = body['detail'];
+        if (detail is String && detail.isNotEmpty) return detail;
+        if (detail is List) {
+          final messages = detail
+              .map((item) {
+                if (item is Map<String, dynamic>) {
+                  final msg = item['msg']?.toString();
+                  if (msg == null || msg.isEmpty) return null;
+                  final loc = item['loc'];
+                  if (loc is List && loc.isNotEmpty) {
+                    return '${loc.last}: $msg';
+                  }
+                  return msg;
+                }
+                return item.toString();
+              })
+              .whereType<String>()
+              .toList();
+          if (messages.isNotEmpty) return messages.join('\n');
+        }
+      }
+    } on Object {
+      // Fall through to generic message.
+    }
+    return 'Request failed (${response.statusCode})';
   }
 }
 

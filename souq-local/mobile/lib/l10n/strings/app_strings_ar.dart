@@ -105,7 +105,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get profilePictureOptional => 'صورة الملف الشخصي (اختياري)';
   @override
-  String get passwordHint => '6 أحرف على الأقل';
+  String get passwordHint => '8 أحرف على الأقل';
   @override
   String get city => 'المدينة';
   @override

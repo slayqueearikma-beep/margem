@@ -105,7 +105,7 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get profilePictureOptional => 'Photo de profil (optionnelle)';
   @override
-  String get passwordHint => 'Minimum 6 caractères';
+  String get passwordHint => 'Minimum 8 caractères';
   @override
   String get city => 'Ville';
   @override
