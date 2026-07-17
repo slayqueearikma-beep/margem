@@ -14,7 +14,9 @@ import '../../l10n/app_localizations.dart';
 import '../../l10n/strings/app_strings.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/form_widgets.dart';
+import '../../core/widgets/map_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
+import '../../core/data/demo_map_data.dart';
 
 class SellerRegistrationScreen extends ConsumerStatefulWidget {
   const SellerRegistrationScreen({super.key});
@@ -39,7 +41,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
   String _city = AppConfig.moroccanCities.first;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
-  LatLng _location = const LatLng(33.5731, -7.5898);
+  LatLng _location = DemoMapData.cityCenter(AppConfig.moroccanCities.first);
 
   // Step 3
   final _descriptionController = TextEditingController();
@@ -241,7 +243,12 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
                 children: AppConfig.moroccanCities.map((c) => ListTile(title: Text(c), onTap: () => Navigator.pop(ctx, c))).toList(),
               ),
             );
-            if (selected != null) setState(() => _city = selected);
+            if (selected != null) {
+              setState(() {
+                _city = selected;
+                _location = DemoMapData.cityCenter(selected);
+              });
+            }
           },
         ),
         const SizedBox(height: AppSpacing.md),
@@ -249,23 +256,12 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
         const SizedBox(height: AppSpacing.md),
         AppTextField(label: l10n.phoneNumber, controller: _phoneController, hint: l10n.phoneHint, keyboardType: TextInputType.phone),
         const SizedBox(height: AppSpacing.md),
-        Text(l10n.storeLocation, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary)),
-        const SizedBox(height: AppSpacing.sm),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-          child: SizedBox(
-            height: 180,
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(target: _location, zoom: 14),
-              markers: {Marker(markerId: const MarkerId('store'), position: _location)},
-              onTap: (pos) => setState(() => _location = pos),
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-            ),
-          ),
+        StoreLocationPickerTile(
+          label: l10n.storeLocation,
+          hint: l10n.tapMapToSetPin,
+          location: _location,
+          onLocationChanged: (pos) => setState(() => _location = pos),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(l10n.tapMapToSetPin, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
       ],
     );
   }
