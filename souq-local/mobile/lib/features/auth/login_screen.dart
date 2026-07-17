@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -9,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/app_brand_logo.dart';
+import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -40,37 +42,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() => _loading = true);
     try {
-      final auth = ref.read(authServiceProvider);
-      final session = await auth.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      await apiServiceProvider.runSubmit(() async {
+        await apiServiceProvider.checkHealth();
 
-      final prefs = await ref.read(sharedPreferencesProvider.future);
-      await auth.persistToken(prefs);
+        final auth = ref.read(authServiceProvider);
+        final session = await auth.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
 
-      final storage = ref.read(appStorageProvider);
-      if (storage == null) return;
+        final prefs = await ref.read(sharedPreferencesProvider.future);
+        await auth.persistToken(prefs);
 
-      final userSession = UserSession(
-        name: session.user.displayName.isNotEmpty ? session.user.displayName : l10n.returningUser,
-        email: session.user.email,
-        accountType: session.user.isSeller ? AccountType.seller : AccountType.buyer,
-        city: 'Casablanca',
-      );
+        final storage = ref.read(appStorageProvider);
+        if (storage == null) {
+          throw ApiException('App storage is not ready. Please restart the app.');
+        }
 
-      await storage.saveSession(userSession);
-      ref.read(userSessionProvider.notifier).state = userSession;
-      ref.read(authSessionProvider.notifier).state = session;
+        final userSession = UserSession(
+          name: session.user.displayName.isNotEmpty ? session.user.displayName : l10n.returningUser,
+          email: session.user.email,
+          accountType: session.user.isSeller ? AccountType.seller : AccountType.buyer,
+          city: 'Casablanca',
+        );
 
-      if (!mounted) return;
-      context.go(session.user.isSeller ? '/seller/dashboard' : '/buyer/home');
+        await storage.saveSession(userSession);
+        ref.read(userSessionProvider.notifier).state = userSession;
+        ref.read(authSessionProvider.notifier).state = session;
+
+        if (!mounted) return;
+        context.go(session.user.isSeller ? '/seller/dashboard' : '/buyer/home');
+      });
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.serverUnreachable)));
+      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -121,6 +129,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
+              Text(
+                'API: ${AppConfig.apiBaseUrl}',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               PrimaryButton(label: l10n.logIn, onPressed: _login, isLoading: _loading),
               const SizedBox(height: AppSpacing.md),
               LinkTextButton(label: l10n.createAccount, onPressed: () => context.go('/onboarding/account-type')),

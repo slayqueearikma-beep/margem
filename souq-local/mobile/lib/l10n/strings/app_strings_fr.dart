@@ -142,6 +142,8 @@ class AppStringsFr extends AppStringsEn {
   String get serverUnreachable =>
       'Impossible de joindre le serveur. Démarrez le backend et, sur un téléphone, définissez API_BASE_URL avec l\'IP de votre PC (ex. http://192.168.1.10:8000).';
   @override
+  String get somethingWentWrong => 'Une erreur est survenue';
+  @override
   String get search => 'Recherche';
   @override
   String get businessKeyword => 'Nom du commerce ou mot-clé';

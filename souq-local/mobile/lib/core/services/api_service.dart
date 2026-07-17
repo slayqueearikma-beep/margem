@@ -22,7 +22,8 @@ class ApiException implements Exception {
 class ApiService {
   ApiService({http.Client? client}) : _client = client ?? http.Client();
 
-  static const _requestTimeout = Duration(seconds: 15);
+  static const _requestTimeout = Duration(seconds: 10);
+  static const _submitTimeout = Duration(seconds: 25);
 
   final http.Client _client;
 
@@ -49,6 +50,11 @@ class ApiService {
     return Uri.parse('${AppConfig.apiBaseUrl}$path').replace(queryParameters: query);
   }
 
+  Future<void> checkHealth() async {
+    final response = await _get(_uri('/health'));
+    _ensureSuccess(response);
+  }
+
   Future<Map<String, dynamic>> postJson(String path, Map<String, dynamic> body, {bool auth = false}) async {
     final response = await _post(
       _uri(path),
@@ -59,28 +65,41 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) async {
-    try {
-      return await _client.get(uri, headers: headers).timeout(_requestTimeout);
-    } on TimeoutException {
-      throw ApiException(_connectionErrorMessage);
-    } on SocketException {
-      throw ApiException(_connectionErrorMessage);
-    }
+  Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return _send(() => _client.get(uri, headers: headers));
   }
 
   Future<http.Response> _post(
     Uri uri, {
     Map<String, String>? headers,
     Object? body,
-  }) async {
+  }) {
+    return _send(() => _client.post(uri, headers: headers, body: body));
+  }
+
+  Future<http.Response> _send(Future<http.Response> Function() request) async {
     try {
-      return await _client.post(uri, headers: headers, body: body).timeout(_requestTimeout);
+      return await request().timeout(_requestTimeout);
     } on TimeoutException {
       throw ApiException(_connectionErrorMessage);
     } on SocketException {
       throw ApiException(_connectionErrorMessage);
+    } on http.ClientException {
+      throw ApiException(_connectionErrorMessage);
+    } on ApiException {
+      rethrow;
+    } on Object {
+      throw ApiException(_connectionErrorMessage);
     }
+  }
+
+  Future<T> runSubmit<T>(Future<T> Function() action) {
+    return action().timeout(
+      _submitTimeout,
+      onTimeout: () => throw ApiException(
+        'Request timed out after ${_submitTimeout.inSeconds}s.\n$_connectionErrorMessage',
+      ),
+    );
   }
 
   String get _connectionErrorMessage =>

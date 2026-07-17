@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
@@ -54,40 +56,49 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
 
     setState(() => _loading = true);
     try {
-      final auth = ref.read(authServiceProvider);
-      final session = await auth.register(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        accountType: 'buyer',
-        displayName: _nameController.text.trim(),
-      );
+      await apiServiceProvider.runSubmit(() async {
+        await apiServiceProvider.checkHealth();
 
-      final prefs = await ref.read(sharedPreferencesProvider.future);
-      await auth.persistToken(prefs);
+        final auth = ref.read(authServiceProvider);
+        final session = await auth.register(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          accountType: 'buyer',
+          displayName: _nameController.text.trim(),
+        );
 
-      final storage = ref.read(appStorageProvider);
-      if (storage == null) return;
+        final prefs = await ref.read(sharedPreferencesProvider.future);
+        await auth.persistToken(prefs);
 
-      final userSession = UserSession(
-        name: session.user.displayName,
-        email: session.user.email,
-        accountType: AccountType.buyer,
-        city: _city,
-      );
+        final storage = ref.read(appStorageProvider);
+        if (storage == null) {
+          throw ApiException('App storage is not ready. Please restart the app.');
+        }
 
-      await storage.completeOnboarding();
-      await storage.saveSession(userSession);
-      ref.read(userSessionProvider.notifier).state = userSession;
-      ref.read(authSessionProvider.notifier).state = session;
+        final userSession = UserSession(
+          name: session.user.displayName,
+          email: session.user.email,
+          accountType: AccountType.buyer,
+          city: _city,
+        );
 
-      if (!mounted) return;
-      context.go('/buyer/home');
+        await storage.completeOnboarding();
+        await storage.saveSession(userSession);
+        ref.read(userSessionProvider.notifier).state = userSession;
+        ref.read(authSessionProvider.notifier).state = session;
+
+        if (!mounted) return;
+        context.go('/buyer/home');
+      });
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
+    } on TimeoutException {
+      if (!mounted) return;
+      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.serverUnreachable)));
+      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -157,7 +168,18 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
           ),
         ],
       ),
-      bottom: PrimaryButton(label: l10n.createAccount, onPressed: _submit, isLoading: _loading),
+      bottom: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'API: ${AppConfig.apiBaseUrl}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          PrimaryButton(label: l10n.createAccount, onPressed: _submit, isLoading: _loading),
+        ],
+      ),
     );
   }
 }

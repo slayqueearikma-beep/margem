@@ -142,6 +142,8 @@ class AppStringsAr extends AppStringsEn {
   String get serverUnreachable =>
       'تعذر الاتصال بالخادم. شغّل الخادم الخلفي وعلى الهاتف عيّن API_BASE_URL بعنوان IP لجهازك (مثل http://192.168.1.10:8000).';
   @override
+  String get somethingWentWrong => 'حدث خطأ ما';
+  @override
   String get search => 'بحث';
   @override
   String get businessKeyword => 'اسم المحل أو كلمة مفتاحية';

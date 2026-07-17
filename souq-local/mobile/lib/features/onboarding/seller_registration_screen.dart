@@ -16,6 +16,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/strings/app_strings.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
@@ -137,72 +138,79 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
 
   Future<void> _submit() async {
     setState(() => _loading = true);
+    final l10n = context.l10n;
     try {
-      final auth = ref.read(authServiceProvider);
-      final session = await auth.register(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        accountType: 'seller',
-        displayName: _ownerNameController.text.trim(),
-      );
+      await apiServiceProvider.runSubmit(() async {
+        await apiServiceProvider.checkHealth();
 
-      final prefs = await ref.read(sharedPreferencesProvider.future);
-      await auth.persistToken(prefs);
+        final auth = ref.read(authServiceProvider);
+        final session = await auth.register(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          accountType: 'seller',
+          displayName: _ownerNameController.text.trim(),
+        );
 
-      final slug = sellerCategorySlugMap[_category] ?? 'food';
-      final categoryId = await apiServiceProvider.categoryIdForSlug(slug);
+        final prefs = await ref.read(sharedPreferencesProvider.future);
+        await auth.persistToken(prefs);
 
-      final sellerId = await apiServiceProvider.createSeller(
-        SellerCreatePayload(
-          businessName: _businessNameController.text.trim(),
-          description: _descriptionController.text.trim(),
-          address: _addressController.text.trim(),
-          city: _city,
-          latitude: _location.latitude,
-          longitude: _location.longitude,
-          phone: _phoneController.text.trim(),
-          categoryIds: categoryId != null ? [categoryId] : [],
-        ),
-      );
+        final slug = sellerCategorySlugMap[_category] ?? 'food';
+        final categoryId = await apiServiceProvider.categoryIdForSlug(slug);
 
-      for (final product in _products) {
-        final name = product.nameController.text.trim();
-        if (name.isEmpty) continue;
-        final price = double.tryParse(product.priceController.text.trim());
-        await apiServiceProvider.addProduct(
-          sellerId,
-          ProductCreatePayload(
-            name: name,
-            description: product.descriptionController.text.trim(),
-            priceMad: price,
+        final sellerId = await apiServiceProvider.createSeller(
+          SellerCreatePayload(
+            businessName: _businessNameController.text.trim(),
+            description: _descriptionController.text.trim(),
+            address: _addressController.text.trim(),
+            city: _city,
+            latitude: _location.latitude,
+            longitude: _location.longitude,
+            phone: _phoneController.text.trim(),
+            categoryIds: categoryId != null ? [categoryId] : [],
           ),
         );
-      }
 
-      final storage = ref.read(appStorageProvider);
-      if (storage == null) return;
+        for (final product in _products) {
+          final name = product.nameController.text.trim();
+          if (name.isEmpty) continue;
+          final price = double.tryParse(product.priceController.text.trim());
+          await apiServiceProvider.addProduct(
+            sellerId,
+            ProductCreatePayload(
+              name: name,
+              description: product.descriptionController.text.trim(),
+              priceMad: price,
+            ),
+          );
+        }
 
-      final userSession = UserSession(
-        name: _ownerNameController.text.trim(),
-        email: session.user.email,
-        accountType: AccountType.seller,
-        city: _city,
-        businessName: _businessNameController.text.trim(),
-      );
+        final storage = ref.read(appStorageProvider);
+        if (storage == null) {
+          throw ApiException('App storage is not ready. Please restart the app.');
+        }
 
-      await storage.completeOnboarding();
-      await storage.saveSession(userSession);
-      ref.read(userSessionProvider.notifier).state = userSession;
-      ref.read(authSessionProvider.notifier).state = session;
+        final userSession = UserSession(
+          name: _ownerNameController.text.trim(),
+          email: session.user.email,
+          accountType: AccountType.seller,
+          city: _city,
+          businessName: _businessNameController.text.trim(),
+        );
 
-      if (!mounted) return;
-      context.go('/seller/dashboard');
+        await storage.completeOnboarding();
+        await storage.saveSession(userSession);
+        ref.read(userSessionProvider.notifier).state = userSession;
+        ref.read(authSessionProvider.notifier).state = session;
+
+        if (!mounted) return;
+        context.go('/seller/dashboard');
+      });
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.serverUnreachable)));
+      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -222,6 +230,12 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       ),
       bottom: Column(
         children: [
+          Text(
+            'API: ${AppConfig.apiBaseUrl}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           PrimaryButton(
             label: _step == _totalSteps ? l10n.submitCreateAccount : l10n.next,
             onPressed: _next,
