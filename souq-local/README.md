@@ -54,7 +54,9 @@ See [.azure/deployment-plan.md](.azure/deployment-plan.md) for Azure setup (~$50
 souq-local/
 ├── backend/          # FastAPI API + Alembic migrations
 ├── mobile/           # Flutter app (MarGem)
-├── infra/            # Azure Bicep templates
+├── infra/
+│   ├── terraform/    # Terraform (recommended)
+│   └── main.bicep    # Bicep alternative
 ├── .azure/           # Deployment guide
 └── docker-compose.yml
 ```
