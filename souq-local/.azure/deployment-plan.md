@@ -1,4 +1,4 @@
-# MarGem — Azure deployment plan
+# MarGem — Azure deployment plan (Terraform)
 
 ## Architecture
 
@@ -8,59 +8,68 @@
 | Database | PostgreSQL Flexible Server | Users, sellers, reviews |
 | Images | Blob Storage | Product/seller photos |
 | Secrets | Key Vault | JWT, DB password, storage keys |
+| Registry | Container Registry | API Docker images |
 
-Estimated cost: **~$50–90 USD/month** at launch (Burstable DB + scale-to-zero API).
+Estimated cost: **~$50–90 USD/month** at launch.
 
 ## Prerequisites
 
+- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
 - Docker (to build API image)
-- Azure subscription
 
-## 1. Create resource group
+## 1. Login to Azure
 
 ```bash
 az login
-az group create --name rg-margem-prod --location westeurope
 ```
 
-## 2. Deploy infrastructure
+## 2. Deploy with Terraform
 
 ```bash
-export MARGEM_PG_PASSWORD='your-strong-postgres-password'
-export MARGEM_JWT_SECRET='your-32-char-minimum-jwt-secret'
+cd souq-local/infra/terraform
 
-az deployment group create \
-  --resource-group rg-margem-prod \
-  --template-file infra/main.bicep \
-  --parameters infra/main.bicepparam \
-  --parameters postgresAdminPassword="$MARGEM_PG_PASSWORD" \
-               jwtSecretKey="$MARGEM_JWT_SECRET"
+cp terraform.tfvars.example terraform.tfvars
 ```
 
-Note the `apiUrl` output — this is your production API base URL.
+Edit `terraform.tfvars` and set:
+- `postgres_admin_password` — strong password
+- `jwt_secret_key` — at least 32 random characters
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
+Save the outputs:
+```bash
+terraform output api_url
+terraform output postgres_host
+```
 
 ## 3. Build and push API container
 
 ```bash
-# Create Azure Container Registry (one time)
-az acr create --resource-group rg-margem-prod --name margemregistry --sku Basic
+ACR=$(terraform output -raw container_registry_login_server)
+RG=$(terraform output -raw resource_group_name)
 
-cd backend
+az acr login --name margemregistry
+cd ../../backend
 az acr build --registry margemregistry --image margem-api:1.0.0 .
 
-# Update Container App image
 az containerapp update \
   --name margem-prod-api \
-  --resource-group rg-margem-prod \
-  --image margemregistry.azurecr.io/margem-api:1.0.0
+  --resource-group "$RG" \
+  --image "${ACR}/margem-api:1.0.0"
 ```
 
 ## 4. Run database migrations
 
 ```bash
-# From your machine with DATABASE_URL pointing to Azure PostgreSQL
-cd backend
+export DATABASE_URL="postgresql+asyncpg://margemadmin:YOUR_PASSWORD@$(terraform output -raw postgres_host):5432/margem?ssl=require"
+
+cd ../../backend
 pip install -r requirements.txt
 alembic upgrade head
 python scripts/seed.py
@@ -69,19 +78,20 @@ python scripts/seed.py
 ## 5. Configure mobile app
 
 ```bash
-flutter run --dart-define=API_BASE_URL=https://YOUR-API-URL \
-           --dart-define=DEMO_FALLBACK=false
+flutter run \
+  --dart-define=API_BASE_URL=$(terraform output -raw api_url) \
+  --dart-define=DEMO_FALLBACK=false
 ```
 
 ## 6. Security checklist (production)
 
-- [ ] `AUTH_DEV_BYPASS=false`
-- [ ] Strong `JWT_SECRET_KEY` in Key Vault
-- [ ] PostgreSQL firewall: restrict to Container Apps outbound IPs
-- [ ] CORS: set exact app origins (not `*`)
+- [ ] `AUTH_DEV_BYPASS=false` (set by Terraform)
+- [ ] Strong `jwt_secret_key` in `terraform.tfvars`
+- [ ] PostgreSQL firewall: restrict beyond Azure services if needed
+- [ ] CORS: set exact app origins in `terraform.tfvars`
 - [ ] Google Maps API key restricted by package name
-- [ ] Enable Azure Monitor / Application Insights
-- [ ] TLS only on Container Apps ingress (default)
+- [ ] Enable Application Insights (optional add-on)
+- [ ] Store `terraform.tfvars` securely — never commit it
 
 ## Local development (full stack)
 
@@ -94,3 +104,7 @@ API: http://localhost:8000
 Demo accounts after seed:
 - buyer@demo.local / demo1234
 - seller@demo.local / demo1234
+
+## Alternative: Bicep
+
+Bicep templates remain in `infra/main.bicep` if you prefer ARM over Terraform.
