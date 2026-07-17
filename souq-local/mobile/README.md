@@ -55,6 +55,45 @@ ndkVersion = "27.0.12077973"
 
 Install NDK 27 in Android Studio → SDK Manager → SDK Tools → NDK (Side by side).
 
+## Backend API (live data)
+
+The app calls `http://10.0.2.2:8000` on the **Android emulator** (your PC's localhost). If the API is not running, the app shows **demo businesses** automatically.
+
+### Start the backend
+
+From the repo root (`souq-local/`):
+
+```bash
+docker compose up
+```
+
+Or without Docker:
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Then run the app:
+
+```bash
+cd mobile
+flutter run
+```
+
+**Physical phone:** use your PC's LAN IP instead of `10.0.2.2`:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.XX:8000
+```
+
+Disable demo fallback (show errors instead):
+
+```bash
+flutter run --dart-define=DEMO_FALLBACK=false
+```
+
 ## Firebase (production auth)
 
 1. Create a Firebase project
