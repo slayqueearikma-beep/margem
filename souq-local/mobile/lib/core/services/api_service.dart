@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http';
 
@@ -19,6 +21,8 @@ class ApiException implements Exception {
 
 class ApiService {
   ApiService({http.Client? client}) : _client = client ?? http.Client();
+
+  static const _requestTimeout = Duration(seconds: 15);
 
   final http.Client _client;
 
@@ -46,7 +50,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> postJson(String path, Map<String, dynamic> body, {bool auth = false}) async {
-    final response = await _client.post(
+    final response = await _post(
       _uri(path),
       headers: _jsonHeaders(auth: auth),
       body: jsonEncode(body),
@@ -54,6 +58,35 @@ class ApiService {
     _ensureSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
+
+  Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) async {
+    try {
+      return await _client.get(uri, headers: headers).timeout(_requestTimeout);
+    } on TimeoutException {
+      throw ApiException(_connectionErrorMessage);
+    } on SocketException {
+      throw ApiException(_connectionErrorMessage);
+    }
+  }
+
+  Future<http.Response> _post(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    try {
+      return await _client.post(uri, headers: headers, body: body).timeout(_requestTimeout);
+    } on TimeoutException {
+      throw ApiException(_connectionErrorMessage);
+    } on SocketException {
+      throw ApiException(_connectionErrorMessage);
+    }
+  }
+
+  String get _connectionErrorMessage =>
+      'Cannot reach the API at ${AppConfig.apiBaseUrl}. '
+      'Start the backend (docker compose up) and, on a physical phone, '
+      'run with --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000';
 
   Future<String> createSeller(SellerCreatePayload payload) async {
     final data = await postJson('/sellers', payload.toJson(), auth: true);
@@ -84,7 +117,7 @@ class ApiService {
         if (category != null && category.isNotEmpty) params['category'] = category;
         if (query != null && query.isNotEmpty) params['q'] = query;
 
-        final response = await _client.get(_uri('/sellers', params.isEmpty ? null : params), headers: _authHeaders);
+        final response = await _get(_uri('/sellers', params.isEmpty ? null : params), headers: _authHeaders);
         _ensureSuccess(response);
         final data = jsonDecode(response.body) as List<dynamic>;
         return data.map((e) => SellerModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -96,7 +129,7 @@ class ApiService {
   Future<SellerModel> fetchSeller(String id) async {
     return _withDemoFallback(
       () async {
-        final response = await _client.get(_uri('/sellers/$id'));
+        final response = await _get(_uri('/sellers/$id'));
         _ensureSuccess(response);
         return SellerModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
       },
@@ -115,7 +148,7 @@ class ApiService {
         if (city != null && city.isNotEmpty) params['city'] = city;
         if (category != null && category.isNotEmpty) params['category'] = category;
 
-        final response = await _client.get(_uri('/sellers/map', params.isEmpty ? null : params));
+        final response = await _get(_uri('/sellers/map', params.isEmpty ? null : params));
         _ensureSuccess(response);
         final data = jsonDecode(response.body) as List<dynamic>;
         return data.map((e) => MapPinModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -127,7 +160,7 @@ class ApiService {
   Future<List<CategoryModel>> fetchCategories() async {
     return _withDemoFallback(
       () async {
-        final response = await _client.get(_uri('/categories'));
+        final response = await _get(_uri('/categories'));
         _ensureSuccess(response);
         final data = jsonDecode(response.body) as List<dynamic>;
         return data.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -140,7 +173,7 @@ class ApiService {
     return _withDemoFallback(
       () async {
         final params = city != null ? {'city': city} : null;
-        final response = await _client.get(_uri('/warning-zones', params));
+        final response = await _get(_uri('/warning-zones', params));
         _ensureSuccess(response);
         final data = jsonDecode(response.body) as List<dynamic>;
         return data.map((e) => WarningZoneModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -152,7 +185,7 @@ class ApiService {
   Future<List<ReviewModel>> fetchReviews(String sellerId) async {
     return _withDemoFallback(
       () async {
-        final response = await _client.get(_uri('/sellers/$sellerId/reviews'));
+        final response = await _get(_uri('/sellers/$sellerId/reviews'));
         _ensureSuccess(response);
         final data = jsonDecode(response.body) as List<dynamic>;
         return data.map((e) => ReviewModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -162,7 +195,7 @@ class ApiService {
   }
 
   Future<void> submitReview(String sellerId, {required int rating, String comment = ''}) async {
-    final response = await _client.post(
+    final response = await _post(
       _uri('/sellers/$sellerId/reviews'),
       headers: _jsonHeaders(auth: true),
       body: jsonEncode({'rating': rating, 'comment': comment}),

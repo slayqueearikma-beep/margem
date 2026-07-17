@@ -1,5 +1,8 @@
 /// App configuration — update for your environment.
 class AppConfig {
+  /// Backend URL. Defaults to Android emulator loopback (10.0.2.2).
+  /// On a physical phone, use your PC's LAN IP:
+  /// `flutter run --dart-define=API_BASE_URL=http://192.168.x.x:8000`
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:8000',

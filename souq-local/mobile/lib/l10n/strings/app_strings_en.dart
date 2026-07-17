@@ -138,6 +138,9 @@ class AppStringsEn extends AppStrings {
   @override
   String get couldNotLoadBusinesses => 'Could not load businesses';
   @override
+  String get serverUnreachable =>
+      'Cannot reach the server. Start the backend and, on a physical phone, set API_BASE_URL to your PC IP (e.g. http://192.168.1.10:8000).';
+  @override
   String get search => 'Search';
   @override
   String get businessKeyword => 'Business name or keyword';

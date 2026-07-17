@@ -202,9 +202,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.completeRequiredStep)),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.serverUnreachable)));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
