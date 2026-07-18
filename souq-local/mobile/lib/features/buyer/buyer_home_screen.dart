@@ -39,18 +39,21 @@ class BuyerHomeShell extends ConsumerStatefulWidget {
 class _BuyerHomeShellState extends ConsumerState<BuyerHomeShell> {
   int _index = 0;
 
+  Widget _pageForIndex(int index) {
+    return switch (index) {
+      0 => const BuyerHomeScreen(),
+      1 => const SearchScreen(),
+      2 => const MapScreen(),
+      _ => const _BuyerProfileTab(),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final pages = [
-      const BuyerHomeScreen(),
-      const SearchScreen(),
-      const MapScreen(),
-      const _BuyerProfileTab(),
-    ];
 
     return Scaffold(
-      body: IndexedStack(index: _index, children: pages),
+      body: _pageForIndex(_index),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

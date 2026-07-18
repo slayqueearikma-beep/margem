@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +8,7 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 
@@ -81,12 +80,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
         return Stack(
           children: [
-            GoogleMap(
-              initialCameraPosition: CameraPosition(target: initial, zoom: 13),
+            SafeGoogleMap(
+              initialTarget: initial,
+              zoom: 13,
               markers: {...sellerMarkers, ...warningMarkers},
-              myLocationButtonEnabled: true,
               myLocationEnabled: true,
-              gestureRecognizers: {Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer())},
             ),
             Positioned(
               top: MediaQuery.of(context).padding.top + 12,

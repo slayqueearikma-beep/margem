@@ -56,15 +56,13 @@ class _MapLocationPickerPageState extends State<MapLocationPickerPage> {
           ),
         ],
       ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(target: _position, zoom: 14),
+      body: SafeGoogleMap(
+        initialTarget: _position,
+        zoom: 14,
         markers: {
           Marker(markerId: const MarkerId('pick'), position: _position),
         },
         onTap: (pos) => setState(() => _position = pos),
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: true,
-        gestureRecognizers: {Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer())},
       ),
     );
   }
@@ -78,6 +76,7 @@ class SafeGoogleMap extends StatelessWidget {
     this.zoom = 13,
     this.myLocationEnabled = false,
     this.onMapCreated,
+    this.onTap,
   });
 
   final LatLng initialTarget;
@@ -85,6 +84,7 @@ class SafeGoogleMap extends StatelessWidget {
   final double zoom;
   final bool myLocationEnabled;
   final void Function(GoogleMapController)? onMapCreated;
+  final void Function(LatLng)? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +101,7 @@ class SafeGoogleMap extends StatelessWidget {
       myLocationButtonEnabled: myLocationEnabled,
       myLocationEnabled: myLocationEnabled,
       onMapCreated: onMapCreated,
+      onTap: onTap,
       gestureRecognizers: {Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer())},
     );
   }
