@@ -7,7 +7,7 @@ $TfDir = Join-Path $Root "infra\terraform-storage"
 $TfVars = Join-Path $TfDir "terraform.tfvars"
 $Example = Join-Path $TfDir "terraform.tfvars.example"
 $EnvHome = Join-Path $Root ".env.home"
-$EnvExample = Join-Path $Root ".env.home.example"
+$EnvExample = Join-Path $Root "env.home.example"
 
 Write-Host ""
 Write-Host "=== MarGem — Azure Blob only (~`$1-3/mo) ===" -ForegroundColor Cyan
