@@ -2,6 +2,26 @@
 
 Deploy the API to Azure with PostgreSQL, Key Vault, Blob Storage, and Container Apps. **No demo users or businesses are seeded** — you create real accounts through the app.
 
+## Monthly Azure subscription rotation
+
+If you use **sub1 for month 1**, then **sub2 when sub1’s budget hits $0**, and so on:
+
+1. See **[infra/terraform/subscriptions/MONTHLY-ROTATION.md](infra/terraform/subscriptions/MONTHLY-ROTATION.md)** for the full flow (backup → destroy old → deploy new → rebuild mobile).
+2. Use the helper scripts:
+
+```powershell
+cd souq-local\infra\terraform
+
+# Month 1
+.\scripts\switch-subscription.ps1 -Sub 1
+
+# When credits on sub1 are gone
+.\scripts\destroy-subscription.ps1 -Sub 1
+.\scripts\switch-subscription.ps1 -Sub 2
+```
+
+**Important:** Destroy the old subscription’s stack when you rotate, or you may keep getting charged. The API URL changes each month unless you add a custom domain.
+
 ## Prerequisites
 
 - One or more Azure subscriptions
@@ -17,14 +37,14 @@ az account list --output table
 
 ## 1. Configure secrets
 
+**Monthly rotation:** use `subscriptions/sub1.tfvars`, `sub2.tfvars`, … — not a single `terraform.tfvars`. See `subscriptions/MONTHLY-ROTATION.md`.
+
 ```bash
 cd souq-local/infra/terraform
-cp terraform.tfvars.example terraform.tfvars
+cp subscriptions/sub1.tfvars.example subscriptions/sub1.tfvars
 ```
 
-**Multiple subscriptions:** copy `subscriptions/sub1.tfvars.example` → `subscriptions/sub1.tfvars` (and `sub2` for a second subscription). Use `-var-file=subscriptions/sub1.tfvars` instead of a single `terraform.tfvars` when applying.
-
-Edit your tfvars file(s):
+Edit your tfvars file for the **current month**:
 
 - `subscription_id` — Azure subscription GUID to deploy into
 - `subscription_alias` — short label (`sub1`, `sub2`, …) used in resource names
@@ -35,23 +55,19 @@ Edit your tfvars file(s):
 
 ## 2. Provision Azure infrastructure
 
-```bash
-# Single subscription (terraform.tfvars)
-terraform init
-terraform plan
-terraform apply
+```powershell
+# Recommended — month 1
+.\scripts\switch-subscription.ps1 -Sub 1
+```
 
-# Or per-subscription with isolated state
+Or manually:
+
+```bash
+terraform init
 terraform apply -state=terraform-sub1.tfstate -var-file=subscriptions/sub1.tfvars
 ```
 
-When the first subscription's credits are used up, deploy to a second subscription without touching the first stack:
-
-```bash
-terraform apply -state=terraform-sub2.tfstate -var-file=subscriptions/sub2.tfvars
-```
-
-See `infra/terraform/README.md` for workspaces and remote state options.
+When sub1’s budget is **$0**, destroy it and deploy sub2 (see MONTHLY-ROTATION.md).
 
 This creates:
 

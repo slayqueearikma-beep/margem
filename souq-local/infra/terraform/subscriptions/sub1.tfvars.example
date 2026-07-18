@@ -1,4 +1,5 @@
-# First Azure subscription (e.g. free credits / student account)
+# Month 1 — first Azure subscription (free credits / student account)
+# When budget hits $0: destroy sub1, then deploy sub2 (see MONTHLY-ROTATION.md)
 # Copy to sub1.tfvars and fill in secrets — never commit sub1.tfvars
 
 subscription_id    = "00000000-0000-0000-0000-000000000001"

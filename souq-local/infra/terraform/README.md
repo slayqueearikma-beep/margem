@@ -13,162 +13,113 @@ Deploys the full MarGem backend stack on Azure:
 
 Estimated cost: **~$50–90 USD/month** at launch.
 
+## Monthly subscription rotation (most common)
+
+If you have **multiple Azure subscriptions** (e.g. free credits that run out each month), use **one at a time**:
+
+1. **Month 1** — deploy on `sub1`
+2. Budget hits **$0** — **destroy** `sub1`, deploy on `sub2`
+3. Repeat with `sub3`, `sub4`, …
+
+You only run **one** stack at a time. Full walkthrough: **[subscriptions/MONTHLY-ROTATION.md](subscriptions/MONTHLY-ROTATION.md)**
+
+**Windows (PowerShell):**
+
+```powershell
+cd souq-local\infra\terraform
+
+# Month 1
+.\scripts\switch-subscription.ps1 -Sub 1
+
+# When sub1 credits are gone
+.\scripts\destroy-subscription.ps1 -Sub 1
+.\scripts\switch-subscription.ps1 -Sub 2
+```
+
+**Bash:**
+
+```bash
+./scripts/switch-subscription.sh 1
+./scripts/destroy-subscription.sh 1
+./scripts/switch-subscription.sh 2
+```
+
+Each month gets its own tfvars (`subscriptions/sub1.tfvars`, `sub2.tfvars`, …) and state file (`terraform-sub1.tfstate`, …).
+
 ## Prerequisites
 
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
-- One or more Azure subscriptions
+- One or more Azure subscriptions (rotated month by month)
 
-## Quick deploy (single subscription)
+## Quick deploy (single subscription, no rotation)
 
 ```bash
 az login
-
-# List subscriptions and copy the ID you want to use
 az account list --output table
 
 cd souq-local/infra/terraform
-
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars — set subscription_id, postgres_admin_password, jwt_secret_key
+# Edit subscription_id, postgres_admin_password, jwt_secret_key
 
 terraform init
-terraform plan
 terraform apply
 ```
 
-Note the `api_url` output after apply.
-
-## Switching between subscriptions
-
-Each Azure subscription gets its **own isolated stack** with unique names (resource group, ACR, Key Vault, etc.). Use a different `subscription_id` and `subscription_alias` per subscription.
-
-### 1. Create per-subscription variable files
+## Per-subscription config files
 
 ```bash
 cp subscriptions/sub1.tfvars.example subscriptions/sub1.tfvars
 cp subscriptions/sub2.tfvars.example subscriptions/sub2.tfvars
 ```
 
-Edit each file:
-
-| Field | sub1 | sub2 |
-|-------|------|------|
-| `subscription_id` | Your first subscription GUID | Your second subscription GUID |
+| Field | sub1 (month 1) | sub2 (month 2) |
+|-------|----------------|----------------|
+| `subscription_id` | First subscription GUID | Second subscription GUID |
 | `subscription_alias` | `sub1` | `sub2` |
-| Secrets | Unique passwords per environment | Unique passwords per environment |
 
-Resource names are derived automatically, e.g. `rg-margem-prod-sub1` vs `rg-margem-prod-sub2`, and ACR `margemregsub1` vs `margemregsub2`.
+Resource names include the alias (`rg-margem-prod-sub1`, `margemregsub2`, …) so each month’s stack is unique in Azure.
 
-### 2. Keep separate Terraform state per subscription
-
-**Option A — separate state files (simplest, local)**
+### Separate state per month
 
 ```bash
-# Deploy to subscription 1
 terraform apply -state=terraform-sub1.tfstate -var-file=subscriptions/sub1.tfvars
-
-# When credits run out, deploy to subscription 2
 terraform apply -state=terraform-sub2.tfstate -var-file=subscriptions/sub2.tfvars
 ```
 
-**Option B — Terraform workspaces**
-
-```bash
-terraform workspace new sub1
-terraform apply -var-file=subscriptions/sub1.tfvars
-
-terraform workspace new sub2
-terraform apply -var-file=subscriptions/sub2.tfvars
-
-# Switch back to manage sub1
-terraform workspace select sub1
-```
-
-**Option C — remote state in Azure Storage (teams)**
-
-```bash
-cp backends/remote-sub1.backend.hcl.example backends/remote-sub1.backend.hcl
-cp backends/remote-sub2.backend.hcl.example backends/remote-sub2.backend.hcl
-# Edit both files — use a different `key` per subscription
-
-terraform init -reconfigure -backend-config=backends/remote-sub1.backend.hcl
-terraform apply -var-file=subscriptions/sub1.tfvars
-
-terraform init -reconfigure -backend-config=backends/remote-sub2.backend.hcl
-terraform apply -var-file=subscriptions/sub2.tfvars
-```
-
-### 3. Verify the active Azure CLI account (optional)
-
-Terraform always targets `subscription_id` from your tfvars file. You can still align the CLI for `az` commands:
-
-```bash
-az account set --subscription "00000000-0000-0000-0000-000000000001"
-az account show --output table
-```
-
-### 4. Point the mobile app at the new API
-
-After switching subscriptions, rebuild the app with the new API URL:
-
-```bash
-flutter build apk \
-  --dart-define=PRODUCTION=true \
-  --dart-define=API_BASE_URL=$(terraform output -raw api_url)
-```
-
-Run `terraform output` in the same state/workspace you used for that subscription.
+Remote state and workspaces are optional — see [MONTHLY-ROTATION.md](subscriptions/MONTHLY-ROTATION.md).
 
 ## Build and deploy API image
 
 ```bash
-# If ACR was created (default)
 ACR=$(terraform output -raw container_registry_login_server)
 ACR_NAME=$(terraform output -raw acr_name)
 RG=$(terraform output -raw resource_group_name)
-API_APP=$(terraform output -raw api_url | sed 's|https://||')
 
 az acr login --name "$ACR_NAME"
 cd ../../backend
 az acr build --registry "$ACR_NAME" --image margem-api:1.0.0 .
-
-# Update Container App to use ACR image
-az containerapp update \
-  --name "$(echo $API_APP | cut -d. -f1)" \
-  --resource-group "$RG" \
-  --image "${ACR}/margem-api:1.0.0"
 ```
 
-Or set `api_image` in your tfvars before `terraform apply`.
+Set `api_image` in your active month’s tfvars, then `terraform apply` again.
 
-## Database migrations
+## Mobile app after a rotation
 
-Migrations run automatically on container start. For manual runs:
-
-```bash
-export DATABASE_URL="postgresql+asyncpg://margemadmin:YOUR_PASSWORD@$(terraform output -raw postgres_host):5432/margem?ssl=require"
-
-cd ../../backend
-pip install -r requirements.txt
-alembic upgrade head
-```
-
-## Mobile app
+The API URL changes each month. Rebuild with the new URL:
 
 ```bash
-flutter run \
+flutter build apk \
   --dart-define=PRODUCTION=true \
-  --dart-define=API_BASE_URL=$(cd infra/terraform && terraform output -raw api_url)
+  --dart-define=API_BASE_URL=$(terraform output -state=terraform-sub2.tfstate -raw api_url)
 ```
 
-## Destroy (careful)
-
-Destroy only the stack for the subscription you are managing (match `-state` or workspace):
+## Destroy (when credits run out)
 
 ```bash
 terraform destroy -state=terraform-sub1.tfstate -var-file=subscriptions/sub1.tfvars
 ```
+
+Or use `.\scripts\destroy-subscription.ps1 -Sub 1`.
 
 ## Bicep alternative
 

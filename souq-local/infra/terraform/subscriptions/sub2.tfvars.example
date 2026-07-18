@@ -1,4 +1,5 @@
-# Second Azure subscription — use when the first subscription's credits are used up
+# Month 2 — use AFTER sub1 credits are exhausted (destroy sub1 first)
+# See subscriptions/MONTHLY-ROTATION.md
 # Copy to sub2.tfvars and fill in secrets — never commit sub2.tfvars
 
 subscription_id    = "00000000-0000-0000-0000-000000000002"
