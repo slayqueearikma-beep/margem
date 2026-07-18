@@ -3,7 +3,7 @@ resource "azurerm_user_assigned_identity" "api" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 }
 
 resource "azurerm_role_assignment" "deployer_key_vault_admin" {
@@ -43,5 +43,5 @@ resource "azurerm_application_insights" "api" {
   application_type    = "web"
   workspace_id        = azurerm_log_analytics_workspace.logs.id
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 }

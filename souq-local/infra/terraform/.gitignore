@@ -4,7 +4,10 @@
 *.tfstate.*
 .terraform.lock.hcl
 terraform.tfvars
-*.auto.tfvars
+subscriptions/*.tfvars
+!subscriptions/*.tfvars.example
+backends/*.backend.hcl
+!backends/*.backend.hcl.example
 crash.log
 override.tf
 override.tf.json

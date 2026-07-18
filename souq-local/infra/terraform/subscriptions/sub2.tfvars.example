@@ -1,0 +1,20 @@
+# Second Azure subscription — use when the first subscription's credits are used up
+# Copy to sub2.tfvars and fill in secrets — never commit sub2.tfvars
+
+subscription_id    = "00000000-0000-0000-0000-000000000002"
+subscription_alias = "sub2"
+
+location         = "westeurope"
+environment_name = "prod"
+
+postgres_admin_login    = "margemadmin"
+postgres_admin_password = "CHANGE_ME_DIFFERENT_PASSWORD"
+jwt_secret_key          = "CHANGE_ME_DIFFERENT_32_CHAR_JWT_SECRET"
+
+api_image                 = "margemregsub2.azurecr.io/margem-api:1.0.0"
+create_container_registry = true
+
+min_replicas                      = 1
+enable_key_vault_purge_protection = true
+allowed_hosts                     = "[\"margem-prod-sub2-api.azurecontainerapps.io\"]"
+cors_origins                      = "[\"https://margem.app\"]"

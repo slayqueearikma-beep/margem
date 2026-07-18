@@ -1,7 +1,23 @@
-variable "resource_group_name" {
-  description = "Azure resource group name"
+variable "subscription_id" {
+  description = "Azure subscription to deploy into. Run `az account list --output table` to find IDs. Terraform always uses this value instead of the CLI default."
   type        = string
-  default     = "rg-margem-prod"
+}
+
+variable "subscription_alias" {
+  description = "Short label for this subscription (e.g. sub1, sub2). Included in resource names so each subscription gets an isolated, uniquely named stack."
+  type        = string
+  default     = "sub1"
+
+  validation {
+    condition     = can(regex("^[a-z0-9]{2,8}$", var.subscription_alias))
+    error_message = "subscription_alias must be 2-8 lowercase alphanumeric characters (e.g. sub1, credits2)."
+  }
+}
+
+variable "resource_group_name" {
+  description = "Azure resource group name. Leave empty to auto-generate from environment_name and subscription_alias."
+  type        = string
+  default     = ""
 }
 
 variable "location" {
@@ -47,9 +63,9 @@ variable "create_container_registry" {
 }
 
 variable "acr_name" {
-  description = "ACR name (globally unique, alphanumeric only)"
+  description = "ACR name (globally unique, alphanumeric only). Leave empty to auto-generate from subscription_alias."
   type        = string
-  default     = "margemregistry"
+  default     = ""
 }
 
 variable "cors_origins" {

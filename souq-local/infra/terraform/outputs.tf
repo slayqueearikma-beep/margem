@@ -1,3 +1,18 @@
+output "subscription_id" {
+  description = "Azure subscription this stack was deployed to"
+  value       = var.subscription_id
+}
+
+output "subscription_alias" {
+  description = "Short label for this subscription stack (sub1, sub2, ...)"
+  value       = var.subscription_alias
+}
+
+output "acr_name" {
+  description = "Container registry name used for this stack"
+  value       = local.acr_name
+}
+
 output "application_insights_connection_string" {
   description = "Application Insights connection string"
   value       = azurerm_application_insights.api.connection_string

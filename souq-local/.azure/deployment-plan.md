@@ -4,10 +4,16 @@ Deploy the API to Azure with PostgreSQL, Key Vault, Blob Storage, and Container 
 
 ## Prerequisites
 
-- Azure subscription
+- One or more Azure subscriptions
 - [Terraform](https://www.terraform.io/downloads) >= 1.5
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) logged in (`az login`)
 - Docker (to build the API image)
+
+List your subscriptions:
+
+```bash
+az account list --output table
+```
 
 ## 1. Configure secrets
 
@@ -16,8 +22,12 @@ cd souq-local/infra/terraform
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-Edit `terraform.tfvars`:
+**Multiple subscriptions:** copy `subscriptions/sub1.tfvars.example` → `subscriptions/sub1.tfvars` (and `sub2` for a second subscription). Use `-var-file=subscriptions/sub1.tfvars` instead of a single `terraform.tfvars` when applying.
 
+Edit your tfvars file(s):
+
+- `subscription_id` — Azure subscription GUID to deploy into
+- `subscription_alias` — short label (`sub1`, `sub2`, …) used in resource names
 - `postgres_admin_password` — strong password (8+ chars)
 - `jwt_secret_key` — random string, **32+ characters**
 - `cors_origins` — your real origins, e.g. `["https://margem.app"]` (no `*`)
@@ -26,10 +36,22 @@ Edit `terraform.tfvars`:
 ## 2. Provision Azure infrastructure
 
 ```bash
+# Single subscription (terraform.tfvars)
 terraform init
 terraform plan
 terraform apply
+
+# Or per-subscription with isolated state
+terraform apply -state=terraform-sub1.tfstate -var-file=subscriptions/sub1.tfvars
 ```
+
+When the first subscription's credits are used up, deploy to a second subscription without touching the first stack:
+
+```bash
+terraform apply -state=terraform-sub2.tfstate -var-file=subscriptions/sub2.tfvars
+```
+
+See `infra/terraform/README.md` for workspaces and remote state options.
 
 This creates:
 
@@ -60,10 +82,10 @@ docker build -t $ACR/margem-api:1.0.0 .
 docker push $ACR/margem-api:1.0.0
 ```
 
-Update `terraform.tfvars`:
+Update your tfvars (match the ACR name for your subscription alias, e.g. `margemregsub1`):
 
 ```hcl
-api_image = "margemregistry.azurecr.io/margem-api:1.0.0"
+api_image = "margemregsub1.azurecr.io/margem-api:1.0.0"
 ```
 
 ```bash
@@ -129,10 +151,14 @@ docker compose up --build
 
 - [ ] `JWT_SECRET_KEY` is 32+ random characters (stored in Key Vault)
 - [ ] `CORS_ORIGINS` does not include `*`
+- [ ] `ALLOWED_HOSTS` set to your API FQDN only
 - [ ] `AUTH_DEV_BYPASS=false` in production
+- [ ] Key Vault purge protection enabled
 - [ ] PostgreSQL firewall reviewed for your environment
 - [ ] Release APK signed with a production keystore (not debug)
 - [ ] Privacy policy published before Play Store submission
+- [ ] Passwords require upper, lower, and number (enforced by API)
+- [ ] Short-lived access tokens (60 min) + refresh token rotation
 
 ## Estimated Azure cost
 

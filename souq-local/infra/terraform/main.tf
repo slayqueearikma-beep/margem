@@ -5,21 +5,26 @@ resource "random_string" "suffix" {
 }
 
 locals {
-  name_prefix  = "margem-${var.environment_name}"
-  storage_name = substr(replace("${local.name_prefix}media${random_string.suffix.result}", "-", ""), 0, 24)
-  key_vault_name = substr("${local.name_prefix}-kv-${random_string.suffix.result}", 0, 24)
-  database_url = "postgresql+asyncpg://${var.postgres_admin_login}:${var.postgres_admin_password}@${azurerm_postgresql_flexible_server.postgres.fqdn}:5432/margem?ssl=require"
+  resource_group_name = var.resource_group_name != "" ? var.resource_group_name : "rg-margem-${var.environment_name}-${var.subscription_alias}"
+  name_prefix         = "margem-${var.environment_name}-${var.subscription_alias}"
+  acr_name            = var.acr_name != "" ? var.acr_name : "margemreg${var.subscription_alias}"
+  storage_name        = substr(replace("${local.name_prefix}media${random_string.suffix.result}", "-", ""), 0, 24)
+  key_vault_name      = substr("${local.name_prefix}-kv-${random_string.suffix.result}", 0, 24)
+  database_url        = "postgresql+asyncpg://${var.postgres_admin_login}:${var.postgres_admin_password}@${azurerm_postgresql_flexible_server.postgres.fqdn}:5432/margem?ssl=require"
+
+  common_tags = {
+    project             = "margem"
+    environment         = var.environment_name
+    subscription_alias  = var.subscription_alias
+    subscription_id     = var.subscription_id
+    managed_by          = "terraform"
+  }
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = var.resource_group_name
+  name     = local.resource_group_name
   location = var.location
-
-  tags = {
-    project     = "margem"
-    environment = var.environment_name
-    managed_by  = "terraform"
-  }
+  tags     = local.common_tags
 }
 
 # --- PostgreSQL Flexible Server ---
@@ -35,7 +40,7 @@ resource "azurerm_postgresql_flexible_server" "postgres" {
   backup_retention_days  = 7
   geo_redundant_backup_enabled = false
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 }
 
 resource "azurerm_postgresql_flexible_server_database" "margem" {
@@ -65,7 +70,7 @@ resource "azurerm_storage_account" "media" {
   https_traffic_only_enabled = true
   allow_nested_items_to_be_public = false
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 }
 
 resource "azurerm_storage_container" "media" {
@@ -85,19 +90,19 @@ resource "azurerm_key_vault" "kv" {
   purge_protection_enabled   = var.enable_key_vault_purge_protection
   rbac_authorization_enabled = true
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 }
 
 # --- Container Registry (optional) ---
 resource "azurerm_container_registry" "acr" {
   count               = var.create_container_registry ? 1 : 0
-  name                = var.acr_name
+  name                = local.acr_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   sku                 = "Basic"
   admin_enabled       = false
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 }
 
 # --- Log Analytics (required for Container Apps) ---
@@ -108,7 +113,7 @@ resource "azurerm_log_analytics_workspace" "logs" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 }
 
 # --- Container Apps ---
@@ -118,7 +123,7 @@ resource "azurerm_container_app_environment" "env" {
   resource_group_name        = azurerm_resource_group.rg.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.logs.id
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 }
 
 resource "azurerm_container_app" "api" {
@@ -132,7 +137,7 @@ resource "azurerm_container_app" "api" {
     identity_ids = [azurerm_user_assigned_identity.api.id]
   }
 
-  tags = azurerm_resource_group.rg.tags
+  tags = local.common_tags
 
   secret {
     name                = "database-url"
