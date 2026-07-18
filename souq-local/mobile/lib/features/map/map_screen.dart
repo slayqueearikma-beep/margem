@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/data/demo_map_data.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
@@ -50,41 +51,44 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         final warnings = data.warnings;
         final usingDemo = data.usingDemo;
 
-        final sellerMarkers = pins.map((pin) {
-          return Marker(
-            markerId: MarkerId(pin.id),
-            position: LatLng(pin.latitude, pin.longitude),
-            infoWindow: InfoWindow(
-              title: pin.businessName,
-              snippet: '${pin.averageRating} ★ · ${pin.achievementStars} achievement stars',
-              onTap: () => context.push('/seller/${pin.id}'),
-            ),
-            icon: pin.achievementStars > 0
-                ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)
-                : BitmapDescriptor.defaultMarker,
-          );
-        }).toSet();
-
-        final warningMarkers = warnings.map((zone) {
-          return Marker(
-            markerId: MarkerId('warning-${zone.id}'),
-            position: LatLng(zone.latitude, zone.longitude),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-            infoWindow: InfoWindow(title: '⚠ ${zone.name}', snippet: zone.description),
-          );
-        }).toSet();
-
         final initial = pins.isNotEmpty
             ? LatLng(pins.first.latitude, pins.first.longitude)
             : DemoMapData.cityCenter(city);
+
+        final markers = AppConfig.hasGoogleMapsApiKey
+            ? <Marker>{
+                ...pins.map((pin) {
+                  return Marker(
+                    markerId: MarkerId(pin.id),
+                    position: LatLng(pin.latitude, pin.longitude),
+                    infoWindow: InfoWindow(
+                      title: pin.businessName,
+                      snippet: '${pin.averageRating} ★ · ${pin.achievementStars} achievement stars',
+                      onTap: () => context.push('/seller/${pin.id}'),
+                    ),
+                    icon: pin.achievementStars > 0
+                        ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)
+                        : BitmapDescriptor.defaultMarker,
+                  );
+                }),
+                ...warnings.map((zone) {
+                  return Marker(
+                    markerId: MarkerId('warning-${zone.id}'),
+                    position: LatLng(zone.latitude, zone.longitude),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                    infoWindow: InfoWindow(title: '⚠ ${zone.name}', snippet: zone.description),
+                  );
+                }),
+              }
+            : <Marker>{};
 
         return Stack(
           children: [
             SafeGoogleMap(
               initialTarget: initial,
               zoom: 13,
-              markers: {...sellerMarkers, ...warningMarkers},
-              myLocationEnabled: true,
+              markers: markers,
+              myLocationEnabled: AppConfig.hasGoogleMapsApiKey,
             ),
             Positioned(
               top: MediaQuery.of(context).padding.top + 12,

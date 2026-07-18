@@ -59,10 +59,12 @@ class _MapLocationPickerPageState extends State<MapLocationPickerPage> {
       body: SafeGoogleMap(
         initialTarget: _position,
         zoom: 14,
-        markers: {
-          Marker(markerId: const MarkerId('pick'), position: _position),
-        },
-        onTap: (pos) => setState(() => _position = pos),
+        markers: AppConfig.hasGoogleMapsApiKey
+            ? {
+                Marker(markerId: const MarkerId('pick'), position: _position),
+              }
+            : {},
+        onTap: AppConfig.hasGoogleMapsApiKey ? (pos) => setState(() => _position = pos) : null,
       ),
     );
   }

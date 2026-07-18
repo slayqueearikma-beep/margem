@@ -16,7 +16,15 @@ class AppConfig {
   );
 
   static bool get hasGoogleMapsApiKey =>
-      googleMapsApiKey.isNotEmpty && googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY';
+      mapsEnabled &&
+      googleMapsApiKey.isNotEmpty &&
+      googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY';
+
+  /// Maps are opt-in. Pass --dart-define=ENABLE_MAPS=true with a valid key.
+  static const bool mapsEnabled = bool.fromEnvironment(
+    'ENABLE_MAPS',
+    defaultValue: false,
+  );
 
   /// When true (default), show sample businesses if the API is unreachable.
   static const bool demoFallbackOnError = bool.fromEnvironment(
