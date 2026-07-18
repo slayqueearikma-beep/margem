@@ -30,6 +30,9 @@ mobile/**/flutter_export_environment.sh
 .DS_Store
 Thumbs.db
 
+# Local lab runtime files
+.lab/
+
 # Secrets
 **/google-services.json
 **/GoogleService-Info.plist
