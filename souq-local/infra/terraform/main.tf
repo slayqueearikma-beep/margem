@@ -99,12 +99,23 @@ resource "azurerm_container_registry" "acr" {
   tags = azurerm_resource_group.rg.tags
 }
 
+# --- Log Analytics (required for Container Apps) ---
+resource "azurerm_log_analytics_workspace" "logs" {
+  name                = "${local.name_prefix}-logs"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+
+  tags = azurerm_resource_group.rg.tags
+}
+
 # --- Container Apps ---
 resource "azurerm_container_app_environment" "env" {
   name                       = "${local.name_prefix}-cae"
   location                   = azurerm_resource_group.rg.location
-  resource_group_name      = azurerm_resource_group.rg.name
-  log_analytics_workspace_id = null
+  resource_group_name        = azurerm_resource_group.rg.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.logs.id
 
   tags = azurerm_resource_group.rg.tags
 }
@@ -115,25 +126,33 @@ resource "azurerm_container_app" "api" {
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.api.id]
+  }
+
   tags = azurerm_resource_group.rg.tags
 
   secret {
-    name  = "database-url"
-    value = local.database_url
+    name                = "database-url"
+    key_vault_secret_id = azurerm_key_vault_secret.database_url.versionless_id
+    identity            = azurerm_user_assigned_identity.api.id
   }
 
   secret {
-    name  = "jwt-secret"
-    value = var.jwt_secret_key
+    name                = "jwt-secret"
+    key_vault_secret_id = azurerm_key_vault_secret.jwt_secret.versionless_id
+    identity            = azurerm_user_assigned_identity.api.id
   }
 
   secret {
-    name  = "storage-conn"
-    value = azurerm_storage_account.media.primary_connection_string
+    name                = "storage-conn"
+    key_vault_secret_id = azurerm_key_vault_secret.storage_connection.versionless_id
+    identity            = azurerm_user_assigned_identity.api.id
   }
 
   template {
-    min_replicas = 0
+    min_replicas = var.min_replicas
     max_replicas = 3
 
     container {
@@ -174,6 +193,10 @@ resource "azurerm_container_app" "api" {
         name  = "CORS_ORIGINS"
         value = var.cors_origins
       }
+      env {
+        name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        value = azurerm_application_insights.api.connection_string
+      }
     }
   }
 
@@ -187,4 +210,11 @@ resource "azurerm_container_app" "api" {
       latest_revision = true
     }
   }
+
+  depends_on = [
+    azurerm_role_assignment.api_key_vault_secrets_user,
+    azurerm_key_vault_secret.database_url,
+    azurerm_key_vault_secret.jwt_secret,
+    azurerm_key_vault_secret.storage_connection,
+  ]
 }

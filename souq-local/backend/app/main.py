@@ -2,24 +2,19 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
+from sqlalchemy import text
 
 from app.config import settings
 from app.database import engine
+from app.limiter import limiter
 from app.middleware.security import SecurityHeadersMiddleware
-from app.models import Base
 from app.routers import auth, catalog, sellers, uploads
-
-limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if settings.app_env == "development":
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
     yield
     await engine.dispose()
 
@@ -51,10 +46,19 @@ app.include_router(uploads.router)
 
 
 @app.get("/health")
-@limiter.limit("30/minute")
+@limiter.limit("60/minute")
 async def health(request: Request):
+    db_status = "ok"
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "error"
+
+    status = "ok" if db_status == "ok" else "degraded"
     return {
-        "status": "ok",
+        "status": status,
         "service": settings.app_name,
         "environment": settings.app_env,
+        "database": db_status,
     }

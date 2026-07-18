@@ -1,40 +1,29 @@
-# MarGem — Azure deployment plan (Terraform)
+# MarGem Production Deployment
 
-## Architecture
-
-| Component | Azure service | Purpose |
-|-----------|---------------|---------|
-| API | Container Apps | FastAPI backend |
-| Database | PostgreSQL Flexible Server | Users, sellers, reviews |
-| Images | Blob Storage | Product/seller photos |
-| Secrets | Key Vault | JWT, DB password, storage keys |
-| Registry | Container Registry | API Docker images |
-
-Estimated cost: **~$50–90 USD/month** at launch.
+Deploy the API to Azure with PostgreSQL, Key Vault, Blob Storage, and Container Apps. **No demo users or businesses are seeded** — you create real accounts through the app.
 
 ## Prerequisites
 
-- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
-- Docker (to build API image)
+- Azure subscription
+- [Terraform](https://www.terraform.io/downloads) >= 1.5
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) logged in (`az login`)
+- Docker (to build the API image)
 
-## 1. Login to Azure
-
-```bash
-az login
-```
-
-## 2. Deploy with Terraform
+## 1. Configure secrets
 
 ```bash
 cd souq-local/infra/terraform
-
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-Edit `terraform.tfvars` and set:
-- `postgres_admin_password` — strong password
-- `jwt_secret_key` — at least 32 random characters
+Edit `terraform.tfvars`:
+
+- `postgres_admin_password` — strong password (8+ chars)
+- `jwt_secret_key` — random string, **32+ characters**
+- `cors_origins` — your real origins, e.g. `["https://margem.app"]` (no `*`)
+- `api_image` — set after pushing to ACR (step 3)
+
+## 2. Provision Azure infrastructure
 
 ```bash
 terraform init
@@ -42,69 +31,109 @@ terraform plan
 terraform apply
 ```
 
-Save the outputs:
+This creates:
+
+| Resource | Purpose |
+|----------|---------|
+| PostgreSQL Flexible Server | Production database |
+| Key Vault | Stores DB URL, JWT secret, storage connection string |
+| Blob Storage | Seller/product images |
+| Container Apps | Hosts the FastAPI API |
+| Application Insights | Monitoring and logs |
+| Container Registry | API Docker images |
+
+Note the outputs:
+
 ```bash
 terraform output api_url
-terraform output postgres_host
+terraform output key_vault_name
 ```
 
-## 3. Build and push API container
+## 3. Build and deploy the API image
 
 ```bash
-ACR=$(terraform output -raw container_registry_login_server)
-RG=$(terraform output -raw resource_group_name)
-
-az acr login --name margemregistry
 cd ../../backend
-az acr build --registry margemregistry --image margem-api:1.0.0 .
+ACR=$(terraform -chdir=../infra/terraform output -raw container_registry_login_server)
 
-az containerapp update \
-  --name margem-prod-api \
-  --resource-group "$RG" \
-  --image "${ACR}/margem-api:1.0.0"
+az acr login --name ${ACR%%.azurecr.io}
+docker build -t $ACR/margem-api:1.0.0 .
+docker push $ACR/margem-api:1.0.0
 ```
 
-## 4. Run database migrations
+Update `terraform.tfvars`:
+
+```hcl
+api_image = "margemregistry.azurecr.io/margem-api:1.0.0"
+```
 
 ```bash
-export DATABASE_URL="postgresql+asyncpg://margemadmin:YOUR_PASSWORD@$(terraform output -raw postgres_host):5432/margem?ssl=require"
-
-cd ../../backend
-pip install -r requirements.txt
-alembic upgrade head
-python scripts/seed.py
+cd ../infra/terraform
+terraform apply
 ```
 
-## 5. Configure mobile app
+Migrations run automatically on container start (`alembic upgrade head`). Category taxonomy is seeded by migration `002` only — no demo businesses.
+
+## 4. Verify the API
 
 ```bash
-flutter run \
-  --dart-define=API_BASE_URL=$(terraform output -raw api_url) \
-  --dart-define=DEMO_FALLBACK=false
+curl https://YOUR-API-URL/health
 ```
 
-## 6. Security checklist (production)
+Expected:
 
-- [ ] `AUTH_DEV_BYPASS=false` (set by Terraform)
-- [ ] Strong `jwt_secret_key` in `terraform.tfvars`
-- [ ] PostgreSQL firewall: restrict beyond Azure services if needed
-- [ ] CORS: set exact app origins in `terraform.tfvars`
-- [ ] Google Maps API key restricted by package name
-- [ ] Enable Application Insights (optional add-on)
-- [ ] Store `terraform.tfvars` securely — never commit it
+```json
+{"status":"ok","database":"ok","environment":"prod",...}
+```
 
-## Local development (full stack)
+## 5. Build the mobile app for production
+
+```bash
+cd ../../mobile
+flutter pub get
+
+flutter build apk \
+  --dart-define=PRODUCTION=true \
+  --dart-define=API_BASE_URL=https://YOUR-API-URL
+```
+
+Optional (Google Maps):
+
+```bash
+flutter build apk \
+  --dart-define=PRODUCTION=true \
+  --dart-define=API_BASE_URL=https://YOUR-API-URL \
+  --dart-define=ENABLE_MAPS=true \
+  --dart-define=GOOGLE_MAPS_API_KEY=your_key
+```
+
+Add the Maps key to `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<meta-data
+    android:name="com.google.android.geo.API_KEY"
+    android:value="YOUR_KEY"/>
+```
+
+## 6. Local development (optional)
 
 ```bash
 cd souq-local
-docker compose up
+docker compose up --build
 ```
 
-API: http://localhost:8000  
-Demo accounts after seed:
-- buyer@demo.local / demo1234
-- seller@demo.local / demo1234
+- Runs Postgres + API with migrations (no demo users)
+- Register accounts through the app
+- For a physical phone: `flutter run --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000`
 
-## Alternative: Bicep
+## Security checklist
 
-Bicep templates remain in `infra/main.bicep` if you prefer ARM over Terraform.
+- [ ] `JWT_SECRET_KEY` is 32+ random characters (stored in Key Vault)
+- [ ] `CORS_ORIGINS` does not include `*`
+- [ ] `AUTH_DEV_BYPASS=false` in production
+- [ ] PostgreSQL firewall reviewed for your environment
+- [ ] Release APK signed with a production keystore (not debug)
+- [ ] Privacy policy published before Play Store submission
+
+## Estimated Azure cost
+
+~$50–90/month (PostgreSQL B1ms, Container Apps, Storage, Log Analytics).

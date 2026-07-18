@@ -1,15 +1,12 @@
 /// App configuration — update for your environment.
 class AppConfig {
-  /// Backend URL. Defaults to Android emulator loopback (10.0.2.2).
-  /// On a physical phone, use your PC's LAN IP:
-  /// `flutter run --dart-define=API_BASE_URL=http://192.168.x.x:8000`
+  /// Production API URL. Set at build time:
+  /// `flutter build apk --dart-define=API_BASE_URL=https://your-api.azurecontainerapps.io`
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:8000',
   );
 
-  /// Set via --dart-define=GOOGLE_MAPS_API_KEY=your_key
-  /// Must match the key in android/app/src/main/AndroidManifest.xml
   static const String googleMapsApiKey = String.fromEnvironment(
     'GOOGLE_MAPS_API_KEY',
     defaultValue: '',
@@ -26,10 +23,9 @@ class AppConfig {
     defaultValue: false,
   );
 
-  /// When true (default), show sample businesses if the API is unreachable.
-  static const bool demoFallbackOnError = bool.fromEnvironment(
-    'DEMO_FALLBACK',
-    defaultValue: true,
+  static const bool isProduction = bool.fromEnvironment(
+    'PRODUCTION',
+    defaultValue: false,
   );
 
   static const String appName = 'MarGem';

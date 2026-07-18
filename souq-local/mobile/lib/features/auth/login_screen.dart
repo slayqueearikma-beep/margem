@@ -129,12 +129,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              Text(
-                'API: ${AppConfig.apiBaseUrl}',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: AppSpacing.sm),
+              if (!AppConfig.isProduction) ...[
+                Text(
+                  'API: ${AppConfig.apiBaseUrl}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
               PrimaryButton(label: l10n.logIn, onPressed: _login, isLoading: _loading),
               const SizedBox(height: AppSpacing.md),
               LinkTextButton(label: l10n.createAccount, onPressed: () => context.go('/onboarding/account-type')),

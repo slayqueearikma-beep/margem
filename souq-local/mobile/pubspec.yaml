@@ -1,7 +1,7 @@
 name: souq_local
 description: MarGem — discover Morocco's hidden gems. Local business marketplace mobile app.
 publish_to: "none"
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ">=3.2.0 <4.0.0"
@@ -23,6 +23,7 @@ dependencies:
   geolocator: ^13.0.2
   shared_preferences: ^2.3.3
   image_picker: ^1.1.2
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,9 @@
+output "application_insights_connection_string" {
+  description = "Application Insights connection string"
+  value       = azurerm_application_insights.api.connection_string
+  sensitive   = true
+}
+
 output "api_url" {
   description = "Public HTTPS URL for the MarGem API"
   value       = "https://${azurerm_container_app.api.ingress[0].fqdn}"

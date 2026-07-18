@@ -53,7 +53,13 @@ variable "acr_name" {
 }
 
 variable "cors_origins" {
-  description = "JSON array of allowed CORS origins for the API"
+  description = "JSON array of allowed CORS origins for the API (no wildcard in production)"
   type        = string
-  default     = "[\"*\"]"
+  default     = "[\"https://margem.app\"]"
+}
+
+variable "min_replicas" {
+  description = "Minimum API container replicas (use 1+ in production to avoid cold starts)"
+  type        = number
+  default     = 1
 }

@@ -1,6 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/auth_models.dart';
@@ -11,14 +10,15 @@ class AuthService {
   AuthService(this._api);
 
   final ApiService _api;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   String? _accessToken;
 
   static const _tokenKey = 'access_token';
 
   String? get accessToken => _accessToken;
 
-  Future<void> loadStoredToken(SharedPreferences prefs) async {
-    _accessToken = prefs.getString(_tokenKey);
+  Future<void> loadStoredToken() async {
+    _accessToken = await _secureStorage.read(key: _tokenKey);
     _syncTokenProvider();
   }
 
@@ -50,13 +50,13 @@ class AuthService {
 
   Future<void> persistToken(SharedPreferences prefs) async {
     if (_accessToken != null) {
-      await prefs.setString(_tokenKey, _accessToken!);
+      await _secureStorage.write(key: _tokenKey, value: _accessToken!);
     }
   }
 
   Future<void> logout(SharedPreferences prefs) async {
     _accessToken = null;
-    await prefs.remove(_tokenKey);
+    await _secureStorage.delete(key: _tokenKey);
     _syncTokenProvider();
   }
 

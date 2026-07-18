@@ -171,12 +171,14 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
       bottom: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'API: ${AppConfig.apiBaseUrl}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
-          ),
-          const SizedBox(height: AppSpacing.sm),
+          if (!AppConfig.isProduction) ...[
+            Text(
+              'API: ${AppConfig.apiBaseUrl}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
           PrimaryButton(label: l10n.createAccount, onPressed: _submit, isLoading: _loading),
         ],
       ),

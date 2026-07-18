@@ -88,35 +88,10 @@ class BuyerHomeScreen extends ConsumerWidget {
     final city = ref.watch(buyerCityProvider);
     final sellersAsync = ref.watch(buyerSellersProvider);
     final categoriesAsync = ref.watch(buyerCategoriesProvider);
-    final showDemoBanner = sellersAsync.hasValue && apiServiceProvider.isUsingDemoData;
 
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          if (showDemoBanner)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal, AppSpacing.sm, AppSpacing.screenHorizontal, 0),
-                child: Card(
-                  color: AppColors.warning.withValues(alpha: 0.12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.wifi_off_rounded, color: AppColors.warning, size: 20),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            'Offline demo — sample businesses shown. Start the API on your PC for live data.',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal, AppSpacing.md, AppSpacing.screenHorizontal, 0),

@@ -44,8 +44,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       return _navigateNext();
     }
 
-    final prefs = await ref.read(sharedPreferencesProvider.future);
-    await ref.read(authServiceProvider).loadStoredToken(prefs);
+    await ref.read(authServiceProvider).loadStoredToken();
 
     if (!storage.isLanguageSelected) {
       context.go('/language');

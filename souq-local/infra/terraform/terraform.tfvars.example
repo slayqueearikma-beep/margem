@@ -9,10 +9,12 @@ postgres_admin_password = "CHANGE_ME_STRONG_PASSWORD"
 jwt_secret_key          = "CHANGE_ME_MIN_32_CHAR_JWT_SECRET_KEY"
 
 # After building/pushing to ACR, set e.g. margemregistry.azurecr.io/margem-api:1.0.0
-api_image = "margemapi:latest"
+api_image = "margemregistry.azurecr.io/margem-api:1.0.0"
 
 create_container_registry = true
 acr_name                  = "margemregistry"
 
-# Production: restrict to your app origins
-cors_origins = "[\"*\"]"
+min_replicas = 1
+
+# Restrict to your mobile app / web origins — no wildcard in production
+cors_origins = "[\"https://margem.app\"]"

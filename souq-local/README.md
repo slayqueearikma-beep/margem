@@ -33,9 +33,15 @@ flutter run
 
 API docs: http://localhost:8000/docs
 
-## Production deployment
+## Production deployment (Terraform)
 
-See [.azure/deployment-plan.md](.azure/deployment-plan.md) for Azure setup (~$50–90/month).
+```bash
+cd infra/terraform
+cp terraform.tfvars.example terraform.tfvars   # set passwords
+terraform init && terraform apply
+```
+
+Full guide: [infra/terraform/README.md](infra/terraform/README.md) (~$50–90/month on Azure).
 
 ## Security features
 

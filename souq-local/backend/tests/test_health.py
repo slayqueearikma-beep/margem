@@ -9,5 +9,5 @@ async def test_health():
     scope = {"type": "http", "method": "GET", "path": "/health", "headers": [], "client": ("testclient", 50000)}
     request = Request(scope)
     result = await health(request)
-    assert result["status"] == "ok"
+    assert result["status"] in {"ok", "degraded"}
     assert result["service"] == "MarGem API"

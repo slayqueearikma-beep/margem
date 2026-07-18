@@ -27,15 +27,12 @@ services:
       APP_ENV: development
       DEBUG: "true"
       DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@postgres:5432/souq_local
-      JWT_SECRET_KEY: local-dev-secret-change-in-production
+      JWT_SECRET_KEY: local-dev-secret-change-in-production-min-32-chars
       AUTH_DEV_BYPASS: "false"
-      CORS_ORIGINS: '["*"]'
+      CORS_ORIGINS: '["http://localhost:3000","http://10.0.2.2:8000"]'
     depends_on:
       postgres:
         condition: service_healthy
-    command: >
-      sh -c "PYTHONPATH=/app python scripts/seed.py &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 volumes:
   postgres_data:
