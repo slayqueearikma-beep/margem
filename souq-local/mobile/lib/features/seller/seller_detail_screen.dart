@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/async_error_view.dart';
 import '../../l10n/app_localizations.dart';
 
 class SellerDetailScreen extends StatefulWidget {
@@ -37,12 +38,25 @@ class _SellerDetailScreenState extends State<SellerDetailScreen> {
     }
   }
 
+  void _reload() {
+    setState(() {
+      _sellerFuture = apiServiceProvider.fetchSeller(widget.sellerId);
+      _reviewsFuture = apiServiceProvider.fetchReviews(widget.sellerId);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<SellerModel>(
         future: _sellerFuture,
         builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return AsyncErrorView.fromError(snapshot.error!, onRetry: _reload);
+          }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }

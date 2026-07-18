@@ -28,6 +28,20 @@ class AppConfig {
     defaultValue: false,
   );
 
+  /// Show demo map pins when the API is unreachable (dev only).
+  static const bool demoFallback = bool.fromEnvironment(
+    'DEMO_FALLBACK',
+    defaultValue: false,
+  );
+
+  static bool get allowDemoData => !isProduction && demoFallback;
+
+  /// Privacy policy URL for Play Store listing and in-app link.
+  static const String privacyPolicyUrl = String.fromEnvironment(
+    'PRIVACY_POLICY_URL',
+    defaultValue: 'https://margem.app/privacy',
+  );
+
   static const String appName = 'MarGem';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';
 

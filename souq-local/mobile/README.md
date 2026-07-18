@@ -1,103 +1,87 @@
-# Mobile app setup
+# MarGem Mobile — Play Store ready setup
 
 ## Prerequisites
 
 - Flutter 3.16+
-- Android Studio / Xcode
-- Google Maps API key with Maps SDK enabled
-- Firebase project (for auth + FCM in production)
+- Android Studio
+- Google Maps API key (optional — maps are off by default)
+- Production API URL (Azure Container Apps)
 
-## Google Maps (required for map tab)
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create/select a project → **APIs & Services → Library**
-3. Enable **Maps SDK for Android** (and iOS if needed)
-4. **Credentials → Create credentials → API key**
-5. Replace the placeholder in `android/app/src/main/AndroidManifest.xml`:
-
-```xml
-<meta-data
-    android:name="com.google.android.geo.API_KEY"
-    android:value="AIzaSy...your_real_key"/>
-```
-
-6. Rebuild the app (`flutter run`). A blank/gray map means the key is missing or invalid.
-
-**Seller registration:** the map opens on a separate full screen (tap the location row on step 2). Do not embed `GoogleMap` inside scrollable forms — it crashes on Android.
-
-**Demo mode:** if the backend API is offline, the map tab shows sample businesses automatically.
-
-## Run
+## Local development
 
 ```bash
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+flutter run --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000
 ```
 
-Use your machine IP instead of `10.0.2.2` on a physical device.
-
-### First-time Android setup
-
-If `android/` is missing, generate it without overwriting Dart sources:
+Optional demo map when API is offline (dev only):
 
 ```bash
-flutter create . --platforms=android
-git checkout -- lib/main.dart lib/app.dart   # keep MarGem entry point
+flutter run --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000 --dart-define=DEMO_FALLBACK=true
 ```
 
-**Windows:** enable **Developer Mode** (Settings → Privacy & security → For developers) so Flutter plugins can use symlinks.
+## Google Maps (optional)
 
-**NDK version mismatch:** add to `android/app/build.gradle.kts` inside the `android { }` block:
+1. Enable **Maps SDK for Android** in Google Cloud Console
+2. Add to `android/local.properties` (copy from `android/local.properties.example`):
 
-```kotlin
-ndkVersion = "27.0.12077973"
+```properties
+GOOGLE_MAPS_API_KEY=your_key_here
 ```
 
-Install NDK 27 in Android Studio → SDK Manager → SDK Tools → NDK (Side by side).
-
-## Backend API (live data)
-
-The app calls `http://10.0.2.2:8000` on the **Android emulator** (your PC's localhost). If the API is not running, the app shows **demo businesses** automatically.
-
-### Start the backend
-
-From the repo root (`souq-local/`):
+3. Run with maps enabled:
 
 ```bash
-docker compose up
+flutter run --dart-define=ENABLE_MAPS=true --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000
 ```
 
-Or without Docker:
+## Play Store release build
+
+### 1. Create a release keystore (once)
 
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+keytool -genkey -v -keystore margem-release.keystore -alias margem -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-Then run the app:
+### 2. Configure signing
 
 ```bash
-cd mobile
-flutter run
+cp android/key.properties.example android/key.properties
 ```
 
-**Physical phone:** use your PC's LAN IP instead of `10.0.2.2`:
+Edit `android/key.properties` with your keystore path and passwords.
+
+### 3. Build the App Bundle
 
 ```bash
-flutter run --dart-define=API_BASE_URL=http://192.168.1.XX:8000
+flutter build appbundle \
+  --dart-define=PRODUCTION=true \
+  --dart-define=API_BASE_URL=https://YOUR-API.azurecontainerapps.io \
+  --dart-define=PRIVACY_POLICY_URL=https://margem.app/privacy
 ```
 
-Disable demo fallback (show errors instead):
+Output: `build/app/outputs/bundle/release/app-release.aab`
+
+### 4. Play Console checklist
+
+- [ ] Upload `app-release.aab`
+- [ ] Privacy policy URL (see `PRIVACY_POLICY.md`)
+- [ ] App icon (included — `assets/images/margem_logo.png`)
+- [ ] Screenshots and store listing
+- [ ] Content rating questionnaire
+
+## Features
+
+- JWT auth with **automatic token refresh** (sessions stay logged in)
+- Secure token storage (`flutter_secure_storage`)
+- HTTPS-only in release builds
+- Image uploads for seller cover photos (via API presign)
+- No fake demo data in production builds
+
+## Physical device
+
+Use your PC's LAN IP instead of `10.0.2.2`:
 
 ```bash
-flutter run --dart-define=DEMO_FALLBACK=false
+flutter run --dart-define=API_BASE_URL=http://192.168.x.x:8000
 ```
-
-## Firebase (production auth)
-
-1. Create a Firebase project
-2. Add Android and iOS apps
-3. Download `google-services.json` and `GoogleService-Info.plist`
-4. Run `flutterfire configure` to generate `firebase_options.dart`
-5. Set `AUTH_DEV_BYPASS=false` on the backend and configure `FIREBASE_CREDENTIALS_PATH`

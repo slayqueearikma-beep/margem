@@ -6,6 +6,7 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/async_error_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 
@@ -54,7 +55,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return AsyncErrorView.fromError(
+                    snapshot.error!,
+                    onRetry: () => setState(() {}),
+                  );
                 }
                 final sellers = snapshot.data ?? [];
                 if (sellers.isEmpty) {

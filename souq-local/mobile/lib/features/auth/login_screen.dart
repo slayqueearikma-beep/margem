@@ -59,11 +59,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           throw ApiException('App storage is not ready. Please restart the app.');
         }
 
+        final existing = storage.getSession();
         final userSession = UserSession(
           name: session.user.displayName.isNotEmpty ? session.user.displayName : l10n.returningUser,
           email: session.user.email,
           accountType: session.user.isSeller ? AccountType.seller : AccountType.buyer,
-          city: 'Casablanca',
+          city: existing?.city ?? AppConfig.moroccanCities.first,
         );
 
         await storage.saveSession(userSession);

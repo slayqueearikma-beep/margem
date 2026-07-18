@@ -23,6 +23,12 @@ class AuthService {
 
   String? get accessToken => _accessToken;
 
+  void bindApi({Future<void> Function()? onSessionExpired}) {
+    _api.onTokenRefresh = refreshAccessToken;
+    _api.onSessionExpired = onSessionExpired;
+    _syncTokenProvider();
+  }
+
   Future<void> loadStoredToken() async {
     _accessToken = await _storage.read(key: _accessTokenKey);
     _refreshToken = await _storage.read(key: _refreshTokenKey);
@@ -55,6 +61,23 @@ class AuthService {
     return _saveSession(AuthSession.fromJson(response));
   }
 
+  Future<bool> refreshAccessToken() async {
+    final refresh = _refreshToken;
+    if (refresh == null || refresh.isEmpty) return false;
+
+    try {
+      final response = await _api.postJson('/auth/refresh', {
+        'refresh_token': refresh,
+      });
+      await _saveSession(AuthSession.fromJson(response));
+      await _storage.write(key: _accessTokenKey, value: _accessToken!);
+      await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
+      return true;
+    } on Object {
+      return false;
+    }
+  }
+
   Future<void> persistToken(SharedPreferences prefs) async {
     if (_accessToken != null) {
       await _storage.write(key: _accessTokenKey, value: _accessToken!);
@@ -79,7 +102,7 @@ class AuthService {
     _syncTokenProvider();
   }
 
-  AuthSession _saveSession(AuthSession session) {
+  Future<AuthSession> _saveSession(AuthSession session) async {
     _accessToken = session.accessToken;
     _refreshToken = session.refreshToken;
     _syncTokenProvider();

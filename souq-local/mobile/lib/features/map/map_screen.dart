@@ -4,11 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/data/city_coordinates.dart';
 import '../../core/data/demo_map_data.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
@@ -23,6 +26,18 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   late Future<_MapData> _mapFuture;
   String? _loadedCity;
+  bool _locationEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocation();
+  }
+
+  Future<void> _initLocation() async {
+    final granted = await LocationService.ensurePermission();
+    if (mounted) setState(() => _locationEnabled = granted);
+  }
 
   @override
   void didChangeDependencies() {
@@ -34,6 +49,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
+  void _reload(String city) {
+    setState(() {
+      _loadedCity = city;
+      _mapFuture = _loadMapData(city);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(buyerCityProvider);
@@ -42,8 +64,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       return Scaffold(
         body: SafeArea(
           child: MapUnavailablePlaceholder(
-            cityCenter: DemoMapData.cityCenter(city),
-            usingDemoData: true,
+            cityCenter: CityCoordinates.centerFor(city),
+            usingDemoData: false,
           ),
         ),
       );
@@ -58,41 +80,46 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final data = snapshot.data ?? _MapData.demo(city);
+        if (snapshot.hasError) {
+          return AsyncErrorView.fromError(
+            snapshot.error!,
+            onRetry: () => _reload(city),
+          );
+        }
+
+        final data = snapshot.data!;
         final pins = data.pins;
         final warnings = data.warnings;
         final usingDemo = data.usingDemo;
 
         final initial = pins.isNotEmpty
             ? LatLng(pins.first.latitude, pins.first.longitude)
-            : DemoMapData.cityCenter(city);
+            : CityCoordinates.centerFor(city);
 
-        final markers = AppConfig.hasGoogleMapsApiKey
-            ? <Marker>{
-                ...pins.map((pin) {
-                  return Marker(
-                    markerId: MarkerId(pin.id),
-                    position: LatLng(pin.latitude, pin.longitude),
-                    infoWindow: InfoWindow(
-                      title: pin.businessName,
-                      snippet: '${pin.averageRating} ★ · ${pin.achievementStars} achievement stars',
-                      onTap: () => context.push('/seller/${pin.id}'),
-                    ),
-                    icon: pin.achievementStars > 0
-                        ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)
-                        : BitmapDescriptor.defaultMarker,
-                  );
-                }),
-                ...warnings.map((zone) {
-                  return Marker(
-                    markerId: MarkerId('warning-${zone.id}'),
-                    position: LatLng(zone.latitude, zone.longitude),
-                    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-                    infoWindow: InfoWindow(title: '⚠ ${zone.name}', snippet: zone.description),
-                  );
-                }),
-              }
-            : <Marker>{};
+        final markers = <Marker>{
+          ...pins.map((pin) {
+            return Marker(
+              markerId: MarkerId(pin.id),
+              position: LatLng(pin.latitude, pin.longitude),
+              infoWindow: InfoWindow(
+                title: pin.businessName,
+                snippet: '${pin.averageRating} ★ · ${pin.achievementStars} achievement stars',
+                onTap: () => context.push('/seller/${pin.id}'),
+              ),
+              icon: pin.achievementStars > 0
+                  ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)
+                  : BitmapDescriptor.defaultMarker,
+            );
+          }),
+          ...warnings.map((zone) {
+            return Marker(
+              markerId: MarkerId('warning-${zone.id}'),
+              position: LatLng(zone.latitude, zone.longitude),
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+              infoWindow: InfoWindow(title: '⚠ ${zone.name}', snippet: zone.description),
+            );
+          }),
+        };
 
         return Stack(
           children: [
@@ -100,7 +127,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               initialTarget: initial,
               zoom: 13,
               markers: markers,
-              myLocationEnabled: AppConfig.hasGoogleMapsApiKey,
+              myLocationEnabled: _locationEnabled,
             ),
             Positioned(
               top: MediaQuery.of(context).padding.top + 12,
@@ -170,8 +197,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         warnings: results[1] as List<WarningZoneModel>,
         usingDemo: false,
       );
-    } catch (_) {
-      return _MapData.demo(city);
+    } catch (e) {
+      if (AppConfig.allowDemoData) {
+        return _MapData.demo(city);
+      }
+      rethrow;
     }
   }
 }

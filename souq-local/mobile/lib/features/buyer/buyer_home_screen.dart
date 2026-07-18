@@ -11,6 +11,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_logo_placeholder.dart';
+import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../l10n/app_localizations.dart';
 import '../map/map_screen.dart';
@@ -291,14 +292,9 @@ class BuyerHomeScreen extends ConsumerWidget {
             },
             loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
             error: (e, _) => SliverFillRemaining(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-                  child: Text(
-                    '${l10n.couldNotLoadBusinesses}\n\nStart the MarGem API on your PC:\ncd souq-local && docker compose up',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+              child: AsyncErrorView.fromError(
+                e,
+                onRetry: () => ref.invalidate(buyerSellersProvider),
               ),
             ),
           ),

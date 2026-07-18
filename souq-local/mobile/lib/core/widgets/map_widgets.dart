@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../config/app_config.dart';
-import '../data/demo_map_data.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
@@ -141,7 +140,7 @@ class MapUnavailablePlaceholder extends StatelessWidget {
               Text(
                 usingDemoData
                     ? 'Showing sample businesses while the API is offline.'
-                    : 'Add your Google Maps API key in android/app/src/main/AndroidManifest.xml',
+                    : 'Add GOOGLE_MAPS_API_KEY to android/local.properties',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
               ),

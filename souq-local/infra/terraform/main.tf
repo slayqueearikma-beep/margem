@@ -139,6 +139,14 @@ resource "azurerm_container_app" "api" {
 
   tags = local.common_tags
 
+  dynamic "registry" {
+    for_each = var.create_container_registry ? [1] : []
+    content {
+      server   = azurerm_container_registry.acr[0].login_server
+      identity = azurerm_user_assigned_identity.api.id
+    }
+  }
+
   secret {
     name                = "database-url"
     key_vault_secret_id = azurerm_key_vault_secret.database_url.versionless_id

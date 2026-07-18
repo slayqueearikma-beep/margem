@@ -17,6 +17,9 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
+typedef TokenRefreshCallback = Future<bool> Function();
+typedef SessionExpiredCallback = Future<void> Function();
+
 class ApiService {
   ApiService({http.Client? client}) : _client = client ?? http.Client();
 
@@ -26,6 +29,10 @@ class ApiService {
   final http.Client _client;
 
   String? Function()? tokenProvider;
+  TokenRefreshCallback? onTokenRefresh;
+  SessionExpiredCallback? onSessionExpired;
+
+  bool _refreshInProgress = false;
 
   Map<String, String> get _authHeaders {
     final token = tokenProvider?.call();
@@ -53,11 +60,27 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> postJson(String path, Map<String, dynamic> body, {bool auth = false}) async {
-    final response = await _post(
-      _uri(path),
-      headers: _jsonHeaders(auth: auth),
-      body: jsonEncode(body),
+  Future<Map<String, dynamic>> postJson(
+    String path,
+    Map<String, dynamic> body, {
+    bool auth = false,
+  }) async {
+    final response = await _request(
+      () => _post(
+        _uri(path),
+        headers: _jsonHeaders(auth: auth),
+        body: jsonEncode(body),
+      ),
+      auth: auth,
+    );
+    _ensureSuccess(response);
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getJson(String path, {bool auth = false}) async {
+    final response = await _request(
+      () => _get(_uri(path), headers: auth ? _authHeaders : null),
+      auth: auth,
     );
     _ensureSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
@@ -73,6 +96,27 @@ class ApiService {
     Object? body,
   }) {
     return _send(() => _client.post(uri, headers: headers, body: body));
+  }
+
+  Future<http.Response> _request(
+    Future<http.Response> Function() send, {
+    required bool auth,
+  }) async {
+    var response = await _send(send);
+    if (auth && response.statusCode == 401 && onTokenRefresh != null && !_refreshInProgress) {
+      _refreshInProgress = true;
+      try {
+        final refreshed = await onTokenRefresh!();
+        if (refreshed) {
+          response = await _send(send);
+        } else if (onSessionExpired != null) {
+          await onSessionExpired!();
+        }
+      } finally {
+        _refreshInProgress = false;
+      }
+    }
+    return response;
   }
 
   Future<http.Response> _send(Future<http.Response> Function() request) async {
@@ -100,8 +144,9 @@ class ApiService {
     );
   }
 
-  String get _connectionErrorMessage =>
-      'Cannot reach the API at ${AppConfig.apiBaseUrl}. Check your network connection and API_BASE_URL.';
+  String get _connectionErrorMessage => AppConfig.isProduction
+      ? 'Cannot reach the server. Check your internet connection and try again.'
+      : 'Cannot reach the API at ${AppConfig.apiBaseUrl}. Check your network connection and API_BASE_URL.';
 
   Future<String> createSeller(SellerCreatePayload payload) async {
     final data = await postJson('/sellers', payload.toJson(), auth: true);
@@ -130,7 +175,10 @@ class ApiService {
     if (category != null && category.isNotEmpty) params['category'] = category;
     if (query != null && query.isNotEmpty) params['q'] = query;
 
-    final response = await _get(_uri('/sellers', params.isEmpty ? null : params), headers: _authHeaders);
+    final response = await _request(
+      () => _get(_uri('/sellers', params.isEmpty ? null : params), headers: _authHeaders),
+      auth: _authHeaders.isNotEmpty,
+    );
     _ensureSuccess(response);
     final data = jsonDecode(response.body) as List<dynamic>;
     return data.map((e) => SellerModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -176,10 +224,13 @@ class ApiService {
   }
 
   Future<void> submitReview(String sellerId, {required int rating, String comment = ''}) async {
-    final response = await _post(
-      _uri('/sellers/$sellerId/reviews'),
-      headers: _jsonHeaders(auth: true),
-      body: jsonEncode({'rating': rating, 'comment': comment}),
+    final response = await _request(
+      () => _post(
+        _uri('/sellers/$sellerId/reviews'),
+        headers: _jsonHeaders(auth: true),
+        body: jsonEncode({'rating': rating, 'comment': comment}),
+      ),
+      auth: true,
     );
     _ensureSuccess(response);
   }

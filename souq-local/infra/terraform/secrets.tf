@@ -36,6 +36,13 @@ resource "azurerm_role_assignment" "api_key_vault_secrets_user" {
   principal_id         = azurerm_user_assigned_identity.api.principal_id
 }
 
+resource "azurerm_role_assignment" "api_acr_pull" {
+  count                = var.create_container_registry ? 1 : 0
+  scope                = azurerm_container_registry.acr[0].id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.api.principal_id
+}
+
 resource "azurerm_application_insights" "api" {
   name                = "${local.name_prefix}-insights"
   location            = azurerm_resource_group.rg.location

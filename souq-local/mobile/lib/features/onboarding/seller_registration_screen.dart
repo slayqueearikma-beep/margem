@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/data/city_coordinates.dart';
 import '../../core/models/auth_models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -20,7 +21,7 @@ import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
-import '../../core/data/demo_map_data.dart';
+import '../../core/services/upload_service.dart';
 
 class SellerRegistrationScreen extends ConsumerStatefulWidget {
   const SellerRegistrationScreen({super.key});
@@ -45,7 +46,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
   String _city = AppConfig.moroccanCities.first;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
-  LatLng _location = DemoMapData.cityCenter(AppConfig.moroccanCities.first);
+  LatLng _location = CityCoordinates.centerFor(AppConfig.moroccanCities.first);
 
   // Step 3
   final _descriptionController = TextEditingController();
@@ -157,6 +158,19 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
         final slug = sellerCategorySlugMap[_category] ?? 'food';
         final categoryId = await apiServiceProvider.categoryIdForSlug(slug);
 
+        final uploader = ref.read(uploadServiceProvider);
+        String coverUrl = '';
+        try {
+          if (_coverImage != null) {
+            coverUrl = await uploader.uploadImage(_coverImage!);
+          } else if (_logoImage != null) {
+            coverUrl = await uploader.uploadImage(_logoImage!);
+          }
+        } on ApiException {
+          if (AppConfig.isProduction) rethrow;
+          // Local dev without blob storage — continue without images.
+        }
+
         final sellerId = await apiServiceProvider.createSeller(
           SellerCreatePayload(
             businessName: _businessNameController.text.trim(),
@@ -166,6 +180,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
             latitude: _location.latitude,
             longitude: _location.longitude,
             phone: _phoneController.text.trim(),
+            coverImageUrl: coverUrl,
             categoryIds: categoryId != null ? [categoryId] : [],
           ),
         );
@@ -317,7 +332,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
             if (selected != null) {
               setState(() {
                 _city = selected;
-                _location = DemoMapData.cityCenter(selected);
+                _location = CityCoordinates.centerFor(selected);
               });
             }
           },
