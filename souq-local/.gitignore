@@ -32,6 +32,7 @@ Thumbs.db
 
 # Local lab runtime files
 .lab/
+.budget-deploy.env
 
 # Secrets
 **/google-services.json
