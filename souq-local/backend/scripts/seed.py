@@ -1,6 +1,9 @@
 """Seed categories and demo data for local development."""
 
 import asyncio
+
+from sqlalchemy import select
+
 from app.auth import new_local_firebase_uid
 from app.services.security import hash_password
 
