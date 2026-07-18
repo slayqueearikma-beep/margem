@@ -62,6 +62,7 @@ resource "azurerm_storage_account" "media" {
   account_kind             = "StorageV2"
   access_tier              = "Hot"
   min_tls_version          = "TLS1_2"
+  https_traffic_only_enabled = true
   allow_nested_items_to_be_public = false
 
   tags = azurerm_resource_group.rg.tags
@@ -80,8 +81,8 @@ resource "azurerm_key_vault" "kv" {
   resource_group_name        = azurerm_resource_group.rg.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = false
+  soft_delete_retention_days = 90
+  purge_protection_enabled   = var.enable_key_vault_purge_protection
   rbac_authorization_enabled = true
 
   tags = azurerm_resource_group.rg.tags
@@ -194,6 +195,22 @@ resource "azurerm_container_app" "api" {
         value = var.cors_origins
       }
       env {
+        name  = "ALLOWED_HOSTS"
+        value = var.allowed_hosts
+      }
+      env {
+        name  = "JWT_ACCESS_EXPIRE_MINUTES"
+        value = "60"
+      }
+      env {
+        name  = "JWT_REFRESH_EXPIRE_DAYS"
+        value = "7"
+      }
+      env {
+        name  = "AUTH_RATE_LIMIT"
+        value = "5/minute"
+      }
+      env {
         name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
         value = azurerm_application_insights.api.connection_string
       }
@@ -204,6 +221,7 @@ resource "azurerm_container_app" "api" {
     external_enabled = true
     target_port      = 8000
     transport        = "auto"
+    allow_insecure_connections = false
 
     traffic_weight {
       percentage      = 100

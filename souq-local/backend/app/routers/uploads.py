@@ -1,26 +1,37 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.auth import get_current_user
 from app.config import settings
+from app.limiter import limiter
 from app.models import User
 from app.schemas import PresignRequest, PresignResponse
+from app.services.upload_security import sanitize_upload_filename, validate_upload_content_type
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
 
 @router.post("/presign", response_model=PresignResponse)
+@limiter.limit("20/minute")
 async def presign_upload(
+    request: Request,
     payload: PresignRequest,
     user: User = Depends(get_current_user),
 ) -> PresignResponse:
+    if settings.app_env in {"production", "prod"} and not settings.azure_storage_connection_string:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Storage not configured")
+
+    try:
+        safe_filename = sanitize_upload_filename(payload.filename)
+        validate_upload_content_type(payload.content_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
     if not settings.azure_storage_connection_string:
-        # Dev fallback: return placeholder URLs
-        blob_name = f"{user.id}/{uuid4()}-{payload.filename}"
-        return PresignResponse(
-            upload_url=f"https://dev.local/upload/{blob_name}",
-            public_url=f"https://dev.local/media/{blob_name}",
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Storage service unavailable in this environment",
         )
 
     try:
@@ -28,7 +39,7 @@ async def presign_upload(
         from azure.storage.blob.aio import BlobServiceClient
         from datetime import datetime, timedelta, timezone
 
-        blob_name = f"{user.id}/{uuid4()}-{payload.filename}"
+        blob_name = f"{user.id}/{uuid4()}-{safe_filename}"
         async with BlobServiceClient.from_connection_string(
             settings.azure_storage_connection_string
         ) as client:

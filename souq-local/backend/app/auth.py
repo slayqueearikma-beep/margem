@@ -18,7 +18,7 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     session: AsyncSession = Depends(get_db),
 ) -> User:
-    if settings.auth_dev_bypass:
+    if settings.auth_dev_bypass and settings.app_env not in {"production", "prod"}:
         result = await session.execute(select(User).limit(1))
         user = result.scalar_one_or_none()
         if user is None:

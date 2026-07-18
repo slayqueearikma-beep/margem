@@ -63,3 +63,15 @@ variable "min_replicas" {
   type        = number
   default     = 1
 }
+
+variable "allowed_hosts" {
+  description = "JSON array of allowed Host headers (API FQDN only in production)"
+  type        = string
+  default     = "[\"margem-prod-api.azurecontainerapps.io\"]"
+}
+
+variable "enable_key_vault_purge_protection" {
+  description = "Enable Key Vault purge protection (recommended for production)"
+  type        = bool
+  default     = true
+}

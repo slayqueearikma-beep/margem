@@ -27,15 +27,21 @@ class AuthUser {
 class AuthSession {
   const AuthSession({
     required this.accessToken,
+    required this.refreshToken,
     required this.user,
+    this.expiresIn = 3600,
   });
 
   final String accessToken;
+  final String refreshToken;
   final AuthUser user;
+  final int expiresIn;
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
     return AuthSession(
       accessToken: json['access_token'] as String,
+      refreshToken: json['refresh_token'] as String,
+      expiresIn: json['expires_in'] as int? ?? 3600,
       user: AuthUser.fromJson(json['user'] as Map<String, dynamic>),
     );
   }

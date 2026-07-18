@@ -7,10 +7,29 @@ from app.config import settings
 from app.database import get_db
 from app.limiter import limiter
 from app.models import AccountType, User
-from app.schemas import LoginRequest, TokenResponse, UserOut, UserRegister, UserRegisterFirebase
-from app.services.security import create_access_token, hash_password, verify_password
+from app.schemas import LoginRequest, LogoutRequest, RefreshRequest, TokenResponse, UserOut, UserRegister, UserRegisterFirebase
+from app.services.audit import log_security_event
+from app.services.security import (
+    create_access_token,
+    hash_password,
+    issue_refresh_token,
+    revoke_refresh_token,
+    rotate_refresh_token,
+    verify_password,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+async def _token_response(session: AsyncSession, user: User) -> TokenResponse:
+    refresh_token = await issue_refresh_token(session, user.id)
+    await session.commit()
+    return TokenResponse(
+        access_token=create_access_token(user.id),
+        refresh_token=refresh_token,
+        expires_in=settings.jwt_access_expire_minutes * 60,
+        user=UserOut.model_validate(user),
+    )
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -22,6 +41,7 @@ async def register(
 ) -> TokenResponse:
     existing = await session.execute(select(User).where(User.email == payload.email))
     if existing.scalar_one_or_none():
+        log_security_event("register_conflict", email=payload.email.lower())
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
     user = User(
@@ -32,11 +52,9 @@ async def register(
         display_name=payload.display_name.strip(),
     )
     session.add(user)
-    await session.commit()
-    await session.refresh(user)
-
-    token = create_access_token(user.id)
-    return TokenResponse(access_token=token, user=UserOut.model_validate(user))
+    await session.flush()
+    log_security_event("register_success", user_id=str(user.id), account_type=user.account_type.value)
+    return await _token_response(session, user)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -49,10 +67,50 @@ async def login(
     result = await session.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
     if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
+        log_security_event("login_failed", email=payload.email.lower(), client=request.client.host if request.client else "unknown")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
-    token = create_access_token(user.id)
-    return TokenResponse(access_token=token, user=UserOut.model_validate(user))
+    log_security_event("login_success", user_id=str(user.id))
+    return await _token_response(session, user)
+
+
+@router.post("/refresh", response_model=TokenResponse)
+@limiter.limit(settings.auth_rate_limit)
+async def refresh_tokens(
+    request: Request,
+    payload: RefreshRequest,
+    session: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    rotated = await rotate_refresh_token(session, payload.refresh_token)
+    if rotated is None:
+        log_security_event("refresh_failed", client=request.client.host if request.client else "unknown")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
+
+    user_id, _new_refresh = rotated
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
+    await session.commit()
+    return TokenResponse(
+        access_token=create_access_token(user.id),
+        refresh_token=_new_refresh,
+        expires_in=settings.jwt_access_expire_minutes * 60,
+        user=UserOut.model_validate(user),
+    )
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def logout(
+    request: Request,
+    payload: LogoutRequest,
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    await revoke_refresh_token(session, payload.refresh_token)
+    await session.commit()
+    log_security_event("logout", client=request.client.host if request.client else "unknown")
 
 
 @router.post("/register-firebase", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -62,7 +120,6 @@ async def register_firebase(
     payload: UserRegisterFirebase,
     session: AsyncSession = Depends(get_db),
 ) -> User:
-    """Disabled in production until Firebase ID token verification is implemented."""
     if settings.app_env in {"production", "prod"}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not available")
 

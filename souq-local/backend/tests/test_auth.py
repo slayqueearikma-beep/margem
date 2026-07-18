@@ -2,10 +2,17 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from app.services.password_policy import validate_password_strength
+
+
+def test_password_policy_requires_complexity():
+    with pytest.raises(ValueError):
+        validate_password_strength("password")
+    validate_password_strength("SecurePass1")
 
 
 @pytest.mark.asyncio
-async def test_register_requires_eight_char_password():
+async def test_register_requires_strong_password():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
@@ -25,7 +32,7 @@ async def test_register_and_login_flow():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         email = "prod-test@example.com"
-        password = "securepass123"
+        password = "SecurePass1"
 
         register = await client.post(
             "/auth/register",
@@ -37,16 +44,25 @@ async def test_register_and_login_flow():
             },
         )
         assert register.status_code == 201
-        token = register.json()["access_token"]
-        assert token
+        body = register.json()
+        assert body["access_token"]
+        assert body["refresh_token"]
+        token = body["access_token"]
 
         login = await client.post(
             "/auth/login",
             json={"email": email, "password": password},
         )
         assert login.status_code == 200
-        assert login.json()["access_token"]
+        assert login.json()["refresh_token"]
 
         me = await client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert me.status_code == 200
         assert me.json()["email"] == email
+
+        refresh = await client.post(
+            "/auth/refresh",
+            json={"refresh_token": body["refresh_token"]},
+        )
+        assert refresh.status_code == 200
+        assert refresh.json()["access_token"]

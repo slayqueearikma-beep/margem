@@ -5,10 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.config import settings
 from app.database import engine
 from app.limiter import limiter
+from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.routers import auth, catalog, sellers, uploads
 
@@ -25,18 +27,25 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs" if settings.debug or settings.app_env == "development" else None,
     redoc_url=None,
+    openapi_url="/openapi.json" if settings.debug or settings.app_env == "development" else None,
 )
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+app.add_middleware(RequestSizeLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+
+if settings.allowed_hosts != ["*"]:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
+    max_age=600,
 )
 
 app.include_router(auth.router)

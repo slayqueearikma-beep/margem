@@ -18,7 +18,9 @@ class Settings(BaseSettings):
     firebase_credentials_path: str = ""
     jwt_secret_key: str = "change-this-secret-in-production-use-key-vault"
     jwt_algorithm: str = "HS256"
-    jwt_expire_minutes: int = 60 * 24 * 7
+    jwt_access_expire_minutes: int = 60
+    jwt_refresh_expire_days: int = 7
+    bcrypt_rounds: int = 12
 
     azure_storage_connection_string: str = ""
     azure_storage_container: str = "margem-media"
@@ -27,7 +29,8 @@ class Settings(BaseSettings):
     allowed_hosts: list[str] = ["*"]
 
     rate_limit: str = "120/minute"
-    auth_rate_limit: str = "10/minute"
+    auth_rate_limit: str = "5/minute"
+    max_request_body_bytes: int = 1_048_576
 
     default_cities: list[str] = [
         "Casablanca",
@@ -40,14 +43,14 @@ class Settings(BaseSettings):
         "Oujda",
     ]
 
-    @field_validator("cors_origins", mode="before")
+    @field_validator("cors_origins", "allowed_hosts", mode="before")
     @classmethod
-    def parse_cors_origins(cls, value: Any) -> list[str]:
+    def parse_string_list(cls, value: Any) -> list[str]:
         if isinstance(value, str):
             stripped = value.strip()
             if stripped.startswith("["):
                 return json.loads(stripped)
-            return [origin.strip() for origin in stripped.split(",") if origin.strip()]
+            return [item.strip() for item in stripped.split(",") if item.strip()]
         return value
 
     @model_validator(mode="after")
@@ -59,6 +62,10 @@ class Settings(BaseSettings):
                 raise ValueError("JWT_SECRET_KEY must be at least 32 characters in production")
             if "*" in self.cors_origins:
                 raise ValueError("CORS_ORIGINS must not include '*' in production")
+            if "*" in self.allowed_hosts:
+                raise ValueError("ALLOWED_HOSTS must not include '*' in production")
+            if not self.azure_storage_connection_string:
+                raise ValueError("AZURE_STORAGE_CONNECTION_STRING is required in production")
         return self
 
 

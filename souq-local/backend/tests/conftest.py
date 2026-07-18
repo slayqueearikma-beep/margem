@@ -22,6 +22,7 @@ async def prepare_database():
     yield
     async with engine.begin() as conn:
         for table in (
+            "refresh_tokens",
             "reviews",
             "products",
             "services",

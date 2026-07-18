@@ -27,21 +27,19 @@ flutter pub get
 flutter run
 ```
 
-**Demo API accounts** (after seed):
-- `buyer@demo.local` / `demo1234`
-- `seller@demo.local` / `demo1234`
+**No demo accounts are seeded.** Register buyer and seller accounts through the app.
 
 API docs: http://localhost:8000/docs
 
-## Production deployment (Terraform)
+## Production deployment
+
+See [.azure/deployment-plan.md](.azure/deployment-plan.md) for Azure (PostgreSQL, Key Vault, Container Apps).
 
 ```bash
 cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars   # set passwords
+cp terraform.tfvars.example terraform.tfvars
 terraform init && terraform apply
 ```
-
-Full guide: [infra/terraform/README.md](infra/terraform/README.md) (~$50–90/month on Azure).
 
 ## Security features
 

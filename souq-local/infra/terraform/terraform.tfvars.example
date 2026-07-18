@@ -15,6 +15,10 @@ create_container_registry = true
 acr_name                  = "margemregistry"
 
 min_replicas = 1
+enable_key_vault_purge_protection = true
+
+# Set to your Container App FQDN after first deploy, e.g. ["margem-prod-api.xxx.azurecontainerapps.io"]
+allowed_hosts = "[\"margem-prod-api.azurecontainerapps.io\"]"
 
 # Restrict to your mobile app / web origins — no wildcard in production
 cors_origins = "[\"https://margem.app\"]"

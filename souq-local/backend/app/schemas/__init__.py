@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from app.services.password_policy import validate_password_strength
+
 
 class AccountType(str, Enum):
     BUYER = "buyer"
@@ -15,6 +17,12 @@ class UserRegister(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     account_type: AccountType
     display_name: str = Field(default="", max_length=120)
+
+    @field_validator("password")
+    @classmethod
+    def strong_password(cls, value: str) -> str:
+        validate_password_strength(value)
+        return value
 
 
 class UserRegisterFirebase(BaseModel):
@@ -42,8 +50,18 @@ class UserOut(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
+    expires_in: int
     user: UserOut
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(min_length=20, max_length=512)
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str = Field(min_length=20, max_length=512)
 
 
 class CategoryOut(BaseModel):
