@@ -36,8 +36,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final city = ref.watch(buyerCityProvider);
+
+    if (!AppConfig.hasGoogleMapsApiKey) {
+      return Scaffold(
+        body: SafeArea(
+          child: MapUnavailablePlaceholder(
+            cityCenter: DemoMapData.cityCenter(city),
+            usingDemoData: true,
+          ),
+        ),
+      );
+    }
+
+    final l10n = context.l10n;
 
     return FutureBuilder<_MapData>(
       future: _mapFuture,

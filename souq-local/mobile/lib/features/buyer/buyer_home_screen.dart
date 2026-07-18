@@ -39,7 +39,30 @@ class BuyerHomeShell extends ConsumerStatefulWidget {
 class _BuyerHomeShellState extends ConsumerState<BuyerHomeShell> {
   int _index = 0;
 
-  Widget _pageForIndex(int index) {
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final mapsEnabled = AppConfig.hasGoogleMapsApiKey;
+
+    return Scaffold(
+      body: _pageForIndex(_index, mapsEnabled: mapsEnabled),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        destinations: [
+          NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home_rounded), label: l10n.navHome),
+          NavigationDestination(icon: const Icon(Icons.search), label: l10n.navSearch),
+          if (mapsEnabled)
+            NavigationDestination(icon: const Icon(Icons.map_outlined), selectedIcon: const Icon(Icons.map_rounded), label: l10n.navMap),
+          NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person_rounded), label: l10n.navProfile),
+        ],
+      ),
+    );
+  }
+}
+
+Widget _pageForIndex(int index, {required bool mapsEnabled}) {
+  if (mapsEnabled) {
     return switch (index) {
       0 => const BuyerHomeScreen(),
       1 => const SearchScreen(),
@@ -48,24 +71,11 @@ class _BuyerHomeShellState extends ConsumerState<BuyerHomeShell> {
     };
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-
-    return Scaffold(
-      body: _pageForIndex(_index),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home_rounded), label: l10n.navHome),
-          NavigationDestination(icon: const Icon(Icons.search), label: l10n.navSearch),
-          NavigationDestination(icon: const Icon(Icons.map_outlined), selectedIcon: const Icon(Icons.map_rounded), label: l10n.navMap),
-          NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person_rounded), label: l10n.navProfile),
-        ],
-      ),
-    );
-  }
+  return switch (index) {
+    0 => const BuyerHomeScreen(),
+    1 => const SearchScreen(),
+    _ => const _BuyerProfileTab(),
+  };
 }
 
 class BuyerHomeScreen extends ConsumerWidget {
