@@ -15,12 +15,11 @@ cd souq-local\infra\terraform
 # Month 1
 .\scripts\switch-subscription.ps1 -Sub 1
 
-# When credits on sub1 are gone
-.\scripts\destroy-subscription.ps1 -Sub 1
-.\scripts\switch-subscription.ps1 -Sub 2
+# When credits on sub1 are gone — migrate ALL data to sub2
+.\scripts\rotate-subscription.ps1 -FromSub 1 -ToSub 2
 ```
 
-**Important:** Destroy the old subscription’s stack when you rotate, or you may keep getting charged. The API URL changes each month unless you add a custom domain.
+**Important:** Use `rotate-subscription` (not destroy-then-deploy alone) so users, sellers, reviews, and images carry over. Destroy the old subscription when done to stop billing. The API URL changes each month unless you add a custom domain.
 
 ## Prerequisites
 
@@ -67,7 +66,11 @@ terraform init
 terraform apply -state=terraform-sub1.tfstate -var-file=subscriptions/sub1.tfvars
 ```
 
-When sub1’s budget is **$0**, destroy it and deploy sub2 (see MONTHLY-ROTATION.md).
+When sub1’s budget is **$0**, migrate everything to sub2 (keeps your data):
+
+```powershell
+.\scripts\rotate-subscription.ps1 -FromSub 1 -ToSub 2
+```
 
 This creates:
 

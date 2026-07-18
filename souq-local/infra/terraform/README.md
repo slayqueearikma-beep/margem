@@ -18,7 +18,7 @@ Estimated cost: **~$50–90 USD/month** at launch.
 If you have **multiple Azure subscriptions** (e.g. free credits that run out each month), use **one at a time**:
 
 1. **Month 1** — deploy on `sub1`
-2. Budget hits **$0** — **destroy** `sub1`, deploy on `sub2`
+2. Budget hits **$0** — **migrate all data** to `sub2` with `rotate-subscription.ps1`
 3. Repeat with `sub3`, `sub4`, …
 
 You only run **one** stack at a time. Full walkthrough: **[subscriptions/MONTHLY-ROTATION.md](subscriptions/MONTHLY-ROTATION.md)**
@@ -31,20 +31,13 @@ cd souq-local\infra\terraform
 # Month 1
 .\scripts\switch-subscription.ps1 -Sub 1
 
-# When sub1 credits are gone
-.\scripts\destroy-subscription.ps1 -Sub 1
-.\scripts\switch-subscription.ps1 -Sub 2
-```
-
-**Bash:**
-
-```bash
-./scripts/switch-subscription.sh 1
-./scripts/destroy-subscription.sh 1
-./scripts/switch-subscription.sh 2
+# When sub1 credits are gone — migrate ALL data to sub2 (not from zero)
+.\scripts\rotate-subscription.ps1 -FromSub 1 -ToSub 2
 ```
 
 Each month gets its own tfvars (`subscriptions/sub1.tfvars`, `sub2.tfvars`, …) and state file (`terraform-sub1.tfstate`, …).
+
+**Data preserved:** database + images are backed up and restored automatically. See [MONTHLY-ROTATION.md](subscriptions/MONTHLY-ROTATION.md).
 
 ## Prerequisites
 

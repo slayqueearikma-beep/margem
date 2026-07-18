@@ -8,6 +8,7 @@ subscriptions/*.tfvars
 !subscriptions/*.tfvars.example
 backends/*.backend.hcl
 !backends/*.backend.hcl.example
+backups/
 crash.log
 override.tf
 override.tf.json

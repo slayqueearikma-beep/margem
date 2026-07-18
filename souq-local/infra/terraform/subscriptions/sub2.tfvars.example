@@ -10,7 +10,8 @@ environment_name = "prod"
 
 postgres_admin_login    = "margemadmin"
 postgres_admin_password = "CHANGE_ME_DIFFERENT_PASSWORD"
-jwt_secret_key          = "CHANGE_ME_DIFFERENT_32_CHAR_JWT_SECRET"
+# Copied automatically from sub1 by rotate-subscription.ps1 — keeps users logged in
+jwt_secret_key          = "COPY_FROM_SUB1_OR_LEAVE_FOR_SCRIPT"
 
 api_image                 = "margemregsub2.azurecr.io/margem-api:1.0.0"
 create_container_registry = true
