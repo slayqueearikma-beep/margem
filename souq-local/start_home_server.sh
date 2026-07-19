@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Start MarGem home server (API + Postgres) and optionally Flutter on a connected phone.
+# Start everything for MarGem home server: Docker (API + Postgres) + Flutter app.
 # Usage:
-#   ./start_home_server.sh              # Docker only
-#   ./start_home_server.sh --flutter    # Docker + flutter run (USB phone required)
-#   ./start_home_server.sh --build      # Rebuild API image before start
+#   ./start_home_server.sh           # API + Flutter (if phone connected)
+#   ./start_home_server.sh --build   # Rebuild API image first
+#   ./start_home_server.sh --api-only # Skip Flutter
 
 set -euo pipefail
 
@@ -11,17 +11,19 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$ROOT/.env.home"
 ENV_EXAMPLE="$ROOT/env.home.example"
 COMPOSE_FILE="$ROOT/docker-compose.home.yml"
-RUN_FLUTTER=false
+RUN_FLUTTER=true
 DOCKER_BUILD=""
 
 for arg in "$@"; do
   case "$arg" in
+    --api-only) RUN_FLUTTER=false ;;
     --flutter) RUN_FLUTTER=true ;;
     --build) DOCKER_BUILD="--build" ;;
     -h|--help)
-      echo "Usage: $0 [--flutter] [--build]"
-      echo "  --flutter  Run 'flutter run' after API is healthy (phone via USB)"
+      echo "Usage: $0 [--build] [--api-only]"
+      echo "  (default)  Start Docker API + Postgres, then Flutter if a phone is connected"
       echo "  --build    Rebuild Docker images"
+      echo "  --api-only Docker only, skip Flutter"
       exit 0
       ;;
     *)
@@ -32,20 +34,40 @@ for arg in "$@"; do
 done
 
 get_lan_ip() {
-  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.' | grep -v '^172\.17\.' | head -n1
+  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[9]|2[0-9]|3[0-1])\.' | grep -v '^172\.17\.' | head -n1
+}
+
+has_usb_phone() {
+  command -v adb >/dev/null 2>&1 || return 1
+  adb devices 2>/dev/null | awk 'NR>1 && $2=="device" {found=1} END {exit !found}'
+}
+
+ensure_docker_running() {
+  if docker info >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "Docker not responding — trying to start it..."
+  if command -v systemctl >/dev/null 2>&1; then
+    sudo systemctl start docker 2>/dev/null || true
+    sleep 2
+  fi
+  docker info >/dev/null 2>&1
 }
 
 echo ""
-echo "=== MarGem Home Server ==="
+echo "=== MarGem Home Server — start all ==="
 echo ""
 
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker not found. Install: sudo apt install docker.io docker-compose-plugin" >&2
+  echo "Docker not found. Install:" >&2
+  echo "  sudo apt install docker.io docker-compose-plugin" >&2
   exit 1
 fi
 
-if ! docker info >/dev/null 2>&1; then
-  echo "Docker is not running. Try: sudo systemctl start docker" >&2
+if ! ensure_docker_running; then
+  echo "Docker is not running. Try:" >&2
+  echo "  sudo systemctl start docker" >&2
+  echo "  sudo usermod -aG docker \$USER   # then log out and back in" >&2
   exit 1
 fi
 
@@ -66,10 +88,10 @@ API_PORT="$(grep -E '^API_PORT=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
 API_PORT="${API_PORT:-8000}"
 API_URL="http://${LAN_IP}:${API_PORT}"
 
-echo "[1/2] Starting Postgres + API..."
+echo "[1/3] Starting Postgres + API (Docker)..."
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d $DOCKER_BUILD
 
-echo "[2/2] Waiting for health..."
+echo "[2/3] Waiting for API health..."
 ready=false
 for _ in $(seq 1 30); do
   if curl -fsS "http://127.0.0.1:${API_PORT}/health" >/dev/null 2>&1; then
@@ -81,38 +103,50 @@ done
 
 echo ""
 if [[ "$ready" == true ]]; then
-  echo "=== Home server running ==="
+  echo "=== API running ==="
 else
   echo "API not ready yet. Check: docker compose -f docker-compose.home.yml logs api"
+  exit 1
 fi
 
 echo ""
-echo "  Same Wi-Fi:  $API_URL"
+echo "  Same Wi-Fi:   $API_URL"
 echo "  This machine: http://localhost:${API_PORT}"
 echo "  Health:       http://localhost:${API_PORT}/health"
 echo "  Images:       Azure Blob (cloud)"
+echo "  Stop all:     ./stop_home_server.sh"
 echo ""
-echo "Stop: ./stop_home_server.sh"
-echo ""
 
-if [[ "$RUN_FLUTTER" == true ]]; then
-  if ! command -v flutter >/dev/null 2>&1; then
-    echo "Flutter not found. Install Flutter SDK or run without --flutter." >&2
-    exit 1
-  fi
-
-  if command -v adb >/dev/null 2>&1; then
-    devices="$(adb devices | awk 'NR>1 && $2=="device" {print $1}')"
-    if [[ -z "$devices" ]]; then
-      echo "No USB phone detected (adb devices). Plug in phone with USB debugging on."
-      echo "Or run manually:"
-      echo "  cd mobile && flutter run --dart-define=API_BASE_URL=$API_URL"
-      exit 1
-    fi
-  fi
-
-  echo "Starting Flutter (Ctrl+C stops the app, API keeps running)..."
-  echo ""
-  cd "$ROOT/mobile"
-  exec flutter run --dart-define=API_BASE_URL="$API_URL"
+if [[ "$RUN_FLUTTER" != true ]]; then
+  echo "API-only mode. To run the app later:"
+  echo "  cd mobile && flutter run --dart-define=API_BASE_URL=$API_URL"
+  exit 0
 fi
+
+echo "[3/3] Starting Flutter app..."
+
+if ! command -v flutter >/dev/null 2>&1; then
+  echo "Flutter not installed — API is up, app not started."
+  echo ""
+  echo "Install Flutter, then re-run ./start_home_server.sh"
+  echo "Or run manually: cd mobile && flutter run --dart-define=API_BASE_URL=$API_URL"
+  exit 0
+fi
+
+if ! has_usb_phone; then
+  echo "No USB phone detected — API is up, app not started."
+  echo ""
+  echo "Plug in your phone (USB debugging on), then re-run:"
+  echo "  ./start_home_server.sh"
+  echo ""
+  echo "Or install the last APK if you already built one."
+  exit 0
+fi
+
+cd "$ROOT/mobile"
+flutter pub get
+
+echo ""
+echo "Launching on phone (Ctrl+C stops the app; API keeps running)..."
+echo ""
+exec flutter run --dart-define=API_BASE_URL="$API_URL"

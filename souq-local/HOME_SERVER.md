@@ -73,19 +73,19 @@ ipconfig   # Windows — look for IPv4
 
 ## Start / stop
 
-**Linux laptop:**
+**Linux laptop — one command starts everything:**
 
 ```bash
 chmod +x start_home_server.sh stop_home_server.sh
 
-# API + Postgres only
+# Docker (API + Postgres) + Flutter on USB phone
 ./start_home_server.sh
 
-# API + Postgres + Flutter on USB phone
-./start_home_server.sh --flutter
-
-# Rebuild API image
+# Rebuild API image after code changes
 ./start_home_server.sh --build
+
+# API only (no Flutter)
+./start_home_server.sh --api-only
 
 ./stop_home_server.sh
 ```
