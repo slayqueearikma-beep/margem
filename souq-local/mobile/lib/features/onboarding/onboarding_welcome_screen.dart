@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/config/app_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
@@ -9,7 +8,6 @@ import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
-import '../../l10n/strings/app_strings.dart';
 
 class OnboardingWelcomeScreen extends StatefulWidget {
   const OnboardingWelcomeScreen({super.key});

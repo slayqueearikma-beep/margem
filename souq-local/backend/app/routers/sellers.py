@@ -13,6 +13,7 @@ from app.schemas import (
     MapPin,
     ProductCreate,
     ProductOut,
+    ProductUpdate,
     ReviewCreate,
     ReviewOut,
     SellerCreate,
@@ -21,6 +22,7 @@ from app.schemas import (
     SellerUpdate,
     ServiceCreate,
     ServiceOut,
+    ServiceUpdate,
 )
 from app.services.ratings import refresh_seller_ratings
 from app.services.upload_security import validate_media_url
@@ -247,6 +249,105 @@ async def add_service(
     await session.commit()
     await session.refresh(service)
     return service
+
+
+async def _owned_seller(seller_id: UUID, user: User, session: AsyncSession) -> SellerProfile:
+    seller = await session.get(SellerProfile, seller_id)
+    if seller is None or seller.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
+    return seller
+
+
+@router.patch("/{seller_id}/products/{product_id}", response_model=ProductOut)
+async def update_product(
+    seller_id: UUID,
+    product_id: UUID,
+    payload: ProductUpdate,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> Product:
+    await _owned_seller(seller_id, user, session)
+    product = await session.get(Product, product_id)
+    if product is None or product.seller_id != seller_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    data = payload.model_dump(exclude_unset=True)
+    if "image_url" in data:
+        try:
+            data["image_url"] = validate_media_url(
+                data["image_url"] or "",
+                owner_user_id=user.id,
+                container=settings.azure_storage_container,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    for key, value in data.items():
+        setattr(product, key, value)
+    await session.commit()
+    await session.refresh(product)
+    return product
+
+
+@router.delete("/{seller_id}/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(
+    seller_id: UUID,
+    product_id: UUID,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    await _owned_seller(seller_id, user, session)
+    product = await session.get(Product, product_id)
+    if product is None or product.seller_id != seller_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    await session.delete(product)
+    await session.commit()
+
+
+@router.patch("/{seller_id}/services/{service_id}", response_model=ServiceOut)
+async def update_service(
+    seller_id: UUID,
+    service_id: UUID,
+    payload: ServiceUpdate,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> Service:
+    await _owned_seller(seller_id, user, session)
+    service = await session.get(Service, service_id)
+    if service is None or service.seller_id != seller_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
+
+    data = payload.model_dump(exclude_unset=True)
+    if "image_url" in data:
+        try:
+            data["image_url"] = validate_media_url(
+                data["image_url"] or "",
+                owner_user_id=user.id,
+                container=settings.azure_storage_container,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    for key, value in data.items():
+        setattr(service, key, value)
+    await session.commit()
+    await session.refresh(service)
+    return service
+
+
+@router.delete("/{seller_id}/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_service(
+    seller_id: UUID,
+    service_id: UUID,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    await _owned_seller(seller_id, user, session)
+    service = await session.get(Service, service_id)
+    if service is None or service.seller_id != seller_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
+    await session.delete(service)
+    await session.commit()
 
 
 @router.get("/{seller_id}/reviews", response_model=list[ReviewOut])

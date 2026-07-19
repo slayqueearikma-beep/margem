@@ -7,6 +7,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import text
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import settings
 from app.database import engine
@@ -37,6 +38,7 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Outermost first for ProxyHeaders so TrustedHost/HSTS see the real scheme.
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(RequestSizeLimitMiddleware)
@@ -53,6 +55,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
     max_age=600,
 )
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 app.include_router(auth.router)
 app.include_router(catalog.router)

@@ -93,6 +93,14 @@ class ProductCreate(BaseModel):
     image_url: str = ""
 
 
+class ProductUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=160)
+    description: str | None = None
+    price_mad: float | None = None
+    image_url: str | None = None
+    is_available: bool | None = None
+
+
 class ProductOut(BaseModel):
     id: UUID
     name: str
@@ -109,6 +117,14 @@ class ServiceCreate(BaseModel):
     description: str = ""
     price_mad: float | None = None
     image_url: str = ""
+
+
+class ServiceUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=160)
+    description: str | None = None
+    price_mad: float | None = None
+    image_url: str | None = None
+    is_available: bool | None = None
 
 
 class ServiceOut(BaseModel):
@@ -144,6 +160,7 @@ class SellerUpdate(BaseModel):
     phone: str | None = None
     cover_image_url: str | None = None
     category_ids: list[UUID] | None = None
+    is_active: bool | None = None
 
 
 class SellerSummary(BaseModel):
