@@ -43,7 +43,7 @@ Write-Host ""
 
 if (-not (Test-Path $EnvHome)) {
     Copy-Item $EnvExample $EnvHome
-    Write-Host "Created .env.home — edit ALLOWED_HOSTS with your laptop IP."
+    Write-Host "Created .env.home — edit ALLOWED_HOSTS with your laptop IP (see env.home.example)."
 }
 
 # Inject connection string into .env.home if placeholder
