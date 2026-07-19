@@ -5,7 +5,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import get_current_user, require_buyer, require_seller
+from app.auth import require_buyer, require_seller
 from app.config import settings
 from app.database import get_db
 from app.models import Category, Product, Review, SellerProfile, Service, User
