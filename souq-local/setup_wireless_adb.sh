@@ -5,12 +5,13 @@
 # Usage:
 #   ./setup_wireless_adb.sh pair 192.168.11.107:37123 123456
 #   ./setup_wireless_adb.sh connect 192.168.11.107:41293
+#   ./setup_wireless_adb.sh install-adb    # install latest Google platform-tools
 #   ./setup_wireless_adb.sh status
 #   ./setup_wireless_adb.sh disconnect
 
 set -euo pipefail
 
-# Common Android SDK locations on Linux
+# Prefer Google platform-tools over old apt adb
 for dir in "$HOME/Android/platform-tools" "$HOME/Android/Sdk/platform-tools"; do
   if [[ -d "$dir" ]]; then
     export PATH="$dir:$PATH"
@@ -19,54 +20,113 @@ done
 
 usage() {
   echo "Usage:"
-  echo "  $0 pair <ip:pairing_port> <6-digit-code>   # first time only"
-  echo "  $0 connect <ip:debug_port>                  # after pair (or to reconnect)"
+  echo "  $0 install-adb                           # latest adb (recommended)"
+  echo "  $0 pair <ip:pairing_port> <6-digit-code> # first time only"
+  echo "  $0 connect <ip:debug_port>               # after pair / reconnect"
   echo "  $0 status"
   echo "  $0 disconnect"
   echo ""
   echo "On phone: Settings → Developer options → Wireless debugging"
-  echo "  1. Tap 'Pair device with pairing code' → use pair command"
-  echo "  2. Note 'IP address & port' on main screen → use connect command"
+  echo "  1. Tap 'Pair device with pairing code' (code expires in ~60s)"
+  echo "  2. Use pair command immediately with that IP:port + code"
+  echo "  3. On main screen, use 'IP address & port' for connect"
   exit 1
 }
 
-if ! command -v adb >/dev/null 2>&1; then
-  echo "adb not found. Install platform-tools and add to PATH:" >&2
-  echo "  sudo apt install adb" >&2
-  echo "  export PATH=\"\$HOME/Android/platform-tools:\$PATH\"" >&2
-  exit 1
-fi
+adb_version_ok() {
+  command -v adb >/dev/null 2>&1 || return 1
+  local ver
+  ver="$(adb version 2>/dev/null | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)"
+  [[ -n "$ver" ]] || return 1
+  local major minor
+  major="${ver%%.*}"
+  minor="$(echo "$ver" | cut -d. -f2)"
+  [[ "$major" -gt 31 ]] || { [[ "$major" -eq 31 ]] && [[ "$minor" -ge 0 ]]; }
+}
+
+install_platform_tools() {
+  echo "Installing latest Android platform-tools to ~/Android/platform-tools ..."
+  mkdir -p "$HOME/Android"
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' RETURN
+  curl -fsSL -o "$tmp/platform-tools.zip" "https://dl.google.com/android/repository/platform-tools-latest-linux.zip"
+  unzip -q "$tmp/platform-tools.zip" -d "$tmp"
+  rm -rf "$HOME/Android/platform-tools"
+  mv "$tmp/platform-tools" "$HOME/Android/platform-tools"
+  export PATH="$HOME/Android/platform-tools:$PATH"
+  if ! grep -q 'Android/platform-tools' "$HOME/.bashrc" 2>/dev/null; then
+    echo 'export PATH="$HOME/Android/platform-tools:$PATH"' >> "$HOME/.bashrc"
+  fi
+  echo "Installed: $(adb version | head -n1)"
+  echo "Run: source ~/.bashrc"
+}
+
+require_adb() {
+  if ! command -v adb >/dev/null 2>&1; then
+    echo "adb not found. Run: $0 install-adb" >&2
+    exit 1
+  fi
+  if ! adb_version_ok; then
+    echo "adb is too old for wireless pairing: $(adb version | head -n1)" >&2
+    echo "Run: $0 install-adb" >&2
+    exit 1
+  fi
+}
+
+pair_device() {
+  local target="$1"
+  local code="$2"
+  echo "Pairing with $target (code expires quickly — regenerate on phone if this fails) ..."
+  adb kill-server
+  sleep 1
+  adb start-server
+  if adb pair "$target" "$code"; then
+    return 0
+  fi
+  echo "Retrying with interactive code input ..."
+  printf '%s\n' "$code" | adb pair "$target"
+}
 
 cmd="${1:-}"
 shift || true
 
 case "$cmd" in
+  install-adb)
+    install_platform_tools
+    ;;
   pair)
     [[ $# -eq 2 ]] || usage
-    target="$1"
-    code="$2"
-    echo "Pairing with $target ..."
-    adb pair "$target" "$code"
-  ;;
+    require_adb
+    pair_device "$1" "$2"
+    echo ""
+    echo "Pair OK. Now connect using the DEBUG port from the phone main screen:"
+    echo "  $0 connect <ip:debug_port>"
+    ;;
   connect)
     [[ $# -eq 1 ]] || usage
+    require_adb
     target="$1"
     echo "Connecting to $target ..."
+    adb kill-server
+    sleep 1
+    adb start-server
     adb connect "$target"
     echo ""
     adb devices -l
-  ;;
+    ;;
   status)
+    require_adb
     adb devices -l
     if command -v flutter >/dev/null 2>&1; then
       echo ""
       flutter devices
     fi
-  ;;
+    ;;
   disconnect)
+    require_adb
     adb disconnect
     adb devices -l
-  ;;
+    ;;
   *)
     usage
     ;;
