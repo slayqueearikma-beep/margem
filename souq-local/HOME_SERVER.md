@@ -76,6 +76,23 @@ ipconfig   # Windows — look for IPv4
 **Linux laptop:**
 
 ```bash
+chmod +x start_home_server.sh stop_home_server.sh
+
+# API + Postgres only
+./start_home_server.sh
+
+# API + Postgres + Flutter on USB phone
+./start_home_server.sh --flutter
+
+# Rebuild API image
+./start_home_server.sh --build
+
+./stop_home_server.sh
+```
+
+Manual compose (same as the script):
+
+```bash
 docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
 docker compose -f docker-compose.home.yml --env-file .env.home down
 ```
