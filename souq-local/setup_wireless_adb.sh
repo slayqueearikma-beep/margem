@@ -35,13 +35,24 @@ usage() {
 
 adb_version_ok() {
   command -v adb >/dev/null 2>&1 || return 1
-  local ver
-  ver="$(adb version 2>/dev/null | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)"
-  [[ -n "$ver" ]] || return 1
-  local major minor
-  major="${ver%%.*}"
-  minor="$(echo "$ver" | cut -d. -f2)"
-  [[ "$major" -gt 31 ]] || { [[ "$major" -eq 31 ]] && [[ "$minor" -ge 0 ]]; }
+
+  # "Version 34.0.5-..." line from platform-tools
+  local pt_ver
+  pt_ver="$(adb version 2>/dev/null | awk '/^Version / {print $2}' | cut -d- -f1)"
+  if [[ -n "$pt_ver" ]]; then
+    local major minor
+    major="${pt_ver%%.*}"
+    minor="$(echo "$pt_ver" | cut -d. -f2)"
+    [[ "$major" -gt 31 ]] && return 0
+    [[ "$major" -eq 31 && "$minor" -ge 0 ]] && return 0
+  fi
+
+  # "Android Debug Bridge version 1.0.41" — wireless needs 1.0.39+
+  local client_patch
+  client_patch="$(adb version 2>/dev/null | sed -n 's/.*version 1\.0\.\([0-9]*\).*/\1/p' | head -n1)"
+  [[ -n "$client_patch" && "$client_patch" -ge 39 ]] && return 0
+
+  return 1
 }
 
 install_platform_tools() {
@@ -66,8 +77,13 @@ require_adb() {
     echo "adb not found. Run: $0 install-adb" >&2
     exit 1
   fi
+}
+
+require_adb_pairing() {
+  require_adb
   if ! adb_version_ok; then
-    echo "adb is too old for wireless pairing: $(adb version | head -n1)" >&2
+    echo "adb is too old for wireless pairing." >&2
+    adb version | head -n2 >&2
     echo "Run: $0 install-adb" >&2
     exit 1
   fi
@@ -96,7 +112,7 @@ case "$cmd" in
     ;;
   pair)
     [[ $# -eq 2 ]] || usage
-    require_adb
+    require_adb_pairing
     pair_device "$1" "$2"
     echo ""
     echo "Pair OK. Now connect using the DEBUG port from the phone main screen:"
