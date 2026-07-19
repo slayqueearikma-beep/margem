@@ -104,6 +104,14 @@ docker compose -f docker-compose.home.yml --env-file .env.home down
 .\stop_home_server.ps1
 ```
 
+## Backups (home server)
+
+```bash
+chmod +x scripts/backup_home_db.sh
+./scripts/backup_home_db.sh
+# writes backups/margem-YYYYMMDD….sql.gz — copy off-site
+```
+
 ## Connect from phone
 
 ### Wireless debugging (no USB cable)
