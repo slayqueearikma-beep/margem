@@ -41,9 +41,15 @@ jobs:
 
   terraform:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module:
+          - terraform
+          - terraform-budget
+          - terraform-storage
     defaults:
       run:
-        working-directory: souq-local/infra/terraform
+        working-directory: souq-local/infra/${{ matrix.module }}
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3

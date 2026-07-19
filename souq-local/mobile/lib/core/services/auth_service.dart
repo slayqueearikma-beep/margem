@@ -78,6 +78,21 @@ class AuthService {
     }
   }
 
+  /// Returns true when stored credentials can access the API (refresh if needed).
+  Future<bool> ensureSessionValid() async {
+    await loadStoredToken();
+    if ((_accessToken == null || _accessToken!.isEmpty) &&
+        (_refreshToken == null || _refreshToken!.isEmpty)) {
+      return false;
+    }
+    try {
+      await _api.getJson('/auth/me', auth: true);
+      return true;
+    } on Object {
+      return refreshAccessToken();
+    }
+  }
+
   Future<void> persistToken(SharedPreferences prefs) async {
     if (_accessToken != null) {
       await _storage.write(key: _accessTokenKey, value: _accessToken!);

@@ -21,17 +21,31 @@ class ProductDetailScreen extends StatelessWidget {
     return FutureBuilder<SellerModel>(
       future: apiServiceProvider.fetchSeller(sellerId),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text(context.l10n.somethingWentWrong)),
+          );
+        }
+        if (!snapshot.hasData) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text(context.l10n.somethingWentWrong)),
+          );
         }
 
         final seller = snapshot.data!;
-        final product = seller.products.firstWhere(
-          (p) => p.id == productId,
-          orElse: () => seller.products.isNotEmpty
-              ? seller.products.first
-              : const ProductModel(id: '', name: 'Product', description: ''),
-        );
+        final matches = seller.products.where((p) => p.id == productId).toList();
+        if (matches.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(title: Text(context.l10n.products)),
+            body: Center(child: Text(context.l10n.noProductsListed)),
+          );
+        }
+        final product = matches.first;
 
         return Scaffold(
           appBar: AppBar(title: Text(product.name)),

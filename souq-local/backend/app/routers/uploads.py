@@ -47,7 +47,7 @@ async def presign_upload(
             blob_client = container.get_blob_client(blob_name)
 
             account_name = client.account_name
-            sas = generate_blob_sas(
+            sas_write = generate_blob_sas(
                 account_name=account_name,
                 container_name=settings.azure_storage_container,
                 blob_name=blob_name,
@@ -55,10 +55,18 @@ async def presign_upload(
                 permission=BlobSasPermissions(write=True, create=True),
                 expiry=datetime.now(timezone.utc) + timedelta(minutes=15),
             )
+            sas_read = generate_blob_sas(
+                account_name=account_name,
+                container_name=settings.azure_storage_container,
+                blob_name=blob_name,
+                account_key=client.credential.account_key,
+                permission=BlobSasPermissions(read=True),
+                expiry=datetime.now(timezone.utc) + timedelta(days=3650),
+            )
 
             return PresignResponse(
-                upload_url=f"{blob_client.url}?{sas}",
-                public_url=blob_client.url,
+                upload_url=f"{blob_client.url}?{sas_write}",
+                public_url=f"{blob_client.url}?{sas_read}",
             )
     except Exception as exc:
         raise HTTPException(

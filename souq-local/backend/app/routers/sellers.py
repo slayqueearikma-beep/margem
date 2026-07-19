@@ -5,7 +5,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import get_current_user, require_seller
+from app.auth import get_current_user, require_buyer, require_seller
 from app.database import get_db
 from app.models import Category, Product, Review, SellerProfile, Service, User
 from app.schemas import (
@@ -25,12 +25,21 @@ from app.services.ratings import refresh_seller_ratings
 
 router = APIRouter(prefix="/sellers", tags=["sellers"])
 
+_MAX_PAGE_SIZE = 100
+_DEFAULT_PAGE_SIZE = 50
+
+
+def _escape_ilike(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
 
 @router.get("", response_model=list[SellerSummary])
 async def list_sellers(
     city: str | None = None,
     category: str | None = None,
     q: str | None = None,
+    limit: int = Query(default=_DEFAULT_PAGE_SIZE, ge=1, le=_MAX_PAGE_SIZE),
+    offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_db),
 ) -> list[SellerProfile]:
     stmt = (
@@ -42,14 +51,17 @@ async def list_sellers(
     if city:
         stmt = stmt.where(SellerProfile.city.ilike(city))
     if q:
-        pattern = f"%{q}%"
+        safe_q = _escape_ilike(q[:120])
+        pattern = f"%{safe_q}%"
         stmt = stmt.where(
             or_(SellerProfile.business_name.ilike(pattern), SellerProfile.description.ilike(pattern))
         )
     if category:
         stmt = stmt.join(SellerProfile.categories).where(Category.slug == category)
 
-    result = await session.execute(stmt.order_by(SellerProfile.average_rating.desc()))
+    result = await session.execute(
+        stmt.order_by(SellerProfile.average_rating.desc()).limit(limit).offset(offset)
+    )
     return list(result.scalars().unique().all())
 
 
@@ -218,12 +230,14 @@ async def list_reviews(seller_id: UUID, session: AsyncSession = Depends(get_db))
 async def create_review(
     seller_id: UUID,
     payload: ReviewCreate,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_buyer),
     session: AsyncSession = Depends(get_db),
 ) -> ReviewOut:
     seller = await session.get(SellerProfile, seller_id)
-    if seller is None:
+    if seller is None or not seller.is_active:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
+    if seller.user_id == user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot review your own business")
 
     existing = await session.execute(
         select(Review).where(Review.seller_id == seller_id, Review.buyer_id == user.id)

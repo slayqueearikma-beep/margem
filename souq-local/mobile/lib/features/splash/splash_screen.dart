@@ -63,7 +63,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
     final session = storage.getSession();
     if (session != null) {
-      context.go(session.accountType == AccountType.buyer ? '/buyer/home' : '/seller/dashboard');
+      final valid = await ref.read(authServiceProvider).ensureSessionValid();
+      if (!valid) {
+        await storage.logout();
+        ref.read(userSessionProvider.notifier).state = null;
+        ref.read(authSessionProvider.notifier).state = null;
+        if (mounted) context.go('/login');
+        return;
+      }
+      if (mounted) {
+        context.go(session.accountType == AccountType.buyer ? '/buyer/home' : '/seller/dashboard');
+      }
       return;
     }
 

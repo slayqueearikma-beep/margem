@@ -66,3 +66,30 @@ async def test_register_and_login_flow():
         )
         assert refresh.status_code == 200
         assert refresh.json()["access_token"]
+
+
+@pytest.mark.asyncio
+async def test_register_email_case_insensitive():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        first = await client.post(
+            "/auth/register",
+            json={
+                "email": "Case@Example.com",
+                "password": "SecurePass1",
+                "account_type": "buyer",
+                "display_name": "Case User",
+            },
+        )
+        assert first.status_code == 201
+
+        second = await client.post(
+            "/auth/register",
+            json={
+                "email": "case@example.com",
+                "password": "SecurePass1",
+                "account_type": "buyer",
+                "display_name": "Dup",
+            },
+        )
+        assert second.status_code == 409

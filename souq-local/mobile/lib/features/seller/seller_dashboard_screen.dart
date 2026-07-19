@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/services/auth_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
@@ -135,8 +136,11 @@ class SellerDashboardScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
                   OutlinedButton(
                     onPressed: () async {
+                      final prefs = await ref.read(sharedPreferencesProvider.future);
+                      await ref.read(authServiceProvider).logout(prefs);
                       await ref.read(appStorageProvider)?.logout();
                       ref.read(userSessionProvider.notifier).state = null;
+                      ref.read(authSessionProvider.notifier).state = null;
                       if (context.mounted) context.go('/login');
                     },
                     child: Text(l10n.logOut),

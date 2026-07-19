@@ -39,7 +39,8 @@ async def register(
     payload: UserRegister,
     session: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
-    existing = await session.execute(select(User).where(User.email == payload.email))
+    email = payload.email.lower()
+    existing = await session.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
         log_security_event("register_conflict", email=payload.email.lower())
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")

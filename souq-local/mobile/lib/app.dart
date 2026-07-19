@@ -24,6 +24,15 @@ final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
+    redirect: (context, state) {
+      final session = ProviderScope.containerOf(context).read(userSessionProvider);
+      final path = state.matchedLocation;
+      final isProtected = path.startsWith('/buyer/home') || path.startsWith('/seller/dashboard');
+      if (isProtected && session == null) {
+        return '/login';
+      }
+      return null;
+    },
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
       GoRoute(path: '/language', builder: (_, __) => const LanguageSelectionScreen()),

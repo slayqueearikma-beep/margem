@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import text
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
@@ -32,6 +33,7 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(RequestSizeLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
@@ -65,9 +67,8 @@ async def health(request: Request):
         db_status = "error"
 
     status = "ok" if db_status == "ok" else "degraded"
-    return {
-        "status": status,
-        "service": settings.app_name,
-        "environment": settings.app_env,
-        "database": db_status,
-    }
+    body: dict[str, str] = {"status": status, "database": db_status}
+    if settings.app_env in {"development", "dev"} or settings.debug:
+        body["service"] = settings.app_name
+        body["environment"] = settings.app_env
+    return body
