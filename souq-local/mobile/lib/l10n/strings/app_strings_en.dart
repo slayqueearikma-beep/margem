@@ -28,6 +28,13 @@ class AppStringsEn extends AppStrings {
   @override
   String get logOut => 'Log out';
   @override
+  String get cancel => 'Cancel';
+  @override
+  String get deleteAccount => 'Delete account';
+  @override
+  String get deleteAccountConfirm =>
+      'This permanently deletes your account and shop data. Enter your password to confirm.';
+  @override
   String get getStarted => 'Get Started';
   @override
   String get createAccount => 'Create an account';

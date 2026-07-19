@@ -33,13 +33,21 @@
 | SEC-03 | **High** | Presign returns **read SAS** in `public_url` (private blob container) | `backend/app/routers/uploads.py` |
 | SEC-04 | **High** | Register duplicate check uses normalized email | `backend/app/routers/auth.py` |
 | SEC-05 | **High** | Seller list pagination + `ilike` wildcard escape + query length cap | `backend/app/routers/sellers.py` |
-| MOB-01 | **High** | Seller logout revokes refresh token (parity with buyer) | `mobile/.../seller_dashboard_screen.dart` |
-| MOB-02 | **High** | Splash validates JWT via `/auth/me` / refresh before trusting prefs | `auth_service.dart`, `splash_screen.dart` |
-| MOB-03 | **High** | `GoRouter` redirect for protected routes without session | `mobile/lib/app.dart` |
-| MOB-04 | **High** | Product detail: no wrong-product fallback; error/empty states | `product_detail_screen.dart` |
+| SEC-06 | **High** | Media URL allowlist (Azure host + `{user_id}/` prefix) on seller/product writes | `upload_security.py`, `sellers.py` |
+| SEC-07 | **High** | Refresh token reuse detection + max 10 sessions; logout-all | `security.py`, `auth.py` |
+| SEC-08 | **High** | Account deletion (`DELETE /auth/me`) for GDPR / Law 09-08 | `auth.py`, mobile profile |
+| SEC-09 | **Medium** | Strip `firebase_uid` from public `UserOut` | `schemas` |
+| SEC-10 | **Medium** | `register-firebase` requires `DEBUG=true` (not only non-prod) | `auth.py` |
+| MOB-01 | **High** | Seller logout revokes refresh token | `seller_dashboard_screen.dart` |
+| MOB-02 | **High** | Splash validates JWT via `/auth/me` / refresh | `auth_service.dart`, `splash_screen.dart` |
+| MOB-03 | **High** | `GoRouter` redirect for protected routes | `app.dart` |
+| MOB-04 | **High** | Product detail correctness + network images | `product_detail_screen.dart` |
+| MOB-05 | **High** | Buyer home: search/map/category chips; search debounce; review UX | buyer/search/seller detail |
+| MOB-06 | **High** | Release build fails without `key.properties` | `build.gradle.kts` |
 | DB-01 | **High** | Migration `004`: FK indexes + review rating CHECK | `alembic/versions/004_*.py` |
 | OPS-01 | **Medium** | API container healthcheck (home compose) | `docker-compose.home.yml` |
-| OPS-02 | **Medium** | `/health` omits environment name in production | `backend/app/main.py` |
+| OPS-02 | **Medium** | Structured JSON logs + `X-Request-ID` | `logging_config.py`, middleware |
+| OPS-03 | **Medium** | `scripts/backup_home_db.sh` | backups |
 
 ---
 

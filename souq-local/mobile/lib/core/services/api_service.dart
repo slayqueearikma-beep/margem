@@ -86,6 +86,18 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  Future<void> deleteJson(String path, Map<String, dynamic> body, {bool auth = false}) async {
+    final response = await _request(
+      () => _client.delete(
+        _uri(path),
+        headers: _jsonHeaders(auth: auth),
+        body: jsonEncode(body),
+      ),
+      auth: auth,
+    );
+    _ensureSuccess(response);
+  }
+
   Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
     return _send(() => _client.get(uri, headers: headers));
   }

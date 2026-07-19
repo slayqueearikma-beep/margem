@@ -29,6 +29,13 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get logOut => 'تسجيل الخروج';
   @override
+  String get cancel => 'إلغاء';
+  @override
+  String get deleteAccount => 'حذف الحساب';
+  @override
+  String get deleteAccountConfirm =>
+      'سيؤدي هذا إلى حذف حسابك وبياناتك نهائياً. أدخل كلمة المرور للتأكيد.';
+  @override
   String get getStarted => 'ابدأ الآن';
   @override
   String get createAccount => 'إنشاء حساب';

@@ -13,6 +13,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_logo_placeholder.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/content_widgets.dart';
+import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../map/map_screen.dart';
 import '../search/search_screen.dart';
@@ -23,33 +24,32 @@ final buyerCityProvider = StateProvider<String>((ref) {
   return session?.city ?? AppConfig.moroccanCities.first;
 });
 
+final buyerCategorySlugProvider = StateProvider<String?>((ref) => null);
+
+final buyerTabIndexProvider = StateProvider<int>((ref) => 0);
+
 final buyerSellersProvider = FutureProvider.autoDispose<List<SellerModel>>((ref) {
   final city = ref.watch(buyerCityProvider);
-  return apiServiceProvider.fetchSellers(city: city);
+  final category = ref.watch(buyerCategorySlugProvider);
+  return apiServiceProvider.fetchSellers(city: city, category: category);
 });
 
 final buyerCategoriesProvider = FutureProvider.autoDispose((ref) => apiServiceProvider.fetchCategories());
 
-class BuyerHomeShell extends ConsumerStatefulWidget {
+class BuyerHomeShell extends ConsumerWidget {
   const BuyerHomeShell({super.key});
 
   @override
-  ConsumerState<BuyerHomeShell> createState() => _BuyerHomeShellState();
-}
-
-class _BuyerHomeShellState extends ConsumerState<BuyerHomeShell> {
-  int _index = 0;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final mapsEnabled = AppConfig.hasGoogleMapsApiKey;
+    final index = ref.watch(buyerTabIndexProvider);
 
     return Scaffold(
-      body: _pageForIndex(_index, mapsEnabled: mapsEnabled),
+      body: _pageForIndex(index, mapsEnabled: mapsEnabled),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        selectedIndex: index,
+        onDestinationSelected: (i) => ref.read(buyerTabIndexProvider.notifier).state = i,
         destinations: [
           NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home_rounded), label: l10n.navHome),
           NavigationDestination(icon: const Icon(Icons.search), label: l10n.navSearch),
@@ -129,7 +129,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.md),
                   TextField(
                     readOnly: true,
-                    onTap: () {},
+                    onTap: () => ref.read(buyerTabIndexProvider.notifier).state = 1,
                     decoration: InputDecoration(
                       hintText: l10n.searchHint,
                       prefixIcon: const Icon(Icons.search),
@@ -142,36 +142,57 @@ class BuyerHomeScreen extends ConsumerWidget {
             ),
           ),
           categoriesAsync.when(
-            data: (categories) => SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: AppSpacing.lg),
-                  SectionHeader(title: l10n.categories),
-                  const SizedBox(height: AppSpacing.sm),
-                  SizedBox(
-                    height: 40,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: categories.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) {
-                        final cat = categories[i];
-                        return FilterChip(
-                          label: Text(cat.nameEn),
-                          selected: i == 0,
-                          onSelected: (_) {},
-                          showCheckmark: false,
-                        );
-                      },
+            data: (categories) {
+              final selected = ref.watch(buyerCategorySlugProvider);
+              return SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    SectionHeader(title: l10n.categories),
+                    const SizedBox(height: AppSpacing.sm),
+                    SizedBox(
+                      height: 40,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: categories.length + 1,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (_, i) {
+                          if (i == 0) {
+                            return FilterChip(
+                              label: Text(l10n.seeAll),
+                              selected: selected == null,
+                              onSelected: (_) => ref.read(buyerCategorySlugProvider.notifier).state = null,
+                              showCheckmark: false,
+                            );
+                          }
+                          final cat = categories[i - 1];
+                          return FilterChip(
+                            label: Text(cat.nameEn),
+                            selected: selected == cat.slug,
+                            onSelected: (_) => ref.read(buyerCategorySlugProvider.notifier).state = cat.slug,
+                            showCheckmark: false,
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              );
+            },
+            loading: () => const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(AppSpacing.md),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
             ),
-            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-            error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (e, _) => SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: AsyncErrorView.fromError(e, onRetry: () => ref.invalidate(buyerCategoriesProvider)),
+              ),
+            ),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -196,7 +217,10 @@ class BuyerHomeScreen extends ConsumerWidget {
                             title: Text(l10n.exploreOnMap, style: const TextStyle(fontWeight: FontWeight.w600)),
                             subtitle: Text(l10n.exploreOnMapSubtitle(city)),
                             trailing: const Icon(Icons.chevron_right_rounded),
-                            onTap: () {},
+                            onTap: () {
+                              final mapsEnabled = AppConfig.hasGoogleMapsApiKey;
+                              ref.read(buyerTabIndexProvider.notifier).state = mapsEnabled ? 2 : 1;
+                            },
                           ),
                         ),
                       ),
@@ -238,6 +262,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                           rating: featured[i].averageRating,
                           reviewCount: featured[i].reviewCount,
                           city: featured[i].city,
+                          imageUrl: featured[i].coverImageUrl,
                           achievementStars: featured[i].achievementStars,
                           onTap: () => context.push('/seller/${featured[i].id}'),
                         ),
@@ -254,6 +279,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                           rating: s.averageRating,
                           reviewCount: s.reviewCount,
                           city: s.city,
+                          imageUrl: s.coverImageUrl,
                           achievementStars: s.achievementStars,
                           onTap: () => context.push('/seller/${s.id}'),
                         ),
@@ -353,6 +379,11 @@ class _BuyerProfileTab extends ConsumerWidget {
                 },
               ),
             ),
+            ListTile(
+              leading: const Icon(Icons.delete_forever_outlined, color: AppColors.danger),
+              title: Text(l10n.deleteAccount, style: const TextStyle(color: AppColors.danger)),
+              onTap: () => _confirmDeleteAccount(context, ref),
+            ),
             const Spacer(),
             OutlinedButton(
               onPressed: () async {
@@ -369,5 +400,47 @@ class _BuyerProfileTab extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final controller = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deleteAccount),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l10n.deleteAccountConfirm),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              obscureText: true,
+              decoration: InputDecoration(labelText: l10n.password),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.deleteAccount),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await ref.read(authServiceProvider).deleteAccount(password: controller.text);
+      await ref.read(appStorageProvider)?.logout();
+      ref.read(userSessionProvider.notifier).state = null;
+      ref.read(authSessionProvider.notifier).state = null;
+      if (context.mounted) context.go('/language');
+    } on Object catch (e) {
+      if (context.mounted) {
+        await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.toString());
+      }
+    }
   }
 }

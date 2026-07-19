@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import 'network_image_view.dart';
 
 class OnboardingIllustration extends StatelessWidget {
   const OnboardingIllustration({
@@ -97,6 +98,7 @@ class SellerCard extends StatelessWidget {
     required this.rating,
     required this.reviewCount,
     required this.city,
+    this.imageUrl = '',
     this.achievementStars = 0,
     this.onTap,
     this.compact = false,
@@ -107,6 +109,7 @@ class SellerCard extends StatelessWidget {
   final double rating;
   final int reviewCount;
   final String city;
+  final String imageUrl;
   final int achievementStars;
   final VoidCallback? onTap;
   final bool compact;
@@ -124,11 +127,10 @@ class SellerCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            SizedBox(
               height: compact ? 100 : 140,
               width: double.infinity,
-              color: AppColors.primary.withValues(alpha: 0.08),
-              child: const Icon(Icons.storefront_rounded, size: 40, color: AppColors.primary),
+              child: NetworkImageView(url: imageUrl, placeholderIcon: Icons.storefront_rounded),
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),

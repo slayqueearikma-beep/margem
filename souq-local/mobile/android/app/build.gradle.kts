@@ -56,14 +56,16 @@ android {
 
     buildTypes {
         release {
+            if (!keyPropertiesFile.exists()) {
+                throw GradleException(
+                    "Release builds require android/key.properties (see key.properties.example). " +
+                        "Do not ship with the debug keystore."
+                )
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = if (keyPropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

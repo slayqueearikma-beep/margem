@@ -3,8 +3,9 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/network_image_view.dart';
+import '../../l10n/app_localizations.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   const ProductDetailScreen({
@@ -24,13 +25,7 @@ class ProductDetailScreen extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        if (snapshot.hasError) {
-          return Scaffold(
-            appBar: AppBar(),
-            body: Center(child: Text(context.l10n.somethingWentWrong)),
-          );
-        }
-        if (!snapshot.hasData) {
+        if (snapshot.hasError || !snapshot.hasData) {
           return Scaffold(
             appBar: AppBar(),
             body: Center(child: Text(context.l10n.somethingWentWrong)),
@@ -56,10 +51,7 @@ class ProductDetailScreen extends StatelessWidget {
                 aspectRatio: 1,
                 child: Card(
                   clipBehavior: Clip.antiAlias,
-                  child: Container(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    child: product.imageUrl.isEmpty ? const Icon(Icons.image_outlined, size: 72) : null,
-                  ),
+                  child: NetworkImageView(url: product.imageUrl),
                 ),
               ),
               const SizedBox(height: 20),

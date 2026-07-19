@@ -11,9 +11,13 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from app.config import settings
 from app.database import engine
 from app.limiter import limiter
+from app.logging_config import configure_logging
+from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.routers import auth, catalog, sellers, uploads
+
+configure_logging(json_logs=settings.app_env in {"production", "prod"})
 
 
 @asynccontextmanager
@@ -34,7 +38,7 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
-
+app.add_middleware(RequestContextMiddleware)
 app.add_middleware(RequestSizeLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
@@ -46,7 +50,7 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
     max_age=600,
 )
 

@@ -6,13 +6,23 @@ from app.auth import get_current_user, new_local_firebase_uid
 from app.config import settings
 from app.database import get_db
 from app.limiter import limiter
-from app.models import AccountType, User
-from app.schemas import LoginRequest, LogoutRequest, RefreshRequest, TokenResponse, UserOut, UserRegister, UserRegisterFirebase
+from app.models import AccountType, SellerProfile, User
+from app.schemas import (
+    DeleteAccountRequest,
+    LoginRequest,
+    LogoutRequest,
+    RefreshRequest,
+    TokenResponse,
+    UserOut,
+    UserRegister,
+    UserRegisterFirebase,
+)
 from app.services.audit import log_security_event
 from app.services.security import (
     create_access_token,
     hash_password,
     issue_refresh_token,
+    revoke_all_refresh_tokens,
     revoke_refresh_token,
     rotate_refresh_token,
     verify_password,
@@ -121,7 +131,7 @@ async def register_firebase(
     payload: UserRegisterFirebase,
     session: AsyncSession = Depends(get_db),
 ) -> User:
-    if settings.app_env in {"production", "prod"}:
+    if settings.app_env in {"production", "prod"} or not settings.debug:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not available")
 
     existing = await session.execute(
@@ -145,3 +155,43 @@ async def register_firebase(
 @router.get("/me", response_model=UserOut)
 async def me(user: User = Depends(get_current_user)) -> User:
     return user
+
+
+@router.post("/logout-all", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def logout_all(
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    await revoke_all_refresh_tokens(session, user.id)
+    await session.commit()
+    log_security_event("logout_all", user_id=str(user.id))
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def delete_account(
+    request: Request,
+    payload: DeleteAccountRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    if not user.password_hash or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
+
+    seller = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
+    profile = seller.scalar_one_or_none()
+    if profile is not None:
+        await session.delete(profile)
+
+    from app.models import Review
+
+    buyer_reviews = await session.execute(select(Review).where(Review.buyer_id == user.id))
+    for review in buyer_reviews.scalars().all():
+        await session.delete(review)
+
+    await revoke_all_refresh_tokens(session, user.id)
+    await session.delete(user)
+    await session.commit()
+    log_security_event("account_deleted", user_id=str(user.id))

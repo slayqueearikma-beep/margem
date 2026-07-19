@@ -29,6 +29,13 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get logOut => 'Se déconnecter';
   @override
+  String get cancel => 'Annuler';
+  @override
+  String get deleteAccount => 'Supprimer le compte';
+  @override
+  String get deleteAccountConfirm =>
+      'Cela supprime définitivement votre compte et vos données. Entrez votre mot de passe pour confirmer.';
+  @override
   String get getStarted => 'Commencer';
   @override
   String get createAccount => 'Créer un compte';

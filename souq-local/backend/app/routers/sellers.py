@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth import get_current_user, require_buyer, require_seller
+from app.config import settings
 from app.database import get_db
 from app.models import Category, Product, Review, SellerProfile, Service, User
 from app.schemas import (
@@ -22,6 +23,7 @@ from app.schemas import (
     ServiceOut,
 )
 from app.services.ratings import refresh_seller_ratings
+from app.services.upload_security import validate_media_url
 
 router = APIRouter(prefix="/sellers", tags=["sellers"])
 
@@ -101,6 +103,15 @@ async def create_seller(
         result = await session.execute(select(Category).where(Category.id.in_(payload.category_ids)))
         categories = list(result.scalars().all())
 
+    try:
+        cover = validate_media_url(
+            payload.cover_image_url,
+            owner_user_id=user.id,
+            container=settings.azure_storage_container,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
     seller = SellerProfile(
         user_id=user.id,
         business_name=payload.business_name,
@@ -110,7 +121,7 @@ async def create_seller(
         latitude=payload.latitude,
         longitude=payload.longitude,
         phone=payload.phone,
-        cover_image_url=payload.cover_image_url,
+        cover_image_url=cover,
         categories=categories,
     )
     session.add(seller)
@@ -159,6 +170,16 @@ async def update_seller(
     data = payload.model_dump(exclude_unset=True)
     category_ids = data.pop("category_ids", None)
 
+    if "cover_image_url" in data:
+        try:
+            data["cover_image_url"] = validate_media_url(
+                data["cover_image_url"] or "",
+                owner_user_id=user.id,
+                container=settings.azure_storage_container,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
     for key, value in data.items():
         setattr(seller, key, value)
 
@@ -181,7 +202,18 @@ async def add_product(
     if seller is None or seller.user_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
 
-    product = Product(seller_id=seller_id, **payload.model_dump())
+    try:
+        image_url = validate_media_url(
+            payload.image_url,
+            owner_user_id=user.id,
+            container=settings.azure_storage_container,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    product_data = payload.model_dump()
+    product_data["image_url"] = image_url
+    product = Product(seller_id=seller_id, **product_data)
     session.add(product)
     await session.commit()
     await session.refresh(product)
@@ -199,7 +231,18 @@ async def add_service(
     if seller is None or seller.user_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
 
-    service = Service(seller_id=seller_id, **payload.model_dump())
+    try:
+        image_url = validate_media_url(
+            payload.image_url,
+            owner_user_id=user.id,
+            container=settings.azure_storage_container,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    service_data = payload.model_dump()
+    service_data["image_url"] = image_url
+    service = Service(seller_id=seller_id, **service_data)
     session.add(service)
     await session.commit()
     await session.refresh(service)

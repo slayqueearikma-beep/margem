@@ -12,6 +12,7 @@ def test_password_policy_requires_complexity():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("prepare_database")
 async def test_register_requires_strong_password():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -28,6 +29,7 @@ async def test_register_requires_strong_password():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("prepare_database")
 async def test_register_and_login_flow():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -59,6 +61,7 @@ async def test_register_and_login_flow():
         me = await client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert me.status_code == 200
         assert me.json()["email"] == email
+        assert "firebase_uid" not in me.json()
 
         refresh = await client.post(
             "/auth/refresh",
@@ -69,6 +72,7 @@ async def test_register_and_login_flow():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("prepare_database")
 async def test_register_email_case_insensitive():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

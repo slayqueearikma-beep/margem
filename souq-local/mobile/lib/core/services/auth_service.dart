@@ -117,6 +117,19 @@ class AuthService {
     _syncTokenProvider();
   }
 
+  Future<void> deleteAccount({required String password}) async {
+    await _api.deleteJson(
+      '/auth/me',
+      {'password': password, 'confirmation': 'DELETE'},
+      auth: true,
+    );
+    _accessToken = null;
+    _refreshToken = null;
+    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _refreshTokenKey);
+    _syncTokenProvider();
+  }
+
   Future<AuthSession> _saveSession(AuthSession session) async {
     _accessToken = session.accessToken;
     _refreshToken = session.refreshToken;

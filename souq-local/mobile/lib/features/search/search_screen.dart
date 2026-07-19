@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 
@@ -18,12 +21,35 @@ class SearchScreen extends ConsumerStatefulWidget {
 }
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
-  String _query = '';
+  String _debounced = '';
+  Timer? _timer;
+  Future<List<SellerModel>>? _future;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<List<SellerModel>> _load() {
+    final city = ref.read(buyerCityProvider);
+    return apiServiceProvider.fetchSellers(city: city, query: _debounced);
+  }
+
+  void _onQueryChanged(String value) {
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 350), () {
+      setState(() {
+        _debounced = value.trim();
+        _future = _load();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final city = ref.watch(buyerCityProvider);
+    _future ??= _load();
 
     return SafeArea(
       child: Column(
@@ -42,14 +68,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     hintText: l10n.businessKeyword,
                     prefixIcon: const Icon(Icons.search),
                   ),
-                  onChanged: (value) => setState(() => _query = value),
+                  onChanged: _onQueryChanged,
                 ),
               ],
             ),
           ),
           Expanded(
             child: FutureBuilder<List<SellerModel>>(
-              future: apiServiceProvider.fetchSellers(city: city, query: _query),
+              future: _future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -57,7 +83,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 if (snapshot.hasError) {
                   return AsyncErrorView.fromError(
                     snapshot.error!,
-                    onRetry: () => setState(() {}),
+                    onRetry: () => setState(() => _future = _load()),
                   );
                 }
                 final sellers = snapshot.data ?? [];
@@ -73,21 +99,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     return ListTile(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       tileColor: Theme.of(context).cardTheme.color,
-                      leading: CircleAvatar(
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                        child: Text(seller.businessName[0], style: const TextStyle(color: AppColors.primary)),
+                      leading: ClipOval(
+                        child: SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: NetworkImageView(
+                            url: seller.coverImageUrl,
+                            placeholderIcon: Icons.storefront_rounded,
+                          ),
+                        ),
                       ),
                       title: Text(seller.businessName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('${seller.averageRating} ★ · ${seller.city}'),
-                      trailing: seller.achievementStars > 0
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.star, color: AppColors.star, size: 16),
-                                Text('${seller.achievementStars}'),
-                              ],
-                            )
-                          : null,
+                      subtitle: Text('${seller.city} · ${seller.averageRating} ★'),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
                       onTap: () => context.push('/seller/${seller.id}'),
                     );
                   },

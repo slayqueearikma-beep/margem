@@ -5,17 +5,21 @@ from uuid import UUID
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.models import RefreshToken
+from app.services.audit import log_security_event
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto",
     bcrypt__rounds=settings.bcrypt_rounds,
 )
+
+# Cap concurrent refresh sessions per user (login from many devices).
+_MAX_REFRESH_SESSIONS = 10
 
 
 def hash_password(password: str) -> str:
@@ -53,7 +57,25 @@ def _hash_refresh_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
+async def revoke_all_refresh_tokens(session: AsyncSession, user_id: UUID) -> None:
+    await session.execute(
+        update(RefreshToken).where(RefreshToken.user_id == user_id).values(revoked=True)
+    )
+
+
+async def _prune_refresh_sessions(session: AsyncSession, user_id: UUID) -> None:
+    result = await session.execute(
+        select(RefreshToken)
+        .where(RefreshToken.user_id == user_id, RefreshToken.revoked.is_(False))
+        .order_by(RefreshToken.created_at.desc())
+    )
+    tokens = list(result.scalars().all())
+    for stale in tokens[_MAX_REFRESH_SESSIONS:]:
+        stale.revoked = True
+
+
 async def issue_refresh_token(session: AsyncSession, user_id: UUID) -> str:
+    await _prune_refresh_sessions(session, user_id)
     plain = secrets.token_urlsafe(48)
     token = RefreshToken(
         user_id=user_id,
@@ -67,14 +89,19 @@ async def issue_refresh_token(session: AsyncSession, user_id: UUID) -> str:
 
 async def rotate_refresh_token(session: AsyncSession, plain_token: str) -> tuple[UUID, str] | None:
     token_hash = _hash_refresh_token(plain_token)
-    result = await session.execute(
-        select(RefreshToken).where(
-            RefreshToken.token_hash == token_hash,
-            RefreshToken.revoked.is_(False),
-        )
-    )
+    result = await session.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
     stored = result.scalar_one_or_none()
-    if stored is None or stored.expires_at < datetime.now(UTC):
+    if stored is None:
+        return None
+
+    # Reuse of a revoked refresh token => possible theft; revoke entire family.
+    if stored.revoked:
+        log_security_event("refresh_reuse_detected", user_id=str(stored.user_id))
+        await revoke_all_refresh_tokens(session, stored.user_id)
+        return None
+
+    if stored.expires_at < datetime.now(UTC):
+        stored.revoked = True
         return None
 
     stored.revoked = True

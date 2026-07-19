@@ -17,6 +17,9 @@ abstract class AppStrings {
   String get skip;
   String get login;
   String get logOut;
+  String get cancel;
+  String get deleteAccount;
+  String get deleteAccountConfirm;
   String get getStarted;
   String get createAccount;
   String get seeAll;

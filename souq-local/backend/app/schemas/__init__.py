@@ -39,7 +39,6 @@ class LoginRequest(BaseModel):
 
 class UserOut(BaseModel):
     id: UUID
-    firebase_uid: str
     email: str
     account_type: AccountType
     display_name: str
@@ -62,6 +61,18 @@ class RefreshRequest(BaseModel):
 
 class LogoutRequest(BaseModel):
     refresh_token: str = Field(min_length=20, max_length=512)
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=128)
+    confirmation: str = Field(description="Must equal DELETE")
+
+    @field_validator("confirmation")
+    @classmethod
+    def must_confirm(cls, value: str) -> str:
+        if value.strip() != "DELETE":
+            raise ValueError("confirmation must be DELETE")
+        return value
 
 
 class CategoryOut(BaseModel):
