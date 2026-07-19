@@ -34,7 +34,7 @@ for arg in "$@"; do
 done
 
 get_lan_ip() {
-  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[9]|2[0-9]|3[0-1])\.' | grep -v '^172\.17\.' | head -n1
+  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.' | grep -v '^172\.17\.' | head -n1
 }
 
 has_usb_phone() {
