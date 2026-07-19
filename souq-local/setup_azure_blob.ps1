@@ -10,7 +10,7 @@ $EnvHome = Join-Path $Root ".env.home"
 $EnvExample = Join-Path $Root "env.home.example"
 
 Write-Host ""
-Write-Host "=== MarGem — Azure Blob only (~`$1-3/mo) ===" -ForegroundColor Cyan
+Write-Host "=== MarGem Azure Blob only (~`$1-3/mo) ===" -ForegroundColor Cyan
 Write-Host ""
 
 if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
@@ -18,18 +18,29 @@ if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
 }
 
 az account show 2>$null | Out-Null
-if ($LASTEXITCODE -ne 0) { az login | Out-Null }
+if ($LASTEXITCODE -ne 0) {
+    az login | Out-Null
+}
 
 if (-not (Test-Path $TfVars)) {
-    Copy-Item $Example $TfVars
-    Write-Host "Created $TfVars — set subscription_id, then re-run."
-    exit 1
+    if (Test-Path $Example) {
+        Copy-Item $Example $TfVars
+        Write-Host "Created $TfVars"
+        Write-Host "Edit subscription_id in terraform.tfvars, then re-run this script."
+        exit 1
+    }
+    Write-Error "Missing $TfVars and $Example"
 }
 
 Push-Location $TfDir
 try {
-    if (-not (Test-Path ".terraform")) { terraform init }
+    if (-not (Test-Path ".terraform")) {
+        terraform init
+    }
     terraform apply -auto-approve
+    if ($LASTEXITCODE -ne 0) {
+        throw "terraform apply failed"
+    }
     $conn = terraform output -raw storage_connection_string
     $rg = terraform output -raw resource_group_name
 }
@@ -42,20 +53,27 @@ Write-Host "Blob storage created in $rg" -ForegroundColor Green
 Write-Host ""
 
 if (-not (Test-Path $EnvHome)) {
-    Copy-Item $EnvExample $EnvHome
-    Write-Host "Created .env.home — edit ALLOWED_HOSTS with your laptop IP (see env.home.example)."
+    if (Test-Path $EnvExample) {
+        Copy-Item $EnvExample $EnvHome
+        Write-Host "Created .env.home - edit ALLOWED_HOSTS with your laptop IP."
+    }
 }
 
-# Inject connection string into .env.home if placeholder
-$content = Get-Content $EnvHome -Raw
-if ($content -match 'AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol' -and $content -notmatch 'AccountName=\w{3,}') {
-    $content = $content -replace 'AZURE_STORAGE_CONNECTION_STRING=.*', "AZURE_STORAGE_CONNECTION_STRING=$conn"
-    Set-Content $EnvHome $content -NoNewline
-    Write-Host "Updated AZURE_STORAGE_CONNECTION_STRING in .env.home"
+if (Test-Path $EnvHome) {
+    $content = Get-Content $EnvHome -Raw
+    if ($content -match 'AZURE_STORAGE_CONNECTION_STRING=' -and $conn) {
+        $content = $content -replace 'AZURE_STORAGE_CONNECTION_STRING=.*', "AZURE_STORAGE_CONNECTION_STRING=$conn"
+        Set-Content -Path $EnvHome -Value $content -NoNewline
+        Write-Host "Updated AZURE_STORAGE_CONNECTION_STRING in .env.home"
+    }
 }
 
 Write-Host ""
-Write-Host "Next:"
-Write-Host "  1. Edit .env.home (passwords + ALLOWED_HOSTS = your laptop IP)"
-Write-Host "  2. .\start_home_server.ps1"
+Write-Host "Next steps:"
+Write-Host "  1. Edit .env.home on the laptop (passwords + ALLOWED_HOSTS)"
+Write-Host "  2. On laptop run: docker compose -f docker-compose.home.yml --env-file .env.home up -d --build"
+Write-Host ""
+
+Write-Host "Connection string (copy to laptop .env.home if needed):"
+Write-Host $conn
 Write-Host ""

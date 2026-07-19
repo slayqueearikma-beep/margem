@@ -48,7 +48,7 @@ terraform init && terraform apply
 ### Configure `.env.home`
 
 ```powershell
-copy .env.home.example .env.home
+copy env.home.example .env.home
 ```
 
 Edit `.env.home`:

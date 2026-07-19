@@ -4,7 +4,7 @@
 $ErrorActionPreference = "Stop"
 $Root = $PSScriptRoot
 $EnvFile = Join-Path $Root ".env.home"
-$EnvExample = Join-Path $Root ".env.home.example"
+$EnvExample = Join-Path $Root "env.home.example"
 
 function Get-LanIp {
     $ip = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
