@@ -88,13 +88,26 @@ API_PORT="$(grep -E '^API_PORT=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
 API_PORT="${API_PORT:-8000}"
 API_URL="http://${LAN_IP}:${API_PORT}"
 
+check_api_health() {
+  local port="$1"
+  local lan_ip="$2"
+  # Prefer LAN IP — matches typical ALLOWED_HOSTS on home servers.
+  if [[ -n "$lan_ip" && "$lan_ip" != "127.0.0.1" ]]; then
+    curl -fsS "http://${lan_ip}:${port}/health" >/dev/null 2>&1 && return 0
+  fi
+  # Fallback when localhost is in ALLOWED_HOSTS.
+  curl -fsS -H "Host: localhost" "http://127.0.0.1:${port}/health" >/dev/null 2>&1 && return 0
+  curl -fsS -H "Host: 127.0.0.1" "http://127.0.0.1:${port}/health" >/dev/null 2>&1 && return 0
+  return 1
+}
+
 echo "[1/3] Starting Postgres + API (Docker)..."
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d $DOCKER_BUILD
 
 echo "[2/3] Waiting for API health..."
 ready=false
 for _ in $(seq 1 30); do
-  if curl -fsS "http://127.0.0.1:${API_PORT}/health" >/dev/null 2>&1; then
+  if check_api_health "$API_PORT" "$LAN_IP"; then
     ready=true
     break
   fi
@@ -105,7 +118,11 @@ echo ""
 if [[ "$ready" == true ]]; then
   echo "=== API running ==="
 else
-  echo "API not ready yet. Check: docker compose -f docker-compose.home.yml logs api"
+  echo "API not ready yet. Check:"
+  echo "  docker compose -f docker-compose.home.yml --env-file .env.home logs api"
+  echo ""
+  echo "If logs show 400 on /health, add localhost to ALLOWED_HOSTS in .env.home:"
+  echo '  ALLOWED_HOSTS=["localhost","127.0.0.1","192.168.11.103","192.168.11.103:8000"]'
   exit 1
 fi
 
