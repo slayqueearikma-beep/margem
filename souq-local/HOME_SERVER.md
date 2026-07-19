@@ -136,6 +136,61 @@ sudo systemctl mask sleep.target suspend.target hibernate.target
 
 Or disable sleep in power settings.
 
+## Troubleshooting Azure blob setup
+
+### `404 ResourceNotFound` on storage account keys
+
+Azure sometimes needs a minute after creating a storage account before keys/blob APIs work. This is usually a timing issue, not a wrong subscription.
+
+**Step 1 — check Azure (PowerShell on Windows):**
+
+```powershell
+az account show
+az provider show --namespace Microsoft.Storage --query registrationState
+az group show -n rg-margem-home-sub1
+az storage account show -n margemhomesub1stpbqc13 -g rg-margem-home-sub1
+```
+
+If `Microsoft.Storage` is not `Registered`, run:
+
+```powershell
+az provider register --namespace Microsoft.Storage
+# wait 1-2 minutes, then retry
+```
+
+**Step 2 — retry Terraform:**
+
+```powershell
+cd souq-local\infra\terraform-storage
+terraform init -upgrade
+terraform apply
+```
+
+**Step 3 — if it still fails, clean up and start fresh:**
+
+```powershell
+terraform destroy
+terraform apply
+```
+
+If `destroy` complains about missing resources:
+
+```powershell
+terraform state list
+terraform state rm azurerm_storage_container.media
+terraform state rm azurerm_storage_account.media
+terraform apply
+```
+
+Or delete the resource group in the [Azure Portal](https://portal.azure.com), then run `terraform apply` again.
+
+**Step 4 — pull latest repo** (includes a 60s wait fix between storage account and container):
+
+```powershell
+git pull origin cursor/production-ready-f384
+.\setup_azure_blob.ps1
+```
+
 ## Delete Azure blob only
 
 ```bash
