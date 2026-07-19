@@ -37,7 +37,7 @@ get_lan_ip() {
   hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.' | grep -v '^172\.17\.' | head -n1
 }
 
-has_usb_phone() {
+has_phone_device() {
   command -v adb >/dev/null 2>&1 || return 1
   adb devices 2>/dev/null | awk 'NR>1 && $2=="device" {found=1} END {exit !found}'
 }
@@ -133,11 +133,12 @@ if ! command -v flutter >/dev/null 2>&1; then
   exit 0
 fi
 
-if ! has_usb_phone; then
-  echo "No USB phone detected — API is up, app not started."
+if ! has_phone_device; then
+  echo "No phone detected (USB or wireless) — API is up, app not started."
   echo ""
-  echo "Plug in your phone (USB debugging on), then re-run:"
-  echo "  ./start_home_server.sh"
+  echo "USB: plug in phone with USB debugging on, then re-run ./start_home_server.sh"
+  echo "Wi-Fi: ./setup_wireless_adb.sh pair <ip:port> <code>"
+  echo "       ./setup_wireless_adb.sh connect <ip:port>"
   echo ""
   echo "Or install the last APK if you already built one."
   exit 0

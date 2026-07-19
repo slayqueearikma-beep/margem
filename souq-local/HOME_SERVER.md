@@ -106,7 +106,43 @@ docker compose -f docker-compose.home.yml --env-file .env.home down
 
 ## Connect from phone
 
-### Same Wi-Fi
+### Wireless debugging (no USB cable)
+
+Phone and Ubuntu server must be on the **same Wi-Fi**.
+
+**On phone:** Settings → Developer options → **Wireless debugging** → ON
+
+**Step 1 — Pair (first time only)**
+
+Tap **“Pair device with pairing code”** on the phone. You’ll see:
+- IP address & port (pairing port, e.g. `192.168.11.107:37123`)
+- 6-digit pairing code
+
+On the server:
+
+```bash
+chmod +x setup_wireless_adb.sh
+./setup_wireless_adb.sh pair 192.168.11.107:37123 123456
+```
+
+**Step 2 — Connect**
+
+On the Wireless debugging screen, note **“IP address & port”** (debug port — different from pairing port):
+
+```bash
+./setup_wireless_adb.sh connect 192.168.11.107:41293
+./setup_wireless_adb.sh status
+```
+
+**Step 3 — Start everything**
+
+```bash
+./start_home_server.sh
+```
+
+If connection drops after reboot, run `connect` again (pairing is usually once per Wi-Fi).
+
+### Same Wi-Fi (manual flutter run)
 
 ```bash
 flutter run --dart-define=API_BASE_URL=http://192.168.1.50:8000
