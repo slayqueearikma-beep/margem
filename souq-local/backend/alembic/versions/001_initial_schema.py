@@ -18,7 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    account_type = postgresql.ENUM("buyer", "seller", name="accounttype", create_type=True)
+    account_type = postgresql.ENUM("buyer", "seller", name="accounttype", create_type=False)
     account_type.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
