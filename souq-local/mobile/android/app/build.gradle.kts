@@ -56,17 +56,33 @@ android {
 
     buildTypes {
         release {
-            if (!keyPropertiesFile.exists()) {
-                throw GradleException(
-                    "Release builds require android/key.properties (see key.properties.example). " +
-                        "Do not ship with the debug keystore."
-                )
-            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            // Signing applied only when key.properties exists; release tasks fail below if missing.
+            if (keyPropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
+    }
+}
+
+// Fail only when building/bundling release — not during assembleDebug / flutter run.
+gradle.taskGraph.whenReady {
+    val releasing = allTasks.any { task ->
+        val n = task.name
+        n.contains("Release") && (
+            n.startsWith("assemble") ||
+                n.startsWith("bundle") ||
+                n.startsWith("package") ||
+                n.startsWith("sign")
+            )
+    }
+    if (releasing && !keyPropertiesFile.exists()) {
+        throw GradleException(
+            "Release builds require android/key.properties (see key.properties.example). " +
+                "Do not ship with the debug keystore. Debug builds (flutter run) do not need it."
+        )
     }
 }
 
