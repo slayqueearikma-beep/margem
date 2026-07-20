@@ -39,8 +39,8 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000"]
     allowed_hosts: list[str] = ["*"]
 
-    rate_limit: str = "120/minute"
-    auth_rate_limit: str = "5/minute"
+    rate_limit: str = "300/minute"
+    auth_rate_limit: str = "30/minute"
     max_request_body_bytes: int = 1_048_576
 
     default_cities: list[str] = [

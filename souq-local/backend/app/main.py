@@ -64,7 +64,7 @@ app.include_router(uploads.router)
 
 
 @app.get("/health")
-@limiter.limit("60/minute")
+@limiter.exempt
 async def health(request: Request):
     db_status = "ok"
     try:

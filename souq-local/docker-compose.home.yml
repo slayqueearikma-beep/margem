@@ -38,7 +38,8 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
       JWT_REFRESH_EXPIRE_DAYS: "7"
-      AUTH_RATE_LIMIT: "5/minute"
+      RATE_LIMIT: ${RATE_LIMIT:-300/minute}
+      AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-30/minute}
     depends_on:
       postgres:
         condition: service_healthy

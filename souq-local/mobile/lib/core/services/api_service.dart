@@ -339,9 +339,19 @@ class ApiService {
   }
 
   String _messageFromErrorResponse(http.Response response) {
+    if (response.statusCode == 429) {
+      return 'Too many requests. Please wait about a minute and try again.';
+    }
     try {
       final body = jsonDecode(response.body);
       if (body is Map<String, dynamic>) {
+        final error = body['error'];
+        if (error is String && error.isNotEmpty) {
+          if (error.toLowerCase().contains('rate limit')) {
+            return 'Too many requests. Please wait about a minute and try again.';
+          }
+          return error;
+        }
         final detail = body['detail'];
         if (detail is String && detail.isNotEmpty) return detail;
         if (detail is List) {
