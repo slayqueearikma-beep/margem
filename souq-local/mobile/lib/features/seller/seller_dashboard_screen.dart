@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -14,6 +15,10 @@ import '../../l10n/app_localizations.dart';
 import '../settings/language_settings_tile.dart';
 import 'seller_account_provider.dart';
 
+final sellerAnalyticsProvider = FutureProvider.autoDispose((ref) {
+  return apiServiceProvider.fetchSellerAnalytics();
+});
+
 class SellerDashboardScreen extends ConsumerWidget {
   const SellerDashboardScreen({super.key});
 
@@ -22,19 +27,24 @@ class SellerDashboardScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final accountAsync = ref.watch(sellerAccountProvider);
+    final analyticsAsync = ref.watch(sellerAnalyticsProvider);
 
     return Scaffold(
       body: SafeArea(
         child: accountAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => AsyncErrorView(
-            message: error is ApiException ? error.message : l10n.somethingWentWrong,
+            message:
+                error is ApiException ? error.message : l10n.somethingWentWrong,
             onRetry: () => ref.invalidate(sellerAccountProvider),
           ),
           data: (account) {
             final businessName = account.profile.businessName;
             final stats = account.stats;
-            final recentBadge = stats.recentReviewCount > 0 ? '${stats.recentReviewCount}' : null;
+            final analytics = analyticsAsync.valueOrNull;
+            final recentBadge = stats.recentReviewCount > 0
+                ? '${stats.recentReviewCount}'
+                : null;
 
             return RefreshIndicator(
               onRefresh: () async => ref.invalidate(sellerAccountProvider),
@@ -54,7 +64,9 @@ class SellerDashboardScreen extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              const AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 32),
+                              const AppBrandLogo(
+                                  variant: AppBrandLogoVariant.icon,
+                                  iconSize: 32),
                               const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Column(
@@ -62,13 +74,21 @@ class SellerDashboardScreen extends ConsumerWidget {
                                   children: [
                                     Text(
                                       l10n.sellerDashboard,
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant,
                                           ),
                                     ),
                                     Text(
                                       businessName,
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
                                             fontWeight: FontWeight.w700,
                                           ),
                                     ),
@@ -77,11 +97,13 @@ class SellerDashboardScreen extends ConsumerWidget {
                               ),
                               IconButton(
                                 tooltip: l10n.notifications,
-                                onPressed: () => context.push('/seller/notifications'),
+                                onPressed: () =>
+                                    context.push('/seller/notifications'),
                                 icon: Badge(
                                   isLabelVisible: stats.recentReviewCount > 0,
                                   label: Text('${stats.recentReviewCount}'),
-                                  child: const Icon(Icons.notifications_none_rounded),
+                                  child: const Icon(
+                                      Icons.notifications_none_rounded),
                                 ),
                               ),
                             ],
@@ -92,17 +114,23 @@ class SellerDashboardScreen extends ConsumerWidget {
                             padding: const EdgeInsets.all(AppSpacing.lg),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [AppColors.primary, AppColors.primaryLight],
+                                colors: [
+                                  AppColors.primary,
+                                  AppColors.primaryLight
+                                ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
-                              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.cardRadius),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  l10n.welcomeSeller(session?.name.split(' ').first ?? l10n.sellerDefault),
+                                  l10n.welcomeSeller(
+                                      session?.name.split(' ').first ??
+                                          l10n.sellerDefault),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
@@ -112,13 +140,17 @@ class SellerDashboardScreen extends ConsumerWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   l10n.manageStoreSubtitle,
-                                  style: TextStyle(color: Colors.white.withValues(alpha: 0.85)),
+                                  style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.85)),
                                 ),
                                 if (!stats.isActive) ...[
                                   const SizedBox(height: 8),
                                   Text(
                                     l10n.storeInactiveHint,
-                                    style: TextStyle(color: Colors.white.withValues(alpha: 0.95)),
+                                    style: TextStyle(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.95)),
                                   ),
                                 ],
                               ],
@@ -131,7 +163,8 @@ class SellerDashboardScreen extends ConsumerWidget {
                   SliverPadding(
                     padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
@@ -140,28 +173,35 @@ class SellerDashboardScreen extends ConsumerWidget {
                       delegate: SliverChildListDelegate([
                         StatCard(
                           label: l10n.profileViews,
-                          value: stats.formattedViews,
+                          value: analytics?.profileViewCount.toString() ??
+                              stats.formattedViews,
                           icon: Icons.visibility_outlined,
                         ),
                         StatCard(
                           label: l10n.products,
-                          value: '${stats.productCount}',
+                          value:
+                              '${analytics?.productCount ?? stats.productCount}',
                           icon: Icons.inventory_2_outlined,
-                          trend: l10n.availableCount(stats.availableProductCount),
+                          trend: l10n.availableCount(
+                              analytics?.availableProductCount ??
+                                  stats.availableProductCount),
                         ),
                         StatCard(
-                          label: l10n.reviews,
-                          value: '${stats.reviewCount}',
-                          icon: Icons.star_outline_rounded,
-                          trend: stats.ratingTrend,
+                          label: l10n.orders,
+                          value: '${analytics?.orderCount ?? 0}',
+                          icon: Icons.receipt_long_outlined,
+                          trend: analytics == null
+                              ? null
+                              : l10n.pendingOrders(analytics.pendingOrders),
                         ),
                         StatCard(
-                          label: l10n.services,
-                          value: '${stats.serviceCount}',
-                          icon: Icons.handyman_outlined,
-                          trend: stats.achievementStars > 0
-                              ? l10n.achievementStars(stats.achievementStars)
-                              : null,
+                          label: l10n.revenue,
+                          value:
+                              '${(analytics?.revenueMad ?? 0).toStringAsFixed(0)} MAD',
+                          icon: Icons.analytics_outlined,
+                          trend: analytics == null
+                              ? null
+                              : l10n.completedOrders(analytics.completedOrders),
                         ),
                       ]),
                     ),
@@ -176,7 +216,10 @@ class SellerDashboardScreen extends ConsumerWidget {
                       ),
                       child: Text(
                         l10n.manage,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -184,6 +227,27 @@ class SellerDashboardScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
+                        DashboardMenuTile(
+                          title: l10n.orders,
+                          subtitle: l10n.ordersSub,
+                          icon: Icons.receipt_long_outlined,
+                          badge:
+                              analytics != null && analytics.pendingOrders > 0
+                                  ? '${analytics.pendingOrders}'
+                                  : null,
+                          onTap: () => context.push('/seller/orders'),
+                        ),
+                        DashboardMenuTile(
+                          title: l10n.analytics,
+                          subtitle: analytics == null
+                              ? l10n.analyticsSub
+                              : l10n.analyticsSummary(
+                                  analytics.revenueMad.toStringAsFixed(0),
+                                  analytics.averageOrderMad.toStringAsFixed(0),
+                                ),
+                          icon: Icons.query_stats_outlined,
+                          onTap: () => _showAnalytics(context, analytics),
+                        ),
                         DashboardMenuTile(
                           title: l10n.productManagement,
                           subtitle: l10n.productManagementSub,
@@ -207,7 +271,16 @@ class SellerDashboardScreen extends ConsumerWidget {
                           title: l10n.previewStorefront,
                           subtitle: l10n.previewStorefrontSub,
                           icon: Icons.visibility_outlined,
-                          onTap: () => context.push('/seller/${account.profile.id}'),
+                          onTap: () =>
+                              context.push('/seller/${account.profile.id}'),
+                        ),
+                        DashboardMenuTile(
+                          title: l10n.premium,
+                          subtitle: analytics?.isPremium == true
+                              ? l10n.premiumActiveSub
+                              : l10n.premiumUpgradeSub,
+                          icon: Icons.workspace_premium_outlined,
+                          onTap: () => context.push('/premium'),
                         ),
                         DashboardMenuTile(
                           title: l10n.accountSecurity,
@@ -219,7 +292,8 @@ class SellerDashboardScreen extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.lg),
                         OutlinedButton(
                           onPressed: () async {
-                            final prefs = await ref.read(sharedPreferencesProvider.future);
+                            final prefs = await ref
+                                .read(sharedPreferencesProvider.future);
                             await ref.read(authServiceProvider).logout(prefs);
                             await ref.read(appStorageProvider)?.logout();
                             ref.invalidate(sellerAccountProvider);
@@ -238,6 +312,72 @@ class SellerDashboardScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
+    );
+  }
+
+  void _showAnalytics(BuildContext context, SellerAnalyticsModel? analytics) {
+    final l10n = context.l10n;
+    if (analytics == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.loading)));
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.analytics,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w700)),
+              const SizedBox(height: AppSpacing.md),
+              _AnalyticsRow(
+                  label: l10n.orders, value: '${analytics.orderCount}'),
+              _AnalyticsRow(
+                  label: l10n.pending, value: '${analytics.pendingOrders}'),
+              _AnalyticsRow(
+                  label: l10n.completed, value: '${analytics.completedOrders}'),
+              _AnalyticsRow(
+                  label: l10n.revenue,
+                  value: '${analytics.revenueMad.toStringAsFixed(2)} MAD'),
+              _AnalyticsRow(
+                  label: l10n.averageOrder,
+                  value: '${analytics.averageOrderMad.toStringAsFixed(2)} MAD'),
+              _AnalyticsRow(
+                  label: l10n.reviews, value: '${analytics.reviewCount}'),
+              _AnalyticsRow(
+                  label: l10n.verification,
+                  value: analytics.verificationStatus),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnalyticsRow extends StatelessWidget {
+  const _AnalyticsRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(child: Text(label)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
+        ],
       ),
     );
   }

@@ -25,7 +25,8 @@ class SellerReviewsScreen extends ConsumerWidget {
           error,
           onRetry: () => ref.invalidate(sellerAccountProvider),
         ),
-        data: (account) => _ReviewsBody(sellerId: account.profile.id, stats: account.stats),
+        data: (account) =>
+            _ReviewsBody(sellerId: account.profile.id, stats: account.stats),
       ),
     );
   }
@@ -89,11 +90,13 @@ class _ReviewsBodyState extends ConsumerState<_ReviewsBody> {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
-                      const Icon(Icons.star_rounded, color: AppColors.star, size: 28),
+                      const Icon(Icons.star_rounded,
+                          color: AppColors.star, size: 28),
                       const SizedBox(width: 8),
                       Text(
                         widget.stats.averageRating.toStringAsFixed(1),
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(width: 8),
                       Text(l10n.reviewsCount(widget.stats.reviewCount)),
@@ -116,7 +119,8 @@ class _ReviewsBodyState extends ConsumerState<_ReviewsBody> {
                         ),
                         ...List.generate(
                           review.rating.clamp(0, 5),
-                          (_) => const Icon(Icons.star_rounded, size: 14, color: AppColors.star),
+                          (_) => const Icon(Icons.star_rounded,
+                              size: 14, color: AppColors.star),
                         ),
                       ],
                     ),
@@ -133,7 +137,8 @@ class _ReviewsBodyState extends ConsumerState<_ReviewsBody> {
                               ? review.createdAt.substring(0, 10)
                               : review.createdAt,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -150,93 +155,123 @@ class _ReviewsBodyState extends ConsumerState<_ReviewsBody> {
   }
 }
 
+final notificationsProvider =
+    FutureProvider.autoDispose<List<AppNotificationModel>>((ref) {
+  return apiServiceProvider.fetchNotifications();
+});
+
 class SellerNotificationsScreen extends ConsumerWidget {
   const SellerNotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final accountAsync = ref.watch(sellerAccountProvider);
+    final notificationsAsync = ref.watch(notificationsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.notifications)),
-      body: accountAsync.when(
+      appBar: AppBar(
+        title: Text(l10n.notifications),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await apiServiceProvider.markAllNotificationsRead();
+              ref.invalidate(notificationsProvider);
+            },
+            child: Text(l10n.markAllRead),
+          ),
+        ],
+      ),
+      body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => AsyncErrorView.fromError(
           error,
-          onRetry: () => ref.invalidate(sellerAccountProvider),
+          onRetry: () => ref.invalidate(notificationsProvider),
         ),
-        data: (account) => FutureBuilder<List<ReviewModel>>(
-          future: apiServiceProvider.fetchReviews(account.profile.id),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return AsyncErrorView.fromError(
-                snapshot.error!,
-                onRetry: () => ref.invalidate(sellerAccountProvider),
-              );
-            }
-
-            final cutoff = DateTime.now().toUtc().subtract(const Duration(days: 7));
-            final recent = (snapshot.data ?? []).where((review) {
-              final parsed = DateTime.tryParse(review.createdAt);
-              if (parsed == null) return false;
-              return parsed.toUtc().isAfter(cutoff);
-            }).toList();
-
-            if (recent.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.notifications_none_rounded,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(l10n.noNotifications, style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        l10n.notificationsSubtitle,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
+        data: (items) {
+          if (items.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.notifications_none_rounded,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(l10n.noNotifications,
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      l10n.notificationsSubtitle,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ],
                 ),
-              );
-            }
-
-            return ListView.separated(
+              ),
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: () async => ref.invalidate(notificationsProvider),
+            child: ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-              itemCount: recent.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+              itemCount: items.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {
-                final review = recent[index];
+                final item = items[index];
                 return Card(
                   child: ListTile(
+                    onTap: item.isRead
+                        ? null
+                        : () async {
+                            await apiServiceProvider
+                                .markNotificationRead(item.id);
+                            ref.invalidate(notificationsProvider);
+                          },
                     leading: CircleAvatar(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                      child: const Icon(Icons.rate_review_outlined, color: AppColors.primary),
+                      backgroundColor:
+                          AppColors.primary.withValues(alpha: 0.12),
+                      child: Icon(_notificationIcon(item.kind),
+                          color: AppColors.primary),
                     ),
-                    title: Text('${review.buyerDisplayName} · ${review.rating}/5'),
+                    title: Text(
+                      item.title,
+                      style: TextStyle(
+                          fontWeight:
+                              item.isRead ? FontWeight.w500 : FontWeight.w800),
+                    ),
                     subtitle: Text(
-                      review.comment.isEmpty ? l10n.recentReviews : review.comment,
+                      item.body,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    trailing: item.isRead
+                        ? null
+                        : const Icon(Icons.circle,
+                            size: 10, color: AppColors.primary),
                   ),
                 );
               },
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
+  }
+
+  IconData _notificationIcon(String kind) {
+    return switch (kind) {
+      'order' => Icons.receipt_long_outlined,
+      'message' => Icons.chat_bubble_outline,
+      'premium' => Icons.workspace_premium_outlined,
+      'verification' => Icons.verified_outlined,
+      _ => Icons.notifications_none_rounded,
+    };
   }
 }

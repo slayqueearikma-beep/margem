@@ -47,6 +47,38 @@ class AuthSession {
   }
 }
 
+class AuthDeviceSession {
+  const AuthDeviceSession({
+    required this.id,
+    required this.deviceName,
+    required this.ipAddress,
+    required this.userAgent,
+    required this.createdAt,
+    required this.lastSeenAt,
+    required this.current,
+  });
+
+  final String id;
+  final String deviceName;
+  final String ipAddress;
+  final String userAgent;
+  final String createdAt;
+  final String? lastSeenAt;
+  final bool current;
+
+  factory AuthDeviceSession.fromJson(Map<String, dynamic> json) {
+    return AuthDeviceSession(
+      id: json['id'] as String,
+      deviceName: json['device_name'] as String? ?? 'Device',
+      ipAddress: json['ip_address'] as String? ?? '',
+      userAgent: json['user_agent'] as String? ?? '',
+      createdAt: json['created_at'] as String? ?? '',
+      lastSeenAt: json['last_seen_at'] as String?,
+      current: json['current'] as bool? ?? false,
+    );
+  }
+}
+
 class SellerCreatePayload {
   const SellerCreatePayload({
     required this.businessName,

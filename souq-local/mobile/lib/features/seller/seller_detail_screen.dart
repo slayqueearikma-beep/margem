@@ -31,7 +31,8 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
     super.initState();
     final session = ref.read(userSessionProvider);
     final asOwner = session?.accountType == AccountType.seller;
-    _sellerFuture = apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
+    _sellerFuture =
+        apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
     _reviewsFuture = apiServiceProvider.fetchReviews(widget.sellerId);
   }
 
@@ -48,7 +49,8 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
     final session = ref.read(userSessionProvider);
     final asOwner = session?.accountType == AccountType.seller;
     setState(() {
-      _sellerFuture = apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
+      _sellerFuture =
+          apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
       _reviewsFuture = apiServiceProvider.fetchReviews(widget.sellerId);
     });
   }
@@ -94,17 +96,20 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                         children: [
                           RatingBarIndicator(
                             rating: seller.averageRating,
-                            itemBuilder: (_, __) => const Icon(Icons.star, color: AppColors.star),
+                            itemBuilder: (_, __) =>
+                                const Icon(Icons.star, color: AppColors.star),
                             itemCount: 5,
                             itemSize: 20,
                           ),
                           const SizedBox(width: 8),
-                          Text('${seller.averageRating} (${l10n.reviewsCount(seller.reviewCount)})'),
+                          Text(
+                              '${seller.averageRating} (${l10n.reviewsCount(seller.reviewCount)})'),
                           if (seller.achievementStars > 0) ...[
                             const Spacer(),
                             ...List.generate(
                               seller.achievementStars.clamp(0, 5),
-                              (_) => const Icon(Icons.star, color: AppColors.star),
+                              (_) =>
+                                  const Icon(Icons.star, color: AppColors.star),
                             ),
                           ],
                         ],
@@ -112,8 +117,14 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                       const SizedBox(height: 12),
                       Text(seller.description),
                       const SizedBox(height: 16),
-                      _InfoRow(icon: Icons.location_on_outlined, text: seller.address),
-                      _InfoRow(icon: Icons.phone_outlined, text: seller.phone.isEmpty ? l10n.noPhone : seller.phone),
+                      _InfoRow(
+                          icon: Icons.location_on_outlined,
+                          text: seller.address),
+                      _InfoRow(
+                          icon: Icons.phone_outlined,
+                          text: seller.phone.isEmpty
+                              ? l10n.noPhone
+                              : seller.phone),
                       if (!seller.openingHours.isEmpty)
                         _InfoRow(
                           icon: Icons.schedule_outlined,
@@ -141,7 +152,11 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      Text(l10n.products, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(l10n.products,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 12),
                       if (seller.products.isEmpty)
                         Text(l10n.noProductsListed)
@@ -151,20 +166,26 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: seller.products.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 12),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 12),
                             itemBuilder: (_, index) {
                               final product = seller.products[index];
                               return _CatalogCard(
                                 title: product.name,
                                 price: product.priceMad,
                                 imageUrl: product.imageUrl,
-                                onTap: () => context.push('/product/${seller.id}/${product.id}'),
+                                onTap: () => context.push(
+                                    '/product/${seller.id}/${product.id}'),
                               );
                             },
                           ),
                         ),
                       const SizedBox(height: 24),
-                      Text(l10n.services, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(l10n.services,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 12),
                       if (seller.services.isEmpty)
                         Text(l10n.noServicesListed)
@@ -174,19 +195,29 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                             contentPadding: EdgeInsets.zero,
                             title: Text(service.name),
                             subtitle: Text(service.description),
-                            trailing: service.priceMad != null ? Text('${service.priceMad!.toStringAsFixed(0)} MAD') : null,
+                            trailing: service.priceMad != null
+                                ? Text(
+                                    '${service.priceMad!.toStringAsFixed(0)} MAD')
+                                : null,
                           ),
                         ),
                       const SizedBox(height: 24),
-                      Text(l10n.reviews, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(l10n.reviews,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 12),
                       FutureBuilder<List<ReviewModel>>(
                         future: _reviewsFuture,
                         builder: (context, reviewSnapshot) {
-                          if (reviewSnapshot.connectionState == ConnectionState.waiting) {
+                          if (reviewSnapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return const Padding(
                               padding: EdgeInsets.all(16),
-                              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                              child: Center(
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2)),
                             );
                           }
                           if (reviewSnapshot.hasError) {
@@ -199,12 +230,20 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                                 .map(
                                   (r) => ListTile(
                                     contentPadding: EdgeInsets.zero,
-                                    leading: CircleAvatar(child: Text(r.buyerDisplayName.isNotEmpty ? r.buyerDisplayName[0] : 'B')),
+                                    leading: CircleAvatar(
+                                        child: Text(
+                                            r.buyerDisplayName.isNotEmpty
+                                                ? r.buyerDisplayName[0]
+                                                : 'B')),
                                     title: Row(
                                       children: [
                                         Text(r.buyerDisplayName),
                                         const SizedBox(width: 8),
-                                        ...List.generate(r.rating, (_) => const Icon(Icons.star, size: 14, color: AppColors.star)),
+                                        ...List.generate(
+                                            r.rating,
+                                            (_) => const Icon(Icons.star,
+                                                size: 14,
+                                                color: AppColors.star)),
                                       ],
                                     ),
                                     subtitle: Text(r.comment),
@@ -228,14 +267,15 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
   Future<void> _showReviewSheet(SellerModel seller) async {
     final l10n = context.l10n;
     final session = ref.read(userSessionProvider);
-    if (session == null) {
+    if (session == null || session.isGuest) {
       if (!mounted) return;
       await context.push('/login');
       return;
     }
     if (session.accountType != AccountType.buyer) {
       if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);
       return;
     }
 
@@ -250,17 +290,20 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+              padding: EdgeInsets.fromLTRB(
+                  20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${l10n.review} ${seller.businessName}', style: Theme.of(context).textTheme.titleLarge),
+                  Text('${l10n.review} ${seller.businessName}',
+                      style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 16),
                   RatingBar.builder(
                     initialRating: rating,
                     minRating: 1,
-                    itemBuilder: (_, __) => const Icon(Icons.star, color: AppColors.star),
+                    itemBuilder: (_, __) =>
+                        const Icon(Icons.star, color: AppColors.star),
                     onRatingUpdate: (value) => rating = value,
                   ),
                   const SizedBox(height: 16),
@@ -284,7 +327,9 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                                   rating: rating.round(),
                                   comment: controller.text,
                                 );
-                                if (sheetContext.mounted) Navigator.pop(sheetContext);
+                                if (sheetContext.mounted) {
+                                  Navigator.pop(sheetContext);
+                                }
                                 if (mounted) _reload();
                               } on Object catch (e) {
                                 setModalState(() => submitting = false);
@@ -298,7 +343,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                               }
                             },
                       child: submitting
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2))
                           : Text(l10n.submitReview),
                     ),
                   ),
@@ -334,7 +382,11 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _CatalogCard extends StatelessWidget {
-  const _CatalogCard({required this.title, this.price, required this.imageUrl, required this.onTap});
+  const _CatalogCard(
+      {required this.title,
+      this.price,
+      required this.imageUrl,
+      required this.onTap});
 
   final String title;
   final double? price;
@@ -358,8 +410,13 @@ class _CatalogCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    if (price != null) Text('${price!.toStringAsFixed(0)} MAD', style: const TextStyle(color: AppColors.primary)),
+                    Text(title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                    if (price != null)
+                      Text('${price!.toStringAsFixed(0)} MAD',
+                          style: const TextStyle(color: AppColors.primary)),
                   ],
                 ),
               ),

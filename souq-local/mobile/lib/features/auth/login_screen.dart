@@ -12,6 +12,7 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
+import '../cart/cart_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -35,8 +36,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     final l10n = context.l10n;
-    if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.enterEmailPassword)));
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.enterEmailPassword)));
       return;
     }
 
@@ -56,14 +59,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException('App storage is not ready. Please restart the app.');
+          throw ApiException(
+              'App storage is not ready. Please restart the app.');
         }
 
         final existing = storage.getSession();
         var userSession = UserSession(
-          name: session.user.displayName.isNotEmpty ? session.user.displayName : l10n.returningUser,
+          name: session.user.displayName.isNotEmpty
+              ? session.user.displayName
+              : l10n.returningUser,
           email: session.user.email,
-          accountType: session.user.isSeller ? AccountType.seller : AccountType.buyer,
+          accountType:
+              session.user.isSeller ? AccountType.seller : AccountType.buyer,
           city: existing?.city ?? AppConfig.moroccanCities.first,
           businessName: existing?.businessName,
           sellerId: existing?.sellerId,
@@ -82,19 +89,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           }
         }
 
+        if (session.user.isBuyer) {
+          final guestItems = guestCartMigrationPayload(storage);
+          if (guestItems.isNotEmpty) {
+            await apiServiceProvider.migrateGuestCart(guestItems);
+            await storage.clearGuestCart();
+          }
+        }
+
         await storage.saveSession(userSession);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
+        ref.invalidate(cartProvider);
 
         if (!mounted) return;
         context.go(session.user.isSeller ? '/seller/dashboard' : '/buyer/home');
       });
     } on ApiException catch (e) {
       if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: e.message);
     } catch (e) {
       if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -112,24 +130,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: AppSpacing.xl),
-              const Center(child: AppBrandLogo(variant: AppBrandLogoVariant.full, width: 240)),
+              const Center(
+                  child: AppBrandLogo(
+                      variant: AppBrandLogoVariant.full, width: 240)),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 l10n.welcomeBack,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 l10n.loginSubtitle,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.xl),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(labelText: l10n.email, prefixIcon: const Icon(Icons.email_outlined)),
+                decoration: InputDecoration(
+                    labelText: l10n.email,
+                    prefixIcon: const Icon(Icons.email_outlined)),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(
@@ -139,7 +167,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   labelText: l10n.password,
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                    icon: Icon(_obscure
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                 ),
@@ -149,17 +179,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text(
                   'API: ${AppConfig.apiBaseUrl}',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.sm),
               ],
-              PrimaryButton(label: l10n.logIn, onPressed: _login, isLoading: _loading),
+              PrimaryButton(
+                  label: l10n.logIn, onPressed: _login, isLoading: _loading),
               const SizedBox(height: AppSpacing.md),
-              LinkTextButton(label: l10n.createAccount, onPressed: () => context.go('/onboarding/account-type')),
+              TextButton(
+                  onPressed: _continueAsGuest, child: Text(l10n.guestContinue)),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => context.push('/forgot-password'),
+                  child: Text(l10n.forgotPassword),
+                ),
+              ),
+              LinkTextButton(
+                  label: l10n.createAccount,
+                  onPressed: () => context.go('/onboarding/account-type')),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _continueAsGuest() async {
+    final storage = ref.read(appStorageProvider);
+    if (storage == null) return;
+    await storage.completeOnboarding();
+    await storage.saveGuestSession(city: AppConfig.moroccanCities.first);
+    ref.read(userSessionProvider.notifier).state = storage.getSession();
+    if (mounted) context.go('/buyer/home');
   }
 }

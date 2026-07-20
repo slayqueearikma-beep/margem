@@ -16,15 +16,18 @@ import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
+import '../cart/cart_provider.dart';
 
 class BuyerRegistrationScreen extends ConsumerStatefulWidget {
   const BuyerRegistrationScreen({super.key});
 
   @override
-  ConsumerState<BuyerRegistrationScreen> createState() => _BuyerRegistrationScreenState();
+  ConsumerState<BuyerRegistrationScreen> createState() =>
+      _BuyerRegistrationScreenState();
 }
 
-class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScreen> {
+class _BuyerRegistrationScreenState
+    extends ConsumerState<BuyerRegistrationScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -41,7 +44,8 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
   }
 
   Future<void> _pickImage() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 800);
+    final image = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, maxWidth: 800);
     if (image != null) setState(() => _profileImage = image);
   }
 
@@ -50,7 +54,8 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
     if (_nameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
         _passwordController.text.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
       return;
     }
 
@@ -72,7 +77,8 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException('App storage is not ready. Please restart the app.');
+          throw ApiException(
+              'App storage is not ready. Please restart the app.');
         }
 
         final userSession = UserSession(
@@ -82,23 +88,33 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
           city: _city,
         );
 
+        final guestItems = guestCartMigrationPayload(storage);
+        if (guestItems.isNotEmpty) {
+          await apiServiceProvider.migrateGuestCart(guestItems);
+          await storage.clearGuestCart();
+        }
+
         await storage.completeOnboarding();
         await storage.saveSession(userSession);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
+        ref.invalidate(cartProvider);
 
         if (!mounted) return;
         context.go('/buyer/home');
       });
     } on ApiException catch (e) {
       if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: e.message);
     } on TimeoutException {
       if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     } catch (e) {
       if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -110,28 +126,56 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
 
     return OnboardingScaffold(
       showBack: true,
+      bottom: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (!AppConfig.isProduction) ...[
+            const Text(
+              'API: ${AppConfig.apiBaseUrl}',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          PrimaryButton(
+              label: l10n.createAccount,
+              onPressed: _submit,
+              isLoading: _loading),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppScreenHeader(title: l10n.createBuyerAccount, subtitle: l10n.createBuyerSubtitle),
+          AppScreenHeader(
+              title: l10n.createBuyerAccount,
+              subtitle: l10n.createBuyerSubtitle),
           const SizedBox(height: AppSpacing.xl),
           Center(
             child: GestureDetector(
               onTap: _pickImage,
               child: CircleAvatar(
                 radius: 48,
-                backgroundColor: Theme.of(context).inputDecorationTheme.fillColor,
-                backgroundImage: _profileImage != null ? FileImage(File(_profileImage!.path)) : null,
+                backgroundColor:
+                    Theme.of(context).inputDecorationTheme.fillColor,
+                backgroundImage: _profileImage != null
+                    ? FileImage(File(_profileImage!.path))
+                    : null,
                 child: _profileImage == null
-                    ? const Icon(Icons.add_a_photo_outlined, size: 28, color: Colors.grey)
+                    ? const Icon(Icons.add_a_photo_outlined,
+                        size: 28, color: Colors.grey)
                     : null,
               ),
             ),
           ),
           const SizedBox(height: 8),
-          Center(child: Text(l10n.profilePictureOptional, style: const TextStyle(color: Colors.grey, fontSize: 13))),
+          Center(
+              child: Text(l10n.profilePictureOptional,
+                  style: const TextStyle(color: Colors.grey, fontSize: 13))),
           const SizedBox(height: AppSpacing.lg),
-          AppTextField(label: l10n.fullName, controller: _nameController, hint: l10n.yourName),
+          AppTextField(
+              label: l10n.fullName,
+              controller: _nameController,
+              hint: l10n.yourName),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
             label: l10n.email,
@@ -159,27 +203,15 @@ class _BuyerRegistrationScreenState extends ConsumerState<BuyerRegistrationScree
                 context: context,
                 builder: (ctx) => ListView(
                   children: AppConfig.moroccanCities
-                      .map((city) => ListTile(title: Text(city), onTap: () => Navigator.pop(ctx, city)))
+                      .map((city) => ListTile(
+                          title: Text(city),
+                          onTap: () => Navigator.pop(ctx, city)))
                       .toList(),
                 ),
               );
               if (selected != null) setState(() => _city = selected);
             },
           ),
-        ],
-      ),
-      bottom: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!AppConfig.isProduction) ...[
-            Text(
-              'API: ${AppConfig.apiBaseUrl}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-          PrimaryButton(label: l10n.createAccount, onPressed: _submit, isLoading: _loading),
         ],
       ),
     );

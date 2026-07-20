@@ -1,8 +1,82 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum AccountType { buyer, seller }
+enum AccountType { buyer, seller, guest }
+
+class GuestCartItem {
+  const GuestCartItem({
+    required this.productId,
+    required this.sellerId,
+    required this.quantity,
+    required this.name,
+    required this.price,
+    required this.imageUrl,
+    this.sellerName = '',
+  });
+
+  final String productId;
+  final String sellerId;
+  final int quantity;
+  final String name;
+  final double price;
+  final String imageUrl;
+  final String sellerName;
+
+  double get lineTotal => price * quantity;
+
+  GuestCartItem copyWith({
+    String? productId,
+    String? sellerId,
+    int? quantity,
+    String? name,
+    double? price,
+    String? imageUrl,
+    String? sellerName,
+  }) {
+    return GuestCartItem(
+      productId: productId ?? this.productId,
+      sellerId: sellerId ?? this.sellerId,
+      quantity: quantity ?? this.quantity,
+      name: name ?? this.name,
+      price: price ?? this.price,
+      imageUrl: imageUrl ?? this.imageUrl,
+      sellerName: sellerName ?? this.sellerName,
+    );
+  }
+
+  factory GuestCartItem.fromJson(Map<String, dynamic> json) {
+    return GuestCartItem(
+      productId:
+          json['productId'] as String? ?? json['product_id'] as String? ?? '',
+      sellerId:
+          json['sellerId'] as String? ?? json['seller_id'] as String? ?? '',
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      name: json['name'] as String? ?? json['product_name'] as String? ?? '',
+      price: (json['price'] as num? ??
+              json['price_mad'] as num? ??
+              json['unit_price_mad'] as num? ??
+              0)
+          .toDouble(),
+      imageUrl:
+          json['imageUrl'] as String? ?? json['image_url'] as String? ?? '',
+      sellerName:
+          json['sellerName'] as String? ?? json['seller_name'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'productId': productId,
+        'sellerId': sellerId,
+        'quantity': quantity,
+        'name': name,
+        'price': price,
+        'imageUrl': imageUrl,
+        'sellerName': sellerName,
+      };
+}
 
 class UserSession {
   const UserSession({
@@ -20,6 +94,8 @@ class UserSession {
   final String? city;
   final String? businessName;
   final String? sellerId;
+  bool get isGuest => accountType == AccountType.guest;
+  bool get isAuthenticated => !isGuest;
 
   UserSession copyWith({
     String? name,
@@ -55,8 +131,10 @@ class AppStorage {
   static const _sellerIdKey = 'seller_id';
   static const _languageCodeKey = 'language_code';
   static const _languageSelectedKey = 'language_selected';
+  static const _guestCartKey = 'guest_cart_items';
 
-  bool get isOnboardingComplete => _prefs.getBool(_onboardingCompleteKey) ?? false;
+  bool get isOnboardingComplete =>
+      _prefs.getBool(_onboardingCompleteKey) ?? false;
   bool get isLoggedIn => _prefs.getBool(_loggedInKey) ?? false;
   bool get isLanguageSelected => _prefs.getBool(_languageSelectedKey) ?? false;
 
@@ -69,7 +147,8 @@ class AppStorage {
     await _prefs.setBool(_languageSelectedKey, true);
   }
 
-  Future<void> completeOnboarding() => _prefs.setBool(_onboardingCompleteKey, true);
+  Future<void> completeOnboarding() =>
+      _prefs.setBool(_onboardingCompleteKey, true);
 
   Future<void> saveSession(UserSession session) async {
     await _prefs.setBool(_loggedInKey, true);
@@ -91,14 +170,30 @@ class AppStorage {
     }
   }
 
+  Future<void> saveGuestSession({String? city}) {
+    return saveSession(
+      UserSession(
+        name: 'Guest',
+        email: '',
+        accountType: AccountType.guest,
+        city: city,
+      ),
+    );
+  }
+
   UserSession? getSession() {
     if (!isLoggedIn) return null;
     final typeName = _prefs.getString(_accountTypeKey);
     if (typeName == null) return null;
+    final accountType = AccountType.values.firstWhere(
+      (type) => type.name == typeName,
+      orElse: () => AccountType.buyer,
+    );
     return UserSession(
-      name: _prefs.getString(_userNameKey) ?? 'User',
+      name: _prefs.getString(_userNameKey) ??
+          (accountType == AccountType.guest ? 'Guest' : 'User'),
       email: _prefs.getString(_userEmailKey) ?? '',
-      accountType: AccountType.values.byName(typeName),
+      accountType: accountType,
       city: _prefs.getString(_userCityKey),
       businessName: _prefs.getString(_businessNameKey),
       sellerId: _prefs.getString(_sellerIdKey),
@@ -115,12 +210,75 @@ class AppStorage {
     await _prefs.remove(_sellerIdKey);
   }
 
+  List<GuestCartItem> getGuestCartItems() {
+    final raw = _prefs.getString(_guestCartKey);
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map((item) => GuestCartItem.fromJson(item as Map<String, dynamic>))
+          .where((item) => item.productId.isNotEmpty && item.quantity > 0)
+          .toList();
+    } on Object {
+      return const [];
+    }
+  }
+
+  Future<void> saveGuestCartItems(List<GuestCartItem> items) async {
+    await _prefs.setString(
+      _guestCartKey,
+      jsonEncode(items.map((item) => item.toJson()).toList()),
+    );
+  }
+
+  Future<List<GuestCartItem>> addGuestCartItem(GuestCartItem item) async {
+    final items = [...getGuestCartItems()];
+    final index =
+        items.indexWhere((entry) => entry.productId == item.productId);
+    if (index == -1) {
+      items.add(item.copyWith(quantity: item.quantity.clamp(1, 99).toInt()));
+    } else {
+      items[index] = items[index].copyWith(
+        quantity: (items[index].quantity + item.quantity).clamp(1, 99).toInt(),
+        name: item.name,
+        price: item.price,
+        imageUrl: item.imageUrl,
+        sellerId: item.sellerId,
+        sellerName: item.sellerName,
+      );
+    }
+    await saveGuestCartItems(items);
+    return items;
+  }
+
+  Future<List<GuestCartItem>> updateGuestCartQuantity(
+      String productId, int quantity) async {
+    final items = getGuestCartItems()
+        .map((item) => item.productId == productId
+            ? item.copyWith(quantity: quantity.clamp(1, 99).toInt())
+            : item)
+        .toList();
+    await saveGuestCartItems(items);
+    return items;
+  }
+
+  Future<List<GuestCartItem>> removeGuestCartItem(String productId) async {
+    final items = getGuestCartItems()
+        .where((item) => item.productId != productId)
+        .toList();
+    await saveGuestCartItems(items);
+    return items;
+  }
+
+  Future<void> clearGuestCart() => _prefs.remove(_guestCartKey);
+
   Future<void> resetAll() async {
     await _prefs.clear();
   }
 }
 
-final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
+final sharedPreferencesProvider =
+    FutureProvider<SharedPreferences>((ref) async {
   return SharedPreferences.getInstance();
 });
 

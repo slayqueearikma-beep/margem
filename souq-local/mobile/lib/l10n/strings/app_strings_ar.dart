@@ -9,7 +9,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get selectLanguage => 'اختر لغتك';
   @override
-  String get selectLanguageSubtitle => 'اختر اللغة المفضلة لديك. يمكنك تغييرها في أي وقت من الإعدادات.';
+  String get selectLanguageSubtitle =>
+      'اختر اللغة المفضلة لديك. يمكنك تغييرها في أي وقت من الإعدادات.';
   @override
   String get english => 'English';
   @override
@@ -54,19 +55,23 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get discoverTitle => 'اكتشف المحلات المحلية';
   @override
-  String get discoverSubtitle => 'اعثر على متاجر ومنتجات وخدمات موثوقة في جميع أنحاء المغرب — في مكان واحد.';
+  String get discoverSubtitle =>
+      'اعثر على متاجر ومنتجات وخدمات موثوقة في جميع أنحاء المغرب — في مكان واحد.';
   @override
   String get exploreMapTitle => 'استكشف على الخريطة';
   @override
-  String get exploreMapSubtitle => 'تصفح المتاجر القريبة، وفلتر حسب الفئة، واحصل على الاتجاهات فوراً.';
+  String get exploreMapSubtitle =>
+      'تصفح المتاجر القريبة، وفلتر حسب الفئة، واحصل على الاتجاهات فوراً.';
   @override
   String get trustedReviewsTitle => 'تقييمات موثوقة';
   @override
-  String get trustedReviewsSubtitle => 'اقرأ تقييمات المشترين الحقيقيين واكتشف أكثر المحلات موثوقية في مدينتك.';
+  String get trustedReviewsSubtitle =>
+      'اقرأ تقييمات المشترين الحقيقيين واكتشف أكثر المحلات موثوقية في مدينتك.';
   @override
   String get chooseAccountType => 'اختر نوع حسابك';
   @override
-  String get chooseAccountTypeSubtitle => 'حدد كيف تريد استخدام MarGem. يمكنك تحديث ملفك لاحقاً.';
+  String get chooseAccountTypeSubtitle =>
+      'حدد كيف تريد استخدام MarGem. يمكنك تحديث ملفك لاحقاً.';
   @override
   String get buyer => 'مشتري';
   @override
@@ -94,7 +99,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get welcomeBack => 'مرحباً بعودتك';
   @override
-  String get loginSubtitle => 'سجّل الدخول لمتابعة اكتشاف المحلات المحلية الموثوقة.';
+  String get loginSubtitle =>
+      'سجّل الدخول لمتابعة اكتشاف المحلات المحلية الموثوقة.';
   @override
   String get logIn => 'تسجيل الدخول';
   @override
@@ -108,7 +114,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get createBuyerAccount => 'إنشاء حساب مشتري';
   @override
-  String get createBuyerSubtitle => 'ابدأ باكتشاف المحلات المحلية الموثوقة في دقائق.';
+  String get createBuyerSubtitle =>
+      'ابدأ باكتشاف المحلات المحلية الموثوقة في دقائق.';
   @override
   String get profilePictureOptional => 'صورة الملف الشخصي (اختياري)';
   @override
@@ -116,7 +123,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get city => 'المدينة';
   @override
-  String get fillRequiredFields => 'يرجى ملء جميع الحقول المطلوبة (كلمة المرور 6 أحرف على الأقل).';
+  String get fillRequiredFields =>
+      'يرجى ملء جميع الحقول المطلوبة (كلمة المرور 6 أحرف على الأقل).';
   @override
   String get navHome => 'الرئيسية';
   @override
@@ -126,7 +134,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get navProfile => 'الملف';
   @override
-  String goodMorning(String name) => name.isEmpty ? 'صباح الخير' : 'صباح الخير، $name';
+  String goodMorning(String name) =>
+      name.isEmpty ? 'صباح الخير' : 'صباح الخير، $name';
   @override
   String get searchHint => 'ابحث عن متاجر، منتجات، خدمات…';
   @override
@@ -213,7 +222,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get notifications => 'الإشعارات';
   @override
-  String get storeInactiveHint => 'متجرك مخفي عن المشترين. فعّله من إعدادات الملف.';
+  String get storeInactiveHint =>
+      'متجرك مخفي عن المشترين. فعّله من إعدادات الملف.';
   @override
   String availableCount(int count) => '$count متاح';
   @override
@@ -227,7 +237,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get deleteProduct => 'حذف المنتج';
   @override
-  String get deleteProductConfirm => 'هل تريد حذف هذا المنتج نهائياً؟ لا يمكن التراجع.';
+  String get deleteProductConfirm =>
+      'هل تريد حذف هذا المنتج نهائياً؟ لا يمكن التراجع.';
   @override
   String get markUnavailable => 'تعيين كغير متاح';
   @override
@@ -237,7 +248,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get unavailable => 'غير متاح';
   @override
-  String get noProductsYet => 'لا توجد منتجات بعد. أضف أول منتج للظهور في البحث.';
+  String get noProductsYet =>
+      'لا توجد منتجات بعد. أضف أول منتج للظهور في البحث.';
   @override
   String get productSaved => 'تم حفظ المنتج';
   @override
@@ -255,13 +267,15 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get newPassword => 'كلمة المرور الجديدة';
   @override
-  String get passwordChanged => 'تم تحديث كلمة المرور. سجّل الدخول مجدداً على الأجهزة الأخرى.';
+  String get passwordChanged =>
+      'تم تحديث كلمة المرور. سجّل الدخول مجدداً على الأجهزة الأخرى.';
   @override
   String get recentReviews => 'المراجعات الأخيرة';
   @override
   String get noNotifications => 'لا توجد إشعارات جديدة';
   @override
-  String get notificationsSubtitle => 'تظهر هنا المراجعات من آخر 7 أيام.';
+  String get notificationsSubtitle =>
+      'تظهر هنا الطلبات والرسائل وتحديثات بريميوم والحساب.';
   @override
   String get appearance => 'المظهر';
   @override
@@ -281,7 +295,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get sellerStep2Title => 'الموقع والاتصال';
   @override
-  String get sellerStep2Subtitle => 'الخطوة 2 من 5 — ساعد المشترين في العثور على متجرك.';
+  String get sellerStep2Subtitle =>
+      'الخطوة 2 من 5 — ساعد المشترين في العثور على متجرك.';
   @override
   String get businessCategory => 'فئة النشاط';
   @override
@@ -311,7 +326,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get sellerStep4Title => 'أول المنتجات والخدمات';
   @override
-  String get sellerStep4Subtitle => 'الخطوة 4 من 5 — أضف عنصراً واحداً على الأقل.';
+  String get sellerStep4Subtitle =>
+      'الخطوة 4 من 5 — أضف عنصراً واحداً على الأقل.';
   @override
   String get productImage => 'صورة المنتج';
   @override
@@ -325,13 +341,16 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get sellerStep5Title => 'مراجعة وإرسال';
   @override
-  String get sellerStep5Subtitle => 'الخطوة 5 من 5 — تأكد من معلوماتك قبل إنشاء الحساب.';
+  String get sellerStep5Subtitle =>
+      'الخطوة 5 من 5 — تأكد من معلوماتك قبل إنشاء الحساب.';
   @override
   String get submitCreateAccount => 'إرسال وإنشاء الحساب';
   @override
-  String get completeRequiredStep => 'يرجى إكمال جميع الحقول المطلوبة قبل المتابعة.';
+  String get completeRequiredStep =>
+      'يرجى إكمال جميع الحقول المطلوبة قبل المتابعة.';
   @override
-  String sellerVisibilityNote(String city) => 'سيظهر ملفك للمشترين في $city بعد إنشاء الحساب.';
+  String sellerVisibilityNote(String city) =>
+      'سيظهر ملفك للمشترين في $city بعد إنشاء الحساب.';
   @override
   String get reviewBusiness => 'المحل';
   @override
@@ -412,6 +431,191 @@ class AppStringsAr extends AppStringsEn {
   String get sellerDefault => 'بائع';
   @override
   String itemsCount(int count) => '$count عنصر';
+  @override
+  String get guestContinue => 'المتابعة كضيف';
+  @override
+  String get guestMode => 'وضع الضيف';
+  @override
+  String get guestModeSubtitle =>
+      'تصفح بحرية مع سلة محلية. سجّل الدخول لإتمام الطلب ومزامنة المفضلة وعرض الطلبات.';
+  @override
+  String get cart => 'السلة';
+  @override
+  String get checkout => 'إتمام الطلب';
+  @override
+  String get wishlist => 'المفضلة';
+  @override
+  String get premium => 'بريميوم';
+  @override
+  String get guestCartSignInHint =>
+      'سلتك محفوظة على هذا الجهاز. سجّل الدخول لإتمام الطلب ومزامنتها مع حسابك.';
+  @override
+  String get signInToCheckout => 'سجّل الدخول لإتمام الطلب';
+  @override
+  String get subtotal => 'المجموع الفرعي';
+  @override
+  String get emptyCart => 'سلتك فارغة';
+  @override
+  String get emptyCartSubtitle => 'أضف منتجات من البائعين المحليين وستظهر هنا.';
+  @override
+  String get browseProducts => 'تصفح المنتجات';
+  @override
+  String get addToCart => 'أضف إلى السلة';
+  @override
+  String get addToWishlist => 'أضف إلى المفضلة';
+  @override
+  String get addedToCart => 'تمت الإضافة إلى السلة';
+  @override
+  String get addedToWishlist => 'تمت الإضافة إلى المفضلة';
+  @override
+  String get priceOnRequest => 'السعر عند الطلب';
+  @override
+  String get orderSummary => 'ملخص الطلب';
+  @override
+  String get deliveryDetails => 'تفاصيل التوصيل';
+  @override
+  String get recipientName => 'اسم المستلم';
+  @override
+  String get requiredField => 'مطلوب';
+  @override
+  String get deliveryAddress => 'عنوان التوصيل';
+  @override
+  String get orderNoteOptional => 'ملاحظة الطلب (اختياري)';
+  @override
+  String get placingOrder => 'جاري إرسال الطلب...';
+  @override
+  String get placeOrder => 'إرسال الطلب';
+  @override
+  String get noOrdersYet => 'لا توجد طلبات بعد';
+  @override
+  String get noOrdersYetSubtitle => 'ستظهر مشترياتك من البائعين المحليين هنا.';
+  @override
+  String orderNumber(String id) => 'طلب #$id';
+  @override
+  String get orderStatusPending => 'قيد الانتظار';
+  @override
+  String get orderStatusAccepted => 'مقبول';
+  @override
+  String get orderStatusReady => 'جاهز';
+  @override
+  String get orderStatusCompleted => 'مكتمل';
+  @override
+  String get orderStatusCancelled => 'ملغى';
+  @override
+  String get orderStatusRejected => 'مرفوض';
+  @override
+  String get orderDetails => 'تفاصيل الطلب';
+  @override
+  String get deliveryFee => 'رسوم التوصيل';
+  @override
+  String get total => 'الإجمالي';
+  @override
+  String get paymentMethod => 'طريقة الدفع';
+  @override
+  String get items => 'العناصر';
+  @override
+  String get orderNote => 'ملاحظة الطلب';
+  @override
+  String get sellerNote => 'ملاحظة البائع';
+  @override
+  String get cancelOrder => 'إلغاء الطلب';
+  @override
+  String get cancelOrderConfirm =>
+      'هل تريد إلغاء هذا الطلب؟ سيتم إشعار البائع.';
+  @override
+  String get emptyWishlist => 'المفضلة فارغة';
+  @override
+  String get emptyWishlistSubtitle =>
+      'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
+  @override
+  String get premiumActivated => 'تم تفعيل بريميوم';
+  @override
+  String get noPremiumPlans => 'لا توجد خطط بريميوم متاحة حالياً.';
+  @override
+  String get premiumTitle => 'نمّ عملك مع MarGem بريميوم';
+  @override
+  String get premiumSubtitle =>
+      'افتح ظهوراً أقوى وأدوات بائع ومزايا تجارة إضافية.';
+  @override
+  String activePlan(String name) => 'الخطة النشطة: $name';
+  @override
+  String get signInToSubscribe => 'سجّل الدخول للاشتراك';
+  @override
+  String get days => 'أيام';
+  @override
+  String get currentPlan => 'الخطة الحالية';
+  @override
+  String get subscribe => 'اشترك';
+  @override
+  String get noSellerOrders => 'لا توجد طلبات عملاء بعد';
+  @override
+  String get noSellerOrdersSubtitle => 'ستظهر هنا الطلبات الجديدة من المشترين.';
+  @override
+  String get acceptOrder => 'قبول';
+  @override
+  String get rejectOrder => 'رفض';
+  @override
+  String get sellerNoteOptional => 'ملاحظة البائع (اختياري)';
+  @override
+  String get confirm => 'تأكيد';
+  @override
+  String get markReady => 'تعيين كجاهز';
+  @override
+  String get completeOrder => 'إكمال';
+  @override
+  String get forgotPassword => 'نسيت كلمة المرور؟';
+  @override
+  String get resetPassword => 'إعادة تعيين كلمة المرور';
+  @override
+  String get forgotPasswordSubtitle =>
+      'أدخل بريدك الإلكتروني وسنرسل رابطاً آمناً إذا كان الحساب موجوداً.';
+  @override
+  String get resetPasswordSubtitle =>
+      'الصق رمز إعادة التعيين من بريدك واختر كلمة مرور جديدة.';
+  @override
+  String get emailRequired => 'البريد الإلكتروني مطلوب.';
+  @override
+  String get resetPasswordValidation =>
+      'أدخل الرمز وكلمة مرور لا تقل عن 8 أحرف.';
+  @override
+  String get sendResetLink => 'إرسال رابط التعيين';
+  @override
+  String get resetLinkSent =>
+      'إذا كان الحساب موجوداً، فقد تم إرسال رابط إعادة التعيين.';
+  @override
+  String get resetToken => 'رمز إعادة التعيين';
+  @override
+  String get passwordResetComplete =>
+      'تمت إعادة تعيين كلمة المرور. يمكنك تسجيل الدخول الآن.';
+  @override
+  String get revenue => 'الإيرادات';
+  @override
+  String pendingOrders(int count) => '$count قيد الانتظار';
+  @override
+  String completedOrders(int count) => '$count مكتمل';
+  @override
+  String get analytics => 'التحليلات';
+  @override
+  String get analyticsSub => 'عرض الطلبات والإيرادات وأداء الملف';
+  @override
+  String analyticsSummary(String revenue, String average) =>
+      '$revenue درهم إيرادات · $average درهم متوسط الطلب';
+  @override
+  String get premiumActiveSub => 'خطة بريميوم نشطة';
+  @override
+  String get premiumUpgradeSub => 'طوّر الظهور وأدوات البيع';
+  @override
+  String get loading => 'جاري التحميل...';
+  @override
+  String get pending => 'قيد الانتظار';
+  @override
+  String get completed => 'مكتمل';
+  @override
+  String get averageOrder => 'متوسط الطلب';
+  @override
+  String get verification => 'التحقق';
+  @override
+  String get markAllRead => 'تعيين الكل كمقروء';
 
   @override
   String categoryLabel(String key) {
