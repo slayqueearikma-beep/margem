@@ -27,6 +27,17 @@ class AccountType(str, enum.Enum):
     SELLER = "seller"
 
 
+# Persist enum *values* ("buyer"/"seller") to match Postgres accounttype.
+account_type_enum = Enum(
+    AccountType,
+    name="accounttype",
+    values_callable=lambda enum_cls: [member.value for member in enum_cls],
+    create_constraint=False,
+    native_enum=True,
+    validate_strings=True,
+)
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -34,7 +45,7 @@ class User(Base):
     firebase_uid: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    account_type: Mapped[AccountType] = mapped_column(Enum(AccountType), nullable=False)
+    account_type: Mapped[AccountType] = mapped_column(account_type_enum, nullable=False)
     display_name: Mapped[str] = mapped_column(String(120), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
