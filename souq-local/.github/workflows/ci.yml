@@ -34,6 +34,11 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
+      - name: Apply migrations
+        run: alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local
+          JWT_SECRET_KEY: test-jwt-secret-key-minimum-32-characters-long
       - run: pytest -q
         env:
           DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local

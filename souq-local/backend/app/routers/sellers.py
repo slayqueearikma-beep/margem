@@ -242,7 +242,10 @@ async def get_seller(
     if not is_owner:
         seller.profile_view_count = int(seller.profile_view_count or 0) + 1
         await session.commit()
-        await session.refresh(seller)
+        seller = await _load_seller_detail(session, seller_id)
+        # Hide moderated / hidden inventory from public shoppers.
+        seller.products = [p for p in seller.products if not p.is_hidden]
+        seller.services = [s for s in seller.services if s.is_available]
 
     return seller
 
