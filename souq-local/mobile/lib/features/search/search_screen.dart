@@ -83,7 +83,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 if (snapshot.hasError) {
                   return AsyncErrorView.fromError(
                     snapshot.error!,
-                    onRetry: () => setState(() => _future = _load()),
+                    onRetry: () {
+                      setState(() {
+                        _future = _load();
+                      });
+                    },
                   );
                 }
                 final sellers = snapshot.data ?? [];

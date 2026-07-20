@@ -11,6 +11,7 @@
 
 ```bash
 flutter pub get
+# Include the colon before the port (:8000). Wrong: http://192.168.1.108000
 flutter run --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000
 ```
 

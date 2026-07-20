@@ -226,9 +226,16 @@ class ApiService {
     );
   }
 
-  String get _connectionErrorMessage => AppConfig.isProduction
-      ? 'Cannot reach the server. Check your internet connection and try again.'
-      : 'Cannot reach the API at ${AppConfig.apiBaseUrl}. Check your network connection and API_BASE_URL.';
+  String get _connectionErrorMessage {
+    if (AppConfig.isProduction) {
+      return 'Cannot reach the server. Check your internet connection and try again.';
+    }
+    final base = AppConfig.apiBaseUrl;
+    final tip = RegExp(r':\d+$').hasMatch(base)
+        ? ''
+        : '\nTip: API_BASE_URL must include a colon before the port, e.g. http://192.168.1.10:8000';
+    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$tip';
+  }
 
   Future<String> createSeller(SellerCreatePayload payload) async {
     final data = await postJson('/sellers', payload.toJson(), auth: true);
