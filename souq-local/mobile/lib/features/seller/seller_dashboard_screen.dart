@@ -222,6 +222,7 @@ class SellerDashboardScreen extends ConsumerWidget {
                             final prefs = await ref.read(sharedPreferencesProvider.future);
                             await ref.read(authServiceProvider).logout(prefs);
                             await ref.read(appStorageProvider)?.logout();
+                            ref.invalidate(sellerAccountProvider);
                             ref.read(userSessionProvider.notifier).state = null;
                             ref.read(authSessionProvider.notifier).state = null;
                             if (context.mounted) context.go('/login');

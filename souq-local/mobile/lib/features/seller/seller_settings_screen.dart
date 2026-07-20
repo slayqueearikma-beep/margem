@@ -11,6 +11,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
+import 'seller_account_provider.dart';
 
 class SellerSettingsScreen extends ConsumerStatefulWidget {
   const SellerSettingsScreen({super.key});
@@ -100,6 +101,7 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
       final prefs = await ref.read(sharedPreferencesProvider.future);
       await ref.read(authServiceProvider).logout(prefs);
       await ref.read(appStorageProvider)?.logout();
+      ref.invalidate(sellerAccountProvider);
       ref.read(userSessionProvider.notifier).state = null;
       ref.read(authSessionProvider.notifier).state = null;
       if (!mounted) return;
