@@ -60,12 +60,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
 
         final existing = storage.getSession();
-        final userSession = UserSession(
+        var userSession = UserSession(
           name: session.user.displayName.isNotEmpty ? session.user.displayName : l10n.returningUser,
           email: session.user.email,
           accountType: session.user.isSeller ? AccountType.seller : AccountType.buyer,
           city: existing?.city ?? AppConfig.moroccanCities.first,
+          businessName: existing?.businessName,
+          sellerId: existing?.sellerId,
         );
+
+        if (session.user.isSeller) {
+          try {
+            final seller = await apiServiceProvider.fetchMySeller();
+            userSession = userSession.copyWith(
+              sellerId: seller.id,
+              businessName: seller.businessName,
+              city: seller.city,
+            );
+          } on ApiException {
+            // Seller may still need to complete onboarding profile creation.
+          }
+        }
 
         await storage.saveSession(userSession);
         ref.read(userSessionProvider.notifier).state = userSession;

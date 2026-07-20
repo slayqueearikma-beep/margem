@@ -77,6 +77,24 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> patchJson(
+    String path,
+    Map<String, dynamic> body, {
+    bool auth = false,
+  }) async {
+    final response = await _request(
+      () => _client.patch(
+        _uri(path),
+        headers: _jsonHeaders(auth: auth),
+        body: jsonEncode(body),
+      ),
+      auth: auth,
+    );
+    _ensureSuccess(response);
+    if (response.body.isEmpty) return {};
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> getJson(String path, {bool auth = false}) async {
     final response = await _request(
       () => _get(_uri(path), headers: auth ? _authHeaders : null),
@@ -92,6 +110,17 @@ class ApiService {
         _uri(path),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
+      ),
+      auth: auth,
+    );
+    _ensureSuccess(response);
+  }
+
+  Future<void> deletePath(String path, {bool auth = false}) async {
+    final response = await _request(
+      () => _client.delete(
+        _uri(path),
+        headers: auth ? _jsonHeaders(auth: true) : _jsonHeaders(),
       ),
       auth: auth,
     );
@@ -165,8 +194,59 @@ class ApiService {
     return data['id'] as String;
   }
 
-  Future<void> addProduct(String sellerId, ProductCreatePayload payload) async {
-    await postJson('/sellers/$sellerId/products', payload.toJson(), auth: true);
+  Future<SellerModel> fetchMySeller() async {
+    final data = await getJson('/sellers/me', auth: true);
+    return SellerModel.fromJson(data);
+  }
+
+  Future<SellerDashboardStats> fetchMySellerDashboard() async {
+    final data = await getJson('/sellers/me/dashboard', auth: true);
+    return SellerDashboardStats.fromJson(data);
+  }
+
+  Future<SellerModel> updateSeller(String sellerId, SellerUpdatePayload payload) async {
+    final data = await patchJson('/sellers/$sellerId', payload.toJson(), auth: true);
+    return SellerModel.fromJson(data);
+  }
+
+  Future<ProductModel> addProduct(String sellerId, ProductCreatePayload payload) async {
+    final data = await postJson('/sellers/$sellerId/products', payload.toJson(), auth: true);
+    return ProductModel.fromJson(data);
+  }
+
+  Future<ProductModel> updateProduct(
+    String sellerId,
+    String productId,
+    ProductUpdatePayload payload,
+  ) async {
+    final data = await patchJson(
+      '/sellers/$sellerId/products/$productId',
+      payload.toJson(),
+      auth: true,
+    );
+    return ProductModel.fromJson(data);
+  }
+
+  Future<void> deleteProduct(String sellerId, String productId) async {
+    await deletePath('/sellers/$sellerId/products/$productId', auth: true);
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final response = await _request(
+      () => _post(
+        _uri('/auth/me/password'),
+        headers: _jsonHeaders(auth: true),
+        body: jsonEncode({
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        }),
+      ),
+      auth: true,
+    );
+    _ensureSuccess(response);
   }
 
   Future<String?> categoryIdForSlug(String slug) async {
@@ -196,8 +276,11 @@ class ApiService {
     return data.map((e) => SellerModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<SellerModel> fetchSeller(String id) async {
-    final response = await _get(_uri('/sellers/$id'));
+  Future<SellerModel> fetchSeller(String id, {bool auth = false}) async {
+    final response = await _request(
+      () => _get(_uri('/sellers/$id'), headers: auth ? _authHeaders : null),
+      auth: auth,
+    );
     _ensureSuccess(response);
     return SellerModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }

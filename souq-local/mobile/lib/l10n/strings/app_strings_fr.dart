@@ -203,6 +203,74 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get profileViewsTrend => '+12 % cette semaine';
   @override
+  String get previewStorefront => 'Aperçu de la boutique';
+  @override
+  String get previewStorefrontSub => 'Voir votre boutique telle que les acheteurs la voient';
+  @override
+  String get accountSecurity => 'Compte et sécurité';
+  @override
+  String get accountSecuritySub => 'Mot de passe, thème et suppression du compte';
+  @override
+  String get notifications => 'Notifications';
+  @override
+  String get storeInactiveHint => 'Votre boutique est masquée. Activez-la dans les paramètres du profil.';
+  @override
+  String availableCount(int count) => '$count disponibles';
+  @override
+  String achievementStars(int count) => '$count étoiles de réussite';
+  @override
+  String get addProduct => 'Ajouter un produit';
+  @override
+  String get editProduct => 'Modifier le produit';
+  @override
+  String get saveChanges => 'Enregistrer';
+  @override
+  String get deleteProduct => 'Supprimer le produit';
+  @override
+  String get deleteProductConfirm => 'Supprimer définitivement ce produit ? Cette action est irréversible.';
+  @override
+  String get markUnavailable => 'Marquer indisponible';
+  @override
+  String get markAvailable => 'Marquer disponible';
+  @override
+  String get available => 'Disponible';
+  @override
+  String get unavailable => 'Indisponible';
+  @override
+  String get noProductsYet => 'Aucun produit. Ajoutez votre premier produit pour apparaître dans la recherche.';
+  @override
+  String get productSaved => 'Produit enregistré';
+  @override
+  String get productDeleted => 'Produit supprimé';
+  @override
+  String get profileSaved => 'Profil mis à jour';
+  @override
+  String get storeVisible => 'Boutique visible pour les acheteurs';
+  @override
+  String get storeHidden => 'Boutique masquée pour les acheteurs';
+  @override
+  String get changePassword => 'Changer le mot de passe';
+  @override
+  String get currentPassword => 'Mot de passe actuel';
+  @override
+  String get newPassword => 'Nouveau mot de passe';
+  @override
+  String get passwordChanged => 'Mot de passe mis à jour. Reconnectez-vous sur les autres appareils.';
+  @override
+  String get recentReviews => 'Avis récents';
+  @override
+  String get noNotifications => 'Aucune nouvelle notification';
+  @override
+  String get notificationsSubtitle => 'Les avis des 7 derniers jours apparaissent ici.';
+  @override
+  String get appearance => 'Apparence';
+  @override
+  String get systemTheme => 'Système';
+  @override
+  String get lightTheme => 'Clair';
+  @override
+  String get darkTheme => 'Sombre';
+  @override
   String get sellerStep1Title => 'Compte professionnel';
   @override
   String get sellerStep1Subtitle => 'Étape 1 sur 5 — Parlez-nous de vous et de votre commerce.';

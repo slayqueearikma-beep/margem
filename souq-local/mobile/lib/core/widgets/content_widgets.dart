@@ -202,6 +202,7 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final secondary = Theme.of(context).colorScheme.onSurfaceVariant;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -211,7 +212,7 @@ class StatCard extends StatelessWidget {
             Icon(icon, color: AppColors.primary, size: 22),
             const SizedBox(height: AppSpacing.sm),
             Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-            Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            Text(label, style: TextStyle(color: secondary, fontSize: 13)),
             if (trend != null) ...[
               const SizedBox(height: 4),
               Text(trend!, style: const TextStyle(color: AppColors.success, fontSize: 12)),

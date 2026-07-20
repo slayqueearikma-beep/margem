@@ -1,11 +1,12 @@
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import require_buyer, require_seller
+from app.auth import get_current_user_optional, require_buyer, require_seller
 from app.config import settings
 from app.database import get_db
 from app.models import Category, Product, Review, SellerProfile, Service, User
@@ -17,6 +18,7 @@ from app.schemas import (
     ReviewCreate,
     ReviewOut,
     SellerCreate,
+    SellerDashboardStats,
     SellerDetail,
     SellerSummary,
     SellerUpdate,
@@ -35,6 +37,54 @@ _DEFAULT_PAGE_SIZE = 50
 
 def _escape_ilike(value: str) -> str:
     return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _opening_hours_dict(payload_hours) -> dict:
+    if payload_hours is None:
+        return {}
+    return payload_hours.model_dump()
+
+
+async def _load_seller_detail(session: AsyncSession, seller_id: UUID) -> SellerProfile:
+    result = await session.execute(
+        select(SellerProfile)
+        .options(
+            selectinload(SellerProfile.categories),
+            selectinload(SellerProfile.products),
+            selectinload(SellerProfile.services),
+        )
+        .where(SellerProfile.id == seller_id)
+    )
+    seller = result.scalar_one_or_none()
+    if seller is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
+    return seller
+
+
+async def _owned_seller(seller_id: UUID, user: User, session: AsyncSession) -> SellerProfile:
+    seller = await session.get(SellerProfile, seller_id)
+    if seller is None or seller.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
+    return seller
+
+
+async def _seller_for_user(user: User, session: AsyncSession) -> SellerProfile:
+    result = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
+    seller = result.scalar_one_or_none()
+    if seller is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller profile not found")
+    return seller
+
+
+def _validate_owner_media(url: str, user_id: UUID) -> str:
+    try:
+        return validate_media_url(
+            url or "",
+            owner_user_id=user_id,
+            container=settings.azure_storage_container,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.get("", response_model=list[SellerSummary])
@@ -90,6 +140,56 @@ async def map_pins(
     ]
 
 
+@router.get("/me", response_model=SellerDetail)
+async def get_my_seller(
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> SellerProfile:
+    seller = await _seller_for_user(user, session)
+    return await _load_seller_detail(session, seller.id)
+
+
+@router.get("/me/dashboard", response_model=SellerDashboardStats)
+async def get_my_dashboard(
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> SellerDashboardStats:
+    seller = await _seller_for_user(user, session)
+
+    product_count = await session.scalar(
+        select(func.count(Product.id)).where(Product.seller_id == seller.id)
+    )
+    available_product_count = await session.scalar(
+        select(func.count(Product.id)).where(
+            Product.seller_id == seller.id, Product.is_available.is_(True)
+        )
+    )
+    service_count = await session.scalar(
+        select(func.count(Service.id)).where(Service.seller_id == seller.id)
+    )
+
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    recent_review_count = await session.scalar(
+        select(func.count(Review.id)).where(
+            Review.seller_id == seller.id, Review.created_at >= week_ago
+        )
+    )
+
+    return SellerDashboardStats(
+        seller_id=seller.id,
+        business_name=seller.business_name,
+        profile_view_count=seller.profile_view_count,
+        product_count=int(product_count or 0),
+        available_product_count=int(available_product_count or 0),
+        service_count=int(service_count or 0),
+        review_count=seller.review_count,
+        average_rating=seller.average_rating,
+        achievement_stars=seller.achievement_stars,
+        recent_review_count=int(recent_review_count or 0),
+        is_active=seller.is_active,
+    )
+
+
 @router.post("", response_model=SellerDetail, status_code=status.HTTP_201_CREATED)
 async def create_seller(
     payload: SellerCreate,
@@ -105,14 +205,8 @@ async def create_seller(
         result = await session.execute(select(Category).where(Category.id.in_(payload.category_ids)))
         categories = list(result.scalars().all())
 
-    try:
-        cover = validate_media_url(
-            payload.cover_image_url,
-            owner_user_id=user.id,
-            container=settings.azure_storage_container,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    cover = _validate_owner_media(payload.cover_image_url, user.id)
+    logo = _validate_owner_media(payload.logo_image_url, user.id)
 
     seller = SellerProfile(
         user_id=user.id,
@@ -124,37 +218,32 @@ async def create_seller(
         longitude=payload.longitude,
         phone=payload.phone,
         cover_image_url=cover,
+        logo_image_url=logo,
+        opening_hours=_opening_hours_dict(payload.opening_hours),
         categories=categories,
     )
     session.add(seller)
     await session.commit()
-
-    detail = await session.execute(
-        select(SellerProfile)
-        .options(
-            selectinload(SellerProfile.categories),
-            selectinload(SellerProfile.products),
-            selectinload(SellerProfile.services),
-        )
-        .where(SellerProfile.id == seller.id)
-    )
-    return detail.scalar_one()
+    return await _load_seller_detail(session, seller.id)
 
 
 @router.get("/{seller_id}", response_model=SellerDetail)
-async def get_seller(seller_id: UUID, session: AsyncSession = Depends(get_db)) -> SellerProfile:
-    result = await session.execute(
-        select(SellerProfile)
-        .options(
-            selectinload(SellerProfile.categories),
-            selectinload(SellerProfile.products),
-            selectinload(SellerProfile.services),
-        )
-        .where(SellerProfile.id == seller_id, SellerProfile.is_active.is_(True))
-    )
-    seller = result.scalar_one_or_none()
-    if seller is None:
+async def get_seller(
+    seller_id: UUID,
+    session: AsyncSession = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+) -> SellerProfile:
+    seller = await _load_seller_detail(session, seller_id)
+    is_owner = user is not None and user.id == seller.user_id
+    if not seller.is_active and not is_owner:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
+
+    # Count public views; skip when the owner is browsing their own storefront.
+    if not is_owner:
+        seller.profile_view_count = int(seller.profile_view_count or 0) + 1
+        await session.commit()
+        await session.refresh(seller)
+
     return seller
 
 
@@ -165,22 +254,18 @@ async def update_seller(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> SellerProfile:
-    seller = await session.get(SellerProfile, seller_id)
-    if seller is None or seller.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
+    seller = await _owned_seller(seller_id, user, session)
 
     data = payload.model_dump(exclude_unset=True)
     category_ids = data.pop("category_ids", None)
+    opening_hours = data.pop("opening_hours", None)
 
     if "cover_image_url" in data:
-        try:
-            data["cover_image_url"] = validate_media_url(
-                data["cover_image_url"] or "",
-                owner_user_id=user.id,
-                container=settings.azure_storage_container,
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        data["cover_image_url"] = _validate_owner_media(data["cover_image_url"] or "", user.id)
+    if "logo_image_url" in data:
+        data["logo_image_url"] = _validate_owner_media(data["logo_image_url"] or "", user.id)
+    if opening_hours is not None:
+        data["opening_hours"] = opening_hours
 
     for key, value in data.items():
         setattr(seller, key, value)
@@ -190,7 +275,7 @@ async def update_seller(
         seller.categories = list(result.scalars().all())
 
     await session.commit()
-    return await get_seller(seller_id, session)
+    return await _load_seller_detail(session, seller_id)
 
 
 @router.post("/{seller_id}/products", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
@@ -200,19 +285,9 @@ async def add_product(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Product:
-    seller = await session.get(SellerProfile, seller_id)
-    if seller is None or seller.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
+    await _owned_seller(seller_id, user, session)
 
-    try:
-        image_url = validate_media_url(
-            payload.image_url,
-            owner_user_id=user.id,
-            container=settings.azure_storage_container,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
+    image_url = _validate_owner_media(payload.image_url, user.id)
     product_data = payload.model_dump()
     product_data["image_url"] = image_url
     product = Product(seller_id=seller_id, **product_data)
@@ -229,19 +304,9 @@ async def add_service(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Service:
-    seller = await session.get(SellerProfile, seller_id)
-    if seller is None or seller.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
+    await _owned_seller(seller_id, user, session)
 
-    try:
-        image_url = validate_media_url(
-            payload.image_url,
-            owner_user_id=user.id,
-            container=settings.azure_storage_container,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
+    image_url = _validate_owner_media(payload.image_url, user.id)
     service_data = payload.model_dump()
     service_data["image_url"] = image_url
     service = Service(seller_id=seller_id, **service_data)
@@ -249,13 +314,6 @@ async def add_service(
     await session.commit()
     await session.refresh(service)
     return service
-
-
-async def _owned_seller(seller_id: UUID, user: User, session: AsyncSession) -> SellerProfile:
-    seller = await session.get(SellerProfile, seller_id)
-    if seller is None or seller.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Seller not found")
-    return seller
 
 
 @router.patch("/{seller_id}/products/{product_id}", response_model=ProductOut)
@@ -273,14 +331,7 @@ async def update_product(
 
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
-        try:
-            data["image_url"] = validate_media_url(
-                data["image_url"] or "",
-                owner_user_id=user.id,
-                container=settings.azure_storage_container,
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        data["image_url"] = _validate_owner_media(data["image_url"] or "", user.id)
 
     for key, value in data.items():
         setattr(product, key, value)
@@ -319,14 +370,7 @@ async def update_service(
 
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
-        try:
-            data["image_url"] = validate_media_url(
-                data["image_url"] or "",
-                owner_user_id=user.id,
-                container=settings.azure_storage_container,
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+        data["image_url"] = _validate_owner_media(data["image_url"] or "", user.id)
 
     for key, value in data.items():
         setattr(service, key, value)
@@ -351,12 +395,19 @@ async def delete_service(
 
 
 @router.get("/{seller_id}/reviews", response_model=list[ReviewOut])
-async def list_reviews(seller_id: UUID, session: AsyncSession = Depends(get_db)) -> list[ReviewOut]:
+async def list_reviews(
+    seller_id: UUID,
+    limit: int = Query(default=_DEFAULT_PAGE_SIZE, ge=1, le=_MAX_PAGE_SIZE),
+    offset: int = Query(default=0, ge=0),
+    session: AsyncSession = Depends(get_db),
+) -> list[ReviewOut]:
     result = await session.execute(
         select(Review, User.display_name)
         .join(User, Review.buyer_id == User.id)
         .where(Review.seller_id == seller_id)
         .order_by(Review.created_at.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return [
         ReviewOut(

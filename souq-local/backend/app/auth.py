@@ -14,14 +14,16 @@ from app.services.security import decode_access_token
 security = HTTPBearer(auto_error=False)
 
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-    session: AsyncSession = Depends(get_db),
-) -> User:
+async def _resolve_user_from_credentials(
+    credentials: HTTPAuthorizationCredentials | None,
+    session: AsyncSession,
+    *,
+    required: bool,
+) -> User | None:
     if settings.auth_dev_bypass and settings.app_env not in {"production", "prod"}:
         result = await session.execute(select(User).limit(1))
         user = result.scalar_one_or_none()
-        if user is None:
+        if user is None and required:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="No users in database. Register first via POST /auth/register",
@@ -29,7 +31,9 @@ async def get_current_user(
         return user
 
     if credentials is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
+        if required:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
+        return None
 
     token = credentials.credentials
 
@@ -39,16 +43,42 @@ async def get_current_user(
         result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+            if required:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+            return None
         return user
 
     # Firebase ID token (mobile Firebase Auth)
-    firebase_uid = await verify_firebase_token(token)
+    try:
+        firebase_uid = await verify_firebase_token(token)
+    except HTTPException:
+        if required:
+            raise
+        return None
+
     result = await session.execute(select(User).where(User.firebase_uid == firebase_uid))
     user = result.scalar_one_or_none()
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not registered")
+        if required:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not registered")
+        return None
     return user
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    session: AsyncSession = Depends(get_db),
+) -> User:
+    user = await _resolve_user_from_credentials(credentials, session, required=True)
+    assert user is not None
+    return user
+
+
+async def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    session: AsyncSession = Depends(get_db),
+) -> User | None:
+    return await _resolve_user_from_credentials(credentials, session, required=False)
 
 
 async def verify_firebase_token(token: str) -> str:

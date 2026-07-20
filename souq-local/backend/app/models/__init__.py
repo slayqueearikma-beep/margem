@@ -14,7 +14,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -102,6 +102,9 @@ class SellerProfile(Base):
     longitude: Mapped[float] = mapped_column(Float)
     phone: Mapped[str] = mapped_column(String(32), default="")
     cover_image_url: Mapped[str] = mapped_column(String(512), default="")
+    logo_image_url: Mapped[str] = mapped_column(String(512), default="")
+    opening_hours: Mapped[dict] = mapped_column(JSONB, default=dict)
+    profile_view_count: Mapped[int] = mapped_column(Integer, default=0)
     achievement_stars: Mapped[int] = mapped_column(Integer, default=0)
     average_rating: Mapped[float] = mapped_column(Float, default=0.0)
     review_count: Mapped[int] = mapped_column(Integer, default=0)

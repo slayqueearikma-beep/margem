@@ -29,7 +29,9 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _sellerFuture = apiServiceProvider.fetchSeller(widget.sellerId);
+    final session = ref.read(userSessionProvider);
+    final asOwner = session?.accountType == AccountType.seller;
+    _sellerFuture = apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
     _reviewsFuture = apiServiceProvider.fetchReviews(widget.sellerId);
   }
 
@@ -43,8 +45,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
   }
 
   void _reload() {
+    final session = ref.read(userSessionProvider);
+    final asOwner = session?.accountType == AccountType.seller;
     setState(() {
-      _sellerFuture = apiServiceProvider.fetchSeller(widget.sellerId);
+      _sellerFuture = apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
       _reviewsFuture = apiServiceProvider.fetchReviews(widget.sellerId);
     });
   }
@@ -110,6 +114,12 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                       const SizedBox(height: 16),
                       _InfoRow(icon: Icons.location_on_outlined, text: seller.address),
                       _InfoRow(icon: Icons.phone_outlined, text: seller.phone.isEmpty ? l10n.noPhone : seller.phone),
+                      if (!seller.openingHours.isEmpty)
+                        _InfoRow(
+                          icon: Icons.schedule_outlined,
+                          text:
+                              '${l10n.opens} ${seller.openingHours.open} · ${l10n.closes} ${seller.openingHours.close}',
+                        ),
                       const SizedBox(height: 16),
                       Row(
                         children: [

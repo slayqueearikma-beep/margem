@@ -8,6 +8,7 @@ from app.database import get_db
 from app.limiter import limiter
 from app.models import AccountType, SellerProfile, User
 from app.schemas import (
+    ChangePasswordRequest,
     DeleteAccountRequest,
     LoginRequest,
     LogoutRequest,
@@ -155,6 +156,27 @@ async def register_firebase(
 @router.get("/me", response_model=UserOut)
 async def me(user: User = Depends(get_current_user)) -> User:
     return user
+
+
+@router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def change_password(
+    request: Request,
+    payload: ChangePasswordRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    if not user.password_hash or not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid current password")
+    if payload.current_password == payload.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from the current password",
+        )
+    user.password_hash = hash_password(payload.new_password)
+    await revoke_all_refresh_tokens(session, user.id)
+    await session.commit()
+    log_security_event("password_changed", user_id=str(user.id))
 
 
 @router.post("/logout-all", status_code=status.HTTP_204_NO_CONTENT)

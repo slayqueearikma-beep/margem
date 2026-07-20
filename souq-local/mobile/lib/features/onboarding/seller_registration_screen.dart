@@ -160,11 +160,13 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
 
         final uploader = ref.read(uploadServiceProvider);
         String coverUrl = '';
+        String logoUrl = '';
         try {
           if (_coverImage != null) {
             coverUrl = await uploader.uploadImage(_coverImage!);
-          } else if (_logoImage != null) {
-            coverUrl = await uploader.uploadImage(_logoImage!);
+          }
+          if (_logoImage != null) {
+            logoUrl = await uploader.uploadImage(_logoImage!);
           }
         } on ApiException {
           if (AppConfig.isProduction) rethrow;
@@ -181,6 +183,14 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
             longitude: _location.longitude,
             phone: _phoneController.text.trim(),
             coverImageUrl: coverUrl,
+            logoImageUrl: logoUrl,
+            openingHours: {
+              'days': Map<String, bool>.from(_openDays),
+              'open':
+                  '${_openTime.hour.toString().padLeft(2, '0')}:${_openTime.minute.toString().padLeft(2, '0')}',
+              'close':
+                  '${_closeTime.hour.toString().padLeft(2, '0')}:${_closeTime.minute.toString().padLeft(2, '0')}',
+            },
             categoryIds: categoryId != null ? [categoryId] : [],
           ),
         );
@@ -189,12 +199,21 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
           final name = product.nameController.text.trim();
           if (name.isEmpty) continue;
           final price = double.tryParse(product.priceController.text.trim());
+          String imageUrl = '';
+          if (product.image != null) {
+            try {
+              imageUrl = await uploader.uploadImage(product.image!);
+            } on ApiException {
+              if (AppConfig.isProduction) rethrow;
+            }
+          }
           await apiServiceProvider.addProduct(
             sellerId,
             ProductCreatePayload(
               name: name,
               description: product.descriptionController.text.trim(),
               priceMad: price,
+              imageUrl: imageUrl,
             ),
           );
         }
@@ -210,6 +229,7 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
           accountType: AccountType.seller,
           city: _city,
           businessName: _businessNameController.text.trim(),
+          sellerId: sellerId,
         );
 
         await storage.completeOnboarding();

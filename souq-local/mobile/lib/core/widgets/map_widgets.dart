@@ -184,7 +184,7 @@ class StoreLocationPickerTile extends StatelessWidget {
           Text(label!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary)),
         if (label != null) const SizedBox(height: AppSpacing.sm),
         Material(
-          color: AppColors.cardUnselected,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
           child: InkWell(
             onTap: () async {

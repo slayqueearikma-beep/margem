@@ -138,6 +138,26 @@ class ServiceOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class OpeningHours(BaseModel):
+    days: dict[str, bool] = Field(default_factory=dict)
+    open: str = Field(default="09:00", max_length=5)
+    close: str = Field(default="21:00", max_length=5)
+
+    @field_validator("open", "close")
+    @classmethod
+    def validate_time(cls, value: str) -> str:
+        cleaned = value.strip()
+        if len(cleaned) != 5 or cleaned[2] != ":":
+            raise ValueError("Time must be HH:MM")
+        hour_s, minute_s = cleaned.split(":")
+        if not (hour_s.isdigit() and minute_s.isdigit()):
+            raise ValueError("Time must be HH:MM")
+        hour, minute = int(hour_s), int(minute_s)
+        if not (0 <= hour <= 23 and 0 <= minute <= 59):
+            raise ValueError("Time must be a valid clock time")
+        return f"{hour:02d}:{minute:02d}"
+
+
 class SellerCreate(BaseModel):
     business_name: str = Field(min_length=2, max_length=160)
     description: str = ""
@@ -147,18 +167,22 @@ class SellerCreate(BaseModel):
     longitude: float = Field(ge=-180, le=180)
     phone: str = ""
     cover_image_url: str = ""
+    logo_image_url: str = ""
+    opening_hours: OpeningHours | None = None
     category_ids: list[UUID] = Field(default_factory=list)
 
 
 class SellerUpdate(BaseModel):
-    business_name: str | None = None
+    business_name: str | None = Field(default=None, min_length=2, max_length=160)
     description: str | None = None
-    address: str | None = None
-    city: str | None = None
+    address: str | None = Field(default=None, min_length=5, max_length=255)
+    city: str | None = Field(default=None, min_length=2, max_length=80)
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     phone: str | None = None
     cover_image_url: str | None = None
+    logo_image_url: str | None = None
+    opening_hours: OpeningHours | None = None
     category_ids: list[UUID] | None = None
     is_active: bool | None = None
 
@@ -171,6 +195,7 @@ class SellerSummary(BaseModel):
     latitude: float
     longitude: float
     cover_image_url: str
+    logo_image_url: str = ""
     achievement_stars: int
     average_rating: float
     review_count: int
@@ -182,8 +207,35 @@ class SellerSummary(BaseModel):
 class SellerDetail(SellerSummary):
     address: str
     phone: str
+    opening_hours: dict = Field(default_factory=dict)
+    profile_view_count: int = 0
     products: list[ProductOut]
     services: list[ServiceOut]
+
+
+class SellerDashboardStats(BaseModel):
+    seller_id: UUID
+    business_name: str
+    profile_view_count: int
+    product_count: int
+    available_product_count: int
+    service_count: int
+    review_count: int
+    average_rating: float
+    achievement_stars: int
+    recent_review_count: int
+    is_active: bool
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def strong_password(cls, value: str) -> str:
+        validate_password_strength(value)
+        return value
 
 
 class MapPin(BaseModel):

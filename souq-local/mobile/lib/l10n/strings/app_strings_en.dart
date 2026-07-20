@@ -202,6 +202,74 @@ class AppStringsEn extends AppStrings {
   @override
   String get profileViewsTrend => '+12% this week';
   @override
+  String get previewStorefront => 'Preview storefront';
+  @override
+  String get previewStorefrontSub => 'See your public store as buyers see it';
+  @override
+  String get accountSecurity => 'Account & security';
+  @override
+  String get accountSecuritySub => 'Password, theme, and account deletion';
+  @override
+  String get notifications => 'Notifications';
+  @override
+  String get storeInactiveHint => 'Your store is hidden from buyers. Enable it in profile settings.';
+  @override
+  String availableCount(int count) => '$count available';
+  @override
+  String achievementStars(int count) => '$count achievement stars';
+  @override
+  String get addProduct => 'Add product';
+  @override
+  String get editProduct => 'Edit product';
+  @override
+  String get saveChanges => 'Save changes';
+  @override
+  String get deleteProduct => 'Delete product';
+  @override
+  String get deleteProductConfirm => 'Delete this product permanently? This cannot be undone.';
+  @override
+  String get markUnavailable => 'Mark unavailable';
+  @override
+  String get markAvailable => 'Mark available';
+  @override
+  String get available => 'Available';
+  @override
+  String get unavailable => 'Unavailable';
+  @override
+  String get noProductsYet => 'No products yet. Add your first product to appear in search.';
+  @override
+  String get productSaved => 'Product saved';
+  @override
+  String get productDeleted => 'Product deleted';
+  @override
+  String get profileSaved => 'Profile updated';
+  @override
+  String get storeVisible => 'Store is visible to buyers';
+  @override
+  String get storeHidden => 'Store is hidden from buyers';
+  @override
+  String get changePassword => 'Change password';
+  @override
+  String get currentPassword => 'Current password';
+  @override
+  String get newPassword => 'New password';
+  @override
+  String get passwordChanged => 'Password updated. Please sign in again on other devices.';
+  @override
+  String get recentReviews => 'Recent reviews';
+  @override
+  String get noNotifications => 'No new notifications';
+  @override
+  String get notificationsSubtitle => 'New reviews from the last 7 days appear here.';
+  @override
+  String get appearance => 'Appearance';
+  @override
+  String get systemTheme => 'System';
+  @override
+  String get lightTheme => 'Light';
+  @override
+  String get darkTheme => 'Dark';
+  @override
   String get sellerStep1Title => 'Business account';
   @override
   String get sellerStep1Subtitle => 'Step 1 of 5 — Tell us about you and your business.';

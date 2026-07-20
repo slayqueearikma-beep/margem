@@ -203,6 +203,74 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get profileViewsTrend => '+12٪ هذا الأسبوع';
   @override
+  String get previewStorefront => 'معاينة المتجر';
+  @override
+  String get previewStorefrontSub => 'شاهد متجرك كما يراه المشترون';
+  @override
+  String get accountSecurity => 'الحساب والأمان';
+  @override
+  String get accountSecuritySub => 'كلمة المرور والمظهر وحذف الحساب';
+  @override
+  String get notifications => 'الإشعارات';
+  @override
+  String get storeInactiveHint => 'متجرك مخفي عن المشترين. فعّله من إعدادات الملف.';
+  @override
+  String availableCount(int count) => '$count متاح';
+  @override
+  String achievementStars(int count) => '$count نجوم إنجاز';
+  @override
+  String get addProduct => 'إضافة منتج';
+  @override
+  String get editProduct => 'تعديل المنتج';
+  @override
+  String get saveChanges => 'حفظ التغييرات';
+  @override
+  String get deleteProduct => 'حذف المنتج';
+  @override
+  String get deleteProductConfirm => 'هل تريد حذف هذا المنتج نهائياً؟ لا يمكن التراجع.';
+  @override
+  String get markUnavailable => 'تعيين كغير متاح';
+  @override
+  String get markAvailable => 'تعيين كمتاح';
+  @override
+  String get available => 'متاح';
+  @override
+  String get unavailable => 'غير متاح';
+  @override
+  String get noProductsYet => 'لا توجد منتجات بعد. أضف أول منتج للظهور في البحث.';
+  @override
+  String get productSaved => 'تم حفظ المنتج';
+  @override
+  String get productDeleted => 'تم حذف المنتج';
+  @override
+  String get profileSaved => 'تم تحديث الملف';
+  @override
+  String get storeVisible => 'المتجر ظاهر للمشترين';
+  @override
+  String get storeHidden => 'المتجر مخفي عن المشترين';
+  @override
+  String get changePassword => 'تغيير كلمة المرور';
+  @override
+  String get currentPassword => 'كلمة المرور الحالية';
+  @override
+  String get newPassword => 'كلمة المرور الجديدة';
+  @override
+  String get passwordChanged => 'تم تحديث كلمة المرور. سجّل الدخول مجدداً على الأجهزة الأخرى.';
+  @override
+  String get recentReviews => 'المراجعات الأخيرة';
+  @override
+  String get noNotifications => 'لا توجد إشعارات جديدة';
+  @override
+  String get notificationsSubtitle => 'تظهر هنا المراجعات من آخر 7 أيام.';
+  @override
+  String get appearance => 'المظهر';
+  @override
+  String get systemTheme => 'النظام';
+  @override
+  String get lightTheme => 'فاتح';
+  @override
+  String get darkTheme => 'داكن';
+  @override
   String get sellerStep1Title => 'حساب تجاري';
   @override
   String get sellerStep1Subtitle => 'الخطوة 1 من 5 — أخبرنا عنك وعن محلك.';

@@ -15,6 +15,10 @@ import 'features/onboarding/seller_registration_screen.dart';
 import 'features/seller/product_detail_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
+import 'features/seller/seller_products_screen.dart';
+import 'features/seller/seller_profile_screen.dart';
+import 'features/seller/seller_reviews_screen.dart';
+import 'features/seller/seller_settings_screen.dart';
 import 'features/settings/language_selection_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'l10n/app_localizations.dart';
@@ -27,9 +31,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final session = ProviderScope.containerOf(context).read(userSessionProvider);
       final path = state.matchedLocation;
-      final isProtected = path.startsWith('/buyer/home') || path.startsWith('/seller/dashboard');
+      final isSellerManagement = path == '/seller/dashboard' ||
+          path.startsWith('/seller/products') ||
+          path.startsWith('/seller/profile') ||
+          path.startsWith('/seller/reviews') ||
+          path.startsWith('/seller/notifications') ||
+          path.startsWith('/seller/settings');
+      final isProtected = path.startsWith('/buyer/home') || isSellerManagement;
       if (isProtected && session == null) {
         return '/login';
+      }
+      if (isSellerManagement && session != null && session.accountType != AccountType.seller) {
+        return '/buyer/home';
       }
       return null;
     },
@@ -47,6 +60,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/seller/dashboard', builder: (_, __) => const SellerDashboardScreen()),
+      GoRoute(path: '/seller/products', builder: (_, __) => const SellerProductsScreen()),
+      GoRoute(path: '/seller/products/new', builder: (_, __) => const SellerProductEditorScreen()),
+      GoRoute(
+        path: '/seller/products/:productId',
+        builder: (_, state) => SellerProductEditorScreen(productId: state.pathParameters['productId']),
+      ),
+      GoRoute(path: '/seller/profile', builder: (_, __) => const SellerProfileScreen()),
+      GoRoute(path: '/seller/reviews', builder: (_, __) => const SellerReviewsScreen()),
+      GoRoute(path: '/seller/notifications', builder: (_, __) => const SellerNotificationsScreen()),
+      GoRoute(path: '/seller/settings', builder: (_, __) => const SellerSettingsScreen()),
       GoRoute(
         path: '/seller/:id',
         builder: (_, state) => SellerDetailScreen(sellerId: state.pathParameters['id']!),

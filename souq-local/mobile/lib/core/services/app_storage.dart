@@ -11,6 +11,7 @@ class UserSession {
     required this.accountType,
     this.city,
     this.businessName,
+    this.sellerId,
   });
 
   final String name;
@@ -18,6 +19,25 @@ class UserSession {
   final AccountType accountType;
   final String? city;
   final String? businessName;
+  final String? sellerId;
+
+  UserSession copyWith({
+    String? name,
+    String? email,
+    AccountType? accountType,
+    String? city,
+    String? businessName,
+    String? sellerId,
+  }) {
+    return UserSession(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      accountType: accountType ?? this.accountType,
+      city: city ?? this.city,
+      businessName: businessName ?? this.businessName,
+      sellerId: sellerId ?? this.sellerId,
+    );
+  }
 }
 
 class AppStorage {
@@ -32,6 +52,7 @@ class AppStorage {
   static const _userEmailKey = 'user_email';
   static const _userCityKey = 'user_city';
   static const _businessNameKey = 'business_name';
+  static const _sellerIdKey = 'seller_id';
   static const _languageCodeKey = 'language_code';
   static const _languageSelectedKey = 'language_selected';
 
@@ -55,8 +76,19 @@ class AppStorage {
     await _prefs.setString(_accountTypeKey, session.accountType.name);
     await _prefs.setString(_userNameKey, session.name);
     await _prefs.setString(_userEmailKey, session.email);
-    if (session.city != null) await _prefs.setString(_userCityKey, session.city!);
-    if (session.businessName != null) await _prefs.setString(_businessNameKey, session.businessName!);
+    if (session.city != null) {
+      await _prefs.setString(_userCityKey, session.city!);
+    }
+    if (session.businessName != null) {
+      await _prefs.setString(_businessNameKey, session.businessName!);
+    } else {
+      await _prefs.remove(_businessNameKey);
+    }
+    if (session.sellerId != null && session.sellerId!.isNotEmpty) {
+      await _prefs.setString(_sellerIdKey, session.sellerId!);
+    } else {
+      await _prefs.remove(_sellerIdKey);
+    }
   }
 
   UserSession? getSession() {
@@ -69,6 +101,7 @@ class AppStorage {
       accountType: AccountType.values.byName(typeName),
       city: _prefs.getString(_userCityKey),
       businessName: _prefs.getString(_businessNameKey),
+      sellerId: _prefs.getString(_sellerIdKey),
     );
   }
 
@@ -79,6 +112,7 @@ class AppStorage {
     await _prefs.remove(_userEmailKey);
     await _prefs.remove(_userCityKey);
     await _prefs.remove(_businessNameKey);
+    await _prefs.remove(_sellerIdKey);
   }
 
   Future<void> resetAll() async {
