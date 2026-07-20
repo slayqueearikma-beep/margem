@@ -9,21 +9,16 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/buyer/buyer_home_screen.dart';
-import 'features/cart/cart_screen.dart';
-import 'features/checkout/checkout_screen.dart';
 import 'features/map/map_screen.dart';
 import 'features/onboarding/account_type_onboarding_screen.dart';
 import 'features/onboarding/buyer_registration_screen.dart';
 import 'features/onboarding/onboarding_welcome_screen.dart';
 import 'features/onboarding/seller_registration_screen.dart';
-import 'features/orders/buyer_orders_screen.dart';
-import 'features/orders/order_detail_screen.dart';
 import 'features/premium/premium_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/seller/product_detail_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
-import 'features/seller/seller_orders_screen.dart';
 import 'features/seller/seller_products_screen.dart';
 import 'features/seller/seller_profile_screen.dart';
 import 'features/seller/seller_reviews_screen.dart';
@@ -43,17 +38,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           ProviderScope.containerOf(context).read(userSessionProvider);
       final path = state.matchedLocation;
       final isSellerManagement = path == '/seller/dashboard' ||
-          path.startsWith('/seller/orders') ||
           path.startsWith('/seller/products') ||
           path.startsWith('/seller/profile') ||
           path.startsWith('/seller/reviews') ||
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings');
-      final isAuthProtected = path == '/checkout' ||
-          path == '/wishlist' ||
-          path == '/orders' ||
-          path.startsWith('/orders/') ||
-          isSellerManagement;
+      final isAuthProtected = isSellerManagement;
       final isAuthenticated = session != null && !session.isGuest;
       if (isAuthProtected && !isAuthenticated) {
         return '/login';
@@ -100,21 +90,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
       GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
-      GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
-      GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
-      GoRoute(path: '/orders', builder: (_, __) => const BuyerOrdersScreen()),
-      GoRoute(
-          path: '/orders/:id',
-          builder: (_, state) =>
-              OrderDetailScreen(orderId: state.pathParameters['id']!)),
-      GoRoute(path: '/wishlist', builder: (_, __) => const WishlistScreen()),
+      GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
       GoRoute(path: '/premium', builder: (_, __) => const PremiumScreen()),
       GoRoute(
           path: '/seller/dashboard',
           builder: (_, __) => const SellerDashboardScreen()),
-      GoRoute(
-          path: '/seller/orders',
-          builder: (_, __) => const SellerOrdersScreen()),
       GoRoute(
           path: '/seller/products',
           builder: (_, __) => const SellerProductsScreen()),

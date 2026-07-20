@@ -12,11 +12,8 @@ from app.database import get_db
 from app.models import (
     AdminAuditLog,
     Conversation,
-    Coupon,
     Message,
     Notification,
-    Order,
-    OrderStatus,
     Product,
     SellerProfile,
     Subscription,
@@ -27,52 +24,25 @@ from app.models import (
     UserStatus,
     VerificationStatus,
 )
-from app.routers.commerce import OrderOut
 from app.services.notifications import notify_user
 
 router = APIRouter(tags=["seller-ops"])
 
 
-class SellerOrderAction(BaseModel):
-    note: str = Field(default="", max_length=1000)
-
-
-class CouponCreate(BaseModel):
-    code: str = Field(min_length=3, max_length=40)
-    description: str = Field(default="", max_length=255)
-    percent_off: float | None = Field(default=None, ge=1, le=90)
-    amount_off_mad: float | None = Field(default=None, ge=1)
-    min_order_mad: float = Field(default=0, ge=0)
-    max_uses: int = Field(default=100, ge=1, le=100000)
-
-
-class CouponOut(BaseModel):
-    id: UUID
-    code: str
-    description: str
-    percent_off: float | None
-    amount_off_mad: float | None
-    min_order_mad: float
-    max_uses: int
-    used_count: int
-    is_active: bool
-
-    model_config = {"from_attributes": True}
-
-
 class AnalyticsOut(BaseModel):
     product_count: int
     available_product_count: int
-    order_count: int
-    pending_orders: int
-    completed_orders: int
-    revenue_mad: float
-    average_order_mad: float
+    service_count: int = 0
+    profile_view_count: int
+    inquiry_count: int
+    favorite_count: int
+    contact_click_count: int
+    avg_response_minutes: int
     review_count: int
     average_rating: float
-    profile_view_count: int
     verification_status: VerificationStatus
     is_premium: bool
+    follower_estimate: int = 0
 
 
 class NotificationOut(BaseModel):
@@ -152,251 +122,37 @@ async def _seller_profile(user: User, session: AsyncSession) -> SellerProfile:
     return seller
 
 
-def _order_out(order: Order, seller_name: str = "") -> OrderOut:
-    return OrderOut(
-        id=order.id,
-        buyer_id=order.buyer_id,
-        seller_id=order.seller_id,
-        status=order.status,
-        subtotal_mad=order.subtotal_mad,
-        delivery_fee_mad=order.delivery_fee_mad,
-        total_mad=order.total_mad,
-        currency=order.currency,
-        payment_method=order.payment_method,
-        payment_status=order.payment_status,
-        delivery_name=order.delivery_name,
-        delivery_phone=order.delivery_phone,
-        delivery_address=order.delivery_address,
-        delivery_city=order.delivery_city,
-        buyer_note=order.buyer_note,
-        seller_note=order.seller_note,
-        created_at=order.created_at,
-        items=list(order.items),
-        seller_name=seller_name,
-    )
-
-
-@router.get("/seller/orders", response_model=list[OrderOut])
-async def seller_orders(
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-    status_filter: OrderStatus | None = Query(default=None, alias="status"),
-) -> list[OrderOut]:
-    seller = await _seller_profile(user, session)
-    stmt = (
-        select(Order)
-        .options(selectinload(Order.items))
-        .where(Order.seller_id == seller.id)
-        .order_by(Order.created_at.desc())
-    )
-    if status_filter:
-        stmt = stmt.where(Order.status == status_filter)
-    orders = list((await session.execute(stmt)).scalars().unique().all())
-    return [_order_out(order, seller.business_name) for order in orders]
-
-
-@router.post("/seller/orders/{order_id}/accept", response_model=OrderOut)
-async def accept_order(
-    order_id: UUID,
-    payload: SellerOrderAction,
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> OrderOut:
-    seller = await _seller_profile(user, session)
-    order = await _load_seller_order(session, seller.id, order_id)
-    if order.status != OrderStatus.PENDING:
-        raise HTTPException(status_code=400, detail="Only pending orders can be accepted")
-    order.status = OrderStatus.ACCEPTED
-    order.accepted_at = datetime.now(UTC)
-    if payload.note.strip():
-        order.seller_note = payload.note.strip()
-    await notify_user(
-        session,
-        user_id=order.buyer_id,
-        title="Order accepted",
-        body=f"{seller.business_name} accepted your order",
-        kind="order",
-        data={"order_id": str(order.id)},
-    )
-    await session.commit()
-    return _order_out(order, seller.business_name)
-
-
-@router.post("/seller/orders/{order_id}/reject", response_model=OrderOut)
-async def reject_order(
-    order_id: UUID,
-    payload: SellerOrderAction,
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> OrderOut:
-    seller = await _seller_profile(user, session)
-    order = await _load_seller_order(session, seller.id, order_id)
-    if order.status != OrderStatus.PENDING:
-        raise HTTPException(status_code=400, detail="Only pending orders can be rejected")
-    order.status = OrderStatus.REJECTED
-    order.cancelled_at = datetime.now(UTC)
-    order.seller_note = payload.note.strip() or order.seller_note
-    for item in order.items:
-        if item.product_id:
-            product = await session.get(Product, item.product_id)
-            if product:
-                product.stock_quantity += item.quantity
-                product.is_available = True
-    await notify_user(
-        session,
-        user_id=order.buyer_id,
-        title="Order rejected",
-        body=f"{seller.business_name} could not fulfill your order",
-        kind="order",
-        data={"order_id": str(order.id)},
-    )
-    await session.commit()
-    return _order_out(order, seller.business_name)
-
-
-@router.post("/seller/orders/{order_id}/ready", response_model=OrderOut)
-async def mark_ready(
-    order_id: UUID,
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> OrderOut:
-    seller = await _seller_profile(user, session)
-    order = await _load_seller_order(session, seller.id, order_id)
-    if order.status != OrderStatus.ACCEPTED:
-        raise HTTPException(status_code=400, detail="Order must be accepted first")
-    order.status = OrderStatus.READY
-    await notify_user(
-        session,
-        user_id=order.buyer_id,
-        title="Order ready",
-        body=f"Your order from {seller.business_name} is ready for pickup/delivery",
-        kind="order",
-        data={"order_id": str(order.id)},
-    )
-    await session.commit()
-    return _order_out(order, seller.business_name)
-
-
-@router.post("/seller/orders/{order_id}/complete", response_model=OrderOut)
-async def complete_order(
-    order_id: UUID,
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> OrderOut:
-    seller = await _seller_profile(user, session)
-    order = await _load_seller_order(session, seller.id, order_id)
-    if order.status not in {OrderStatus.ACCEPTED, OrderStatus.READY}:
-        raise HTTPException(status_code=400, detail="Order cannot be completed")
-    order.status = OrderStatus.COMPLETED
-    order.completed_at = datetime.now(UTC)
-    seller.total_sales_mad = float(seller.total_sales_mad or 0) + float(order.total_mad)
-    await notify_user(
-        session,
-        user_id=order.buyer_id,
-        title="Order completed",
-        body=f"Thanks for shopping with {seller.business_name}",
-        kind="order",
-        data={"order_id": str(order.id)},
-    )
-    await session.commit()
-    return _order_out(order, seller.business_name)
-
-
-async def _load_seller_order(session: AsyncSession, seller_id: UUID, order_id: UUID) -> Order:
-    result = await session.execute(
-        select(Order).options(selectinload(Order.items)).where(Order.id == order_id, Order.seller_id == seller_id)
-    )
-    order = result.scalar_one_or_none()
-    if order is None:
-        raise HTTPException(status_code=404, detail="Order not found")
-    return order
-
-
 @router.get("/seller/analytics", response_model=AnalyticsOut)
 async def seller_analytics(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> AnalyticsOut:
+    from app.models import SellerFollow, Service
+
     seller = await _seller_profile(user, session)
     product_count = await session.scalar(select(func.count(Product.id)).where(Product.seller_id == seller.id))
     available = await session.scalar(
         select(func.count(Product.id)).where(Product.seller_id == seller.id, Product.is_available.is_(True))
     )
-    pending = await session.scalar(
-        select(func.count(Order.id)).where(Order.seller_id == seller.id, Order.status == OrderStatus.PENDING)
+    service_count = await session.scalar(select(func.count(Service.id)).where(Service.seller_id == seller.id))
+    followers = await session.scalar(
+        select(func.count(SellerFollow.id)).where(SellerFollow.seller_id == seller.id)
     )
-    completed = await session.scalar(
-        select(func.count(Order.id)).where(Order.seller_id == seller.id, Order.status == OrderStatus.COMPLETED)
-    )
-    revenue = await session.scalar(
-        select(func.coalesce(func.sum(Order.total_mad), 0.0)).where(
-            Order.seller_id == seller.id, Order.status == OrderStatus.COMPLETED
-        )
-    )
-    order_count = await session.scalar(select(func.count(Order.id)).where(Order.seller_id == seller.id))
-    avg = float(revenue or 0) / int(completed or 1) if completed else 0.0
     return AnalyticsOut(
         product_count=int(product_count or 0),
         available_product_count=int(available or 0),
-        order_count=int(order_count or 0),
-        pending_orders=int(pending or 0),
-        completed_orders=int(completed or 0),
-        revenue_mad=float(revenue or 0),
-        average_order_mad=round(avg, 2),
+        service_count=int(service_count or 0),
+        profile_view_count=seller.profile_view_count,
+        inquiry_count=int(seller.inquiry_count or 0),
+        favorite_count=int(seller.favorite_count or 0),
+        contact_click_count=int(seller.contact_click_count or 0),
+        avg_response_minutes=int(seller.avg_response_minutes or 0),
         review_count=seller.review_count,
         average_rating=seller.average_rating,
-        profile_view_count=seller.profile_view_count,
         verification_status=seller.verification_status,
         is_premium=seller.is_premium or user.is_premium,
+        follower_estimate=int(followers or 0),
     )
-
-
-@router.get("/seller/coupons", response_model=list[CouponOut])
-async def list_coupons(user: User = Depends(require_seller), session: AsyncSession = Depends(get_db)) -> list[Coupon]:
-    seller = await _seller_profile(user, session)
-    result = await session.execute(select(Coupon).where(Coupon.seller_id == seller.id).order_by(Coupon.created_at.desc()))
-    return list(result.scalars().all())
-
-
-@router.post("/seller/coupons", response_model=CouponOut, status_code=status.HTTP_201_CREATED)
-async def create_coupon(
-    payload: CouponCreate,
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> Coupon:
-    if payload.percent_off is None and payload.amount_off_mad is None:
-        raise HTTPException(status_code=400, detail="Provide percent_off or amount_off_mad")
-    seller = await _seller_profile(user, session)
-    coupon = Coupon(
-        id=uuid4(),
-        seller_id=seller.id,
-        code=payload.code.strip().upper(),
-        description=payload.description.strip(),
-        percent_off=payload.percent_off,
-        amount_off_mad=payload.amount_off_mad,
-        min_order_mad=payload.min_order_mad,
-        max_uses=payload.max_uses,
-    )
-    session.add(coupon)
-    await session.commit()
-    await session.refresh(coupon)
-    return coupon
-
-
-@router.patch("/seller/coupons/{coupon_id}/toggle", response_model=CouponOut)
-async def toggle_coupon(
-    coupon_id: UUID,
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> Coupon:
-    seller = await _seller_profile(user, session)
-    coupon = await session.get(Coupon, coupon_id)
-    if coupon is None or coupon.seller_id != seller.id:
-        raise HTTPException(status_code=404, detail="Coupon not found")
-    coupon.is_active = not coupon.is_active
-    await session.commit()
-    await session.refresh(coupon)
-    return coupon
 
 
 @router.post("/seller/verification/request", status_code=status.HTTP_204_NO_CONTENT)
@@ -533,6 +289,7 @@ async def start_or_send_to_seller(
         select(Conversation).where(Conversation.buyer_id == user.id, Conversation.seller_id == seller_id)
     )
     conversation = existing.scalar_one_or_none()
+    is_new = conversation is None
     if conversation is None:
         conversation = Conversation(id=uuid4(), buyer_id=user.id, seller_id=seller_id)
         session.add(conversation)
@@ -546,10 +303,12 @@ async def start_or_send_to_seller(
     )
     conversation.last_message_at = datetime.now(UTC)
     session.add(message)
+    if is_new:
+        seller.inquiry_count = int(seller.inquiry_count or 0) + 1
     await notify_user(
         session,
         user_id=seller.user_id,
-        title="New message",
+        title="New inquiry",
         body=payload.body.strip()[:120],
         kind="message",
         data={"conversation_id": str(conversation.id)},
@@ -659,11 +418,10 @@ async def subscribe(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut:
-    """Activate a premium plan.
+    """Activate premium membership for platform visibility (not buyer↔seller payments).
 
-    Billing provider integration is architected via provider/provider_reference.
-    Until CMI/Stripe is wired, activation is recorded as a manual subscription
-    suitable for home-server and staged rollouts.
+    Membership billing can later plug into an external provider via provider/provider_reference.
+    This endpoint never processes marketplace transaction payments.
     """
     result = await session.execute(
         select(SubscriptionPlan).where(SubscriptionPlan.code == plan_code, SubscriptionPlan.is_active.is_(True))
@@ -672,7 +430,6 @@ async def subscribe(
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
 
-    # End existing active subscriptions
     existing = await session.execute(
         select(Subscription).where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
     )
@@ -705,7 +462,7 @@ async def subscribe(
         session,
         user_id=user.id,
         title="Premium activated",
-        body=f"{plan.name} is now active",
+        body=f"{plan.name} is now active — enjoy higher visibility",
         kind="premium",
         data={"plan_code": plan.code},
     )

@@ -1,8 +1,8 @@
-# MarGem — Morocco local business marketplace
+# MarGem — Morocco local discovery platform
 
-Discover Morocco's hidden gems. Buyers find shops and services; sellers get an online presence.
+Discover Morocco's hidden gems. Buyers find shops, services, and local sellers; sellers get a professional storefront and connect directly with customers.
 
-Production marketplace capabilities (cart, checkout, orders, guest mode, premium, admin APIs) are documented in [docs/MARKETPLACE_PRODUCTION.md](docs/MARKETPLACE_PRODUCTION.md).
+MarGem is a **discovery and connection** platform — not a traditional e-commerce checkout app. Transactions happen outside the platform. Full product capabilities are documented in [docs/MARKETPLACE_PRODUCTION.md](docs/MARKETPLACE_PRODUCTION.md).
 
 ## Stack
 

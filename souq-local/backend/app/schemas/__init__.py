@@ -114,20 +114,35 @@ class ProductCreate(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     description: str = ""
     price_mad: float | None = None
+    price_negotiable: bool = False
+    availability_note: str = Field(default="", max_length=160)
+    accepted_payment_methods: list[str] = Field(default_factory=list)
+    delivery_options: list[str] = Field(default_factory=list)
     image_url: str = ""
-    stock_quantity: int = Field(default=100, ge=0, le=1_000_000)
-    sku: str = Field(default="", max_length=64)
+    media_urls: list[str] = Field(default_factory=list)
+    video_url: str = Field(default="", max_length=512)
+    category_slug: str = Field(default="", max_length=80)
+    stock_quantity: int = Field(default=1, ge=0, le=1_000_000)
+    is_featured: bool = False
 
 
 class ProductUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
     description: str | None = None
     price_mad: float | None = None
+    price_negotiable: bool | None = None
+    availability_note: str | None = Field(default=None, max_length=160)
+    accepted_payment_methods: list[str] | None = None
+    delivery_options: list[str] | None = None
     image_url: str | None = None
+    media_urls: list[str] | None = None
+    video_url: str | None = Field(default=None, max_length=512)
+    category_slug: str | None = Field(default=None, max_length=80)
     is_available: bool | None = None
     stock_quantity: int | None = Field(default=None, ge=0, le=1_000_000)
-    sku: str | None = Field(default=None, max_length=64)
     is_hidden: bool | None = None
+    is_featured: bool | None = None
+    is_paused: bool | None = None
 
 
 class ProductOut(BaseModel):
@@ -135,11 +150,19 @@ class ProductOut(BaseModel):
     name: str
     description: str
     price_mad: float | None
+    price_negotiable: bool = False
+    availability_note: str = ""
+    accepted_payment_methods: list = Field(default_factory=list)
+    delivery_options: list = Field(default_factory=list)
     image_url: str
+    media_urls: list = Field(default_factory=list)
+    video_url: str = ""
+    category_slug: str = ""
     is_available: bool
-    stock_quantity: int = 100
-    sku: str = ""
+    stock_quantity: int = 1
     is_hidden: bool = False
+    is_featured: bool = False
+    is_paused: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -148,15 +171,21 @@ class ServiceCreate(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     description: str = ""
     price_mad: float | None = None
+    price_negotiable: bool = False
+    coverage_areas: list[str] = Field(default_factory=list)
     image_url: str = ""
+    is_featured: bool = False
 
 
 class ServiceUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
     description: str | None = None
     price_mad: float | None = None
+    price_negotiable: bool | None = None
+    coverage_areas: list[str] | None = None
     image_url: str | None = None
     is_available: bool | None = None
+    is_featured: bool | None = None
 
 
 class ServiceOut(BaseModel):
@@ -164,8 +193,11 @@ class ServiceOut(BaseModel):
     name: str
     description: str
     price_mad: float | None
+    price_negotiable: bool = False
+    coverage_areas: list = Field(default_factory=list)
     image_url: str
     is_available: bool
+    is_featured: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -201,6 +233,14 @@ class SellerCreate(BaseModel):
     cover_image_url: str = ""
     logo_image_url: str = ""
     opening_hours: OpeningHours | None = None
+    website_url: str = Field(default="", max_length=255)
+    instagram_url: str = Field(default="", max_length=255)
+    facebook_url: str = Field(default="", max_length=255)
+    tiktok_url: str = Field(default="", max_length=255)
+    whatsapp_number: str = Field(default="", max_length=32)
+    payment_methods: list[str] = Field(default_factory=lambda: ["cash"])
+    delivery_methods: list[str] = Field(default_factory=lambda: ["in_store"])
+    service_areas: list[str] = Field(default_factory=list)
     category_ids: list[UUID] = Field(default_factory=list)
 
 
@@ -215,6 +255,14 @@ class SellerUpdate(BaseModel):
     cover_image_url: str | None = None
     logo_image_url: str | None = None
     opening_hours: OpeningHours | None = None
+    website_url: str | None = Field(default=None, max_length=255)
+    instagram_url: str | None = Field(default=None, max_length=255)
+    facebook_url: str | None = Field(default=None, max_length=255)
+    tiktok_url: str | None = Field(default=None, max_length=255)
+    whatsapp_number: str | None = Field(default=None, max_length=32)
+    payment_methods: list[str] | None = None
+    delivery_methods: list[str] | None = None
+    service_areas: list[str] | None = None
     category_ids: list[UUID] | None = None
     is_active: bool | None = None
 
@@ -231,16 +279,35 @@ class SellerSummary(BaseModel):
     achievement_stars: int
     average_rating: float
     review_count: int
+    is_premium: bool = False
+    verification_status: str = "unverified"
+    avg_response_minutes: int = 0
     categories: list[CategoryOut]
 
     model_config = {"from_attributes": True}
+
+    @field_validator("verification_status", mode="before")
+    @classmethod
+    def coerce_verification(cls, value):
+        return value.value if hasattr(value, "value") else value
 
 
 class SellerDetail(SellerSummary):
     address: str
     phone: str
     opening_hours: dict = Field(default_factory=dict)
+    website_url: str = ""
+    instagram_url: str = ""
+    facebook_url: str = ""
+    tiktok_url: str = ""
+    whatsapp_number: str = ""
+    payment_methods: list = Field(default_factory=list)
+    delivery_methods: list = Field(default_factory=list)
+    service_areas: list = Field(default_factory=list)
     profile_view_count: int = 0
+    inquiry_count: int = 0
+    favorite_count: int = 0
+    contact_click_count: int = 0
     products: list[ProductOut]
     services: list[ServiceOut]
 
@@ -256,6 +323,12 @@ class SellerDashboardStats(BaseModel):
     average_rating: float
     achievement_stars: int
     recent_review_count: int
+    inquiry_count: int = 0
+    favorite_count: int = 0
+    contact_click_count: int = 0
+    avg_response_minutes: int = 0
+    is_premium: bool = False
+    verification_status: str = "unverified"
     is_active: bool
 
 

@@ -401,54 +401,27 @@ class ApiService {
     _ensureSuccess(response);
   }
 
-  Future<List<CartItemModel>> fetchCart() async {
-    try {
-      final data = await getJsonList('/cart/items', auth: true);
-      return data
-          .map((item) => CartItemModel.fromJson(item as Map<String, dynamic>))
-          .toList();
-    } on ApiException catch (error) {
-      if (error.statusCode != 404) rethrow;
-      final data = await getJsonList('/cart', auth: true);
-      return data
-          .map((item) => CartItemModel.fromJson(item as Map<String, dynamic>))
-          .toList();
-    }
+  Future<List<FavoriteItemModel>> fetchFavorites() async {
+    final data = await getJsonList('/favorites', auth: true);
+    return data
+        .map((item) => FavoriteItemModel.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
-  Future<CartItemModel> addCartItem({
-    required String productId,
-    int quantity = 1,
-  }) async {
-    final data = await postJson(
-      '/cart/items',
-      {'product_id': productId, 'quantity': quantity},
-      auth: true,
-    );
-    return CartItemModel.fromJson(data);
+  Future<FavoriteItemModel> addFavoriteProduct(String productId) async {
+    final data = await postEmpty('/favorites/products/$productId', auth: true);
+    return FavoriteItemModel.fromJson(data);
   }
 
-  Future<CartItemModel> updateCartItem({
-    required String itemId,
-    required int quantity,
-  }) async {
-    final data = await patchJson(
-      '/cart/items/$itemId',
-      {'quantity': quantity},
-      auth: true,
-    );
-    return CartItemModel.fromJson(data);
+  Future<void> removeFavoriteProduct(String productId) {
+    return deletePath('/favorites/products/$productId', auth: true);
   }
 
-  Future<void> deleteCartItem(String itemId) {
-    return deletePath('/cart/items/$itemId', auth: true);
-  }
-
-  Future<List<CartItemModel>> migrateGuestCart(
+  Future<List<FavoriteItemModel>> migrateGuestFavorites(
       List<Map<String, dynamic>> items) async {
     final response = await _request(
       () => _post(
-        _uri('/cart/migrate-guest'),
+        _uri('/favorites/migrate-guest'),
         headers: _jsonHeaders(auth: true),
         body: jsonEncode({'items': items}),
       ),
@@ -457,77 +430,67 @@ class ApiService {
     _ensureSuccess(response);
     final data = jsonDecode(response.body) as List<dynamic>;
     return data
-        .map((item) => CartItemModel.fromJson(item as Map<String, dynamic>))
+        .map((item) => FavoriteItemModel.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
-  Future<List<WishlistItemModel>> fetchWishlist() async {
-    final data = await getJsonList('/wishlist', auth: true);
+  Future<SellerFollowModel> followSeller(String sellerId) async {
+    final data = await postEmpty('/follows/sellers/$sellerId', auth: true);
+    return SellerFollowModel.fromJson(data);
+  }
+
+  Future<void> unfollowSeller(String sellerId) {
+    return deletePath('/follows/sellers/$sellerId', auth: true);
+  }
+
+  Future<List<SellerFollowModel>> listFollows() async {
+    final data = await getJsonList('/follows', auth: true);
     return data
-        .map((item) => WishlistItemModel.fromJson(item as Map<String, dynamic>))
+        .map((item) => SellerFollowModel.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
-  Future<WishlistItemModel> addWishlistProduct(String productId) async {
-    final data = await postEmpty('/wishlist/products/$productId', auth: true);
-    return WishlistItemModel.fromJson(data);
+  Future<void> createContactEvent({
+    required String sellerId,
+    required String channel,
+  }) {
+    return postVoid(
+      '/contact-events',
+      {'seller_id': sellerId, 'channel': channel},
+      auth: _authHeaders.isNotEmpty,
+    );
   }
 
-  Future<void> removeWishlistProduct(String productId) {
-    return deletePath('/wishlist/products/$productId', auth: true);
+  Future<void> createReport({
+    String? sellerId,
+    String? productId,
+    required String reason,
+    String details = '',
+  }) {
+    return postVoid(
+      '/reports',
+      {
+        if (sellerId != null) 'seller_id': sellerId,
+        if (productId != null) 'product_id': productId,
+        'reason': reason,
+        'details': details,
+      },
+      auth: _authHeaders.isNotEmpty,
+    );
   }
 
-  Future<List<OrderModel>> checkout(CheckoutPayload payload) async {
-    final response = await _request(
+  Future<void> trackRecentlyViewed({String? sellerId, String? productId}) {
+    final params = <String, String>{
+      if (sellerId != null) 'seller_id': sellerId,
+      if (productId != null) 'product_id': productId,
+    };
+    return _request(
       () => _post(
-        _uri('/checkout'),
+        _uri('/recently-viewed', params),
         headers: _jsonHeaders(auth: true),
-        body: jsonEncode(payload.toJson()),
       ),
       auth: true,
-    );
-    _ensureSuccess(response);
-    final data = jsonDecode(response.body) as List<dynamic>;
-    return data
-        .map((item) => OrderModel.fromJson(item as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<List<OrderModel>> fetchBuyerOrders() async {
-    final data = await getJsonList('/orders', auth: true);
-    return data
-        .map((item) => OrderModel.fromJson(item as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<OrderModel> fetchOrder(String id) async {
-    final data = await getJson('/orders/$id', auth: true);
-    return OrderModel.fromJson(data);
-  }
-
-  Future<OrderModel> cancelOrder(String id) async {
-    final data = await postEmpty('/orders/$id/cancel', auth: true);
-    return OrderModel.fromJson(data);
-  }
-
-  Future<List<OrderModel>> fetchSellerOrders({String? status}) async {
-    final suffix = status == null || status.isEmpty ? '' : '?status=$status';
-    final data = await getJsonList('/seller/orders$suffix', auth: true);
-    return data
-        .map((item) => OrderModel.fromJson(item as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<OrderModel> sellerOrderAction(String orderId, String action,
-      {String note = ''}) async {
-    final data = await postJson(
-      '/seller/orders/$orderId/$action',
-      action == 'accept' || action == 'reject'
-          ? {'note': note}
-          : <String, dynamic>{},
-      auth: true,
-    );
-    return OrderModel.fromJson(data);
+    ).then(_ensureSuccess);
   }
 
   Future<SellerAnalyticsModel> fetchSellerAnalytics() async {

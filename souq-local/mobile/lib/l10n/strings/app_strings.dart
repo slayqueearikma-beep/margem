@@ -102,6 +102,7 @@ abstract class AppStrings {
   String get ordersSub;
   String get messages;
   String get messagesSub;
+  String get inquiriesSub;
   String get profileViewsTrend;
   String get previewStorefront;
   String get previewStorefrontSub;
@@ -216,6 +217,7 @@ abstract class AppStrings {
   String get cart;
   String get checkout;
   String get wishlist;
+  String get favorites;
   String get premium;
   String get guestCartSignInHint;
   String get signInToCheckout;
@@ -227,7 +229,19 @@ abstract class AppStrings {
   String get addToWishlist;
   String get addedToCart;
   String get addedToWishlist;
+  String get addToFavorites;
+  String get addedToFavorites;
   String get priceOnRequest;
+  String get priceNegotiable;
+  String get acceptedPaymentMethods;
+  String get contactSeller;
+  String get callSeller;
+  String get whatsapp;
+  String get deliveryOptionsLabel;
+  String get followBusiness;
+  String responseTimeLabel(int minutes);
+  String nowFollowing(String businessName);
+  String contactRecorded(String sellerName);
   String get orderSummary;
   String get deliveryDetails;
   String get recipientName;
@@ -256,6 +270,8 @@ abstract class AppStrings {
   String get cancelOrderConfirm;
   String get emptyWishlist;
   String get emptyWishlistSubtitle;
+  String get emptyFavorites;
+  String get emptyFavoritesSubtitle;
   String get premiumActivated;
   String get noPremiumPlans;
   String get premiumTitle;
@@ -267,6 +283,8 @@ abstract class AppStrings {
   String get subscribe;
   String get noSellerOrders;
   String get noSellerOrdersSubtitle;
+  String get noInquiriesYet;
+  String get noInquiriesYetSubtitle;
   String get acceptOrder;
   String get rejectOrder;
   String get sellerNoteOptional;
@@ -286,15 +304,20 @@ abstract class AppStrings {
   String get revenue;
   String pendingOrders(int count);
   String completedOrders(int count);
+  String contactClicks(int count);
+  String avgResponseMinutes(int minutes);
   String get analytics;
   String get analyticsSub;
-  String analyticsSummary(String revenue, String average);
+  String analyticsSummary(int profileViews, int contactClicks);
   String get premiumActiveSub;
   String get premiumUpgradeSub;
   String get loading;
   String get pending;
   String get completed;
   String get averageOrder;
+  String get contactClicksLabel;
+  String get averageResponse;
+  String get followers;
   String get verification;
   String get markAllRead;
 

@@ -180,7 +180,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String welcomeSeller(String name) => 'مرحباً، $name 👋';
   @override
-  String get manageStoreSubtitle => 'أدر متجرك ومنتجاتك وتقييمات العملاء.';
+  String get manageStoreSubtitle =>
+      'أدر ملفك والكتالوج والاستفسارات وتقييمات العملاء.';
   @override
   String get profileViews => 'مشاهدات الملف';
   @override
@@ -202,13 +203,15 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get profileManagementSub => 'تحديث معلومات المحل والساعات والصور';
   @override
-  String get orders => 'الطلبات';
+  String get orders => 'الاستفسارات';
   @override
-  String get ordersSub => 'تتبع وإدارة طلبات العملاء';
+  String get ordersSub => 'تابع استفسارات العملاء ونشاط التواصل';
   @override
   String get messages => 'الرسائل';
   @override
   String get messagesSub => 'تحدث مع المشترين مباشرة';
+  @override
+  String get inquiriesSub => 'تابع العملاء المهتمين ومؤشرات الاستجابة';
   @override
   String get profileViewsTrend => '+12٪ هذا الأسبوع';
   @override
@@ -275,7 +278,7 @@ class AppStringsAr extends AppStringsEn {
   String get noNotifications => 'لا توجد إشعارات جديدة';
   @override
   String get notificationsSubtitle =>
-      'تظهر هنا الطلبات والرسائل وتحديثات بريميوم والحساب.';
+      'تظهر هنا الاستفسارات والرسائل وتحديثات بريميوم والحساب.';
   @override
   String get appearance => 'المظهر';
   @override
@@ -437,60 +440,89 @@ class AppStringsAr extends AppStringsEn {
   String get guestMode => 'وضع الضيف';
   @override
   String get guestModeSubtitle =>
-      'تصفح بحرية مع سلة محلية. سجّل الدخول لإتمام الطلب ومزامنة المفضلة وعرض الطلبات.';
+      'تصفح بحرية واحفظ المفضلة على هذا الجهاز. سجّل الدخول لمزامنتها مع حسابك.';
   @override
-  String get cart => 'السلة';
+  String get cart => 'المفضلة';
   @override
-  String get checkout => 'إتمام الطلب';
+  String get checkout => 'تواصل مع البائع';
   @override
   String get wishlist => 'المفضلة';
+  @override
+  String get favorites => 'المفضلة';
   @override
   String get premium => 'بريميوم';
   @override
   String get guestCartSignInHint =>
-      'سلتك محفوظة على هذا الجهاز. سجّل الدخول لإتمام الطلب ومزامنتها مع حسابك.';
+      'مفضلتك محفوظة على هذا الجهاز. سجّل الدخول لمزامنتها مع حسابك.';
   @override
-  String get signInToCheckout => 'سجّل الدخول لإتمام الطلب';
+  String get signInToCheckout => 'سجّل الدخول للتواصل مع البائعين';
   @override
   String get subtotal => 'المجموع الفرعي';
   @override
-  String get emptyCart => 'سلتك فارغة';
+  String get emptyCart => 'لا توجد مفضلة بعد';
   @override
-  String get emptyCartSubtitle => 'أضف منتجات من البائعين المحليين وستظهر هنا.';
+  String get emptyCartSubtitle =>
+      'احفظ المنتجات المحلية التي تعجبك وستظهر هنا.';
   @override
   String get browseProducts => 'تصفح المنتجات';
   @override
-  String get addToCart => 'أضف إلى السلة';
+  String get addToCart => 'تواصل مع البائع';
   @override
   String get addToWishlist => 'أضف إلى المفضلة';
   @override
-  String get addedToCart => 'تمت الإضافة إلى السلة';
+  String get addedToCart => 'تم تسجيل التواصل';
   @override
   String get addedToWishlist => 'تمت الإضافة إلى المفضلة';
   @override
+  String get addToFavorites => 'أضف إلى المفضلة';
+  @override
+  String get addedToFavorites => 'تمت الإضافة إلى المفضلة';
+  @override
   String get priceOnRequest => 'السعر عند الطلب';
   @override
-  String get orderSummary => 'ملخص الطلب';
+  String get priceNegotiable => 'السعر قابل للتفاوض';
   @override
-  String get deliveryDetails => 'تفاصيل التوصيل';
+  String get acceptedPaymentMethods => 'طرق الدفع المقبولة';
+  @override
+  String get contactSeller => 'تواصل مع البائع';
+  @override
+  String get callSeller => 'اتصال';
+  @override
+  String get whatsapp => 'واتساب';
+  @override
+  String get deliveryOptionsLabel => 'التوصيل واللقاء';
+  @override
+  String get followBusiness => 'متابعة النشاط';
+  @override
+  String responseTimeLabel(int minutes) => 'الرد عادة خلال ~$minutes دقيقة';
+  @override
+  String nowFollowing(String businessName) => 'تتابع $businessName';
+  @override
+  String contactRecorded(String sellerName) =>
+      'تم تسجيل التواصل مع $sellerName';
+  @override
+  String get orderSummary => 'ملخص الاستفسار';
+  @override
+  String get deliveryDetails => 'بيانات التواصل';
   @override
   String get recipientName => 'اسم المستلم';
   @override
   String get requiredField => 'مطلوب';
   @override
-  String get deliveryAddress => 'عنوان التوصيل';
+  String get deliveryAddress => 'عنوان اللقاء المفضل';
   @override
-  String get orderNoteOptional => 'ملاحظة الطلب (اختياري)';
+  String get orderNoteOptional => 'ملاحظة الاستفسار (اختياري)';
   @override
-  String get placingOrder => 'جاري إرسال الطلب...';
+  String get placingOrder => 'جاري إرسال الاستفسار...';
   @override
-  String get placeOrder => 'إرسال الطلب';
+  String get placeOrder => 'إرسال الاستفسار';
   @override
-  String get noOrdersYet => 'لا توجد طلبات بعد';
+  String get noOrdersYet => 'لا توجد استفسارات بعد';
   @override
-  String get noOrdersYetSubtitle => 'ستظهر مشترياتك من البائعين المحليين هنا.';
+  String get noOrdersYetSubtitle =>
+      'ستظهر محادثاتك وسجل التواصل مع البائعين هنا.';
   @override
-  String orderNumber(String id) => 'طلب #$id';
+  String orderNumber(String id) => 'استفسار #$id';
   @override
   String get orderStatusPending => 'قيد الانتظار';
   @override
@@ -504,28 +536,33 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get orderStatusRejected => 'مرفوض';
   @override
-  String get orderDetails => 'تفاصيل الطلب';
+  String get orderDetails => 'تفاصيل الاستفسار';
   @override
-  String get deliveryFee => 'رسوم التوصيل';
+  String get deliveryFee => 'رسوم التواصل';
   @override
   String get total => 'الإجمالي';
   @override
-  String get paymentMethod => 'طريقة الدفع';
+  String get paymentMethod => 'الدفع المقبول';
   @override
   String get items => 'العناصر';
   @override
-  String get orderNote => 'ملاحظة الطلب';
+  String get orderNote => 'ملاحظة الاستفسار';
   @override
   String get sellerNote => 'ملاحظة البائع';
   @override
-  String get cancelOrder => 'إلغاء الطلب';
+  String get cancelOrder => 'إلغاء الاستفسار';
   @override
   String get cancelOrderConfirm =>
-      'هل تريد إلغاء هذا الطلب؟ سيتم إشعار البائع.';
+      'هل تريد إلغاء هذا الاستفسار؟ سيتم إشعار البائع.';
   @override
   String get emptyWishlist => 'المفضلة فارغة';
   @override
   String get emptyWishlistSubtitle =>
+      'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
+  @override
+  String get emptyFavorites => 'المفضلة فارغة';
+  @override
+  String get emptyFavoritesSubtitle =>
       'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
   @override
   String get premiumActivated => 'تم تفعيل بريميوم';
@@ -535,7 +572,7 @@ class AppStringsAr extends AppStringsEn {
   String get premiumTitle => 'نمّ عملك مع MarGem بريميوم';
   @override
   String get premiumSubtitle =>
-      'افتح ظهوراً أقوى وأدوات بائع ومزايا تجارة إضافية.';
+      'افتح ظهوراً أقوى وأدوات اكتشاف وتحليلات للملف.';
   @override
   String activePlan(String name) => 'الخطة النشطة: $name';
   @override
@@ -547,9 +584,15 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get subscribe => 'اشترك';
   @override
-  String get noSellerOrders => 'لا توجد طلبات عملاء بعد';
+  String get noSellerOrders => 'لا توجد استفسارات عملاء بعد';
   @override
-  String get noSellerOrdersSubtitle => 'ستظهر هنا الطلبات الجديدة من المشترين.';
+  String get noSellerOrdersSubtitle =>
+      'ستظهر هنا الاستفسارات وجهات التواصل الجديدة من المشترين.';
+  @override
+  String get noInquiriesYet => 'لا توجد استفسارات بعد';
+  @override
+  String get noInquiriesYetSubtitle =>
+      'عندما يتصل العملاء أو يراسلون أو يحفظون نشاطك ستظهر الحركة في التحليلات.';
   @override
   String get acceptOrder => 'قبول';
   @override
@@ -588,22 +631,28 @@ class AppStringsAr extends AppStringsEn {
   String get passwordResetComplete =>
       'تمت إعادة تعيين كلمة المرور. يمكنك تسجيل الدخول الآن.';
   @override
-  String get revenue => 'الإيرادات';
+  String get revenue => 'نشاط الاكتشاف';
   @override
-  String pendingOrders(int count) => '$count قيد الانتظار';
+  String pendingOrders(int count) => '$count استفسار قيد الانتظار';
   @override
-  String completedOrders(int count) => '$count مكتمل';
+  String completedOrders(int count) => '$count استفسار محلول';
+  @override
+  String contactClicks(int count) => '$count نقرة تواصل';
+  @override
+  String avgResponseMinutes(int minutes) => minutes <= 0
+      ? 'لا توجد بيانات استجابة'
+      : 'متوسط الاستجابة $minutes دقيقة';
   @override
   String get analytics => 'التحليلات';
   @override
-  String get analyticsSub => 'عرض الطلبات والإيرادات وأداء الملف';
+  String get analyticsSub => 'عرض الاستفسارات والمفضلة والتواصل وأداء الملف';
   @override
-  String analyticsSummary(String revenue, String average) =>
-      '$revenue درهم إيرادات · $average درهم متوسط الطلب';
+  String analyticsSummary(int profileViews, int contactClicks) =>
+      '$profileViews مشاهدة · $contactClicks نقرة تواصل';
   @override
   String get premiumActiveSub => 'خطة بريميوم نشطة';
   @override
-  String get premiumUpgradeSub => 'طوّر الظهور وأدوات البيع';
+  String get premiumUpgradeSub => 'طوّر الظهور وأدوات الاكتشاف';
   @override
   String get loading => 'جاري التحميل...';
   @override
@@ -611,7 +660,13 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get completed => 'مكتمل';
   @override
-  String get averageOrder => 'متوسط الطلب';
+  String get averageOrder => 'متوسط الاستجابة';
+  @override
+  String get contactClicksLabel => 'نقرات التواصل';
+  @override
+  String get averageResponse => 'متوسط الاستجابة';
+  @override
+  String get followers => 'المتابعون';
   @override
   String get verification => 'التحقق';
   @override

@@ -74,8 +74,22 @@ class SellerModel {
     this.logoImageUrl = '',
     this.address = '',
     this.phone = '',
+    this.websiteUrl = '',
+    this.instagramUrl = '',
+    this.facebookUrl = '',
+    this.tiktokUrl = '',
+    this.whatsappNumber = '',
+    this.paymentMethods = const [],
+    this.deliveryMethods = const [],
+    this.serviceAreas = const [],
     this.openingHours = const OpeningHoursModel(),
     this.profileViewCount = 0,
+    this.inquiryCount = 0,
+    this.favoriteCount = 0,
+    this.contactClickCount = 0,
+    this.avgResponseMinutes = 0,
+    this.isPremium = false,
+    this.verificationStatus = 'unverified',
     this.categories = const [],
     this.products = const [],
     this.services = const [],
@@ -94,8 +108,22 @@ class SellerModel {
   final int reviewCount;
   final String address;
   final String phone;
+  final String websiteUrl;
+  final String instagramUrl;
+  final String facebookUrl;
+  final String tiktokUrl;
+  final String whatsappNumber;
+  final List<String> paymentMethods;
+  final List<String> deliveryMethods;
+  final List<String> serviceAreas;
   final OpeningHoursModel openingHours;
   final int profileViewCount;
+  final int inquiryCount;
+  final int favoriteCount;
+  final int contactClickCount;
+  final int avgResponseMinutes;
+  final bool isPremium;
+  final String verificationStatus;
   final List<CategoryModel> categories;
   final List<ProductModel> products;
   final List<ServiceModel> services;
@@ -115,12 +143,33 @@ class SellerModel {
       reviewCount: json['review_count'] as int? ?? 0,
       address: json['address'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
+      websiteUrl: json['website_url'] as String? ?? '',
+      instagramUrl: json['instagram_url'] as String? ?? '',
+      facebookUrl: json['facebook_url'] as String? ?? '',
+      tiktokUrl: json['tiktok_url'] as String? ?? '',
+      whatsappNumber: json['whatsapp_number'] as String? ?? '',
+      paymentMethods: (json['payment_methods'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
+      deliveryMethods: (json['delivery_methods'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
+      serviceAreas: (json['service_areas'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
       openingHours: OpeningHoursModel.fromJson(
         json['opening_hours'] is Map<String, dynamic>
             ? json['opening_hours'] as Map<String, dynamic>
             : null,
       ),
       profileViewCount: json['profile_view_count'] as int? ?? 0,
+      inquiryCount: json['inquiry_count'] as int? ?? 0,
+      favoriteCount: json['favorite_count'] as int? ?? 0,
+      contactClickCount: json['contact_click_count'] as int? ?? 0,
+      avgResponseMinutes: json['avg_response_minutes'] as int? ?? 0,
+      isPremium: json['is_premium'] as bool? ?? false,
+      verificationStatus:
+          json['verification_status'] as String? ?? 'unverified',
       categories: (json['categories'] as List<dynamic>? ?? [])
           .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -147,6 +196,12 @@ class SellerDashboardStats {
     required this.achievementStars,
     required this.recentReviewCount,
     required this.isActive,
+    this.inquiryCount = 0,
+    this.favoriteCount = 0,
+    this.contactClickCount = 0,
+    this.avgResponseMinutes = 0,
+    this.isPremium = false,
+    this.verificationStatus = 'unverified',
   });
 
   final String sellerId;
@@ -160,6 +215,12 @@ class SellerDashboardStats {
   final int achievementStars;
   final int recentReviewCount;
   final bool isActive;
+  final int inquiryCount;
+  final int favoriteCount;
+  final int contactClickCount;
+  final int avgResponseMinutes;
+  final bool isPremium;
+  final String verificationStatus;
 
   factory SellerDashboardStats.fromJson(Map<String, dynamic> json) {
     return SellerDashboardStats(
@@ -174,6 +235,13 @@ class SellerDashboardStats {
       achievementStars: json['achievement_stars'] as int? ?? 0,
       recentReviewCount: json['recent_review_count'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
+      inquiryCount: json['inquiry_count'] as int? ?? 0,
+      favoriteCount: json['favorite_count'] as int? ?? 0,
+      contactClickCount: json['contact_click_count'] as int? ?? 0,
+      avgResponseMinutes: json['avg_response_minutes'] as int? ?? 0,
+      isPremium: json['is_premium'] as bool? ?? false,
+      verificationStatus:
+          json['verification_status'] as String? ?? 'unverified',
     );
   }
 
@@ -199,6 +267,16 @@ class ProductModel {
     this.priceMad,
     this.imageUrl = '',
     this.isAvailable = true,
+    this.priceNegotiable = false,
+    this.availabilityNote = '',
+    this.acceptedPaymentMethods = const [],
+    this.deliveryOptions = const [],
+    this.mediaUrls = const [],
+    this.videoUrl = '',
+    this.categorySlug = '',
+    this.stockQuantity = 1,
+    this.isFeatured = false,
+    this.isPaused = false,
   });
 
   final String id;
@@ -207,6 +285,16 @@ class ProductModel {
   final double? priceMad;
   final String imageUrl;
   final bool isAvailable;
+  final bool priceNegotiable;
+  final String availabilityNote;
+  final List<String> acceptedPaymentMethods;
+  final List<String> deliveryOptions;
+  final List<String> mediaUrls;
+  final String videoUrl;
+  final String categorySlug;
+  final int stockQuantity;
+  final bool isFeatured;
+  final bool isPaused;
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
@@ -216,6 +304,23 @@ class ProductModel {
       priceMad: (json['price_mad'] as num?)?.toDouble(),
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
+      priceNegotiable: json['price_negotiable'] as bool? ?? false,
+      availabilityNote: json['availability_note'] as String? ?? '',
+      acceptedPaymentMethods:
+          (json['accepted_payment_methods'] as List<dynamic>? ?? [])
+              .map((item) => item.toString())
+              .toList(),
+      deliveryOptions: (json['delivery_options'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
+      mediaUrls: (json['media_urls'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
+      videoUrl: json['video_url'] as String? ?? '',
+      categorySlug: json['category_slug'] as String? ?? '',
+      stockQuantity: json['stock_quantity'] as int? ?? 1,
+      isFeatured: json['is_featured'] as bool? ?? false,
+      isPaused: json['is_paused'] as bool? ?? false,
     );
   }
 }
@@ -338,51 +443,8 @@ class WarningZoneModel {
   }
 }
 
-class CartItemModel {
-  const CartItemModel({
-    required this.id,
-    required this.productId,
-    required this.sellerId,
-    required this.quantity,
-    required this.unitPriceMad,
-    required this.productName,
-    required this.imageUrl,
-    required this.sellerName,
-    required this.stockQuantity,
-    required this.isAvailable,
-  });
-
-  final String id;
-  final String productId;
-  final String sellerId;
-  final int quantity;
-  final double unitPriceMad;
-  final String productName;
-  final String imageUrl;
-  final String sellerName;
-  final int stockQuantity;
-  final bool isAvailable;
-
-  double get lineTotalMad => unitPriceMad * quantity;
-
-  factory CartItemModel.fromJson(Map<String, dynamic> json) {
-    return CartItemModel(
-      id: json['id'] as String,
-      productId: json['product_id'] as String,
-      sellerId: json['seller_id'] as String,
-      quantity: json['quantity'] as int? ?? 1,
-      unitPriceMad: (json['unit_price_mad'] as num?)?.toDouble() ?? 0,
-      productName: json['product_name'] as String? ?? '',
-      imageUrl: json['image_url'] as String? ?? '',
-      sellerName: json['seller_name'] as String? ?? '',
-      stockQuantity: json['stock_quantity'] as int? ?? 99,
-      isAvailable: json['is_available'] as bool? ?? true,
-    );
-  }
-}
-
-class WishlistItemModel {
-  const WishlistItemModel({
+class FavoriteItemModel {
+  const FavoriteItemModel({
     required this.id,
     required this.productId,
     required this.productName,
@@ -400,152 +462,51 @@ class WishlistItemModel {
   final String sellerId;
   final String sellerName;
 
-  factory WishlistItemModel.fromJson(Map<String, dynamic> json) {
-    return WishlistItemModel(
+  factory FavoriteItemModel.fromJson(Map<String, dynamic> json) {
+    return FavoriteItemModel(
       id: json['id'] as String,
-      productId: json['product_id'] as String,
+      productId: json['product_id'] as String? ?? '',
       productName: json['product_name'] as String? ?? '',
       imageUrl: json['image_url'] as String? ?? '',
       priceMad: (json['price_mad'] as num?)?.toDouble(),
-      sellerId: json['seller_id'] as String,
+      sellerId: json['seller_id'] as String? ?? '',
       sellerName: json['seller_name'] as String? ?? '',
     );
   }
 }
 
-class CheckoutPayload {
-  const CheckoutPayload({
-    required this.deliveryName,
-    required this.deliveryPhone,
-    required this.deliveryAddress,
-    required this.deliveryCity,
-    this.buyerNote = '',
-    this.paymentMethod = 'cod',
-    this.sellerId,
-  });
-
-  final String deliveryName;
-  final String deliveryPhone;
-  final String deliveryAddress;
-  final String deliveryCity;
-  final String buyerNote;
-  final String paymentMethod;
-  final String? sellerId;
-
-  Map<String, dynamic> toJson() => {
-        'delivery_name': deliveryName,
-        'delivery_phone': deliveryPhone,
-        'delivery_address': deliveryAddress,
-        'delivery_city': deliveryCity,
-        'buyer_note': buyerNote,
-        'payment_method': paymentMethod,
-        if (sellerId != null) 'seller_id': sellerId,
-      };
-}
-
-class OrderItemModel {
-  const OrderItemModel({
+class SellerFollowModel {
+  const SellerFollowModel({
     required this.id,
-    required this.productId,
-    required this.productName,
-    required this.quantity,
-    required this.unitPriceMad,
-    required this.totalMad,
-    required this.imageUrl,
-  });
-
-  final String id;
-  final String? productId;
-  final String productName;
-  final int quantity;
-  final double unitPriceMad;
-  final double totalMad;
-  final String imageUrl;
-
-  factory OrderItemModel.fromJson(Map<String, dynamic> json) {
-    return OrderItemModel(
-      id: json['id'] as String,
-      productId: json['product_id'] as String?,
-      productName: json['product_name'] as String? ?? '',
-      quantity: json['quantity'] as int? ?? 1,
-      unitPriceMad: (json['unit_price_mad'] as num?)?.toDouble() ?? 0,
-      totalMad: (json['total_mad'] as num?)?.toDouble() ?? 0,
-      imageUrl: json['image_url'] as String? ?? '',
-    );
-  }
-}
-
-class OrderModel {
-  const OrderModel({
-    required this.id,
-    required this.buyerId,
     required this.sellerId,
-    required this.status,
-    required this.subtotalMad,
-    required this.deliveryFeeMad,
-    required this.totalMad,
-    required this.currency,
-    required this.paymentMethod,
-    required this.paymentStatus,
-    required this.deliveryName,
-    required this.deliveryPhone,
-    required this.deliveryAddress,
-    required this.deliveryCity,
-    required this.buyerNote,
-    required this.sellerNote,
-    required this.createdAt,
-    required this.items,
-    required this.sellerName,
+    required this.businessName,
+    required this.city,
+    this.logoImageUrl = '',
+    this.averageRating = 0,
+    this.isPremium = false,
+    this.verificationStatus = 'unverified',
   });
 
   final String id;
-  final String buyerId;
   final String sellerId;
-  final String status;
-  final double subtotalMad;
-  final double deliveryFeeMad;
-  final double totalMad;
-  final String currency;
-  final String paymentMethod;
-  final String paymentStatus;
-  final String deliveryName;
-  final String deliveryPhone;
-  final String deliveryAddress;
-  final String deliveryCity;
-  final String buyerNote;
-  final String sellerNote;
-  final String createdAt;
-  final List<OrderItemModel> items;
-  final String sellerName;
+  final String businessName;
+  final String city;
+  final String logoImageUrl;
+  final double averageRating;
+  final bool isPremium;
+  final String verificationStatus;
 
-  bool get canBuyerCancel => status == 'pending' || status == 'accepted';
-  bool get canSellerAccept => status == 'pending';
-  bool get canSellerMarkReady => status == 'accepted';
-  bool get canSellerComplete => status == 'accepted' || status == 'ready';
-
-  factory OrderModel.fromJson(Map<String, dynamic> json) {
-    return OrderModel(
+  factory SellerFollowModel.fromJson(Map<String, dynamic> json) {
+    return SellerFollowModel(
       id: json['id'] as String,
-      buyerId: json['buyer_id'] as String,
       sellerId: json['seller_id'] as String,
-      status: json['status'] as String? ?? 'pending',
-      subtotalMad: (json['subtotal_mad'] as num?)?.toDouble() ?? 0,
-      deliveryFeeMad: (json['delivery_fee_mad'] as num?)?.toDouble() ?? 0,
-      totalMad: (json['total_mad'] as num?)?.toDouble() ?? 0,
-      currency: json['currency'] as String? ?? 'MAD',
-      paymentMethod: json['payment_method'] as String? ?? 'cod',
-      paymentStatus: json['payment_status'] as String? ?? '',
-      deliveryName: json['delivery_name'] as String? ?? '',
-      deliveryPhone: json['delivery_phone'] as String? ?? '',
-      deliveryAddress: json['delivery_address'] as String? ?? '',
-      deliveryCity: json['delivery_city'] as String? ?? '',
-      buyerNote: json['buyer_note'] as String? ?? '',
-      sellerNote: json['seller_note'] as String? ?? '',
-      createdAt: json['created_at'] as String? ?? '',
-      items: (json['items'] as List<dynamic>? ?? [])
-          .map((item) => OrderItemModel.fromJson(item as Map<String, dynamic>))
-          .toList(),
-      sellerName: json['seller_name'] as String? ?? '',
+      businessName: json['business_name'] as String? ?? '',
+      city: json['city'] as String? ?? '',
+      logoImageUrl: json['logo_image_url'] as String? ?? '',
+      averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0,
+      isPremium: json['is_premium'] as bool? ?? false,
+      verificationStatus:
+          json['verification_status'] as String? ?? 'unverified',
     );
   }
 }
@@ -554,45 +515,48 @@ class SellerAnalyticsModel {
   const SellerAnalyticsModel({
     required this.productCount,
     required this.availableProductCount,
-    required this.orderCount,
-    required this.pendingOrders,
-    required this.completedOrders,
-    required this.revenueMad,
-    required this.averageOrderMad,
+    required this.serviceCount,
+    required this.inquiryCount,
+    required this.favoriteCount,
+    required this.contactClickCount,
+    required this.avgResponseMinutes,
     required this.reviewCount,
     required this.averageRating,
     required this.profileViewCount,
     required this.verificationStatus,
     required this.isPremium,
+    required this.followerEstimate,
   });
 
   final int productCount;
   final int availableProductCount;
-  final int orderCount;
-  final int pendingOrders;
-  final int completedOrders;
-  final double revenueMad;
-  final double averageOrderMad;
+  final int serviceCount;
+  final int inquiryCount;
+  final int favoriteCount;
+  final int contactClickCount;
+  final int avgResponseMinutes;
   final int reviewCount;
   final double averageRating;
   final int profileViewCount;
   final String verificationStatus;
   final bool isPremium;
+  final int followerEstimate;
 
   factory SellerAnalyticsModel.fromJson(Map<String, dynamic> json) {
     return SellerAnalyticsModel(
       productCount: json['product_count'] as int? ?? 0,
       availableProductCount: json['available_product_count'] as int? ?? 0,
-      orderCount: json['order_count'] as int? ?? 0,
-      pendingOrders: json['pending_orders'] as int? ?? 0,
-      completedOrders: json['completed_orders'] as int? ?? 0,
-      revenueMad: (json['revenue_mad'] as num?)?.toDouble() ?? 0,
-      averageOrderMad: (json['average_order_mad'] as num?)?.toDouble() ?? 0,
+      serviceCount: json['service_count'] as int? ?? 0,
+      inquiryCount: json['inquiry_count'] as int? ?? 0,
+      favoriteCount: json['favorite_count'] as int? ?? 0,
+      contactClickCount: json['contact_click_count'] as int? ?? 0,
+      avgResponseMinutes: json['avg_response_minutes'] as int? ?? 0,
       reviewCount: json['review_count'] as int? ?? 0,
       averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0,
       profileViewCount: json['profile_view_count'] as int? ?? 0,
       verificationStatus: json['verification_status'] as String? ?? '',
       isPremium: json['is_premium'] as bool? ?? false,
+      followerEstimate: json['follower_estimate'] as int? ?? 0,
     );
   }
 }

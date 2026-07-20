@@ -45,6 +45,60 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
     }
   }
 
+  Future<void> _recordContact(SellerModel seller, String channel) async {
+    try {
+      await apiServiceProvider.createContactEvent(
+        sellerId: seller.id,
+        channel: channel,
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _callSeller(SellerModel seller) async {
+    final phone = seller.phone.trim();
+    if (phone.isEmpty) return;
+    await _recordContact(seller, 'call');
+    final uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _openWhatsApp(SellerModel seller) async {
+    final raw = (seller.whatsappNumber.isNotEmpty
+            ? seller.whatsappNumber
+            : seller.phone)
+        .replaceAll(RegExp(r'[^\d+]'), '');
+    if (raw.isEmpty) return;
+    await _recordContact(seller, 'whatsapp');
+    final digits = raw.replaceAll('+', '');
+    final uri = Uri.parse('https://wa.me/$digits');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _followSeller(SellerModel seller) async {
+    final l10n = context.l10n;
+    final session = ref.read(userSessionProvider);
+    if (session == null || session.isGuest) {
+      if (!mounted) return;
+      await context.push('/login');
+      return;
+    }
+    try {
+      await apiServiceProvider.followSeller(seller.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.nowFollowing(seller.businessName))),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: error.toString());
+    }
+  }
+
   void _reload() {
     final session = ref.read(userSessionProvider);
     final asOwner = session?.accountType == AccountType.seller;
@@ -104,14 +158,22 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                           const SizedBox(width: 8),
                           Text(
                               '${seller.averageRating} (${l10n.reviewsCount(seller.reviewCount)})'),
-                          if (seller.achievementStars > 0) ...[
-                            const Spacer(),
+                          const Spacer(),
+                          if (seller.verificationStatus == 'verified')
+                            const Padding(
+                              padding: EdgeInsets.only(right: 6),
+                              child: Icon(Icons.verified,
+                                  color: Colors.blue, size: 22),
+                            ),
+                          if (seller.isPremium)
+                            const Icon(Icons.workspace_premium,
+                                color: Color(0xFFC9A227), size: 22),
+                          if (seller.achievementStars > 0)
                             ...List.generate(
                               seller.achievementStars.clamp(0, 5),
                               (_) =>
                                   const Icon(Icons.star, color: AppColors.star),
                             ),
-                          ],
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -125,12 +187,64 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                           text: seller.phone.isEmpty
                               ? l10n.noPhone
                               : seller.phone),
+                      if (seller.whatsappNumber.isNotEmpty)
+                        _InfoRow(
+                            icon: Icons.chat_outlined,
+                            text: seller.whatsappNumber),
+                      if (seller.websiteUrl.isNotEmpty)
+                        _InfoRow(
+                            icon: Icons.language_outlined,
+                            text: seller.websiteUrl),
                       if (!seller.openingHours.isEmpty)
                         _InfoRow(
                           icon: Icons.schedule_outlined,
                           text:
                               '${l10n.opens} ${seller.openingHours.open} · ${l10n.closes} ${seller.openingHours.close}',
                         ),
+                      if (seller.avgResponseMinutes > 0)
+                        _InfoRow(
+                          icon: Icons.timer_outlined,
+                          text: l10n.responseTimeLabel(
+                              seller.avgResponseMinutes),
+                        ),
+                      if (seller.paymentMethods.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(l10n.acceptedPaymentMethods,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: seller.paymentMethods
+                              .map((method) => Chip(
+                                    label: Text(method.replaceAll('_', ' ')),
+                                    visualDensity: VisualDensity.compact,
+                                  ))
+                              .toList(),
+                        ),
+                      ],
+                      if (seller.deliveryMethods.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(l10n.deliveryOptionsLabel,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: seller.deliveryMethods
+                              .map((method) => Chip(
+                                    label: Text(method.replaceAll('_', ' ')),
+                                    visualDensity: VisualDensity.compact,
+                                  ))
+                              .toList(),
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -144,12 +258,41 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: FilledButton.icon(
+                              onPressed: () => _callSeller(seller),
+                              icon: const Icon(Icons.call_outlined),
+                              label: Text(l10n.callSeller),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _openWhatsApp(seller),
+                              icon: const Icon(Icons.chat),
+                              label: Text(l10n.whatsapp),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: FilledButton.icon(
                               onPressed: () => _showReviewSheet(seller),
                               icon: const Icon(Icons.rate_review_outlined),
                               label: Text(l10n.review),
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _followSeller(seller),
+                          icon: const Icon(Icons.person_add_alt_1_outlined),
+                          label: Text(l10n.followBusiness),
+                        ),
                       ),
                       const SizedBox(height: 24),
                       Text(l10n.products,

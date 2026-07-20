@@ -16,7 +16,6 @@ import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
-import '../cart/cart_provider.dart';
 
 class BuyerRegistrationScreen extends ConsumerStatefulWidget {
   const BuyerRegistrationScreen({super.key});
@@ -88,17 +87,16 @@ class _BuyerRegistrationScreenState
           city: _city,
         );
 
-        final guestItems = guestCartMigrationPayload(storage);
+        final guestItems = guestFavoritesMigrationPayload(storage);
         if (guestItems.isNotEmpty) {
-          await apiServiceProvider.migrateGuestCart(guestItems);
-          await storage.clearGuestCart();
+          await apiServiceProvider.migrateGuestFavorites(guestItems);
+          await storage.clearGuestFavorites();
         }
 
         await storage.completeOnboarding();
         await storage.saveSession(userSession);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
-        ref.invalidate(cartProvider);
 
         if (!mounted) return;
         context.go('/buyer/home');

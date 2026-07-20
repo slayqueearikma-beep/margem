@@ -15,7 +15,6 @@ import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
-import '../cart/cart_provider.dart';
 import '../map/map_screen.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
@@ -430,33 +429,25 @@ class _BuyerActionsRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final cartCount = ref.watch(cartProvider).maybeWhen(
-          data: (items) => CartSummary(items).itemCount,
-          orElse: () => 0,
-        );
     return Row(
       children: [
         Expanded(
           child: _ActionChipCard(
-            icon: Icons.shopping_cart_outlined,
-            label: cartCount > 0 ? '${l10n.cart} ($cartCount)' : l10n.cart,
-            onTap: () => context.push('/cart'),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: _ActionChipCard(
             icon: Icons.favorite_border,
-            label: l10n.wishlist,
-            onTap: () => context.push('/wishlist'),
+            label: l10n.favorites,
+            onTap: () => context.push('/favorites'),
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: _ActionChipCard(
-            icon: Icons.receipt_long_outlined,
-            label: l10n.orders,
-            onTap: () => context.push('/orders'),
+            icon: Icons.map_outlined,
+            label: l10n.navMap,
+            onTap: () {
+              final mapsEnabled = AppConfig.hasGoogleMapsApiKey;
+              ref.read(buyerTabIndexProvider.notifier).state =
+                  mapsEnabled ? 2 : 1;
+            },
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
@@ -539,19 +530,9 @@ class _BuyerProfileTab extends ConsumerWidget {
                 style: const TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: AppSpacing.xl),
             ListTile(
-              leading: const Icon(Icons.shopping_cart_outlined),
-              title: Text(l10n.cart),
-              onTap: () => context.push('/cart'),
-            ),
-            ListTile(
               leading: const Icon(Icons.favorite_border),
-              title: Text(l10n.wishlist),
-              onTap: () => context.push('/wishlist'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.receipt_long_outlined),
-              title: Text(l10n.orders),
-              onTap: () => context.push('/orders'),
+              title: Text(l10n.favorites),
+              onTap: () => context.push('/favorites'),
             ),
             ListTile(
               leading: const Icon(Icons.workspace_premium_outlined),

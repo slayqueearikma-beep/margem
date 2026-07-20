@@ -187,21 +187,23 @@ class SellerDashboardScreen extends ConsumerWidget {
                                   stats.availableProductCount),
                         ),
                         StatCard(
-                          label: l10n.orders,
-                          value: '${analytics?.orderCount ?? 0}',
-                          icon: Icons.receipt_long_outlined,
+                          label: l10n.inquiries,
+                          value:
+                              '${analytics?.inquiryCount ?? stats.inquiryCount}',
+                          icon: Icons.chat_bubble_outline,
                           trend: analytics == null
                               ? null
-                              : l10n.pendingOrders(analytics.pendingOrders),
+                              : l10n.avgResponseMinutes(
+                                  analytics.avgResponseMinutes),
                         ),
                         StatCard(
-                          label: l10n.revenue,
+                          label: l10n.favorites,
                           value:
-                              '${(analytics?.revenueMad ?? 0).toStringAsFixed(0)} MAD',
-                          icon: Icons.analytics_outlined,
+                              '${analytics?.favoriteCount ?? stats.favoriteCount}',
+                          icon: Icons.favorite_border,
                           trend: analytics == null
                               ? null
-                              : l10n.completedOrders(analytics.completedOrders),
+                              : l10n.contactClicks(analytics.contactClickCount),
                         ),
                       ]),
                     ),
@@ -228,22 +230,21 @@ class SellerDashboardScreen extends ConsumerWidget {
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         DashboardMenuTile(
-                          title: l10n.orders,
-                          subtitle: l10n.ordersSub,
-                          icon: Icons.receipt_long_outlined,
-                          badge:
-                              analytics != null && analytics.pendingOrders > 0
-                                  ? '${analytics.pendingOrders}'
-                                  : null,
-                          onTap: () => context.push('/seller/orders'),
+                          title: l10n.inquiries,
+                          subtitle: l10n.inquiriesSub,
+                          icon: Icons.chat_bubble_outline,
+                          badge: analytics != null && analytics.inquiryCount > 0
+                              ? '${analytics.inquiryCount}'
+                              : null,
+                          onTap: () => _showAnalytics(context, analytics),
                         ),
                         DashboardMenuTile(
                           title: l10n.analytics,
                           subtitle: analytics == null
                               ? l10n.analyticsSub
                               : l10n.analyticsSummary(
-                                  analytics.revenueMad.toStringAsFixed(0),
-                                  analytics.averageOrderMad.toStringAsFixed(0),
+                                  analytics.profileViewCount,
+                                  analytics.contactClickCount,
                                 ),
                           icon: Icons.query_stats_outlined,
                           onTap: () => _showAnalytics(context, analytics),
@@ -339,17 +340,21 @@ class SellerDashboardScreen extends ConsumerWidget {
                       ?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: AppSpacing.md),
               _AnalyticsRow(
-                  label: l10n.orders, value: '${analytics.orderCount}'),
+                  label: l10n.profileViews,
+                  value: '${analytics.profileViewCount}'),
               _AnalyticsRow(
-                  label: l10n.pending, value: '${analytics.pendingOrders}'),
+                  label: l10n.inquiries, value: '${analytics.inquiryCount}'),
               _AnalyticsRow(
-                  label: l10n.completed, value: '${analytics.completedOrders}'),
+                  label: l10n.favorites, value: '${analytics.favoriteCount}'),
               _AnalyticsRow(
-                  label: l10n.revenue,
-                  value: '${analytics.revenueMad.toStringAsFixed(2)} MAD'),
+                  label: l10n.contactClicksLabel,
+                  value: '${analytics.contactClickCount}'),
               _AnalyticsRow(
-                  label: l10n.averageOrder,
-                  value: '${analytics.averageOrderMad.toStringAsFixed(2)} MAD'),
+                  label: l10n.averageResponse,
+                  value: l10n.avgResponseMinutes(analytics.avgResponseMinutes)),
+              _AnalyticsRow(
+                  label: l10n.followers,
+                  value: '${analytics.followerEstimate}'),
               _AnalyticsRow(
                   label: l10n.reviews, value: '${analytics.reviewCount}'),
               _AnalyticsRow(

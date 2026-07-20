@@ -15,7 +15,6 @@ import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
-import '../../l10n/strings/app_strings.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
@@ -27,10 +26,12 @@ class SellerRegistrationScreen extends ConsumerStatefulWidget {
   const SellerRegistrationScreen({super.key});
 
   @override
-  ConsumerState<SellerRegistrationScreen> createState() => _SellerRegistrationScreenState();
+  ConsumerState<SellerRegistrationScreen> createState() =>
+      _SellerRegistrationScreenState();
 }
 
-class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScreen> {
+class _SellerRegistrationScreenState
+    extends ConsumerState<SellerRegistrationScreen> {
   static const _totalSteps = 5;
   int _step = 1;
   bool _loading = false;
@@ -94,7 +95,8 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
   }
 
   Future<void> _pickImage(void Function(XFile) setter) async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1200);
+    final image = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, maxWidth: 1200);
     if (image != null) setState(() => setter(image));
   }
 
@@ -106,7 +108,8 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
             _emailController.text.trim().isNotEmpty &&
             _passwordController.text.length >= 8;
       case 2:
-        return _addressController.text.trim().isNotEmpty && _phoneController.text.trim().isNotEmpty;
+        return _addressController.text.trim().isNotEmpty &&
+            _phoneController.text.trim().isNotEmpty;
       case 3:
         return _descriptionController.text.trim().isNotEmpty;
       case 4:
@@ -119,7 +122,8 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
   void _next() {
     final l10n = context.l10n;
     if (!_validateStep()) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
       return;
     }
     if (_step < _totalSteps) {
@@ -220,7 +224,8 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException('App storage is not ready. Please restart the app.');
+          throw ApiException(
+              'App storage is not ready. Please restart the app.');
         }
 
         final userSession = UserSession(
@@ -242,10 +247,12 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       });
     } on ApiException catch (e) {
       if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: e.message);
     } catch (e) {
       if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -259,17 +266,13 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       onBack: _back,
       progressStep: _step,
       progressTotal: _totalSteps,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _buildStep(l10n),
-      ),
       bottom: Column(
         children: [
           if (!AppConfig.isProduction) ...[
-            Text(
+            const Text(
               'API: ${AppConfig.apiBaseUrl}',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(fontSize: 11, color: Colors.grey),
             ),
             const SizedBox(height: AppSpacing.sm),
           ],
@@ -278,8 +281,13 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
             onPressed: _next,
             isLoading: _loading,
           ),
-          if (_step < _totalSteps) SecondaryTextButton(label: l10n.back, onPressed: _back),
+          if (_step < _totalSteps)
+            SecondaryTextButton(label: l10n.back, onPressed: _back),
         ],
+      ),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _buildStep(l10n),
       ),
     );
   }
@@ -299,15 +307,30 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       key: const ValueKey(1),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppScreenHeader(title: l10n.sellerStep1Title, subtitle: l10n.sellerStep1Subtitle),
+        AppScreenHeader(
+            title: l10n.sellerStep1Title, subtitle: l10n.sellerStep1Subtitle),
         const SizedBox(height: AppSpacing.xl),
-        AppTextField(label: l10n.businessName, controller: _businessNameController, hint: l10n.businessNameHint),
+        AppTextField(
+            label: l10n.businessName,
+            controller: _businessNameController,
+            hint: l10n.businessNameHint),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: l10n.ownerName, controller: _ownerNameController, hint: l10n.ownerNameHint),
+        AppTextField(
+            label: l10n.ownerName,
+            controller: _ownerNameController,
+            hint: l10n.ownerNameHint),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: l10n.email, controller: _emailController, hint: l10n.emailHint, keyboardType: TextInputType.emailAddress),
+        AppTextField(
+            label: l10n.email,
+            controller: _emailController,
+            hint: l10n.emailHint,
+            keyboardType: TextInputType.emailAddress),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: l10n.password, controller: _passwordController, hint: l10n.passwordHint, obscureText: true),
+        AppTextField(
+            label: l10n.password,
+            controller: _passwordController,
+            hint: l10n.passwordHint,
+            obscureText: true),
       ],
     );
   }
@@ -317,7 +340,8 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       key: const ValueKey(2),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppScreenHeader(title: l10n.sellerStep2Title, subtitle: l10n.sellerStep2Subtitle),
+        AppScreenHeader(
+            title: l10n.sellerStep2Title, subtitle: l10n.sellerStep2Subtitle),
         const SizedBox(height: AppSpacing.xl),
         AppTextField(
           label: l10n.businessCategory,
@@ -329,7 +353,9 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
               context: context,
               builder: (ctx) => ListView(
                 children: _categories
-                    .map((c) => ListTile(title: Text(l10n.categoryLabel(c)), onTap: () => Navigator.pop(ctx, c)))
+                    .map((c) => ListTile(
+                        title: Text(l10n.categoryLabel(c)),
+                        onTap: () => Navigator.pop(ctx, c)))
                     .toList(),
               ),
             );
@@ -346,7 +372,10 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
             final selected = await showModalBottomSheet<String>(
               context: context,
               builder: (ctx) => ListView(
-                children: AppConfig.moroccanCities.map((c) => ListTile(title: Text(c), onTap: () => Navigator.pop(ctx, c))).toList(),
+                children: AppConfig.moroccanCities
+                    .map((c) => ListTile(
+                        title: Text(c), onTap: () => Navigator.pop(ctx, c)))
+                    .toList(),
               ),
             );
             if (selected != null) {
@@ -358,9 +387,16 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: l10n.fullAddress, controller: _addressController, hint: l10n.addressHint),
+        AppTextField(
+            label: l10n.fullAddress,
+            controller: _addressController,
+            hint: l10n.addressHint),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(label: l10n.phoneNumber, controller: _phoneController, hint: l10n.phoneHint, keyboardType: TextInputType.phone),
+        AppTextField(
+            label: l10n.phoneNumber,
+            controller: _phoneController,
+            hint: l10n.phoneHint,
+            keyboardType: TextInputType.phone),
         const SizedBox(height: AppSpacing.md),
         StoreLocationPickerTile(
           label: l10n.storeLocation,
@@ -377,19 +413,38 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       key: const ValueKey(3),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppScreenHeader(title: l10n.sellerStep3Title, subtitle: l10n.sellerStep3Subtitle),
+        AppScreenHeader(
+            title: l10n.sellerStep3Title, subtitle: l10n.sellerStep3Subtitle),
         const SizedBox(height: AppSpacing.xl),
-        AppTextField(label: l10n.businessDescription, controller: _descriptionController, hint: l10n.descriptionHint, maxLines: 4),
+        AppTextField(
+            label: l10n.businessDescription,
+            controller: _descriptionController,
+            hint: l10n.descriptionHint,
+            maxLines: 4),
         const SizedBox(height: AppSpacing.md),
         Row(
           children: [
-            Expanded(child: _ImagePickerBox(label: l10n.businessLogo, file: _logoImage, onTap: () => _pickImage((f) => _logoImage = f), height: 100)),
+            Expanded(
+                child: _ImagePickerBox(
+                    label: l10n.businessLogo,
+                    file: _logoImage,
+                    onTap: () => _pickImage((f) => _logoImage = f),
+                    height: 100)),
             const SizedBox(width: AppSpacing.md),
-            Expanded(child: _ImagePickerBox(label: l10n.coverPhoto, file: _coverImage, onTap: () => _pickImage((f) => _coverImage = f), height: 100)),
+            Expanded(
+                child: _ImagePickerBox(
+                    label: l10n.coverPhoto,
+                    file: _coverImage,
+                    onTap: () => _pickImage((f) => _coverImage = f),
+                    height: 100)),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text(l10n.openingHours, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+        Text(l10n.openingHours,
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall
+                ?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: 8,
@@ -405,9 +460,17 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
         const SizedBox(height: AppSpacing.md),
         Row(
           children: [
-            Expanded(child: _TimePickerTile(label: l10n.opens, time: _openTime, onPick: (t) => setState(() => _openTime = t))),
+            Expanded(
+                child: _TimePickerTile(
+                    label: l10n.opens,
+                    time: _openTime,
+                    onPick: (t) => setState(() => _openTime = t))),
             const SizedBox(width: AppSpacing.md),
-            Expanded(child: _TimePickerTile(label: l10n.closes, time: _closeTime, onPick: (t) => setState(() => _closeTime = t))),
+            Expanded(
+                child: _TimePickerTile(
+                    label: l10n.closes,
+                    time: _closeTime,
+                    onPick: (t) => setState(() => _closeTime = t))),
           ],
         ),
       ],
@@ -419,7 +482,8 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
       key: const ValueKey(4),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppScreenHeader(title: l10n.sellerStep4Title, subtitle: l10n.sellerStep4Subtitle),
+        AppScreenHeader(
+            title: l10n.sellerStep4Title, subtitle: l10n.sellerStep4Subtitle),
         const SizedBox(height: AppSpacing.xl),
         ..._products.asMap().entries.map((entry) {
           final index = entry.key;
@@ -430,13 +494,30 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 children: [
-                  _ImagePickerBox(label: l10n.productImage, file: product.image, onTap: () => _pickImage((f) => setState(() => product.image = f)), height: 120),
+                  _ImagePickerBox(
+                      label: l10n.productImage,
+                      file: product.image,
+                      onTap: () =>
+                          _pickImage((f) => setState(() => product.image = f)),
+                      height: 120),
                   const SizedBox(height: AppSpacing.md),
-                  AppTextField(label: l10n.name, controller: product.nameController, hint: l10n.productNameHint),
+                  AppTextField(
+                      label: l10n.name,
+                      controller: product.nameController,
+                      hint: l10n.productNameHint),
                   const SizedBox(height: AppSpacing.sm),
-                  AppTextField(label: l10n.description, controller: product.descriptionController, hint: l10n.productDescriptionHint, maxLines: 2),
+                  AppTextField(
+                      label: l10n.description,
+                      controller: product.descriptionController,
+                      hint: l10n.productDescriptionHint,
+                      maxLines: 2),
                   const SizedBox(height: AppSpacing.sm),
-                  AppTextField(label: l10n.priceOptional, controller: product.priceController, hint: l10n.priceHint, keyboardType: const TextInputType.numberWithOptions(decimal: true)),
+                  AppTextField(
+                      label: l10n.priceOptional,
+                      controller: product.priceController,
+                      hint: l10n.priceHint,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true)),
                   if (_products.length > 1)
                     Align(
                       alignment: Alignment.centerRight,
@@ -445,7 +526,8 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
                           product.dispose();
                           _products.removeAt(index);
                         }),
-                        child: Text(l10n.remove, style: const TextStyle(color: AppColors.danger)),
+                        child: Text(l10n.remove,
+                            style: const TextStyle(color: AppColors.danger)),
                       ),
                     ),
                 ],
@@ -463,12 +545,14 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
   }
 
   Widget _buildStep5(AppStrings l10n) {
-    final productCount = _products.where((p) => p.nameController.text.isNotEmpty).length;
+    final productCount =
+        _products.where((p) => p.nameController.text.isNotEmpty).length;
     return Column(
       key: const ValueKey(5),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppScreenHeader(title: l10n.sellerStep5Title, subtitle: l10n.sellerStep5Subtitle),
+        AppScreenHeader(
+            title: l10n.sellerStep5Title, subtitle: l10n.sellerStep5Subtitle),
         const SizedBox(height: AppSpacing.xl),
         _ReviewRow(l10n.reviewBusiness, _businessNameController.text),
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
@@ -489,7 +573,9 @@ class _SellerRegistrationScreenState extends ConsumerState<SellerRegistrationScr
             children: [
               const Icon(Icons.info_outline, color: AppColors.primary),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: Text(l10n.sellerVisibilityNote(_city), style: Theme.of(context).textTheme.bodySmall)),
+              Expanded(
+                  child: Text(l10n.sellerVisibilityNote(_city),
+                      style: Theme.of(context).textTheme.bodySmall)),
             ],
           ),
         ),
@@ -511,8 +597,13 @@ class _ReviewRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 100, child: Text(label, style: const TextStyle(color: AppColors.textSecondary))),
-          Expanded(child: Text(value.isEmpty ? '—' : value, style: const TextStyle(fontWeight: FontWeight.w500))),
+          SizedBox(
+              width: 100,
+              child: Text(label,
+                  style: const TextStyle(color: AppColors.textSecondary))),
+          Expanded(
+              child: Text(value.isEmpty ? '—' : value,
+                  style: const TextStyle(fontWeight: FontWeight.w500))),
         ],
       ),
     );
@@ -520,7 +611,8 @@ class _ReviewRow extends StatelessWidget {
 }
 
 class _ImagePickerBox extends StatelessWidget {
-  const _ImagePickerBox({required this.label, required this.onTap, this.file, this.height = 120});
+  const _ImagePickerBox(
+      {required this.label, required this.onTap, this.file, this.height = 120});
 
   final String label;
   final VoidCallback onTap;
@@ -532,7 +624,11 @@ class _ImagePickerBox extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
+        Text(label,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: AppColors.textSecondary)),
         const SizedBox(height: AppSpacing.sm),
         InkWell(
           onTap: onTap,
@@ -553,9 +649,12 @@ class _ImagePickerBox extends StatelessWidget {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.add_photo_alternate_outlined, color: AppColors.textSecondary),
+                      const Icon(Icons.add_photo_alternate_outlined,
+                          color: AppColors.textSecondary),
                       const SizedBox(height: 4),
-                      Text(context.l10n.upload, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text(context.l10n.upload,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
                     ],
                   ),
           ),
@@ -566,7 +665,8 @@ class _ImagePickerBox extends StatelessWidget {
 }
 
 class _TimePickerTile extends StatelessWidget {
-  const _TimePickerTile({required this.label, required this.time, required this.onPick});
+  const _TimePickerTile(
+      {required this.label, required this.time, required this.onPick});
 
   final String label;
   final TimeOfDay time;
@@ -576,7 +676,8 @@ class _TimePickerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        final picked = await showTimePicker(context: context, initialTime: time);
+        final picked =
+            await showTimePicker(context: context, initialTime: time);
         if (picked != null) onPick(picked);
       },
       borderRadius: BorderRadius.circular(AppSpacing.inputRadius),

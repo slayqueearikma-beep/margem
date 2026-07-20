@@ -182,7 +182,7 @@ class AppStringsEn extends AppStrings {
   String welcomeSeller(String name) => 'Welcome, $name 👋';
   @override
   String get manageStoreSubtitle =>
-      'Manage your store, products, and customer reviews.';
+      'Manage your profile, catalog, inquiries, and reviews.';
   @override
   String get profileViews => 'Profile views';
   @override
@@ -205,13 +205,15 @@ class AppStringsEn extends AppStrings {
   @override
   String get profileManagementSub => 'Update business info, hours, and photos';
   @override
-  String get orders => 'Orders';
+  String get orders => 'Inquiries';
   @override
-  String get ordersSub => 'Track and manage customer orders';
+  String get ordersSub => 'Review customer inquiries and contact activity';
   @override
   String get messages => 'Messages';
   @override
   String get messagesSub => 'Chat with buyers directly';
+  @override
+  String get inquiriesSub => 'See interested customers and response signals';
   @override
   String get profileViewsTrend => '+12% this week';
   @override
@@ -278,7 +280,7 @@ class AppStringsEn extends AppStrings {
   String get noNotifications => 'No new notifications';
   @override
   String get notificationsSubtitle =>
-      'Orders, messages, premium, and account updates appear here.';
+      'Inquiries, messages, premium, and account updates appear here.';
   @override
   String get appearance => 'Appearance';
   @override
@@ -441,62 +443,89 @@ class AppStringsEn extends AppStrings {
   String get guestMode => 'Guest mode';
   @override
   String get guestModeSubtitle =>
-      'Browse freely and keep a local cart. Sign in to checkout, save wishlist items, and view orders.';
+      'Browse freely and save favorites on this device. Sign in to sync them to your account.';
   @override
-  String get cart => 'Cart';
+  String get cart => 'Favorites';
   @override
-  String get checkout => 'Checkout';
+  String get checkout => 'Contact seller';
   @override
-  String get wishlist => 'Wishlist';
+  String get wishlist => 'Favorites';
+  @override
+  String get favorites => 'Favorites';
   @override
   String get premium => 'Premium';
   @override
   String get guestCartSignInHint =>
-      'Your cart is saved on this device. Sign in to checkout and sync it to your account.';
+      'Your favorites are saved on this device. Sign in to sync them to your account.';
   @override
-  String get signInToCheckout => 'Sign in to checkout';
+  String get signInToCheckout => 'Sign in to contact sellers';
   @override
   String get subtotal => 'Subtotal';
   @override
-  String get emptyCart => 'Your cart is empty';
+  String get emptyCart => 'No favorites yet';
   @override
   String get emptyCartSubtitle =>
-      'Add products from local sellers and they will appear here.';
+      'Save local products you like and they will appear here.';
   @override
   String get browseProducts => 'Browse products';
   @override
-  String get addToCart => 'Add to cart';
+  String get addToCart => 'Contact seller';
   @override
-  String get addToWishlist => 'Add to wishlist';
+  String get addToWishlist => 'Save favorite';
   @override
-  String get addedToCart => 'Added to cart';
+  String get addedToCart => 'Contact saved';
   @override
-  String get addedToWishlist => 'Added to wishlist';
+  String get addedToWishlist => 'Added to favorites';
+  @override
+  String get addToFavorites => 'Save favorite';
+  @override
+  String get addedToFavorites => 'Added to favorites';
   @override
   String get priceOnRequest => 'Price on request';
   @override
-  String get orderSummary => 'Order summary';
+  String get priceNegotiable => 'Price negotiable';
   @override
-  String get deliveryDetails => 'Delivery details';
+  String get acceptedPaymentMethods => 'Accepted payment methods';
+  @override
+  String get contactSeller => 'Contact seller';
+  @override
+  String get callSeller => 'Call';
+  @override
+  String get whatsapp => 'WhatsApp';
+  @override
+  String get deliveryOptionsLabel => 'Delivery & meetup';
+  @override
+  String get followBusiness => 'Follow business';
+  @override
+  String responseTimeLabel(int minutes) => 'Typical reply in ~$minutes min';
+  @override
+  String nowFollowing(String businessName) => 'Following $businessName';
+  @override
+  String contactRecorded(String sellerName) =>
+      'Contact request recorded for $sellerName';
+  @override
+  String get orderSummary => 'Inquiry summary';
+  @override
+  String get deliveryDetails => 'Contact details';
   @override
   String get recipientName => 'Recipient name';
   @override
   String get requiredField => 'Required';
   @override
-  String get deliveryAddress => 'Delivery address';
+  String get deliveryAddress => 'Preferred meeting address';
   @override
-  String get orderNoteOptional => 'Order note (optional)';
+  String get orderNoteOptional => 'Inquiry note (optional)';
   @override
-  String get placingOrder => 'Placing order...';
+  String get placingOrder => 'Sending inquiry...';
   @override
-  String get placeOrder => 'Place order';
+  String get placeOrder => 'Send inquiry';
   @override
-  String get noOrdersYet => 'No orders yet';
+  String get noOrdersYet => 'No inquiries yet';
   @override
   String get noOrdersYetSubtitle =>
-      'Your purchases from local sellers will appear here.';
+      'Your seller conversations and contact history will appear here.';
   @override
-  String orderNumber(String id) => 'Order #$id';
+  String orderNumber(String id) => 'Inquiry #$id';
   @override
   String get orderStatusPending => 'Pending';
   @override
@@ -510,28 +539,33 @@ class AppStringsEn extends AppStrings {
   @override
   String get orderStatusRejected => 'Rejected';
   @override
-  String get orderDetails => 'Order details';
+  String get orderDetails => 'Inquiry details';
   @override
-  String get deliveryFee => 'Delivery fee';
+  String get deliveryFee => 'Contact fee';
   @override
   String get total => 'Total';
   @override
-  String get paymentMethod => 'Payment method';
+  String get paymentMethod => 'Payment accepted';
   @override
   String get items => 'Items';
   @override
-  String get orderNote => 'Order note';
+  String get orderNote => 'Inquiry note';
   @override
   String get sellerNote => 'Seller note';
   @override
-  String get cancelOrder => 'Cancel order';
+  String get cancelOrder => 'Cancel inquiry';
   @override
   String get cancelOrderConfirm =>
-      'Cancel this order? The seller will be notified.';
+      'Cancel this inquiry? The seller will be notified.';
   @override
-  String get emptyWishlist => 'Your wishlist is empty';
+  String get emptyWishlist => 'No favorites yet';
   @override
   String get emptyWishlistSubtitle =>
+      'Save products you like and come back to them later.';
+  @override
+  String get emptyFavorites => 'No favorites yet';
+  @override
+  String get emptyFavoritesSubtitle =>
       'Save products you like and come back to them later.';
   @override
   String get premiumActivated => 'Premium activated';
@@ -541,7 +575,7 @@ class AppStringsEn extends AppStrings {
   String get premiumTitle => 'Grow with MarGem Premium';
   @override
   String get premiumSubtitle =>
-      'Unlock stronger visibility, seller tools, and commerce features.';
+      'Unlock stronger visibility, discovery tools, and profile insights.';
   @override
   String activePlan(String name) => 'Active plan: $name';
   @override
@@ -553,10 +587,15 @@ class AppStringsEn extends AppStrings {
   @override
   String get subscribe => 'Subscribe';
   @override
-  String get noSellerOrders => 'No customer orders yet';
+  String get noSellerOrders => 'No inquiries yet';
   @override
   String get noSellerOrdersSubtitle =>
-      'New orders placed by buyers will appear here.';
+      'New buyer inquiries and contact events will appear here.';
+  @override
+  String get noInquiriesYet => 'No inquiries yet';
+  @override
+  String get noInquiriesYetSubtitle =>
+      'When customers call, message, or save your business, activity appears in analytics.';
   @override
   String get acceptOrder => 'Accept';
   @override
@@ -595,22 +634,28 @@ class AppStringsEn extends AppStrings {
   String get passwordResetComplete =>
       'Password reset complete. You can now log in.';
   @override
-  String get revenue => 'Revenue';
+  String get revenue => 'Discovery activity';
   @override
-  String pendingOrders(int count) => '$count pending';
+  String pendingOrders(int count) => '$count pending inquiries';
   @override
-  String completedOrders(int count) => '$count completed';
+  String completedOrders(int count) => '$count resolved inquiries';
+  @override
+  String contactClicks(int count) => '$count contact clicks';
+  @override
+  String avgResponseMinutes(int minutes) =>
+      minutes <= 0 ? 'No response data' : '${minutes}m avg response';
   @override
   String get analytics => 'Analytics';
   @override
-  String get analyticsSub => 'View orders, revenue, and profile performance';
+  String get analyticsSub =>
+      'View inquiries, favorites, contacts, and profile performance';
   @override
-  String analyticsSummary(String revenue, String average) =>
-      '$revenue MAD revenue · $average MAD avg order';
+  String analyticsSummary(int profileViews, int contactClicks) =>
+      '$profileViews views · $contactClicks contact clicks';
   @override
   String get premiumActiveSub => 'Your premium plan is active';
   @override
-  String get premiumUpgradeSub => 'Upgrade visibility and selling tools';
+  String get premiumUpgradeSub => 'Upgrade visibility and discovery tools';
   @override
   String get loading => 'Loading...';
   @override
@@ -618,7 +663,13 @@ class AppStringsEn extends AppStrings {
   @override
   String get completed => 'Completed';
   @override
-  String get averageOrder => 'Average order';
+  String get averageOrder => 'Average response';
+  @override
+  String get contactClicksLabel => 'Contact clicks';
+  @override
+  String get averageResponse => 'Average response';
+  @override
+  String get followers => 'Followers';
   @override
   String get verification => 'Verification';
   @override

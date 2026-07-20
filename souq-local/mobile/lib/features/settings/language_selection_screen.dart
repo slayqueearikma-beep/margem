@@ -9,7 +9,6 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/app_logo_placeholder.dart';
 import '../../l10n/app_localizations.dart';
-import '../../l10n/strings/app_strings.dart';
 
 class LanguageOption {
   const LanguageOption({
@@ -29,10 +28,12 @@ class LanguageSelectionScreen extends ConsumerStatefulWidget {
   final bool fromSettings;
 
   @override
-  ConsumerState<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
+  ConsumerState<LanguageSelectionScreen> createState() =>
+      _LanguageSelectionScreenState();
 }
 
-class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScreen> {
+class _LanguageSelectionScreenState
+    extends ConsumerState<LanguageSelectionScreen> {
   String _selected = 'en';
 
   @override
@@ -85,23 +86,31 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
               ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenHorizontal),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (!widget.fromSettings) const SizedBox(height: AppSpacing.md),
-                    const Center(child: AppBrandLogo(variant: AppBrandLogoVariant.full, width: 200)),
+                    if (!widget.fromSettings)
+                      const SizedBox(height: AppSpacing.md),
+                    const Center(
+                        child: AppBrandLogo(
+                            variant: AppBrandLogoVariant.full, width: 200)),
                     const SizedBox(height: AppSpacing.lg),
                     Text(
                       l10n.selectLanguage,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       l10n.selectLanguageSubtitle,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary, height: 1.4),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary, height: 1.4),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     ..._options(l10n).map((option) => _LanguageCard(
@@ -129,7 +138,8 @@ class _LanguageSelectionScreenState extends ConsumerState<LanguageSelectionScree
                   AppSpacing.screenHorizontal,
                   AppSpacing.lg,
                 ),
-                child: PrimaryButton(label: l10n.continueLabel, onPressed: _continue),
+                child: PrimaryButton(
+                    label: l10n.continueLabel, onPressed: _continue),
               ),
           ],
         ),
@@ -159,18 +169,23 @@ class _LanguageCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Material(
         color: selected
-            ? (isDark ? AppColors.primary.withValues(alpha: 0.15) : AppColors.cardSelected)
+            ? (isDark
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : AppColors.cardSelected)
             : (isDark ? AppColors.darkCard : AppColors.cardUnselected),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
               border: Border.all(
-                color: selected ? AppColors.primary : (isDark ? AppColors.darkBorder : AppColors.border),
+                color: selected
+                    ? AppColors.primary
+                    : (isDark ? AppColors.darkBorder : AppColors.border),
                 width: selected ? 2 : 1,
               ),
             ),
@@ -179,7 +194,9 @@ class _LanguageCard extends StatelessWidget {
                 Text(flag, style: const TextStyle(fontSize: 28)),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: Text(label, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                  child: Text(label,
+                      style: const TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.w600)),
                 ),
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -187,10 +204,14 @@ class _LanguageCard extends StatelessWidget {
                   height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: selected ? AppColors.primary : AppColors.border, width: 2),
+                    border: Border.all(
+                        color: selected ? AppColors.primary : AppColors.border,
+                        width: 2),
                     color: selected ? AppColors.primary : Colors.transparent,
                   ),
-                  child: selected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                  child: selected
+                      ? const Icon(Icons.check, size: 14, color: Colors.white)
+                      : null,
                 ),
               ],
             ),

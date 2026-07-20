@@ -40,23 +40,6 @@ class UserRole(str, enum.Enum):
     SUPPORT = "support"
 
 
-class OrderStatus(str, enum.Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
-    READY = "ready"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-
-
-class PaymentStatus(str, enum.Enum):
-    PENDING = "pending"
-    PAID = "paid"
-    FAILED = "failed"
-    REFUNDED = "refunded"
-    COD = "cod"
-
-
 class SubscriptionStatus(str, enum.Enum):
     ACTIVE = "active"
     TRIALING = "trialing"
@@ -86,8 +69,6 @@ def _enum(enum_cls: type[enum.Enum], name: str) -> Enum:
 account_type_enum = _enum(AccountType, "accounttype")
 user_status_enum = _enum(UserStatus, "userstatus")
 user_role_enum = _enum(UserRole, "userrole")
-order_status_enum = _enum(OrderStatus, "orderstatus")
-payment_status_enum = _enum(PaymentStatus, "paymentstatus")
 subscription_status_enum = _enum(SubscriptionStatus, "subscriptionstatus")
 verification_status_enum = _enum(VerificationStatus, "verificationstatus")
 
@@ -114,9 +95,7 @@ class User(Base):
     seller_profile: Mapped["SellerProfile | None"] = relationship(back_populates="user", uselist=False)
     reviews_written: Mapped[list["Review"]] = relationship(back_populates="buyer")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    cart_items: Mapped[list["CartItem"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    wishlist_items: Mapped[list["WishlistItem"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    addresses: Mapped[list["BuyerAddress"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    favorites: Mapped[list["Favorite"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     notifications: Mapped[list["Notification"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
@@ -198,6 +177,18 @@ class SellerProfile(Base):
     cover_image_url: Mapped[str] = mapped_column(String(512), default="")
     logo_image_url: Mapped[str] = mapped_column(String(512), default="")
     opening_hours: Mapped[dict] = mapped_column(JSONB, default=dict)
+    website_url: Mapped[str] = mapped_column(String(255), default="")
+    instagram_url: Mapped[str] = mapped_column(String(255), default="")
+    facebook_url: Mapped[str] = mapped_column(String(255), default="")
+    tiktok_url: Mapped[str] = mapped_column(String(255), default="")
+    whatsapp_number: Mapped[str] = mapped_column(String(32), default="")
+    payment_methods: Mapped[list] = mapped_column(JSONB, default=lambda: ["cash"])
+    delivery_methods: Mapped[list] = mapped_column(JSONB, default=lambda: ["in_store"])
+    service_areas: Mapped[list] = mapped_column(JSONB, default=list)
+    avg_response_minutes: Mapped[int] = mapped_column(Integer, default=0)
+    inquiry_count: Mapped[int] = mapped_column(Integer, default=0)
+    favorite_count: Mapped[int] = mapped_column(Integer, default=0)
+    contact_click_count: Mapped[int] = mapped_column(Integer, default=0)
     profile_view_count: Mapped[int] = mapped_column(Integer, default=0)
     achievement_stars: Mapped[int] = mapped_column(Integer, default=0)
     average_rating: Mapped[float] = mapped_column(Float, default=0.0)
@@ -206,8 +197,6 @@ class SellerProfile(Base):
         verification_status_enum, default=VerificationStatus.UNVERIFIED
     )
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
-    total_sales_mad: Mapped[float] = mapped_column(Float, default=0.0)
-    order_count: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -218,8 +207,6 @@ class SellerProfile(Base):
     products: Mapped[list["Product"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
     services: Mapped[list["Service"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
     reviews: Mapped[list["Review"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
-    orders: Mapped[list["Order"]] = relationship(back_populates="seller")
-    coupons: Mapped[list["Coupon"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
 
 
 class Product(Base):
@@ -230,11 +217,19 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String(160))
     description: Mapped[str] = mapped_column(Text, default="")
     price_mad: Mapped[float | None] = mapped_column(Float, nullable=True)
+    price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
+    availability_note: Mapped[str] = mapped_column(String(160), default="")
+    accepted_payment_methods: Mapped[list] = mapped_column(JSONB, default=list)
+    delivery_options: Mapped[list] = mapped_column(JSONB, default=list)
     image_url: Mapped[str] = mapped_column(String(512), default="")
-    stock_quantity: Mapped[int] = mapped_column(Integer, default=100)
-    sku: Mapped[str] = mapped_column(String(64), default="")
+    media_urls: Mapped[list] = mapped_column(JSONB, default=list)
+    video_url: Mapped[str] = mapped_column(String(512), default="")
+    category_slug: Mapped[str] = mapped_column(String(80), default="")
+    stock_quantity: Mapped[int] = mapped_column(Integer, default=1)  # availability hint, not warehouse stock
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_paused: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     seller: Mapped[SellerProfile] = relationship(back_populates="products")
@@ -248,8 +243,11 @@ class Service(Base):
     name: Mapped[str] = mapped_column(String(160))
     description: Mapped[str] = mapped_column(Text, default="")
     price_mad: Mapped[float | None] = mapped_column(Float, nullable=True)
+    price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
+    coverage_areas: Mapped[list] = mapped_column(JSONB, default=list)
     image_url: Mapped[str] = mapped_column(String(512), default="")
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     seller: Mapped[SellerProfile] = relationship(back_populates="services")
@@ -286,100 +284,82 @@ class WarningZone(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
-class BuyerAddress(Base):
-    __tablename__ = "buyer_addresses"
+class Favorite(Base):
+    __tablename__ = "favorites"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    label: Mapped[str] = mapped_column(String(80), default="Home")
-    recipient_name: Mapped[str] = mapped_column(String(120))
-    phone: Mapped[str] = mapped_column(String(32))
-    address_line1: Mapped[str] = mapped_column(String(255))
-    city: Mapped[str] = mapped_column(String(80))
-    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
-    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
-    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
+    product_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    seller_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("seller_profiles.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    user: Mapped[User] = relationship(back_populates="addresses")
+    user: Mapped[User] = relationship(back_populates="favorites")
+    product: Mapped["Product | None"] = relationship()
+    seller: Mapped["SellerProfile | None"] = relationship()
 
 
-class CartItem(Base):
-    __tablename__ = "cart_items"
-    __table_args__ = (UniqueConstraint("user_id", "product_id", name="uq_cart_user_product"),)
+class SellerFollow(Base):
+    __tablename__ = "seller_follows"
+    __table_args__ = (UniqueConstraint("user_id", "seller_id", name="uq_follow_user_seller"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    product_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
     seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id", ondelete="CASCADE"))
-    quantity: Mapped[int] = mapped_column(Integer, default=1)
-    unit_price_mad: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-    user: Mapped[User] = relationship(back_populates="cart_items")
-    product: Mapped[Product] = relationship()
 
 
-class WishlistItem(Base):
-    __tablename__ = "wishlist_items"
-    __table_args__ = (UniqueConstraint("user_id", "product_id", name="uq_wishlist_user_product"),)
+class SavedSearch(Base):
+    __tablename__ = "saved_searches"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    product_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
+    query: Mapped[str] = mapped_column(String(160), default="")
+    city: Mapped[str] = mapped_column(String(80), default="")
+    category: Mapped[str] = mapped_column(String(80), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    user: Mapped[User] = relationship(back_populates="wishlist_items")
-    product: Mapped[Product] = relationship()
 
-
-class Order(Base):
-    __tablename__ = "orders"
+class RecentlyViewed(Base):
+    __tablename__ = "recently_viewed"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    buyer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
-    seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id"), index=True)
-    status: Mapped[OrderStatus] = mapped_column(order_status_enum, default=OrderStatus.PENDING, index=True)
-    subtotal_mad: Mapped[float] = mapped_column(Float)
-    delivery_fee_mad: Mapped[float] = mapped_column(Float, default=0.0)
-    total_mad: Mapped[float] = mapped_column(Float)
-    currency: Mapped[str] = mapped_column(String(8), default="MAD")
-    payment_method: Mapped[str] = mapped_column(String(32), default="cod")
-    payment_status: Mapped[PaymentStatus] = mapped_column(payment_status_enum, default=PaymentStatus.COD)
-    delivery_name: Mapped[str] = mapped_column(String(120), default="")
-    delivery_phone: Mapped[str] = mapped_column(String(32), default="")
-    delivery_address: Mapped[str] = mapped_column(String(255), default="")
-    delivery_city: Mapped[str] = mapped_column(String(80), default="")
-    buyer_note: Mapped[str] = mapped_column(Text, default="")
-    seller_note: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    seller_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("seller_profiles.id", ondelete="CASCADE"), nullable=True
     )
-    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-    seller: Mapped[SellerProfile] = relationship(back_populates="orders")
-    items: Mapped[list["OrderItem"]] = relationship(back_populates="order", cascade="all, delete-orphan")
+    product_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), nullable=True)
+    viewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class OrderItem(Base):
-    __tablename__ = "order_items"
+class Report(Base):
+    __tablename__ = "reports"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), index=True)
-    product_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("products.id"), nullable=True)
-    product_name: Mapped[str] = mapped_column(String(160))
-    quantity: Mapped[int] = mapped_column(Integer)
-    unit_price_mad: Mapped[float] = mapped_column(Float)
-    total_mad: Mapped[float] = mapped_column(Float)
-    image_url: Mapped[str] = mapped_column(String(512), default="")
+    reporter_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    seller_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("seller_profiles.id", ondelete="CASCADE"), nullable=True
+    )
+    product_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), nullable=True)
+    reason: Mapped[str] = mapped_column(String(80))
+    details: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(32), default="open", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    order: Mapped[Order] = relationship(back_populates="items")
+
+class ContactEvent(Base):
+    __tablename__ = "contact_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    channel: Mapped[str] = mapped_column(String(32))  # call|whatsapp|email|message|website|sms
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Conversation(Base):
@@ -421,27 +401,6 @@ class Notification(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="notifications")
-
-
-class Coupon(Base):
-    __tablename__ = "coupons"
-    __table_args__ = (UniqueConstraint("seller_id", "code", name="uq_coupon_seller_code"),)
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id", ondelete="CASCADE"), index=True)
-    code: Mapped[str] = mapped_column(String(40))
-    description: Mapped[str] = mapped_column(String(255), default="")
-    percent_off: Mapped[float | None] = mapped_column(Float, nullable=True)
-    amount_off_mad: Mapped[float | None] = mapped_column(Float, nullable=True)
-    min_order_mad: Mapped[float] = mapped_column(Float, default=0.0)
-    max_uses: Mapped[int] = mapped_column(Integer, default=100)
-    used_count: Mapped[int] = mapped_column(Integer, default=0)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-    seller: Mapped[SellerProfile] = relationship(back_populates="coupons")
 
 
 class SubscriptionPlan(Base):

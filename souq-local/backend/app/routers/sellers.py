@@ -114,7 +114,12 @@ async def list_sellers(
         stmt = stmt.join(SellerProfile.categories).where(Category.slug == category)
 
     result = await session.execute(
-        stmt.order_by(SellerProfile.average_rating.desc()).limit(limit).offset(offset)
+        stmt.order_by(
+            SellerProfile.is_premium.desc(),
+            SellerProfile.average_rating.desc(),
+        )
+        .limit(limit)
+        .offset(offset)
     )
     return list(result.scalars().unique().all())
 
@@ -186,6 +191,14 @@ async def get_my_dashboard(
         average_rating=seller.average_rating,
         achievement_stars=seller.achievement_stars,
         recent_review_count=int(recent_review_count or 0),
+        inquiry_count=int(seller.inquiry_count or 0),
+        favorite_count=int(seller.favorite_count or 0),
+        contact_click_count=int(seller.contact_click_count or 0),
+        avg_response_minutes=int(seller.avg_response_minutes or 0),
+        is_premium=bool(seller.is_premium),
+        verification_status=seller.verification_status.value
+        if hasattr(seller.verification_status, "value")
+        else str(seller.verification_status),
         is_active=seller.is_active,
     )
 
@@ -220,6 +233,14 @@ async def create_seller(
         cover_image_url=cover,
         logo_image_url=logo,
         opening_hours=_opening_hours_dict(payload.opening_hours),
+        website_url=payload.website_url.strip(),
+        instagram_url=payload.instagram_url.strip(),
+        facebook_url=payload.facebook_url.strip(),
+        tiktok_url=payload.tiktok_url.strip(),
+        whatsapp_number=payload.whatsapp_number.strip() or payload.phone.strip(),
+        payment_methods=payload.payment_methods or ["cash"],
+        delivery_methods=payload.delivery_methods or ["in_store"],
+        service_areas=payload.service_areas or [],
         categories=categories,
     )
     session.add(seller)
@@ -356,6 +377,46 @@ async def delete_product(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
     await session.delete(product)
     await session.commit()
+
+
+@router.post(
+    "/{seller_id}/products/{product_id}/duplicate",
+    response_model=ProductOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def duplicate_product(
+    seller_id: UUID,
+    product_id: UUID,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> Product:
+    await _owned_seller(seller_id, user, session)
+    product = await session.get(Product, product_id)
+    if product is None or product.seller_id != seller_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    clone = Product(
+        seller_id=seller_id,
+        name=f"{product.name} (copy)",
+        description=product.description,
+        price_mad=product.price_mad,
+        price_negotiable=product.price_negotiable,
+        availability_note=product.availability_note,
+        accepted_payment_methods=list(product.accepted_payment_methods or []),
+        delivery_options=list(product.delivery_options or []),
+        image_url=product.image_url,
+        media_urls=list(product.media_urls or []),
+        video_url=product.video_url,
+        category_slug=product.category_slug,
+        stock_quantity=product.stock_quantity,
+        is_available=False,
+        is_hidden=True,
+        is_featured=False,
+        is_paused=True,
+    )
+    session.add(clone)
+    await session.commit()
+    await session.refresh(clone)
+    return clone
 
 
 @router.patch("/{seller_id}/services/{service_id}", response_model=ServiceOut)

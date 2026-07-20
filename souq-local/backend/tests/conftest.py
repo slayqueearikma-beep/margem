@@ -35,6 +35,19 @@ async def prepare_database():
     )
 
     async with database.engine.begin() as conn:
+        # Drop legacy ecommerce tables that may still exist from older migrations
+        # before recreating the discovery-platform schema.
+        for table in (
+            "order_items",
+            "orders",
+            "cart_items",
+            "wishlist_items",
+            "buyer_addresses",
+            "coupons",
+        ):
+            await conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
+        await conn.execute(text("DROP TYPE IF EXISTS orderstatus CASCADE"))
+        await conn.execute(text("DROP TYPE IF EXISTS paymentstatus CASCADE"))
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
@@ -45,19 +58,19 @@ async def prepare_database():
                     id=uuid4(),
                     code="buyer_premium",
                     name="MarGem Plus",
-                    description="Exclusive deals",
+                    description="Personalized discovery",
                     price_mad=49,
                     billing_period_days=30,
-                    features=["Exclusive deals", "Priority support"],
+                    features=["Personalized recommendations", "Priority support"],
                 ),
                 SubscriptionPlan(
                     id=uuid4(),
                     code="seller_pro",
                     name="Seller Pro",
-                    description="Seller boost",
+                    description="Seller visibility boost",
                     price_mad=199,
                     billing_period_days=30,
-                    features=["Featured placement", "Analytics"],
+                    features=["Featured placement", "Analytics", "Premium badge"],
                 ),
             ]
         )
@@ -69,15 +82,15 @@ async def prepare_database():
             "admin_audit_logs",
             "subscriptions",
             "subscription_plans",
-            "coupons",
+            "contact_events",
+            "reports",
+            "recently_viewed",
+            "saved_searches",
+            "seller_follows",
+            "favorites",
             "notifications",
             "messages",
             "conversations",
-            "order_items",
-            "orders",
-            "wishlist_items",
-            "cart_items",
-            "buyer_addresses",
             "mfa_factors",
             "auth_tokens",
             "refresh_tokens",

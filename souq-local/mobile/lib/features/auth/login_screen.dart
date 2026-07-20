@@ -12,7 +12,6 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
-import '../cart/cart_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -90,17 +89,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
 
         if (session.user.isBuyer) {
-          final guestItems = guestCartMigrationPayload(storage);
+          final guestItems = guestFavoritesMigrationPayload(storage);
           if (guestItems.isNotEmpty) {
-            await apiServiceProvider.migrateGuestCart(guestItems);
-            await storage.clearGuestCart();
+            await apiServiceProvider.migrateGuestFavorites(guestItems);
+            await storage.clearGuestFavorites();
           }
         }
 
         await storage.saveSession(userSession);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
-        ref.invalidate(cartProvider);
 
         if (!mounted) return;
         context.go(session.user.isSeller ? '/seller/dashboard' : '/buyer/home');

@@ -6,11 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum AccountType { buyer, seller, guest }
 
-class GuestCartItem {
-  const GuestCartItem({
+class GuestFavoriteItem {
+  const GuestFavoriteItem({
     required this.productId,
     required this.sellerId,
-    required this.quantity,
     required this.name,
     required this.price,
     required this.imageUrl,
@@ -19,27 +18,22 @@ class GuestCartItem {
 
   final String productId;
   final String sellerId;
-  final int quantity;
   final String name;
   final double price;
   final String imageUrl;
   final String sellerName;
 
-  double get lineTotal => price * quantity;
-
-  GuestCartItem copyWith({
+  GuestFavoriteItem copyWith({
     String? productId,
     String? sellerId,
-    int? quantity,
     String? name,
     double? price,
     String? imageUrl,
     String? sellerName,
   }) {
-    return GuestCartItem(
+    return GuestFavoriteItem(
       productId: productId ?? this.productId,
       sellerId: sellerId ?? this.sellerId,
-      quantity: quantity ?? this.quantity,
       name: name ?? this.name,
       price: price ?? this.price,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -47,13 +41,12 @@ class GuestCartItem {
     );
   }
 
-  factory GuestCartItem.fromJson(Map<String, dynamic> json) {
-    return GuestCartItem(
+  factory GuestFavoriteItem.fromJson(Map<String, dynamic> json) {
+    return GuestFavoriteItem(
       productId:
           json['productId'] as String? ?? json['product_id'] as String? ?? '',
       sellerId:
           json['sellerId'] as String? ?? json['seller_id'] as String? ?? '',
-      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       name: json['name'] as String? ?? json['product_name'] as String? ?? '',
       price: (json['price'] as num? ??
               json['price_mad'] as num? ??
@@ -70,7 +63,6 @@ class GuestCartItem {
   Map<String, dynamic> toJson() => {
         'productId': productId,
         'sellerId': sellerId,
-        'quantity': quantity,
         'name': name,
         'price': price,
         'imageUrl': imageUrl,
@@ -131,7 +123,8 @@ class AppStorage {
   static const _sellerIdKey = 'seller_id';
   static const _languageCodeKey = 'language_code';
   static const _languageSelectedKey = 'language_selected';
-  static const _guestCartKey = 'guest_cart_items';
+  static const _guestFavoritesKey = 'guest_favorite_items';
+  static const _legacyGuestCartKey = 'guest_cart_items';
 
   bool get isOnboardingComplete =>
       _prefs.getBool(_onboardingCompleteKey) ?? false;
@@ -210,36 +203,39 @@ class AppStorage {
     await _prefs.remove(_sellerIdKey);
   }
 
-  List<GuestCartItem> getGuestCartItems() {
-    final raw = _prefs.getString(_guestCartKey);
+  List<GuestFavoriteItem> getGuestFavoriteItems() {
+    final raw = _prefs.getString(_guestFavoritesKey) ??
+        _prefs.getString(_legacyGuestCartKey);
     if (raw == null || raw.isEmpty) return const [];
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
       return decoded
-          .map((item) => GuestCartItem.fromJson(item as Map<String, dynamic>))
-          .where((item) => item.productId.isNotEmpty && item.quantity > 0)
+          .map((item) =>
+              GuestFavoriteItem.fromJson(item as Map<String, dynamic>))
+          .where((item) => item.productId.isNotEmpty)
           .toList();
     } on Object {
       return const [];
     }
   }
 
-  Future<void> saveGuestCartItems(List<GuestCartItem> items) async {
+  Future<void> saveGuestFavoriteItems(List<GuestFavoriteItem> items) async {
     await _prefs.setString(
-      _guestCartKey,
+      _guestFavoritesKey,
       jsonEncode(items.map((item) => item.toJson()).toList()),
     );
+    await _prefs.remove(_legacyGuestCartKey);
   }
 
-  Future<List<GuestCartItem>> addGuestCartItem(GuestCartItem item) async {
-    final items = [...getGuestCartItems()];
+  Future<List<GuestFavoriteItem>> addGuestFavoriteItem(
+      GuestFavoriteItem item) async {
+    final items = [...getGuestFavoriteItems()];
     final index =
         items.indexWhere((entry) => entry.productId == item.productId);
     if (index == -1) {
-      items.add(item.copyWith(quantity: item.quantity.clamp(1, 99).toInt()));
+      items.add(item);
     } else {
       items[index] = items[index].copyWith(
-        quantity: (items[index].quantity + item.quantity).clamp(1, 99).toInt(),
         name: item.name,
         price: item.price,
         imageUrl: item.imageUrl,
@@ -247,30 +243,23 @@ class AppStorage {
         sellerName: item.sellerName,
       );
     }
-    await saveGuestCartItems(items);
+    await saveGuestFavoriteItems(items);
     return items;
   }
 
-  Future<List<GuestCartItem>> updateGuestCartQuantity(
-      String productId, int quantity) async {
-    final items = getGuestCartItems()
-        .map((item) => item.productId == productId
-            ? item.copyWith(quantity: quantity.clamp(1, 99).toInt())
-            : item)
-        .toList();
-    await saveGuestCartItems(items);
-    return items;
-  }
-
-  Future<List<GuestCartItem>> removeGuestCartItem(String productId) async {
-    final items = getGuestCartItems()
+  Future<List<GuestFavoriteItem>> removeGuestFavoriteItem(
+      String productId) async {
+    final items = getGuestFavoriteItems()
         .where((item) => item.productId != productId)
         .toList();
-    await saveGuestCartItems(items);
+    await saveGuestFavoriteItems(items);
     return items;
   }
 
-  Future<void> clearGuestCart() => _prefs.remove(_guestCartKey);
+  Future<void> clearGuestFavorites() async {
+    await _prefs.remove(_guestFavoritesKey);
+    await _prefs.remove(_legacyGuestCartKey);
+  }
 
   Future<void> resetAll() async {
     await _prefs.clear();
@@ -290,3 +279,13 @@ final appStorageProvider = Provider<AppStorage?>((ref) {
 final userSessionProvider = StateProvider<UserSession?>((ref) {
   return ref.watch(appStorageProvider)?.getSession();
 });
+
+List<Map<String, dynamic>> guestFavoritesMigrationPayload(AppStorage storage) {
+  return storage
+      .getGuestFavoriteItems()
+      .map((item) => {
+            'product_id': item.productId,
+            if (item.sellerId.isNotEmpty) 'seller_id': item.sellerId,
+          })
+      .toList();
+}
