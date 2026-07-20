@@ -71,6 +71,12 @@ async def get_current_user(
 ) -> User:
     user = await _resolve_user_from_credentials(credentials, session, required=True)
     assert user is not None
+    from app.models import UserStatus
+
+    if getattr(user, "status", None) == UserStatus.SUSPENDED:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account suspended")
+    if getattr(user, "status", None) == UserStatus.DELETED:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account deleted")
     return user
 
 
@@ -117,6 +123,14 @@ async def require_buyer(user: User = Depends(get_current_user)) -> User:
 
     if user.account_type != AccountType.BUYER:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Buyer account required")
+    return user
+
+
+async def require_admin(user: User = Depends(get_current_user)) -> User:
+    from app.models import UserRole
+
+    if user.role not in {UserRole.ADMIN, UserRole.SUPPORT}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return user
 
 

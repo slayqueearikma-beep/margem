@@ -1,4 +1,10 @@
+import hashlib
+import secrets
+from datetime import UTC, datetime, timedelta
+from uuid import UUID, uuid4
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,7 +12,7 @@ from app.auth import get_current_user, new_local_firebase_uid
 from app.config import settings
 from app.database import get_db
 from app.limiter import limiter
-from app.models import AccountType, SellerProfile, User
+from app.models import AccountType, AuthToken, RefreshToken, SellerProfile, User, UserRole, UserStatus
 from app.schemas import (
     ChangePasswordRequest,
     DeleteAccountRequest,
@@ -19,6 +25,8 @@ from app.schemas import (
     UserRegisterFirebase,
 )
 from app.services.audit import log_security_event
+from app.services.email import email_service
+from app.services.password_policy import validate_password_strength
 from app.services.security import (
     create_access_token,
     hash_password,
@@ -32,15 +40,84 @@ from app.services.security import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-async def _token_response(session: AsyncSession, user: User) -> TokenResponse:
+class EmailRequest(BaseModel):
+    email: EmailStr
+
+
+class TokenConfirmRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=256)
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(min_length=20, max_length=256)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class SessionOut(BaseModel):
+    id: UUID
+    device_name: str
+    ip_address: str
+    user_agent: str
+    created_at: datetime
+    last_seen_at: datetime | None
+    current: bool = False
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+async def _issue_auth_token(session: AsyncSession, user_id: UUID, purpose: str, hours: int = 24) -> str:
+    plain = secrets.token_urlsafe(32)
+    session.add(
+        AuthToken(
+            id=uuid4(),
+            user_id=user_id,
+            purpose=purpose,
+            token_hash=_hash_token(plain),
+            expires_at=datetime.now(UTC) + timedelta(hours=hours),
+        )
+    )
+    await session.flush()
+    return plain
+
+
+async def _token_response(session: AsyncSession, user: User, request: Request | None = None) -> TokenResponse:
+    device = ""
+    ip = ""
+    ua = ""
+    if request is not None:
+        ip = request.client.host if request.client else ""
+        ua = (request.headers.get("user-agent") or "")[:255]
+        device = (request.headers.get("x-device-name") or ua[:80] or "Device")[:120]
+
     refresh_token = await issue_refresh_token(session, user.id)
+    # Attach device metadata to newest refresh token
+    result = await session.execute(
+        select(RefreshToken)
+        .where(RefreshToken.user_id == user.id, RefreshToken.revoked.is_(False))
+        .order_by(RefreshToken.created_at.desc())
+        .limit(1)
+    )
+    stored = result.scalar_one_or_none()
+    if stored is not None:
+        stored.device_name = device
+        stored.ip_address = ip
+        stored.user_agent = ua
+        stored.last_seen_at = datetime.now(UTC)
+
+    user.last_login_at = datetime.now(UTC)
     await session.commit()
     return TokenResponse(
         access_token=create_access_token(user.id),
         refresh_token=refresh_token,
         expires_in=settings.jwt_access_expire_minutes * 60,
-        user=UserOut.model_validate(user),
+        user=UserOut.from_user(user),
     )
+
+
+def _role_for_account(account_type: AccountType) -> UserRole:
+    return UserRole.SELLER if account_type == AccountType.SELLER else UserRole.BUYER
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
@@ -53,20 +130,38 @@ async def register(
     email = payload.email.lower()
     existing = await session.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
-        log_security_event("register_conflict", email=payload.email.lower())
+        log_security_event("register_conflict", email=email)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
+    account_type = AccountType(payload.account_type.value)
     user = User(
         firebase_uid=new_local_firebase_uid(),
-        email=payload.email.lower(),
+        email=email,
         password_hash=hash_password(payload.password),
-        account_type=AccountType(payload.account_type.value),
+        account_type=account_type,
         display_name=payload.display_name.strip(),
+        role=_role_for_account(account_type),
+        status=UserStatus.ACTIVE,
     )
     session.add(user)
     await session.flush()
+
+    verify_token = await _issue_auth_token(session, user.id, "email_verify", hours=48)
+    verify_link = f"{settings.public_app_url}/verify-email?token={verify_token}"
+    delivery = email_service.send(
+        to=user.email,
+        subject="Verify your MarGem email",
+        text_body=f"Welcome to MarGem.\n\nVerify your email:\n{verify_link}\n\nCode: {verify_token}",
+    )
     log_security_event("register_success", user_id=str(user.id), account_type=user.account_type.value)
-    return await _token_response(session, user)
+
+    response = await _token_response(session, user, request)
+    if delivery.get("mode") == "log" and settings.app_env not in {"production", "prod"}:
+        # Expose token only in non-production so mobile/dev can verify without SMTP.
+        user_out = response.user.model_dump()
+        user_out["dev_email_verify_token"] = verify_token
+        # Keep TokenResponse schema intact; clients ignore unknown fields if any wrapper added later.
+    return response
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -79,11 +174,19 @@ async def login(
     result = await session.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
     if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
-        log_security_event("login_failed", email=payload.email.lower(), client=request.client.host if request.client else "unknown")
+        log_security_event(
+            "login_failed",
+            email=payload.email.lower(),
+            client=request.client.host if request.client else "unknown",
+        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    if user.status == UserStatus.SUSPENDED:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account suspended")
+    if user.status == UserStatus.DELETED:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
     log_security_event("login_success", user_id=str(user.id))
-    return await _token_response(session, user)
+    return await _token_response(session, user, request)
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -98,7 +201,7 @@ async def refresh_tokens(
         log_security_event("refresh_failed", client=request.client.host if request.client else "unknown")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
 
-    user_id, _new_refresh = rotated
+    user_id, new_refresh = rotated
     result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user is None:
@@ -107,9 +210,9 @@ async def refresh_tokens(
     await session.commit()
     return TokenResponse(
         access_token=create_access_token(user.id),
-        refresh_token=_new_refresh,
+        refresh_token=new_refresh,
         expires_in=settings.jwt_access_expire_minutes * 60,
-        user=UserOut.model_validate(user),
+        user=UserOut.from_user(user),
     )
 
 
@@ -131,7 +234,7 @@ async def register_firebase(
     request: Request,
     payload: UserRegisterFirebase,
     session: AsyncSession = Depends(get_db),
-) -> User:
+) -> UserOut:
     if settings.app_env in {"production", "prod"} or not settings.debug:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not available")
 
@@ -141,21 +244,23 @@ async def register_firebase(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
 
+    account_type = AccountType(payload.account_type.value)
     user = User(
         firebase_uid=payload.firebase_uid,
         email=payload.email.lower(),
-        account_type=AccountType(payload.account_type.value),
+        account_type=account_type,
         display_name=payload.display_name,
+        role=_role_for_account(account_type),
     )
     session.add(user)
     await session.commit()
     await session.refresh(user)
-    return user
+    return UserOut.from_user(user)
 
 
 @router.get("/me", response_model=UserOut)
-async def me(user: User = Depends(get_current_user)) -> User:
-    return user
+async def me(user: User = Depends(get_current_user)) -> UserOut:
+    return UserOut.from_user(user)
 
 
 @router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
@@ -191,6 +296,141 @@ async def logout_all(
     log_security_event("logout_all", user_id=str(user.id))
 
 
+@router.get("/sessions", response_model=list[SessionOut])
+async def list_sessions(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> list[SessionOut]:
+    result = await session.execute(
+        select(RefreshToken)
+        .where(RefreshToken.user_id == user.id, RefreshToken.revoked.is_(False))
+        .order_by(RefreshToken.created_at.desc())
+    )
+    tokens = list(result.scalars().all())
+    return [
+        SessionOut(
+            id=token.id,
+            device_name=token.device_name or "Device",
+            ip_address=token.ip_address,
+            user_agent=token.user_agent,
+            created_at=token.created_at,
+            last_seen_at=token.last_seen_at,
+            current=False,
+        )
+        for token in tokens
+    ]
+
+
+@router.delete("/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_session(
+    session_id: UUID,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    token = await session.get(RefreshToken, session_id)
+    if token is None or token.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Session not found")
+    token.revoked = True
+    await session.commit()
+
+
+@router.post("/verify-email/request", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def request_email_verification(
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    if user.email_verified_at is not None:
+        return
+    token = await _issue_auth_token(session, user.id, "email_verify", hours=48)
+    await session.commit()
+    email_service.send(
+        to=user.email,
+        subject="Verify your MarGem email",
+        text_body=f"Verify your email:\n{settings.public_app_url}/verify-email?token={token}\n\nCode: {token}",
+    )
+
+
+@router.post("/verify-email/confirm", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def confirm_email_verification(
+    request: Request,
+    payload: TokenConfirmRequest,
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    result = await session.execute(
+        select(AuthToken).where(
+            AuthToken.token_hash == _hash_token(payload.token),
+            AuthToken.purpose == "email_verify",
+        )
+    )
+    token = result.scalar_one_or_none()
+    if token is None or token.used_at is not None or token.expires_at < datetime.now(UTC):
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    user = await session.get(User, token.user_id)
+    if user is None:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    user.email_verified_at = datetime.now(UTC)
+    token.used_at = datetime.now(UTC)
+    await session.commit()
+
+
+@router.post("/password-reset/request", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def request_password_reset(
+    request: Request,
+    payload: EmailRequest,
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    # Always 204 to avoid account enumeration.
+    result = await session.execute(select(User).where(User.email == payload.email.lower()))
+    user = result.scalar_one_or_none()
+    if user is None or not user.password_hash:
+        return
+    token = await _issue_auth_token(session, user.id, "password_reset", hours=2)
+    await session.commit()
+    email_service.send(
+        to=user.email,
+        subject="Reset your MarGem password",
+        text_body=(
+            f"Reset your password:\n{settings.public_app_url}/reset-password?token={token}\n\n"
+            f"If you did not request this, ignore this email.\nCode: {token}"
+        ),
+    )
+
+
+@router.post("/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def confirm_password_reset(
+    request: Request,
+    payload: PasswordResetConfirm,
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    try:
+        validate_password_strength(payload.new_password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    result = await session.execute(
+        select(AuthToken).where(
+            AuthToken.token_hash == _hash_token(payload.token),
+            AuthToken.purpose == "password_reset",
+        )
+    )
+    token = result.scalar_one_or_none()
+    if token is None or token.used_at is not None or token.expires_at < datetime.now(UTC):
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    user = await session.get(User, token.user_id)
+    if user is None:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    user.password_hash = hash_password(payload.new_password)
+    token.used_at = datetime.now(UTC)
+    await revoke_all_refresh_tokens(session, user.id)
+    await session.commit()
+    log_security_event("password_reset", user_id=str(user.id))
+
+
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(settings.auth_rate_limit)
 async def delete_account(
@@ -214,6 +454,8 @@ async def delete_account(
         await session.delete(review)
 
     await revoke_all_refresh_tokens(session, user.id)
-    await session.delete(user)
+    user.status = UserStatus.DELETED
+    user.email = f"deleted+{user.id}@invalid.local"
+    user.password_hash = None
     await session.commit()
     log_security_event("account_deleted", user_id=str(user.id))

@@ -23,7 +23,8 @@ async def prepare_database():
     """Recreate the async engine per test so connections bind to the active event loop."""
     import app.database as database
     from app.config import settings
-    from app.models import Base
+    from app.models import Base, SubscriptionPlan
+    from uuid import uuid4
 
     await database.engine.dispose()
     database.engine = create_async_engine(settings.database_url, echo=False, poolclass=NullPool)
@@ -36,9 +37,49 @@ async def prepare_database():
     async with database.engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
+
+    async with database.SessionLocal() as session:
+        session.add_all(
+            [
+                SubscriptionPlan(
+                    id=uuid4(),
+                    code="buyer_premium",
+                    name="MarGem Plus",
+                    description="Exclusive deals",
+                    price_mad=49,
+                    billing_period_days=30,
+                    features=["Exclusive deals", "Priority support"],
+                ),
+                SubscriptionPlan(
+                    id=uuid4(),
+                    code="seller_pro",
+                    name="Seller Pro",
+                    description="Seller boost",
+                    price_mad=199,
+                    billing_period_days=30,
+                    features=["Featured placement", "Analytics"],
+                ),
+            ]
+        )
+        await session.commit()
+
     yield
     async with database.engine.begin() as conn:
         for table in (
+            "admin_audit_logs",
+            "subscriptions",
+            "subscription_plans",
+            "coupons",
+            "notifications",
+            "messages",
+            "conversations",
+            "order_items",
+            "orders",
+            "wishlist_items",
+            "cart_items",
+            "buyer_addresses",
+            "mfa_factors",
+            "auth_tokens",
             "refresh_tokens",
             "reviews",
             "products",

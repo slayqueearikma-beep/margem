@@ -2,6 +2,8 @@
 
 Discover Morocco's hidden gems. Buyers find shops and services; sellers get an online presence.
 
+Production marketplace capabilities (cart, checkout, orders, guest mode, premium, admin APIs) are documented in [docs/MARKETPLACE_PRODUCTION.md](docs/MARKETPLACE_PRODUCTION.md).
+
 ## Stack
 
 | Layer | Technology |

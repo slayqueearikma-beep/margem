@@ -42,9 +42,33 @@ class UserOut(BaseModel):
     email: str
     account_type: AccountType
     display_name: str
+    phone: str = ""
+    email_verified: bool = False
+    is_premium: bool = False
+    premium_until: datetime | None = None
+    role: str = "buyer"
+    status: str = "active"
+    mfa_enabled: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @classmethod
+    def from_user(cls, user) -> "UserOut":
+        return cls(
+            id=user.id,
+            email=user.email,
+            account_type=user.account_type,
+            display_name=user.display_name,
+            phone=getattr(user, "phone", "") or "",
+            email_verified=getattr(user, "email_verified_at", None) is not None,
+            is_premium=bool(getattr(user, "is_premium", False)),
+            premium_until=getattr(user, "premium_until", None),
+            role=getattr(user, "role", None).value if getattr(user, "role", None) else "buyer",
+            status=getattr(user, "status", None).value if getattr(user, "status", None) else "active",
+            mfa_enabled=bool(getattr(user, "mfa_enabled", False)),
+            created_at=user.created_at,
+        )
 
 
 class TokenResponse(BaseModel):
@@ -91,6 +115,8 @@ class ProductCreate(BaseModel):
     description: str = ""
     price_mad: float | None = None
     image_url: str = ""
+    stock_quantity: int = Field(default=100, ge=0, le=1_000_000)
+    sku: str = Field(default="", max_length=64)
 
 
 class ProductUpdate(BaseModel):
@@ -99,6 +125,9 @@ class ProductUpdate(BaseModel):
     price_mad: float | None = None
     image_url: str | None = None
     is_available: bool | None = None
+    stock_quantity: int | None = Field(default=None, ge=0, le=1_000_000)
+    sku: str | None = Field(default=None, max_length=64)
+    is_hidden: bool | None = None
 
 
 class ProductOut(BaseModel):
@@ -108,6 +137,9 @@ class ProductOut(BaseModel):
     price_mad: float | None
     image_url: str
     is_available: bool
+    stock_quantity: int = 100
+    sku: str = ""
+    is_hidden: bool = False
 
     model_config = {"from_attributes": True}
 

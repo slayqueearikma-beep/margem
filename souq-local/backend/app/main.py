@@ -16,13 +16,46 @@ from app.logging_config import configure_logging
 from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
-from app.routers import auth, catalog, sellers, uploads
+from app.routers import auth, catalog, commerce, seller_ops, sellers, uploads
 
 configure_logging(json_logs=settings.app_env in {"production", "prod"})
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Ensure premium plans exist after migrations / fresh create_all environments.
+    from sqlalchemy import select
+
+    from app.database import SessionLocal
+    from app.models import SubscriptionPlan
+    from uuid import uuid4
+
+    async with SessionLocal() as session:
+        existing = await session.execute(select(SubscriptionPlan).limit(1))
+        if existing.scalar_one_or_none() is None:
+            session.add_all(
+                [
+                    SubscriptionPlan(
+                        id=uuid4(),
+                        code="buyer_premium",
+                        name="MarGem Plus",
+                        description="Exclusive deals, priority support, unlimited wishlist",
+                        price_mad=49,
+                        billing_period_days=30,
+                        features=["Exclusive deals", "Priority support", "Unlimited wishlist", "Early access"],
+                    ),
+                    SubscriptionPlan(
+                        id=uuid4(),
+                        code="seller_pro",
+                        name="Seller Pro",
+                        description="Boosted visibility, analytics, coupons, featured placement",
+                        price_mad=199,
+                        billing_period_days=30,
+                        features=["Featured placement", "Advanced analytics", "Unlimited coupons", "Priority verification"],
+                    ),
+                ]
+            )
+            await session.commit()
     yield
     await engine.dispose()
 
@@ -61,6 +94,8 @@ app.include_router(auth.router)
 app.include_router(catalog.router)
 app.include_router(sellers.router)
 app.include_router(uploads.router)
+app.include_router(commerce.router)
+app.include_router(seller_ops.router)
 
 
 @app.get("/health")

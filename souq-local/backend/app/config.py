@@ -43,6 +43,15 @@ class Settings(BaseSettings):
     auth_rate_limit: str = "30/minute"
     max_request_body_bytes: int = 1_048_576
 
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "MarGem <noreply@margem.ma>"
+    smtp_use_tls: bool = True
+    public_app_url: str = "https://margem.ma"
+    public_api_url: str = "http://localhost:8000"
+
     default_cities: list[str] = [
         "Casablanca",
         "Rabat",
