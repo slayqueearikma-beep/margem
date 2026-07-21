@@ -970,10 +970,11 @@ class BuyerProfileScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final isGuest = session == null || session.isGuest;
-    final displayName = session?.name.trim().isNotEmpty == true
+    final displayName = (session?.name.trim().isNotEmpty ?? false)
         ? session!.name.trim()
         : l10n.buyerLabel;
-    final subtitle = isGuest ? l10n.guestMode : (session!.email);
+    final email = session?.email ?? '';
+    final subtitle = isGuest ? l10n.guestMode : email;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navProfile)),
