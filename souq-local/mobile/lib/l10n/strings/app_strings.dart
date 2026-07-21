@@ -66,6 +66,7 @@ abstract class AppStrings {
   String get navMap;
   String get navProfile;
   String get navMessages;
+  String get margemMember;
   String get allCategories;
   String get localBusiness;
   String get searchConversations;

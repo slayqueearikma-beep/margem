@@ -842,6 +842,125 @@ class _MiniMapPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+/// Calm, centered profile identity — Apple / Airbnb / Notion inspired.
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({
+    required this.displayName,
+    required this.subtitle,
+    required this.isGuest,
+    this.membershipLabel,
+  });
+
+  final String displayName;
+  final String subtitle;
+  final bool isGuest;
+  final String? membershipLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final initial = displayName.isNotEmpty
+        ? displayName.substring(0, 1).toUpperCase()
+        : '?';
+
+    return Column(
+      children: [
+        const SizedBox(height: AppSpacing.lg),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDark
+                    ? AppColors.darkCard
+                    : AppColors.primary.withValues(alpha: 0.08),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.border,
+                  width: 1,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                initial,
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.5,
+                  color: isDark ? Colors.white : AppColors.primary,
+                ),
+              ),
+            ),
+            if (!isGuest)
+              Positioned(
+                right: 4,
+                bottom: 4,
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      width: 2.5,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md + 4),
+        Text(
+          displayName,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.4,
+                height: 1.15,
+              ),
+        ),
+        if (subtitle.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w400,
+                  height: 1.3,
+                ),
+          ),
+        ],
+        if (membershipLabel != null && membershipLabel!.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm + 2),
+          Text(
+            membershipLabel!,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: AppColors.textTertiary,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.1,
+                ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: isDark ? AppColors.darkBorder : AppColors.border,
+        ),
+      ],
+    );
+  }
+}
+
 /// Full-screen profile accessed from the home avatar.
 class BuyerProfileScreen extends ConsumerWidget {
   const BuyerProfileScreen({super.key});
@@ -851,6 +970,10 @@ class BuyerProfileScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final isGuest = session == null || session.isGuest;
+    final displayName = session?.name.trim().isNotEmpty == true
+        ? session!.name.trim()
+        : l10n.buyerLabel;
+    final subtitle = isGuest ? l10n.guestMode : (session!.email);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navProfile)),
@@ -858,28 +981,13 @@ class BuyerProfileScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
           children: [
-            const SizedBox(height: AppSpacing.md),
-            const Center(
-              child: AppBrandLogo(
-                variant: AppBrandLogoVariant.icon,
-                iconSize: 56,
-              ),
+            _ProfileHeader(
+              displayName: displayName,
+              subtitle: subtitle,
+              isGuest: isGuest,
+              membershipLabel: isGuest ? null : l10n.margemMember,
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              session?.name ?? l10n.buyerLabel,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            Text(
-              isGuest ? l10n.guestMode : (session.email),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
             ListTile(
               leading: const Icon(Icons.favorite_border),
               title: Text(l10n.favorites),

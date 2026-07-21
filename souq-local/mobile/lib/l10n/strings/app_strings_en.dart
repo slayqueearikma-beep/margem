@@ -137,6 +137,8 @@ class AppStringsEn extends AppStrings {
   @override
   String get navMessages => 'Messages';
   @override
+  String get margemMember => 'MarGem member';
+  @override
   String get allCategories => 'All';
   @override
   String get localBusiness => 'Local business';

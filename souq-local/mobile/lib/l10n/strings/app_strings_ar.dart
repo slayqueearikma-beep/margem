@@ -136,6 +136,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get navMessages => 'الرسائل';
   @override
+  String get margemMember => 'عضو MarGem';
+  @override
   String get allCategories => 'الكل';
   @override
   String get localBusiness => 'نشاط محلي';

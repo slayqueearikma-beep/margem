@@ -139,6 +139,8 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get navMessages => 'Messages';
   @override
+  String get margemMember => 'Membre MarGem';
+  @override
   String get allCategories => 'Tous';
   @override
   String get localBusiness => 'Commerce local';
