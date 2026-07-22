@@ -91,7 +91,6 @@ This pass closed: durable public blob URLs, paused-product visibility, media/soc
 
 | Issue | Notes |
 |---|---|
-| Money as Float | Prefer Numeric migration |
 | MFA tables unused | Future |
 | Email verify unused for gating | Optional today |
 | No iOS project | Android-only |
