@@ -36,17 +36,41 @@ def extract_azure_account_key(credential: Any) -> str:
 
 
 async def ensure_blob_container(container_client: Any) -> None:
-    """Create the media container if it does not already exist."""
+    """Create the media container (public blob read) if missing; ensure public read if present.
+
+    Product/profile image URLs are stored permanently in Postgres. Public blob access
+    avoids embedding expiring SAS tokens in those URLs.
+    """
+    from azure.storage.blob import PublicAccess
+
     try:
-        await container_client.create_container()
-        logger.info("created_blob_container name=%s", getattr(container_client, "container_name", "?"))
-    except Exception as exc:  # noqa: BLE001 — Azure raises typed errors; treat exists as success
+        await container_client.create_container(public_access=PublicAccess.Blob)
+        logger.info(
+            "created_blob_container name=%s public_access=blob",
+            getattr(container_client, "container_name", "?"),
+        )
+        return
+    except Exception as exc:  # noqa: BLE001
         message = str(exc).lower()
-        # ContainerAlreadyExists / ResourceExistsError
-        if "containeralreadyexists" in message or "already exists" in message or "409" in message:
-            return
-        # Some clients expose status_code
-        status = getattr(exc, "status_code", None) or getattr(getattr(exc, "response", None), "status_code", None)
-        if status == 409:
-            return
-        raise
+        status = getattr(exc, "status_code", None) or getattr(
+            getattr(exc, "response", None), "status_code", None
+        )
+        if not (
+            status == 409
+            or "containeralreadyexists" in message
+            or "already exists" in message
+        ):
+            raise
+
+    # Container exists — best-effort ensure anonymous blob read for durable URLs.
+    try:
+        await container_client.set_container_access_policy(
+            signed_identifiers={},
+            public_access=PublicAccess.Blob,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "could_not_set_public_blob_access container=%s error=%s",
+            getattr(container_client, "container_name", "?"),
+            type(exc).__name__,
+        )

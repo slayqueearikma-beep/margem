@@ -9,6 +9,7 @@ import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
@@ -59,7 +60,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         if (snapshot.hasError || !snapshot.hasData) {
           return Scaffold(
             appBar: AppBar(),
-            body: Center(child: Text(context.l10n.somethingWentWrong)),
+            body: AsyncErrorView.fromError(
+              snapshot.error ?? Exception(context.l10n.somethingWentWrong),
+              onRetry: () => setState(() {
+                _future = apiServiceProvider.fetchSeller(widget.sellerId);
+              }),
+            ),
           );
         }
 
@@ -144,29 +150,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 label: Text(context.l10n.contactSeller),
               ),
               const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: seller.phone.isEmpty
-                          ? null
-                          : () => _callSeller(seller),
-                      icon: const Icon(Icons.call_outlined),
-                      label: Text(context.l10n.callSeller),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: (seller.whatsappNumber.isEmpty &&
-                              seller.phone.isEmpty)
-                          ? null
-                          : () => _openWhatsapp(seller),
-                      icon: const Icon(Icons.chat_outlined),
-                      label: Text(context.l10n.whatsapp),
-                    ),
-                  ),
-                ],
+              OutlinedButton.icon(
+                onPressed:
+                    seller.phone.isEmpty ? null : () => _callSeller(seller),
+                icon: const Icon(Icons.call_outlined),
+                label: Text(context.l10n.callSeller),
               ),
               const SizedBox(height: AppSpacing.sm),
               OutlinedButton.icon(
@@ -237,22 +225,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${context.l10n.phoneNumber}: ${seller.phone}')),
-      );
-    }
-  }
-
-  Future<void> _openWhatsapp(SellerModel seller) async {
-    await _recordContact(seller, 'whatsapp');
-    final number = (seller.whatsappNumber.isNotEmpty
-            ? seller.whatsappNumber
-            : seller.phone)
-        .replaceAll(RegExp(r'[^0-9]'), '');
-    final uri = Uri.parse('https://wa.me/$number');
-    if (number.isNotEmpty && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${context.l10n.whatsapp}: $number')),
       );
     }
   }

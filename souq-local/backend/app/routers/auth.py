@@ -156,11 +156,8 @@ async def register(
     log_security_event("register_success", user_id=str(user.id), account_type=user.account_type.value)
 
     response = await _token_response(session, user, request)
-    if delivery.get("mode") == "log" and settings.app_env not in {"production", "prod"}:
-        # Expose token only in non-production so mobile/dev can verify without SMTP.
-        user_out = response.user.model_dump()
-        user_out["dev_email_verify_token"] = verify_token
-        # Keep TokenResponse schema intact; clients ignore unknown fields if any wrapper added later.
+    # TokenResponse schema is fixed; verification tokens are delivered by email / logs only.
+    _ = delivery
     return response
 
 

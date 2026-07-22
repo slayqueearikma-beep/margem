@@ -49,6 +49,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     }
 
     await ref.read(authServiceProvider).loadStoredToken();
+    final restored = await ref.read(authServiceProvider).restoreAuthSession();
+    if (restored != null) {
+      ref.read(authSessionProvider.notifier).state = restored;
+    }
 
     if (!storage.isLanguageSelected) {
       if (!mounted) return;

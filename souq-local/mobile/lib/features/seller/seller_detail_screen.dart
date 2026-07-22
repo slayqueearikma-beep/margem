@@ -393,7 +393,13 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                                                 : 'B')),
                                     title: Row(
                                       children: [
-                                        Text(r.buyerDisplayName),
+                                        Expanded(
+                                          child: Text(
+                                            r.buyerDisplayName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
                                         const SizedBox(width: 8),
                                         ...List.generate(
                                             r.rating,

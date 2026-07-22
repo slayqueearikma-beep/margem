@@ -1,48 +1,44 @@
-# MarGem Production Readiness Audit
+# MarGem Production Readiness Audit (Full Engineering Review)
 
 **Date:** 2026-07-22  
 **Branch:** `cursor/production-grade-audit-f384`  
-**Scope:** Entire `souq-local/` discovery platform (FastAPI + Flutter + Postgres + Azure Blob + Compose/Terraform)
-
-This report is based on reading the implemented codebase (routers, models, migrations, mobile screens, Docker, CI, infra). Findings cite concrete files. Automatic fixes from this audit are included on this branch.
+**Scope:** Entire `souq-local/` tree (FastAPI, Flutter, Postgres, Azure Blob, Compose, Terraform/Bicep, CI)  
+**Method:** Recursive source review of all application behavior files; backend + Flutter tests executed; critical findings fixed on this branch.
 
 ---
 
 ## 1. Executive summary
 
-MarGem is a **local discovery / connection platform** (not e-commerce). The repository already implements sellers, listings, search, favorites, follows, messaging, contact events, reviews, uploads, premium *visibility* memberships, and admin user ops.
+MarGem is a **local discovery / connection platform** (not checkout e-commerce). The codebase implements sellers, listings, search/map, favorites, follows, messaging, contact events, reviews, Azure uploads, premium *visibility* memberships (billing gated in prod), and admin ops.
 
-**Deployment Readiness: 72%**
+**Deployment Readiness: 78%**
 
-The app is suitable for a **controlled beta / home-server or budget-VM soft launch** after completing the remaining manual checklist (rotated secrets, SMTP, TLS reverse proxy, billing provider or admin-only premium, Play signing, monitoring). It is **not** yet ready for unattended public production at internet scale: CD/deploy automation, crash reporting, DB backup automation, and paid premium billing are still manual or missing.
+Suitable for a **controlled soft launch / home-server or budget-VM beta** after completing the remaining manual ops checklist (rotated secrets, SMTP, TLS, billing/admin premium grants, backups, crash reporting, Play signing). Not yet unattended internet-scale production (no MarGem CD, no APM wiring, no iOS project, limited automated test depth).
 
-This audit closed several production blockers automatically (free premium self-grant in prod, default JWT rejection, health→503, ProxyHeaders trust, invalid-token→503, email token logging, SAS TTL, media URL validation, report/recently-viewed FK 404s, favorite uniqueness indexes, Docker non-root, session-expiry binding, contact→conversation wiring).
+This pass closed additional production-critical gaps beyond the earlier audit: durable public blob URLs, paused-product visibility, media/social URL allowlisting, premium expiry, message rate limits, DB wait on boot, Android intent queries, HTTPS release enforcement, favorites routing, WhatsApp consistency, messaging UX, SMTP env wiring, and Bicep CORS/`ALLOWED_HOSTS`.
+
+**Verification this revision:** backend **32 passed**; Flutter analyze clean; Flutter tests **5 passed**.
 
 ---
 
-## 2. Deployment readiness percentage
+## 2. Deployment readiness score
 
-### Deployment Readiness: **72%**
+### Deployment Readiness: **78%**
 
 | Category | Score | Evidence |
 |---|---:|---|
-| Architecture | 78 | FastAPI modular routers (`auth`, `catalog`, `sellers`, `discovery`, `seller_ops`, `uploads`); Flutter feature folders; discovery pivot migration `007` |
-| Backend | 82 | Async SQLAlchemy, Alembic through `008`, rate limits, JWT refresh rotation, security headers; prod subscribe gated |
-| Frontend (web) | N/A | No separate web app — Flutter is the client |
-| Mobile | 75 | Buyer/seller flows, messaging, favorites; production HTTPS assert; session bind at app root |
-| Database | 80 | Postgres + Alembic; indexes/uniques in `008`; FK validation on reports/views |
-| Security | 78 | Prod settings validators; non-root Docker; shortened SAS; URL validation; ProxyHeaders scoped |
-| Performance | 70 | Seller/product pagination; conversation/message limits; remaining N+1 in inbox |
-| UX/UI | 72 | Home/Messages redesign present; leftover ecommerce-named l10n keys; seller inquiries routed to messages |
-| Code quality | 76 | Clear layering; some dead `SellerOrdersScreen` retained as redirect; ecommerce wording leftovers |
-| Testing | 62 | **29** backend tests passing; mobile unit/smoke only; no E2E |
-| Documentation | 74 | README + `MARKETPLACE_PRODUCTION.md` + this audit |
-| Deployment | 70 | Compose (dev/home/budget), Dockerfile, CI image build; no MarGem CD to Azure |
-| Monitoring | 45 | Structured access logs + `/live` `/ready` `/health`; no APM/Sentry/alerts |
-| Scalability | 58 | Single-VM budget compose; no Redis/queue/horizontal API story |
-| Reliability | 68 | Healthchecks fail on DB down; mobile upload/API timeouts; backups not automated in-repo |
-
-**Scoring method:** each category weighted equally among applicable rows (Frontend N/A excluded). 72% ≈ soft-launch capable with manual ops; 90%+ would require CD, monitoring, billing provider, backup/restore drills, and broader test coverage.
+| Architecture | 82 | Clear FastAPI routers + Flutter feature modules; discovery pivot complete (`007`) |
+| Backend | 84 | Auth, Alembic→`008`, rate limits, upload hardening, visibility filters, premium expiry |
+| Mobile | 78 | Buyer/seller/messaging flows; Android release HTTPS gate; no iOS tree |
+| UI/UX | 76 | Dashboard overflow fixed; contact CTAs aligned; some ecommerce l10n identifier debt |
+| Security | 82 | Prod validators, URL allowlists, scoped ProxyHeaders, message limits; SUPPORT==ADMIN remains |
+| Performance | 72 | Pagination + indexes; conversation N+1 and unpaged threads remain |
+| Database | 80 | Migrations + uniqueness indexes; Float money; counters improved for views |
+| Testing | 64 | 32 backend tests; thin mobile suite; no E2E; create_all in conftest |
+| Documentation | 76 | This audit + marketplace docs; architecture.md still partially drifted |
+| DevOps | 70 | Compose healthchecks, CI image build; no MarGem CD; App Insights env unused by app |
+| Reliability | 72 | `/live` `/ready`, entrypoint DB wait, upload retry; backups manual |
+| Maintainability | 78 | Layering OK; dead `SellerOrdersScreen`; leftover cart/order string keys |
 
 ---
 
@@ -53,147 +49,156 @@ This audit closed several production blockers automatically (free premium self-g
 | Discovery APIs (no cart/checkout) | Done |
 | Auth register/login/refresh/logout | Done |
 | Seller storefront + listings | Done |
-| Favorites / follows / contact events | Done |
-| In-app messaging | Done |
-| Uploads via Azure SAS | Done (requires Azure conn string in prod) |
-| Alembic migrations | Done through `008` |
-| Prod config validators | Done (JWT default, DEBUG, CORS, hosts, storage) |
-| Free premium self-subscribe in prod | **Blocked** (returns 503) — needs provider/admin |
-| SMTP for password reset | Manual — warn if empty in prod |
-| TLS / HTTPS reverse proxy | Manual |
-| Rotated `JWT_SECRET_KEY` | Manual |
-| DB backups / restore runbook | Manual |
-| Crash reporting (mobile) | Missing |
-| APM / metrics / alerts | Missing |
-| Play Store signing + release pipeline | Manual |
-| CI: backend tests + Flutter + image build | Done (`margem-ci.yml`) |
+| Favorites / follows / contact / messaging | Done |
+| Uploads (Azure, durable public blob URLs) | Done (requires Azure + container) |
+| Public listing hides paused/unavailable | Done |
+| Media + social URL validation | Done |
+| Premium self-subscribe in production | Blocked (503) until billing/admin |
+| Premium expiry on authenticated requests | Done |
+| SMTP wired in home/budget compose | Done (env passthrough) |
+| TLS reverse proxy | Manual |
+| Rotated JWT + Azure secrets | Manual |
+| DB backups automation | Manual |
+| Crash reporting | Missing |
+| APM (App Insights SDK) | Missing (env only on ACA TF) |
+| Play signing / iOS | Manual / missing iOS |
+| CI tests + image build | Done (`margem-ci.yml`) |
 | CD deploy | Missing for MarGem |
 
 ---
 
-## 4. Issues by severity
+## 4. Issues by severity (post-fix state)
 
-### Critical (would block safe public launch)
+### Critical — fixed this audit cycle
 
-| Issue | Path | Impact | Status |
-|---|---|---|---|
-| Free `POST /subscriptions/subscribe/{plan}` granted premium with `provider=manual` | `backend/app/routers/seller_ops.py` | Anyone could self-activate paid visibility | **Fixed** — 503 in production |
-| Default JWT secret accepted if length ≥32 | `backend/app/config.py` | Predictable token forging | **Fixed** — rejects `change-this-secret*` |
-| `/health` returned 200 when DB down | `backend/app/main.py` | Orchestrators marked unhealthy API healthy | **Fixed** — 503 + `/ready` |
-| Invalid JWT fell through to Firebase → 503 | `backend/app/auth.py` | Broken clients / confused ops when Firebase unset | **Fixed** — 401 when Firebase unset |
+| Issue | Path | Fix |
+|---|---|---|
+| Azure `account_key` AttributeError → “Storage unavailable” | `uploads.py`, `azure_storage.py` | Use `named_key.key`; auto-create container |
+| Expiring SAS stored as permanent `image_url` | `uploads.py` | Public-blob container + durable URL without SAS |
+| Paused products visible publicly | `sellers.py` | Filter `is_hidden` / `!is_available` / `is_paused` |
+| Gallery/video URLs bypassed Azure allowlist | `sellers.py` | Validate `media_urls` / `video_url` like `image_url` |
 
-### High
+### High — fixed
 
-| Issue | Path | Impact | Status |
-|---|---|---|---|
-| `ProxyHeadersMiddleware(trusted_hosts="*")` | `backend/app/main.py` | Client IP / scheme spoofing | **Fixed** — uses `ALLOWED_HOSTS` |
-| Email fallback logged full bodies (tokens) | `backend/app/services/email.py` | Secret leakage via logs | **Fixed** — redaction + SMTP try/except |
-| Read SAS ~10 years | `backend/app/routers/uploads.py` | Long-lived signed URLs if leaked | **Fixed** — 90 days |
-| `media_urls` / `video_url` unvalidated | `backend/app/schemas/__init__.py` | XSS/phishing via `javascript:` etc. | **Fixed** — http(s) only |
-| Reports / recently-viewed no target check | `backend/app/routers/discovery.py` | FK integrity errors → 500 | **Fixed** — 404 |
-| Session expiry callback on disposed Splash | `mobile/lib/features/splash/splash_screen.dart` | Stale logout / missed redirect | **Fixed** — bind in `MarGemApp` |
-| Contact seller did not open conversation | `product_detail_screen.dart`, `seller_detail_screen.dart` | Core discovery CTA incomplete | **Fixed** — starts conversation |
-| Dockerfile ran as root | `backend/Dockerfile` | Container escape blast radius | **Fixed** — non-root `margem` |
+| Issue | Path | Fix |
+|---|---|---|
+| Seller website/social unvalidated | `sellers.py` | https-only URL validation |
+| Guest favorite migrate skipped counters | `discovery.py` | Increment `favorite_count` |
+| Messaging under-limited | `seller_ops.py` | 30/min start, 60/min reply |
+| Map only returned 50 pins | `sellers.py` | Map uses max page size |
+| Premium never expired | `auth.py` | Clear flags when `premium_until` past |
+| Entrypoint raced Postgres | `entrypoint.sh` | Wait-for-DB before migrate |
+| `PRODUCTION` HTTPS only via assert | `main.dart` | Throw in release/PRODUCTION |
+| Android could not resolve tel/https | `AndroidManifest.xml` | Package visibility queries |
+| Favorites seller-only routes broken | `wishlist_screen.dart` | Route/remove by seller |
+| Product WhatsApp inconsistent | `product_detail_screen.dart` | Contact + Call only |
+| Bicep CORS `*` | `infra/main.bicep` | Explicit CORS + ALLOWED_HOSTS |
+| SMTP not in compose | `docker-compose.home.yml` / `.budget.yml` | Pass SMTP + PUBLIC_* |
 
-### Medium
+### Medium — remaining / partial
 
-| Issue | Path | Impact | Status |
-|---|---|---|---|
-| Favorites lacked DB uniqueness | migration `008` | Duplicate favorites race | **Fixed** |
-| Message lists unpaginated | `seller_ops.py` | Large inbox memory/CPU | **Fixed** — limit/offset |
-| Budget compose no API healthcheck | `docker-compose.budget.yml` | Silent API death | **Fixed** |
-| Nested `souq-local/.github/workflows` unused | CI at repo root | Confusion | Root `margem-ci.yml` updated + image job |
-| DEBUG openable in prod | `config.py` | OpenAPI exposure | **Fixed** — rejected |
-| Upload no timeout (mobile) | `upload_service.dart` | Hung UI | **Fixed** — 60s + 8MB cap |
-| Search ignored city changes | `search_screen.dart` | Stale results | **Fixed** |
-| Seller inquiries opened analytics only | `seller_dashboard_screen.dart` | Dead-end UX | **Fixed** → `/seller/messages` |
+| Issue | Path | Notes |
+|---|---|---|
+| SUPPORT has full admin | `auth.py` `require_admin` | Split roles before hiring support staff |
+| Body size limit Content-Length only | `request_limits.py` | Chunked bypass risk |
+| Conversation list N+1 | `seller_ops.py` | Scale issue |
+| Money as Float | models | Prefer Numeric |
+| MFA tables unused | models | Future |
+| Email verify unused for gating | auth | Optional today |
+| Nested unused CI workflow | `souq-local/.github/workflows/ci.yml` | Prefer root `margem-ci.yml` |
+| `docs/architecture.md` drift | docs | Discovery rewrite still needed |
+| No iOS project | mobile | Android-only |
+| Ecommerce l10n key names | `app_strings_*.dart` | Remapped text; rename later |
+| Unrouted `SellerOrdersScreen` | mobile | Dead screen |
 
 ### Low
 
-| Issue | Path | Impact | Status |
-|---|---|---|---|
-| Ecommerce-named l10n leftovers (`checkout`, `addToCart`) | `app_strings_*.dart` | Confusing for translators | Partially remapped to contact wording; rename later |
-| `SellerOrdersScreen` placeholder | `seller_orders_screen.dart` | Dead route risk | Redirect CTA to messages |
-| Premium expiry not continuously enforced | models/auth | `is_premium` may linger after period | Remaining manual / follow-up job |
-| Conversation list N+1 queries | `seller_ops.py` | Latency at scale | Remaining |
-| No mobile crash reporting | mobile | Blind production crashes | Remaining |
-| Docs drift (token TTL / ecommerce) | various docs | Operator confusion | This audit + discovery docs |
+Theme not persisted; search autofocus in IndexedStack; category UI uses `nameEn` only; `python-jose` maintenance risk; Dockerfile includes pytest.
 
 ---
 
-## 5. File-by-file findings (high-signal)
+## 5. File-by-file high-signal findings
 
 ### Backend
-- `app/config.py` — prod validators for DEBUG, default JWT, CORS, hosts, storage; SMTP warning
-- `app/main.py` — `/live`, `/ready`, `/health` (503 on DB fail), global handlers, scoped ProxyHeaders
-- `app/auth.py` — Firebase-optional 401 path
-- `app/services/email.py` — redacted logs, SMTP errors caught
-- `app/routers/seller_ops.py` — prod subscribe disabled; conversation/message pagination
-- `app/routers/discovery.py` — target validation; rate limits on reports/contact
-- `app/routers/uploads.py` — 90-day read SAS
-- `app/schemas/__init__.py` — media URL validation
-- `app/models/__init__.py` — favorite/follow index hints
-- `alembic/versions/008_production_hardening.py` — unique favorites + indexes
-- `Dockerfile` + `.dockerignore` — non-root, lean context
+- `app/config.py` — prod gates; strip Azure connection quotes  
+- `app/main.py` — `/live` `/ready` `/health` 503; exception handlers  
+- `app/auth.py` — Firebase-optional 401; premium expiry  
+- `app/routers/uploads.py` — durable public URLs; clearer errors  
+- `app/routers/sellers.py` — visibility, media allowlist, featured gate, city escape, map limit, atomic views  
+- `app/routers/discovery.py` — report/view targets; guest migrate counters  
+- `app/routers/seller_ops.py` — prod subscribe 503; message rate limits  
+- `scripts/entrypoint.sh` — DB wait + migrate  
+- `alembic/versions/008_production_hardening.py` — favorite uniqueness + indexes  
 
 ### Mobile
-- `lib/app.dart` — session bind; `/messages` + `/seller/messages` routes
-- `lib/core/config/app_config.dart` — production HTTPS assert
-- `lib/core/services/upload_service.dart` — timeout + size limit
-- `lib/features/seller/product_detail_screen.dart` — contact → conversation
-- `lib/features/seller/seller_detail_screen.dart` — message CTA
-- `lib/features/search/search_screen.dart` — city listen
-- `lib/features/seller/seller_dashboard_screen.dart` — inquiries → messages
+- `lib/main.dart` — release HTTPS enforcement  
+- `lib/app.dart` — session bind; messages routes  
+- Dashboard / StatCard — overflow-safe  
+- `product_detail_screen.dart` / `seller_detail_screen.dart` — discovery contact CTAs  
+- `wishlist_screen.dart` — seller favorite navigation  
+- `messages_inbox_screen.dart` — send errors + bubble alignment  
+- `splash_screen.dart` — restore `authSession` via `/auth/me`  
+- AndroidManifest — intent queries  
 
 ### DevOps
-- `.github/workflows/margem-ci.yml` — migrations, pytest, Flutter, Docker image build
-- `docker-compose*.yml` — `/ready` healthchecks
+- Compose home/budget — SMTP + PUBLIC_* + `/ready`  
+- `infra/main.bicep` — CORS/hosts  
+- `.github/workflows/margem-ci.yml` — tests + image build  
 
 ---
 
-## 6. Recommended improvements (next)
+## 6. Recommended next improvements
 
-1. Integrate a membership billing provider (or admin-only grant UI) and webhook to replace gated subscribe.
-2. Add Sentry/Firebase Crashlytics + server metrics (Prometheus or Azure Monitor).
-3. Automate Postgres backups and a restore drill; document RPO/RTO.
-4. Put API behind HTTPS reverse proxy; set `PUBLIC_API_URL` to https.
-5. Reduce conversation inbox N+1 (join/subquery for last message + unread).
-6. Expand mobile widget/integration tests for auth, messaging, favorites.
-7. Rename leftover ecommerce l10n keys.
-8. Enforce `premium_until` on request (middleware or dependency) and expire flags via scheduled job.
-9. Prefer public-read blob container or CDN for media instead of long-lived SAS in listing URLs.
+1. Membership billing webhook or admin-only grant UI  
+2. Wire OpenTelemetry/App Insights **or** remove unused ACA env  
+3. Automate Postgres backups + restore drill  
+4. Split SUPPORT vs ADMIN permissions  
+5. Message inbox SQL join for last/unread (kill N+1)  
+6. Expand Flutter widget/integration tests; Alembic upgrade test in CI  
+7. Rewrite `docs/architecture.md` to discovery reality  
+8. Add iOS project or formally document Android-only  
+9. Purge unused cart/order l10n identifiers  
+10. Numeric money columns migration  
 
 ---
 
-## 7. Automatic fixes applied on this branch
+## 7. Automatic fixes applied (this branch)
 
-See sections 4–5. Backend tests: **29 passed** (`PYTHONPATH=. pytest`).
+All Critical/High items in §4 tables marked **Done**, plus earlier audit hardening (JWT default rejection, health 503, ProxyHeaders trust, upload key extraction, dashboard overflow, welcome greeting, etc.).
 
 ---
 
 ## 8. Final deployment checklist
 
-1. Set `APP_ENV=production`, `DEBUG=false`, `AUTH_DEV_BYPASS=false`
-2. Set unique `JWT_SECRET_KEY` (≥32, not the default)
-3. Set `AZURE_STORAGE_CONNECTION_STRING`, `CORS_ORIGINS`, `ALLOWED_HOSTS` (no `*`)
-4. Configure SMTP (`SMTP_HOST` …) for reset/verify mail
-5. Terminate TLS at reverse proxy; point app `PUBLIC_API_URL` to HTTPS
-6. `alembic upgrade head` (includes `008`)
-7. Deploy via `docker-compose.budget.yml` or home compose; confirm `/ready` = 200
-8. Build mobile with `--dart-define=PRODUCTION=true --dart-define=API_BASE_URL=https://…`
-9. Verify subscribe returns 503 until billing/admin grant exists
-10. Smoke: register buyer/seller, listing, favorite, message, upload, report
+1. `APP_ENV=production`, `DEBUG=false`, `AUTH_DEV_BYPASS=false`  
+2. Unique `JWT_SECRET_KEY` (not default), Azure storage, CORS, ALLOWED_HOSTS (no `*`)  
+3. SMTP + `PUBLIC_APP_URL` https  
+4. TLS reverse proxy; mobile `--dart-define=PRODUCTION=true --dart-define=API_BASE_URL=https://…`  
+5. `alembic upgrade head` (via entrypoint)  
+6. Confirm blob container `margem-media` is public-blob (API attempts this)  
+7. Smoke: register → listing + image → favorite → message → public storefront hides paused  
+8. Subscribe returns 503 until billing/admin grant  
 
 ---
 
-## 9. Remaining manual work before production
+## 9. Remaining manual work
 
-- Rotate and store secrets in Key Vault / host env (never commit)
-- SMTP provider + SPF/DKIM
-- Billing provider or admin premium grant process
-- TLS certificates + domain DNS
-- Database backup schedule + restore test
-- Mobile crash reporting + store listing assets / signing
-- Azure (or home-server) CD pipeline with rollback
-- Load test messaging and search for expected city traffic
-- Legal: privacy policy URL live; Play Data Safety form
+- Secret rotation / Key Vault  
+- SMTP DNS (SPF/DKIM)  
+- Billing or admin premium process  
+- Certificates + DNS  
+- Backup cron + offsite copy  
+- Crashlytics/Sentry + store listing  
+- CD pipeline with rollback  
+- Load test messaging/search for city traffic  
+- Legal privacy URL live  
+
+---
+
+## 10. Test evidence
+
+```text
+backend: 32 passed (PYTHONPATH=. pytest)
+mobile:  flutter analyze — No issues found
+mobile:  flutter test — All tests passed (5)
+```

@@ -78,12 +78,26 @@ async def get_current_user(
 ) -> User:
     user = await _resolve_user_from_credentials(credentials, session, required=True)
     assert user is not None
-    from app.models import UserStatus
+    from datetime import UTC, datetime
+
+    from app.models import SellerProfile, UserStatus
 
     if getattr(user, "status", None) == UserStatus.SUSPENDED:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account suspended")
     if getattr(user, "status", None) == UserStatus.DELETED:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account deleted")
+
+    # Soft-expire premium flags when the paid period has ended.
+    premium_until = getattr(user, "premium_until", None)
+    if user.is_premium and premium_until is not None and premium_until < datetime.now(UTC):
+        user.is_premium = False
+        seller = (
+            await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
+        ).scalar_one_or_none()
+        if seller is not None and seller.is_premium:
+            seller.is_premium = False
+        await session.commit()
+        await session.refresh(user)
     return user
 
 

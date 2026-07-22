@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from app.auth import get_current_user, require_admin, require_seller
 from app.database import get_db
+from app.limiter import limiter
 from app.models import (
     AdminAuditLog,
     Conversation,
@@ -298,7 +299,9 @@ async def list_conversations(
 
 
 @router.post("/messages/sellers/{seller_id}", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("30/minute")
 async def start_or_send_to_seller(
+    request: Request,
     seller_id: UUID,
     payload: MessageCreate,
     user: User = Depends(get_current_user),
@@ -375,7 +378,9 @@ async def list_messages(
 
 
 @router.post("/messages/conversations/{conversation_id}", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("60/minute")
 async def reply_message(
+    request: Request,
     conversation_id: UUID,
     payload: MessageCreate,
     user: User = Depends(get_current_user),

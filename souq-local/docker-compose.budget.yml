@@ -36,10 +36,17 @@ services:
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      JWT_ACCESS_EXPIRE_MINUTES: "60"
-      JWT_REFRESH_EXPIRE_DAYS: "7"
-      RATE_LIMIT: ${RATE_LIMIT:-300/minute}
-      AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-30/minute}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
+  PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://margem.ma}
+  PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.margem.ma}
+  JWT_ACCESS_EXPIRE_MINUTES: "60"
+  JWT_REFRESH_EXPIRE_DAYS: "7"
+  RATE_LIMIT: ${RATE_LIMIT:-300/minute}
+  AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-30/minute}
     depends_on:
       postgres:
         condition: service_healthy

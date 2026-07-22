@@ -18,6 +18,8 @@ class AppConfig {
       !isProduction || normalized.startsWith('https://'),
       'PRODUCTION builds require an HTTPS API_BASE_URL (got: $normalized)',
     );
+    // Defense in depth for profile/release where asserts are stripped:
+    // main.dart also throws when PRODUCTION or kReleaseMode.
     return normalized;
   }
 

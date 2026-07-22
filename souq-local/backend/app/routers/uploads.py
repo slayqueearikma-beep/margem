@@ -63,19 +63,10 @@ async def presign_upload(
                 permission=BlobSasPermissions(write=True, create=True),
                 expiry=datetime.now(timezone.utc) + timedelta(minutes=15),
             )
-            # Keep read SAS finite — 90 days balances durable media URLs with key leak risk.
-            sas_read = generate_blob_sas(
-                account_name=account_name,
-                container_name=settings.azure_storage_container,
-                blob_name=blob_name,
-                account_key=account_key,
-                permission=BlobSasPermissions(read=True),
-                expiry=datetime.now(timezone.utc) + timedelta(days=90),
-            )
-
             return PresignResponse(
                 upload_url=f"{blob_client.url}?{sas_write}",
-                public_url=f"{blob_client.url}?{sas_read}",
+                # Durable URL without SAS — container is public-blob for media reads.
+                public_url=blob_client.url,
             )
     except HTTPException:
         raise

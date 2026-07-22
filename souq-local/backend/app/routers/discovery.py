@@ -248,6 +248,9 @@ async def migrate_guest_favorites(
                         seller_id=product.seller_id,
                     )
                 )
+                seller = await session.get(SellerProfile, product.seller_id)
+                if seller:
+                    seller.favorite_count = int(seller.favorite_count or 0) + 1
         elif item.seller_id:
             seller = await session.get(SellerProfile, item.seller_id)
             if seller is None:
@@ -261,6 +264,7 @@ async def migrate_guest_favorites(
             )
             if exists.scalar_one_or_none() is None:
                 session.add(Favorite(id=uuid4(), user_id=user.id, seller_id=item.seller_id))
+                seller.favorite_count = int(seller.favorite_count or 0) + 1
     await session.commit()
     return await list_favorites(user=user, session=session)
 

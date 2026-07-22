@@ -155,12 +155,16 @@ class BuyerHomeScreen extends ConsumerWidget {
                     isGuest: isGuest,
                     onCityTap: () => _pickCity(context, ref, city),
                     onNotifications: () {
-                      final dest = isGuest
-                          ? '/login'
-                          : (session.accountType == AccountType.seller
-                              ? '/seller/notifications'
-                              : '/profile');
-                      context.push(dest);
+                      if (isGuest) {
+                        context.push('/login');
+                        return;
+                      }
+                      if (session.accountType == AccountType.seller) {
+                        context.push('/seller/notifications');
+                        return;
+                      }
+                      // Buyer notifications surface is the messages inbox.
+                      ref.read(buyerTabIndexProvider.notifier).state = 2;
                     },
                     onPremium: () => context.push('/premium'),
                     onProfile: () => context.push('/profile'),

@@ -48,12 +48,12 @@ terraform init && terraform apply
 ## Security features
 
 - bcrypt password hashing
-- JWT access tokens (7-day expiry, configurable)
-- Rate limiting (120 req/min default)
+- JWT access tokens (default 60 minutes) + refresh tokens (default 7 days)
+- Rate limiting (default 300/minute global, 30/minute auth)
 - Security headers (HSTS, X-Frame-Options, nosniff)
-- CORS restricted via environment
-- `AUTH_DEV_BYPASS=false` in production
-- Azure Key Vault for secrets
+- CORS / ALLOWED_HOSTS restricted in production (no wildcards)
+- `AUTH_DEV_BYPASS=false` and non-default JWT required in production
+- Azure Key Vault for secrets (Terraform path)
 - PostgreSQL SSL in Azure
 
 ## Project structure
