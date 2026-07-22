@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     rate_limit: str = "300/minute"
     auth_rate_limit: str = "30/minute"
     max_request_body_bytes: int = 1_048_576
+    redis_url: str = ""
 
     smtp_host: str = ""
     smtp_port: int = 587

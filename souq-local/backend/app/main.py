@@ -13,7 +13,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import settings
-from app.database import SessionLocal, engine
+import app.database as database
 from app.limiter import limiter
 from app.logging_config import configure_logging
 from app.middleware.request_context import RequestContextMiddleware
@@ -28,7 +28,7 @@ configure_logging(json_logs=settings.app_env in {"production", "prod"})
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure premium plans exist after migrations / fresh create_all environments.
-    async with SessionLocal() as session:
+    async with database.SessionLocal() as session:
         existing = await session.execute(select(SubscriptionPlan).limit(1))
         if existing.scalar_one_or_none() is None:
             session.add_all(
@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
             )
             await session.commit()
     yield
-    await engine.dispose()
+    await database.engine.dispose()
 
 
 app = FastAPI(
@@ -162,7 +162,7 @@ async def live(request: Request):
 async def ready(request: Request):
     """Readiness — fails when the database is unreachable."""
     try:
-        async with engine.connect() as conn:
+        async with database.engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
     except Exception:
         return JSONResponse(
@@ -177,7 +177,7 @@ async def ready(request: Request):
 async def health(request: Request):
     db_status = "ok"
     try:
-        async with engine.connect() as conn:
+        async with database.engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
     except Exception:
         db_status = "error"

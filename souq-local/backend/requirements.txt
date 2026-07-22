@@ -14,5 +14,3 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.2.1
 slowapi==0.1.9
 azure-storage-blob==12.24.0
-pytest==8.3.4
-pytest-asyncio==0.25.0

@@ -22,6 +22,11 @@ from app.models import (
     SellerProfile,
     User,
 )
+from app.services.seller_counters import (
+    bump_contact_click,
+    bump_favorite_count,
+    bump_inquiry_count,
+)
 
 router = APIRouter(tags=["discovery"])
 
@@ -141,9 +146,7 @@ async def add_favorite_product(
     if fav is None:
         fav = Favorite(id=uuid4(), user_id=user.id, product_id=product_id, seller_id=product.seller_id)
         session.add(fav)
-        seller = await session.get(SellerProfile, product.seller_id)
-        if seller:
-            seller.favorite_count = int(seller.favorite_count or 0) + 1
+        await bump_favorite_count(session, product.seller_id, delta=1)
         await session.commit()
     result = await session.execute(
         select(Favorite)
@@ -168,9 +171,7 @@ async def remove_favorite_product(
     seller_id = fav.seller_id
     await session.delete(fav)
     if seller_id:
-        seller = await session.get(SellerProfile, seller_id)
-        if seller and seller.favorite_count > 0:
-            seller.favorite_count -= 1
+        await bump_favorite_count(session, seller_id, delta=-1)
     await session.commit()
 
 
@@ -194,7 +195,7 @@ async def add_favorite_seller(
     if fav is None:
         fav = Favorite(id=uuid4(), user_id=user.id, seller_id=seller_id)
         session.add(fav)
-        seller.favorite_count = int(seller.favorite_count or 0) + 1
+        await bump_favorite_count(session, seller_id, delta=1)
         await session.commit()
     result = await session.execute(
         select(Favorite).options(selectinload(Favorite.seller)).where(Favorite.id == fav.id)
@@ -219,9 +220,7 @@ async def remove_favorite_seller(
     if fav is None:
         return
     await session.delete(fav)
-    seller = await session.get(SellerProfile, seller_id)
-    if seller and seller.favorite_count > 0:
-        seller.favorite_count -= 1
+    await bump_favorite_count(session, seller_id, delta=-1)
     await session.commit()
 
 
@@ -248,9 +247,7 @@ async def migrate_guest_favorites(
                         seller_id=product.seller_id,
                     )
                 )
-                seller = await session.get(SellerProfile, product.seller_id)
-                if seller:
-                    seller.favorite_count = int(seller.favorite_count or 0) + 1
+                await bump_favorite_count(session, product.seller_id, delta=1)
         elif item.seller_id:
             seller = await session.get(SellerProfile, item.seller_id)
             if seller is None:
@@ -264,7 +261,7 @@ async def migrate_guest_favorites(
             )
             if exists.scalar_one_or_none() is None:
                 session.add(Favorite(id=uuid4(), user_id=user.id, seller_id=item.seller_id))
-                seller.favorite_count = int(seller.favorite_count or 0) + 1
+                await bump_favorite_count(session, item.seller_id, delta=1)
     await session.commit()
     return await list_favorites(user=user, session=session)
 
@@ -518,8 +515,8 @@ async def create_contact_event(
         channel=payload.channel,
     )
     session.add(event)
-    seller.contact_click_count = int(seller.contact_click_count or 0) + 1
+    await bump_contact_click(session, payload.seller_id)
     if payload.channel == "message":
-        seller.inquiry_count = int(seller.inquiry_count or 0) + 1
+        await bump_inquiry_count(session, payload.seller_id)
     await session.commit()
     return {"id": str(event.id), "channel": payload.channel}

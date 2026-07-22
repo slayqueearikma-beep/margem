@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'core/services/app_storage.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/locale_provider.dart';
+import 'core/services/theme_mode_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
@@ -30,8 +31,6 @@ import 'features/settings/language_selection_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'core/models/models.dart';
-
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -174,6 +173,7 @@ class _MarGemAppState extends ConsumerState<MarGemApp> {
     ref.listen(appStorageProvider, (previous, next) {
       if (next != null) {
         ref.read(localeProvider.notifier).updateStorage(next);
+        ref.read(themeModeProvider.notifier).updateStorage(next);
       }
     });
 
