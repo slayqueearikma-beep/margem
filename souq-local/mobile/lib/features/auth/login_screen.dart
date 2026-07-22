@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +26,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Never show the API URL in the UI — debug builds may log it only.
+    if (kDebugMode) {
+      debugPrint('MarGem API_BASE_URL=${AppConfig.apiBaseUrl}');
+    }
+  }
 
   @override
   void dispose() {
@@ -173,17 +183,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              if (!AppConfig.isProduction) ...[
-                Text(
-                  'API: ${AppConfig.apiBaseUrl}',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-              ],
               PrimaryButton(
                   label: l10n.logIn, onPressed: _login, isLoading: _loading),
               const SizedBox(height: AppSpacing.md),
