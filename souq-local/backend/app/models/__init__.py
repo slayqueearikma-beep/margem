@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -217,7 +218,7 @@ class Product(Base):
     seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id"), index=True)
     name: Mapped[str] = mapped_column(String(160))
     description: Mapped[str] = mapped_column(Text, default="")
-    price_mad: Mapped[float | None] = mapped_column(Float, nullable=True)
+    price_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
     price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
     availability_note: Mapped[str] = mapped_column(String(160), default="")
     accepted_payment_methods: Mapped[list] = mapped_column(JSONB, default=list)
@@ -243,7 +244,7 @@ class Service(Base):
     seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id"), index=True)
     name: Mapped[str] = mapped_column(String(160))
     description: Mapped[str] = mapped_column(Text, default="")
-    price_mad: Mapped[float | None] = mapped_column(Float, nullable=True)
+    price_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
     price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
     coverage_areas: Mapped[list] = mapped_column(JSONB, default=list)
     image_url: Mapped[str] = mapped_column(String(512), default="")
@@ -416,7 +417,7 @@ class SubscriptionPlan(Base):
     code: Mapped[str] = mapped_column(String(40), unique=True)
     name: Mapped[str] = mapped_column(String(80))
     description: Mapped[str] = mapped_column(Text, default="")
-    price_mad: Mapped[float] = mapped_column(Float)
+    price_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False))
     billing_period_days: Mapped[int] = mapped_column(Integer, default=30)
     features: Mapped[list] = mapped_column(JSONB, default=list)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
