@@ -178,8 +178,13 @@ class SellerDashboardScreen extends ConsumerWidget {
                       builder: (context, constraints) {
                         final width = constraints.crossAxisExtent;
                         final crossAxisCount = width >= 720 ? 4 : 2;
-                        // Compact fixed height keeps icon→value spacing identical.
-                        const cardHeight = 118.0;
+                        final isRtl =
+                            Directionality.of(context) == TextDirection.rtl;
+                        final textScale =
+                            MediaQuery.textScalerOf(context).scale(1.0);
+                        // Arabic labels need more vertical room; scale with text size.
+                        final cardHeight =
+                            (isRtl ? 136.0 : 128.0) * textScale.clamp(1.0, 1.35);
                         final profileViews =
                             analytics?.profileViewCount ?? stats.profileViewCount;
                         final productCount =

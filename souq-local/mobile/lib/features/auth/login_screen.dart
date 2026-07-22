@@ -185,16 +185,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: AppSpacing.lg),
               PrimaryButton(
                   label: l10n.logIn, onPressed: _login, isLoading: _loading),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.sm),
               TextButton(
-                  onPressed: _continueAsGuest, child: Text(l10n.guestContinue)),
+                onPressed: _continueAsGuest,
+                child: Text(l10n.guestContinue),
+              ),
               Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
                   onPressed: () => context.push('/forgot-password'),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 40),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    foregroundColor: AppColors.primary,
+                    textStyle: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                      height: 1.2,
+                    ),
+                  ),
                   child: Text(l10n.forgotPassword),
                 ),
               ),
+              const SizedBox(height: AppSpacing.md),
               LinkTextButton(
                   label: l10n.createAccount,
                   onPressed: () => context.go('/onboarding/account-type')),
