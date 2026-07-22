@@ -2,7 +2,7 @@
 
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from app.auth import get_current_user, get_current_user_optional
 from app.database import get_db
+from app.limiter import limiter
 from app.models import (
     ContactEvent,
     Favorite,
@@ -437,6 +438,16 @@ async def track_recently_viewed(
 ) -> None:
     if not seller_id and not product_id:
         raise HTTPException(status_code=400, detail="Provide seller_id or product_id")
+    if product_id is not None:
+        product = await session.get(Product, product_id)
+        if product is None or product.is_hidden:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        if seller_id is None:
+            seller_id = product.seller_id
+    if seller_id is not None:
+        seller = await session.get(SellerProfile, seller_id)
+        if seller is None:
+            raise HTTPException(status_code=404, detail="Seller not found")
     session.add(
         RecentlyViewed(
             id=uuid4(),
@@ -449,20 +460,33 @@ async def track_recently_viewed(
 
 
 @router.post("/reports", status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def create_report(
+    request: Request,
     payload: ReportCreate,
     session: AsyncSession = Depends(get_db),
     user: User | None = Depends(get_current_user_optional),
 ) -> dict:
     if not payload.seller_id and not payload.product_id:
         raise HTTPException(status_code=400, detail="Provide seller_id or product_id")
+    if payload.product_id is not None:
+        product = await session.get(Product, payload.product_id)
+        if product is None:
+            raise HTTPException(status_code=404, detail="Listing not found")
+    if payload.seller_id is not None:
+        seller = await session.get(SellerProfile, payload.seller_id)
+        if seller is None:
+            raise HTTPException(status_code=404, detail="Seller not found")
+    reason = payload.reason.strip()
+    if not reason or len(reason) > 80:
+        raise HTTPException(status_code=400, detail="Invalid report reason")
     report = Report(
         id=uuid4(),
         reporter_id=user.id if user else None,
         seller_id=payload.seller_id,
         product_id=payload.product_id,
-        reason=payload.reason.strip(),
-        details=payload.details.strip(),
+        reason=reason,
+        details=(payload.details or "").strip()[:2000],
     )
     session.add(report)
     await session.commit()
@@ -470,7 +494,9 @@ async def create_report(
 
 
 @router.post("/contact-events", status_code=status.HTTP_201_CREATED)
+@limiter.limit("30/minute")
 async def create_contact_event(
+    request: Request,
     payload: ContactEventCreate,
     session: AsyncSession = Depends(get_db),
     user: User | None = Depends(get_current_user_optional),
@@ -478,6 +504,9 @@ async def create_contact_event(
     seller = await session.get(SellerProfile, payload.seller_id)
     if seller is None:
         raise HTTPException(status_code=404, detail="Seller not found")
+    allowed = {"call", "whatsapp", "email", "message", "website", "sms"}
+    if payload.channel not in allowed:
+        raise HTTPException(status_code=400, detail="Invalid contact channel")
     event = ContactEvent(
         id=uuid4(),
         seller_id=payload.seller_id,

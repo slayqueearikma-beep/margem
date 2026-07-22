@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/models/models.dart';
@@ -193,6 +194,20 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     try {
       await apiServiceProvider.createContactEvent(
           sellerId: seller.id, channel: channel);
+      if (channel == 'message') {
+        final session = ref.read(userSessionProvider);
+        if (session == null || session.isGuest) {
+          if (mounted) await context.push('/login');
+          return;
+        }
+        final message = await apiServiceProvider.startConversationWithSeller(
+          seller.id,
+          l10n.inquiryAboutListing(_productName(seller)),
+        );
+        if (!mounted) return;
+        context.push('/messages/${message.conversationId}');
+        return;
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.contactRecorded(seller.businessName))),
@@ -206,6 +221,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     } finally {
       if (mounted) setState(() => _contacting = false);
     }
+  }
+
+  String _productName(SellerModel seller) {
+    final match = seller.products.where((p) => p.id == widget.productId);
+    if (match.isEmpty) return seller.businessName;
+    return match.first.name;
   }
 
   Future<void> _callSeller(SellerModel seller) async {

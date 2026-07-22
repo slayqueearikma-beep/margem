@@ -214,6 +214,8 @@ async def mark_all_notifications_read(
 async def list_conversations(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
 ) -> list[ConversationOut]:
     seller = (
         await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
@@ -221,7 +223,11 @@ async def list_conversations(
 
     if seller:
         result = await session.execute(
-            select(Conversation).where(Conversation.seller_id == seller.id).order_by(Conversation.last_message_at.desc())
+            select(Conversation)
+            .where(Conversation.seller_id == seller.id)
+            .order_by(Conversation.last_message_at.desc())
+            .limit(limit)
+            .offset(offset)
         )
         conversations = list(result.scalars().all())
         outs: list[ConversationOut] = []
@@ -254,7 +260,11 @@ async def list_conversations(
         return outs
 
     result = await session.execute(
-        select(Conversation).where(Conversation.buyer_id == user.id).order_by(Conversation.last_message_at.desc())
+        select(Conversation)
+        .where(Conversation.buyer_id == user.id)
+        .order_by(Conversation.last_message_at.desc())
+        .limit(limit)
+        .offset(offset)
     )
     conversations = list(result.scalars().all())
     outs = []
@@ -338,6 +348,8 @@ async def list_messages(
     conversation_id: UUID,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
 ) -> list[Message]:
     conversation = await session.get(Conversation, conversation_id)
     if conversation is None:
@@ -347,7 +359,11 @@ async def list_messages(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     result = await session.execute(
-        select(Message).where(Message.conversation_id == conversation_id).order_by(Message.created_at.asc())
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at.asc())
+        .limit(limit)
+        .offset(offset)
     )
     messages = list(result.scalars().all())
     now = datetime.now(UTC)
@@ -437,7 +453,21 @@ async def subscribe(
 
     Membership billing can later plug into an external provider via provider/provider_reference.
     This endpoint never processes marketplace transaction payments.
+
+    In production, free self-activation is disabled — a payment provider webhook or admin
+    grant must set the subscription. Development keeps manual activation for local testing.
     """
+    from app.config import settings
+
+    if settings.app_env in {"production", "prod"}:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Self-serve premium activation is disabled until a billing provider is configured. "
+                "Contact support or use an admin grant."
+            ),
+        )
+
     result = await session.execute(
         select(SubscriptionPlan).where(SubscriptionPlan.code == plan_code, SubscriptionPlan.is_active.is_(True))
     )

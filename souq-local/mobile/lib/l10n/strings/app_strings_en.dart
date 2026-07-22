@@ -511,6 +511,9 @@ class AppStringsEn extends AppStrings {
   @override
   String get contactSeller => 'Contact seller';
   @override
+  String inquiryAboutListing(String listingName) =>
+      "Hi! I'm interested in \"$listingName\". Is it still available?";
+  @override
   String get callSeller => 'Call';
   @override
   String get whatsapp => 'WhatsApp';

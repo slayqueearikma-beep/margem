@@ -236,7 +236,7 @@ class SellerDashboardScreen extends ConsumerWidget {
                           badge: analytics != null && analytics.inquiryCount > 0
                               ? '${analytics.inquiryCount}'
                               : null,
-                          onTap: () => _showAnalytics(context, analytics),
+                          onTap: () => context.push('/seller/messages'),
                         ),
                         DashboardMenuTile(
                           title: l10n.analytics,

@@ -45,6 +45,32 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
     }
   }
 
+  Future<void> _messageSeller(SellerModel seller) async {
+    final l10n = context.l10n;
+    final session = ref.read(userSessionProvider);
+    if (session == null || session.isGuest) {
+      if (!mounted) return;
+      await context.push('/login');
+      return;
+    }
+    try {
+      await apiServiceProvider.createContactEvent(
+        sellerId: seller.id,
+        channel: 'message',
+      );
+      final message = await apiServiceProvider.startConversationWithSeller(
+        seller.id,
+        l10n.inquiryAboutListing(seller.businessName),
+      );
+      if (!mounted) return;
+      context.push('/messages/${message.conversationId}');
+    } catch (error) {
+      if (!mounted) return;
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: error.toString());
+    }
+  }
+
   Future<void> _recordContact(SellerModel seller, String channel) async {
     try {
       await apiServiceProvider.createContactEvent(
@@ -284,6 +310,15 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () => _messageSeller(seller),
+                          icon: const Icon(Icons.chat_bubble_outline),
+                          label: Text(l10n.contactSeller),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SizedBox(

@@ -245,6 +245,7 @@ abstract class AppStrings {
   String get priceNegotiable;
   String get acceptedPaymentMethods;
   String get contactSeller;
+  String inquiryAboutListing(String listingName);
   String get callSeller;
   String get whatsapp;
   String get deliveryOptionsLabel;

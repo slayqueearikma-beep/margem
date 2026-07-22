@@ -55,13 +55,15 @@ async def presign_upload(
                 permission=BlobSasPermissions(write=True, create=True),
                 expiry=datetime.now(timezone.utc) + timedelta(minutes=15),
             )
+            # Keep read SAS finite — 90 days balances durable media URLs with key leak risk.
+            # Rotate via re-upload or a future signed-URL refresh endpoint for longer retention.
             sas_read = generate_blob_sas(
                 account_name=account_name,
                 container_name=settings.azure_storage_container,
                 blob_name=blob_name,
                 account_key=client.credential.account_key,
                 permission=BlobSasPermissions(read=True),
-                expiry=datetime.now(timezone.utc) + timedelta(days=3650),
+                expiry=datetime.now(timezone.utc) + timedelta(days=90),
             )
 
             return PresignResponse(

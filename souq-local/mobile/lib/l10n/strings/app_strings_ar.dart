@@ -508,6 +508,9 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get contactSeller => 'تواصل مع البائع';
   @override
+  String inquiryAboutListing(String listingName) =>
+      'مرحباً! أنا مهتم بـ "$listingName". هل ما زال متوفراً؟';
+  @override
   String get callSeller => 'اتصال';
   @override
   String get whatsapp => 'واتساب';

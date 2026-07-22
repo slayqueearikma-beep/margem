@@ -49,6 +49,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final city = ref.watch(buyerCityProvider);
+    ref.listen(buyerCityProvider, (previous, next) {
+      if (previous != next) {
+        setState(() => _future = _load());
+      }
+    });
     _future ??= _load();
 
     return SafeArea(
@@ -61,6 +67,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(l10n.search, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  city,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
                 const SizedBox(height: AppSpacing.md),
                 TextField(
                   autofocus: true,

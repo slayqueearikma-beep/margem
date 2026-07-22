@@ -521,6 +521,9 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get contactSeller => 'Contacter le vendeur';
   @override
+  String inquiryAboutListing(String listingName) =>
+      'Bonjour ! Je suis intéressé(e) par « $listingName ». Est-ce toujours disponible ?';
+  @override
   String get callSeller => 'Appeler';
   @override
   String get whatsapp => 'WhatsApp';

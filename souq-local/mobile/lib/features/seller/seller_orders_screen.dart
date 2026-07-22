@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 
+/// Legacy seller "orders" entry — discovery platform uses messaging for inquiries.
 class SellerOrdersScreen extends StatelessWidget {
   const SellerOrdersScreen({super.key});
 
@@ -32,6 +34,12 @@ class SellerOrdersScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              FilledButton.icon(
+                onPressed: () => context.go('/seller/messages'),
+                icon: const Icon(Icons.inbox_outlined),
+                label: Text(l10n.messages),
               ),
             ],
           ),

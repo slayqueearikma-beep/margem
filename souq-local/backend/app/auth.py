@@ -48,6 +48,13 @@ async def _resolve_user_from_credentials(
             return None
         return user
 
+    # Invalid/expired local JWTs must not fall through to Firebase and surface 503
+    # when Firebase is intentionally unset (email/password-only deployments).
+    if not settings.firebase_credentials_path:
+        if required:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        return None
+
     # Firebase ID token (mobile Firebase Auth)
     try:
         firebase_uid = await verify_firebase_token(token)
