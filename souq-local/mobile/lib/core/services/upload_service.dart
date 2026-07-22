@@ -19,14 +19,49 @@ class UploadService {
     final filename = file.name.isNotEmpty ? file.name : 'upload.jpg';
     final contentType = _contentTypeFor(filename);
 
+    Object? lastError;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        return await _uploadOnce(
+          bytes: bytes,
+          filename: filename,
+          contentType: contentType,
+        );
+      } on ApiException catch (error) {
+        lastError = error;
+        // Retry once on transient storage / network failures.
+        final retryable = error.statusCode == null ||
+            error.statusCode == 503 ||
+            error.statusCode == 502 ||
+            error.message.toLowerCase().contains('timeout') ||
+            error.message.toLowerCase().contains('unavailable');
+        if (!retryable || attempt == 1) rethrow;
+      }
+    }
+    throw lastError is ApiException
+        ? lastError
+        : ApiException('Image upload failed');
+  }
+
+  Future<String> _uploadOnce({
+    required List<int> bytes,
+    required String filename,
+    required String contentType,
+  }) async {
     final presign = await _api.postJson(
       '/uploads/presign',
       {'filename': filename, 'content_type': contentType},
       auth: true,
     );
 
-    final uploadUrl = presign['upload_url'] as String;
-    final publicUrl = presign['public_url'] as String;
+    final uploadUrl = presign['upload_url'] as String?;
+    final publicUrl = presign['public_url'] as String?;
+    if (uploadUrl == null ||
+        uploadUrl.isEmpty ||
+        publicUrl == null ||
+        publicUrl.isEmpty) {
+      throw ApiException('Storage did not return upload URLs');
+    }
 
     final response = await http
         .put(
@@ -43,7 +78,10 @@ class UploadService {
         );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException('Image upload failed (${response.statusCode})');
+      throw ApiException(
+        'Image upload to storage failed (${response.statusCode})',
+        statusCode: response.statusCode,
+      );
     }
 
     return publicUrl;

@@ -90,20 +90,6 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
     }
   }
 
-  Future<void> _openWhatsApp(SellerModel seller) async {
-    final raw = (seller.whatsappNumber.isNotEmpty
-            ? seller.whatsappNumber
-            : seller.phone)
-        .replaceAll(RegExp(r'[^\d+]'), '');
-    if (raw.isEmpty) return;
-    await _recordContact(seller, 'whatsapp');
-    final digits = raw.replaceAll('+', '');
-    final uri = Uri.parse('https://wa.me/$digits');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
   Future<void> _followSeller(SellerModel seller) async {
     final l10n = context.l10n;
     final session = ref.read(userSessionProvider);
@@ -284,7 +270,8 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: FilledButton.icon(
-                              onPressed: () => _callSeller(seller),
+                              onPressed:
+                                  seller.phone.trim().isEmpty ? null : () => _callSeller(seller),
                               icon: const Icon(Icons.call_outlined),
                               label: Text(l10n.callSeller),
                             ),
@@ -295,30 +282,21 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _openWhatsApp(seller),
-                              icon: const Icon(Icons.chat),
-                              label: Text(l10n.whatsapp),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
                             child: FilledButton.icon(
                               onPressed: () => _showReviewSheet(seller),
                               icon: const Icon(Icons.rate_review_outlined),
                               label: Text(l10n.review),
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _messageSeller(seller),
+                              icon: const Icon(Icons.chat_bubble_outline),
+                              label: Text(l10n.contactSeller),
+                            ),
+                          ),
                         ],
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: () => _messageSeller(seller),
-                          icon: const Icon(Icons.chat_bubble_outline),
-                          label: Text(l10n.contactSeller),
-                        ),
                       ),
                       const SizedBox(height: 12),
                       SizedBox(

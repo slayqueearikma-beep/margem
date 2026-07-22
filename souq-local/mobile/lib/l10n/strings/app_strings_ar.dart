@@ -202,6 +202,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String welcomeSeller(String name) => 'مرحباً، $name 👋';
   @override
+  String get welcomeExclamation => 'مرحباً!';
+  @override
   String get manageStoreSubtitle =>
       'أدر ملفك والكتالوج والاستفسارات وتقييمات العملاء.';
   @override

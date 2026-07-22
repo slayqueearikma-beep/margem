@@ -63,6 +63,13 @@ class Settings(BaseSettings):
         "Oujda",
     ]
 
+    @field_validator("azure_storage_connection_string", "azure_storage_container", mode="before")
+    @classmethod
+    def strip_secrets(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return value.strip().strip('"').strip("'")
+        return value
+
     @field_validator("cors_origins", "allowed_hosts", mode="before")
     @classmethod
     def parse_string_list(cls, value: Any) -> list[str]:

@@ -4,6 +4,8 @@ Discover Morocco's hidden gems. Buyers find shops, services, and local sellers; 
 
 MarGem is a **discovery and connection** platform — not a traditional e-commerce checkout app. Transactions happen outside the platform. Full product capabilities are documented in [docs/MARKETPLACE_PRODUCTION.md](docs/MARKETPLACE_PRODUCTION.md).
 
+Production readiness (score, blockers, checklist): [docs/PRODUCTION_READINESS_AUDIT.md](docs/PRODUCTION_READINESS_AUDIT.md).
+
 ## Stack
 
 | Layer | Technology |

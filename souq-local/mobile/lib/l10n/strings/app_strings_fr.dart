@@ -206,6 +206,8 @@ class AppStringsFr extends AppStringsEn {
   @override
   String welcomeSeller(String name) => 'Bienvenue, $name 👋';
   @override
+  String get welcomeExclamation => 'Bienvenue !';
+  @override
   String get manageStoreSubtitle =>
       'Gérez votre profil, catalogue, demandes et avis clients.';
   @override

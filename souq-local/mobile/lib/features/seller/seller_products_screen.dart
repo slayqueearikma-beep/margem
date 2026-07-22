@@ -229,6 +229,7 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
       });
 
       ref.invalidate(sellerAccountProvider);
+      ref.invalidate(sellerAnalyticsProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.productSaved)));
       context.pop();

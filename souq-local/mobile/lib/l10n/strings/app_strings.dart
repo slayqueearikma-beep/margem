@@ -97,6 +97,7 @@ abstract class AppStrings {
   String get sellerDashboard;
   String get yourBusiness;
   String welcomeSeller(String name);
+  String get welcomeExclamation;
   String get manageStoreSubtitle;
   String get profileViews;
   String get products;
