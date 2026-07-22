@@ -11,11 +11,11 @@
 
 MarGem is a **local discovery / connection platform** (not checkout e-commerce). The codebase implements sellers, listings, search/map, favorites, follows, messaging, contact events, reviews, Azure uploads, premium *visibility* memberships (billing gated in prod + admin grant), and admin/staff ops.
 
-**Deployment Readiness: 86%**
+**Deployment Readiness: 88%**
 
-Suitable for a **controlled soft launch / home-server or budget-VM beta** after completing the remaining manual ops checklist (rotated secrets, SMTP, TLS, backups, crash reporting, Play signing). Remaining gaps are mostly ops/scale (APM SDK, CD, iOS, Numeric money migration, optional Redis for multi-replica limits).
+Suitable for a **controlled soft launch / home-server or budget-VM beta** after completing the remaining manual ops checklist (rotated secrets, SMTP, TLS, backups, crash reporting, Play signing). Remaining gaps are mostly ops/scale (APM SDK, CD, iOS).
 
-This pass closed: durable public blob URLs, paused-product visibility, media/social URL allowlisting, premium expiry, message rate limits, DB wait on boot, Android intent queries, HTTPS release enforcement, favorites routing, messaging UX, SMTP compose wiring, Bicep CORS/`ALLOWED_HOSTS`, atomic counters, staff/admin split, chunked body limits, conversation batching, theme persistence, category locales, admin premium grant, suspend session revoke, and GDPR-oriented account wipe.
+This pass closed: durable public blob URLs, paused-product visibility, media/social URL allowlisting, premium expiry, message rate limits, DB wait on boot, Android intent queries, HTTPS release enforcement, favorites routing, messaging UX, SMTP compose wiring, Bicep CORS/`ALLOWED_HOSTS`, atomic counters, staff/admin split, chunked body limits, conversation batching, theme persistence, category locales, admin premium grant, suspend session revoke, GDPR-oriented account wipe, PyJWT migration, and Numeric money columns.
 
 **Verification this revision:** backend **40 passed**; Flutter analyze clean; Flutter tests **7 passed**.
 
@@ -23,17 +23,17 @@ This pass closed: durable public blob URLs, paused-product visibility, media/soc
 
 ## 2. Deployment readiness score
 
-### Deployment Readiness: **86%**
+### Deployment Readiness: **88%**
 
 | Category | Score | Evidence |
 |---|---:|---|
 | Architecture | 88 | Clear FastAPI routers + Flutter feature modules; discovery pivot; architecture.md rewritten |
-| Backend | 90 | Auth hardening, Alembic→`008`, rate limits, upload hardening, atomic counters, admin premium grant |
+| Backend | 91 | Auth hardening, Alembic→`009`, rate limits, upload hardening, atomic counters, admin premium grant |
 | Mobile | 84 | Theme persist, locale categories, search autofocus gated, badge isolation; Android-only |
 | UI/UX | 80 | Contact CTAs aligned; shell rebuild reduced; ecommerce l10n identifier debt remains |
-| Security | 88 | Prod validators, body hard-cap, staff≠admin, suspend kills refresh, URL allowlists |
+| Security | 90 | Prod validators, body hard-cap, staff≠admin, suspend kills refresh, PyJWT |
 | Performance | 82 | Conversation batching, bulk mark-read, pool recycling, pagination |
-| Database | 82 | Migrations + uniqueness indexes; Float money still pending Numeric |
+| Database | 88 | Migrations through `009` Numeric money; uniqueness indexes |
 | Testing | 78 | 40 backend + 7 Flutter tests; staff/admin, counters, 413, premium grant, suspend refresh |
 | Documentation | 86 | Audit + marketplace docs + architecture.md aligned to discovery platform |
 | DevOps | 80 | Compose YAML fixed, HEALTHCHECK, requirements-dev split, CI compose config validate |
