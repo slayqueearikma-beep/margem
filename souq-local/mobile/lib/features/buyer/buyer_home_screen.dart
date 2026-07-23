@@ -990,6 +990,7 @@ class BuyerProfileScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final isGuest = session == null || session.isGuest;
+    final hasSellerProfile = session?.hasSellerProfile ?? false;
     final displayName = (session?.name.trim().isNotEmpty ?? false)
         ? session!.name.trim()
         : l10n.buyerLabel;
@@ -1045,7 +1046,7 @@ class BuyerProfileScreen extends ConsumerWidget {
                 title: Text(l10n.changePassword),
                 onTap: () => _changePasswordDialog(context),
               ),
-            if (!isGuest && session!.hasSellerProfile)
+            if (!isGuest && hasSellerProfile)
               ListTile(
                 leading: const Icon(Icons.storefront_outlined),
                 title: Text(l10n.switchToSellerMode),
@@ -1056,7 +1057,7 @@ class BuyerProfileScreen extends ConsumerWidget {
                   if (context.mounted) context.go('/seller/dashboard');
                 },
               ),
-            if (!isGuest && !session!.hasSellerProfile)
+            if (!isGuest && !hasSellerProfile)
               ListTile(
                 leading: const Icon(Icons.add_business_outlined),
                 title: Text(l10n.becomeSeller),
