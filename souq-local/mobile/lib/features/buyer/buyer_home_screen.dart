@@ -1045,6 +1045,24 @@ class BuyerProfileScreen extends ConsumerWidget {
                 title: Text(l10n.changePassword),
                 onTap: () => _changePasswordDialog(context),
               ),
+            if (!isGuest && session!.hasSellerProfile)
+              ListTile(
+                leading: const Icon(Icons.storefront_outlined),
+                title: Text(l10n.switchToSellerMode),
+                subtitle: Text(l10n.switchToSellerModeSub),
+                onTap: () async {
+                  final storage = ref.read(appStorageProvider);
+                  await storage?.saveAppMode(AppMode.seller);
+                  if (context.mounted) context.go('/seller/dashboard');
+                },
+              ),
+            if (!isGuest && !session!.hasSellerProfile)
+              ListTile(
+                leading: const Icon(Icons.add_business_outlined),
+                title: Text(l10n.becomeSeller),
+                subtitle: Text(l10n.becomeSellerSubtitle),
+                onTap: () => context.push('/onboarding/become-seller'),
+              ),
             ListTile(
               leading: const Icon(Icons.dark_mode_outlined),
               title: Text(l10n.darkMode),
