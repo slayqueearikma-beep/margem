@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local"
 
     auth_dev_bypass: bool = False
+    # In production, verified email is required before creating a storefront,
+    # messaging users, or creating reputation signals.
+    require_verified_email: bool = True
     firebase_credentials_path: str = ""
     jwt_secret_key: str = "change-this-secret-in-production-use-key-vault"
     # Separate key limits the blast radius of a JWT signing-key compromise.
