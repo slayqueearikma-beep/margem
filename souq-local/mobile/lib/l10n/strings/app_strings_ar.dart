@@ -184,8 +184,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get tryAgain => 'حاول مرة أخرى';
   @override
-  String get verifyEmailToContinue =>
-      'تحقق من بريدك الإلكتروني قبل المتابعة.';
+  String get verifyEmailToContinue => 'تحقق من بريدك الإلكتروني قبل المتابعة.';
   @override
   String get pressBackAgainToExit => 'اضغط مرة أخرى للخروج';
   @override

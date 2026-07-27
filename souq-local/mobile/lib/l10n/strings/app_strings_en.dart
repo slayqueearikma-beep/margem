@@ -185,8 +185,7 @@ class AppStringsEn extends AppStrings {
   @override
   String get tryAgain => 'Try again';
   @override
-  String get verifyEmailToContinue =>
-      'Verify your email before continuing.';
+  String get verifyEmailToContinue => 'Verify your email before continuing.';
   @override
   String get pressBackAgainToExit => 'Press back again to exit';
   @override

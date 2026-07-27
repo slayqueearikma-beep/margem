@@ -71,7 +71,9 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
       return;
     }
     final mySellerId = session.sellerId;
-    if (mySellerId != null && mySellerId.isNotEmpty && mySellerId == seller.id) {
+    if (mySellerId != null &&
+        mySellerId.isNotEmpty &&
+        mySellerId == seller.id) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.cannotMessageOwnStore)),
@@ -572,10 +574,11 @@ class _SellerHeader extends StatelessWidget {
                   Expanded(
                     child: Text(
                       seller.businessName,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            height: 1.15,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                height: 1.15,
+                              ),
                     ),
                   ),
                   if (seller.verificationStatus == 'verified')
