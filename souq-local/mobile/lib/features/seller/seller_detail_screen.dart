@@ -88,10 +88,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
           await apiServiceProvider.openSellerConversation(seller.id);
       if (!mounted) return;
       context.push('/messages/${conversation.id}', extra: conversation);
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: error.toString());
+          title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);
     } finally {
       if (mounted) setState(() => _messaging = false);
     }
@@ -132,10 +132,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
         SnackBar(content: Text(l10n.nowFollowing(seller.businessName))),
       );
       _reload();
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: error.toString());
+          title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);
     } finally {
       if (mounted) setState(() => _following = false);
     }
@@ -165,6 +165,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
       if (!eligibility.canReview) {
         final message = switch (eligibility.reason) {
           'own_store' => l10n.cannotReviewOwnStore,
+          'email_unverified' => l10n.verifyEmailToContinue,
           'no_completed_transaction' => l10n.reviewRequiresCompletedTransaction,
           _ => l10n.somethingWentWrong,
         };
@@ -187,10 +188,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
           ),
         );
       }
-    } on Object catch (error) {
+    } on Object catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: error.toString());
+          title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);
     }
   }
 

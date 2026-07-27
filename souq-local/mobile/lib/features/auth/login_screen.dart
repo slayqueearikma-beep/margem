@@ -213,6 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.username, AutofillHints.email],
                 decoration: _fieldDecoration(
                   label: l10n.email,
                   icon: Icons.email_outlined,
@@ -223,6 +224,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 controller: _passwordController,
                 obscureText: _obscure,
                 textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.password],
                 onSubmitted: (_) => _login(),
                 decoration: _fieldDecoration(
                   label: l10n.password,
