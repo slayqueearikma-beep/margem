@@ -236,6 +236,7 @@ class MarGemCategoryIcon extends StatelessWidget {
       child: SizedBox(
         width: 72,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
@@ -248,6 +249,7 @@ class MarGemCategoryIcon extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: selected ? AppShadows.card() : null,
               ),
+              alignment: Alignment.center,
               child: Icon(
                 icon,
                 size: 24,
@@ -273,20 +275,20 @@ class MarGemCategoryIcon extends StatelessWidget {
   }
 }
 
-/// Promotional hero banner card.
+/// Promotional hero banner card — illustration + optional CTA only.
 class MarGemHeroBanner extends StatelessWidget {
   const MarGemHeroBanner({
     super.key,
-    required this.title,
-    required this.actionLabel,
-    required this.onAction,
+    this.title,
+    this.actionLabel,
+    this.onAction,
     this.backgroundColor,
     this.icon = Icons.chair_outlined,
   });
 
-  final String title;
-  final String actionLabel;
-  final VoidCallback onAction;
+  final String? title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
   final Color? backgroundColor;
   final IconData icon;
 
@@ -294,61 +296,73 @@ class MarGemHeroBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = backgroundColor ?? AppColors.heroBackground;
     return Container(
-      height: 140,
+      height: 112,
       decoration: BoxDecoration(
-        color: bg,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            bg,
+            AppColors.primary.withValues(alpha: 0.08),
+          ],
+        ),
         boxShadow: AppShadows.card(),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
           Positioned(
-            right: -10,
-            top: -10,
-            bottom: -10,
+            right: -6,
+            top: -6,
+            bottom: -6,
             child: Opacity(
-              opacity: 0.25,
-              child: Icon(icon, size: 120, color: AppColors.primary),
+              opacity: 0.22,
+              child: Icon(icon, size: 110, color: AppColors.primary),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Row(
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Material(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-                  child: InkWell(
-                    onTap: onAction,
-                    borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                if (title != null && title!.isNotEmpty) ...[
+                  Expanded(
+                    child: Text(
+                      title!,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
                       ),
-                      child: Text(
-                        actionLabel,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ] else
+                  const Spacer(),
+                if (actionLabel != null && onAction != null)
+                  Material(
+                    color: AppColors.primary,
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.buttonRadius),
+                    child: InkWell(
+                      onTap: onAction,
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.buttonRadius),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          actionLabel!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

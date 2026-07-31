@@ -22,6 +22,7 @@ import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/margem_components.dart';
 import '../../l10n/app_localizations.dart';
+import '../map/map_screen.dart';
 import '../messages/messages_inbox_screen.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
@@ -74,7 +75,7 @@ class BuyerHomeShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final index = ref.watch(buyerTabIndexProvider).clamp(0, 2);
+    final index = ref.watch(buyerTabIndexProvider).clamp(0, 3);
 
     return RootBackScope(
       child: Scaffold(
@@ -83,41 +84,50 @@ class BuyerHomeShell extends ConsumerWidget {
           children: [
             const BuyerHomeScreen(),
             SearchScreen(autofocusSearch: index == 1),
+            const MapScreen(),
             const MessagesInboxScreen(),
           ],
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.darkSurface
-                : Colors.white,
-            boxShadow: AppShadows.bottomBar(
-              isDark: Theme.of(context).brightness == Brightness.dark,
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkSurface
+                  : Colors.white,
+              boxShadow: AppShadows.bottomBar(
+                isDark: Theme.of(context).brightness == Brightness.dark,
+              ),
             ),
-          ),
-          child: NavigationBar(
-            selectedIndex: index,
-            height: AppSpacing.bottomNavHeight,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            onDestinationSelected: (i) =>
-                ref.read(buyerTabIndexProvider.notifier).state = i,
-            destinations: [
-              NavigationDestination(
-                icon: const Icon(Icons.home_outlined),
-                selectedIcon: const Icon(Icons.home_rounded),
-                label: l10n.navHome,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.search_rounded),
-                selectedIcon: const Icon(Icons.search_rounded),
-                label: l10n.navSearch,
-              ),
-              NavigationDestination(
-                icon: const _MessagesNavIcon(selected: false),
-                selectedIcon: const _MessagesNavIcon(selected: true),
-                label: l10n.navMessages,
-              ),
-            ],
+            child: NavigationBar(
+              selectedIndex: index,
+              height: AppSpacing.bottomNavHeight,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              onDestinationSelected: (i) =>
+                  ref.read(buyerTabIndexProvider.notifier).state = i,
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home_rounded),
+                  label: l10n.navHome,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.search_rounded),
+                  selectedIcon: const Icon(Icons.search_rounded),
+                  label: l10n.navSearch,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.map_outlined),
+                  selectedIcon: const Icon(Icons.map_rounded),
+                  label: l10n.navMap,
+                ),
+                NavigationDestination(
+                  icon: const _MessagesNavIcon(selected: false),
+                  selectedIcon: const _MessagesNavIcon(selected: true),
+                  label: l10n.navMessages,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -187,7 +197,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                         return;
                       }
                       // Buyer notifications surface is the messages inbox.
-                      ref.read(buyerTabIndexProvider.notifier).state = 2;
+                      ref.read(buyerTabIndexProvider.notifier).state = 3;
                     },
                     onPremium: () => context.push('/premium'),
                     onProfile: () => context.push('/profile'),
@@ -198,11 +208,11 @@ class BuyerHomeScreen extends ConsumerWidget {
                     onTap: () =>
                         ref.read(buyerTabIndexProvider.notifier).state = 1,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sectionGap),
                   MarGemHeroBanner(
-                    title: 'Comfort that fits your space',
                     actionLabel: l10n.seeAll,
-                    onAction: () => context.push('/map'),
+                    onAction: () =>
+                        ref.read(buyerTabIndexProvider.notifier).state = 2,
                     icon: Icons.chair_outlined,
                   ),
                   if (isGuest) ...[
@@ -225,7 +235,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.sectionGap),
                     SectionHeader(
                       title: l10n.categories,
                       actionLabel: l10n.seeAll,
@@ -234,7 +244,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SizedBox(
-                      height: 90,
+                      height: 96,
                       child: ListView.separated(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.screenHorizontal,
@@ -291,7 +301,7 @@ class BuyerHomeScreen extends ConsumerWidget {
             ),
           ),
           SliverToBoxAdapter(
-            child: const SizedBox(height: AppSpacing.lg),
+            child: const SizedBox(height: AppSpacing.sectionGap),
           ),
           sellersAsync.when(
             data: (sellers) {
@@ -315,7 +325,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   SizedBox(
-                    height: 220,
+                    height: 204,
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.screenHorizontal,
@@ -351,7 +361,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                       },
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sectionGap),
                   SectionHeader(title: l10n.nearbyBusinesses),
                   const SizedBox(height: AppSpacing.sm),
                   Padding(
@@ -830,7 +840,7 @@ class BuyerProfileScreen extends ConsumerWidget {
               icon: Icons.chat_bubble_outline_rounded,
               onTap: () {
                 context.pop();
-                ref.read(buyerTabIndexProvider.notifier).state = 2;
+                ref.read(buyerTabIndexProvider.notifier).state = 3;
               },
             ),
             MarGemMenuTile(
