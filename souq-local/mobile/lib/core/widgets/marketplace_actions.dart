@@ -5,11 +5,11 @@ import '../theme/app_spacing.dart';
 
 /// Shared marketplace action button sizes.
 class MarketButtonMetrics {
-  static const height = 48.0;
-  static const radius = 14.0;
+  static const height = 50.0;
+  static const radius = 28.0;
   static const iconSize = 20.0;
   static const gap = 8.0;
-  static const horizontalPadding = 16.0;
+  static const horizontalPadding = 20.0;
 }
 
 /// Primary filled action (Contact, Call, Directions).
@@ -103,12 +103,12 @@ class MarketSecondaryButton extends StatelessWidget {
           horizontal: MarketButtonMetrics.horizontalPadding,
         ),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
-          width: 1.4,
+          color: isDark ? AppColors.darkBorder : AppColors.primary,
+          width: 1.5,
         ),
         backgroundColor: isDark
             ? AppColors.darkCard
-            : AppColors.surfaceMuted.withValues(alpha: 0.65),
+            : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MarketButtonMetrics.radius),
         ),

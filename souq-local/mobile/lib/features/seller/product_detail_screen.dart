@@ -12,6 +12,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/marketplace_actions.dart';
+import '../../core/widgets/margem_components.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
 import '../../l10n/app_localizations.dart';
@@ -275,7 +276,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                                       EdgeInsets.only(left: 4),
                                                   child: Icon(
                                                     Icons.verified_rounded,
-                                                    color: Colors.blue,
+                                                    color: AppColors.verified,
                                                     size: 18,
                                                   ),
                                                 ),
@@ -377,88 +378,62 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   ],
                 ),
               ),
-              SafeArea(
-                top: false,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal,
-                    10,
-                    AppSpacing.screenHorizontal,
-                    10,
+              MarGemBottomActionBar(
+                children: [
+                  Expanded(
+                    child: MarketPrimaryButton(
+                      label: l10n.contactSeller,
+                      icon: Icons.chat_bubble_rounded,
+                      loading: _contacting,
+                      onPressed: () => _openChat(seller),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    border: Border(
-                      top: BorderSide(
-                        color: Theme.of(context).dividerColor,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: MarketSecondaryButton(
+                      label: l10n.callSeller,
+                      icon: Icons.call_rounded,
+                      onPressed: seller.phone.isEmpty
+                          ? null
+                          : () => _callSeller(seller),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Material(
+                    color: AppColors.surfaceMuted,
+                    borderRadius:
+                        BorderRadius.circular(MarketButtonMetrics.radius),
+                    child: InkWell(
+                      borderRadius:
+                          BorderRadius.circular(MarketButtonMetrics.radius),
+                      onTap: _addingFavorite
+                          ? null
+                          : () => _addToFavorites(product, seller),
+                      child: SizedBox(
+                        width: MarketButtonMetrics.height,
+                        height: MarketButtonMetrics.height,
+                        child: _addingFavorite
+                            ? const Padding(
+                                padding: EdgeInsets.all(14),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2),
+                              )
+                            : AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 180),
+                                child: Icon(
+                                  _isFavorite
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  key: ValueKey(_isFavorite),
+                                  color: _isFavorite
+                                      ? AppColors.primary
+                                      : AppColors.textTertiary,
+                                ),
+                              ),
                       ),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 12,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: MarketPrimaryButton(
-                          label: l10n.contactSeller,
-                          icon: Icons.chat_bubble_rounded,
-                          loading: _contacting,
-                          onPressed: () => _openChat(seller),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: MarketPrimaryButton(
-                          label: l10n.callSeller,
-                          icon: Icons.call_rounded,
-                          onPressed: seller.phone.isEmpty
-                              ? null
-                              : () => _callSeller(seller),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Material(
-                        color: AppColors.surfaceMuted,
-                        borderRadius:
-                            BorderRadius.circular(MarketButtonMetrics.radius),
-                        child: InkWell(
-                          borderRadius:
-                              BorderRadius.circular(MarketButtonMetrics.radius),
-                          onTap: _addingFavorite
-                              ? null
-                              : () => _addToFavorites(product, seller),
-                          child: SizedBox(
-                            width: MarketButtonMetrics.height,
-                            height: MarketButtonMetrics.height,
-                            child: _addingFavorite
-                                ? const Padding(
-                                    padding: EdgeInsets.all(14),
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
-                                : AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 180),
-                                    child: Icon(
-                                      _isFavorite
-                                          ? Icons.favorite_rounded
-                                          : Icons.favorite_border_rounded,
-                                      key: ValueKey(_isFavorite),
-                                      color: _isFavorite
-                                          ? AppColors.danger
-                                          : AppColors.primary,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ],
           ),

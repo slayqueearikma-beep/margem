@@ -9,7 +9,8 @@ import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
-import '../../core/widgets/network_image_view.dart';
+import '../../core/widgets/content_widgets.dart';
+import '../../core/widgets/margem_components.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 
@@ -26,12 +27,22 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   String _debounced = '';
   Timer? _timer;
   Future<MarketplaceSearchPage>? _future;
+  final _searchController = TextEditingController();
   final _focusNode = FocusNode();
   var _mode = 'products';
+
+  static const _popularSearches = [
+    'iPhone',
+    'PlayStation',
+    'MacBook',
+    'Fashion',
+    'Electronics',
+  ];
 
   @override
   void dispose() {
     _timer?.cancel();
+    _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -67,10 +78,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
   }
 
+  void _applyChipSearch(String term) {
+    _searchController.text = term;
+    setState(() {
+      _debounced = term;
+      _future = _load();
+    });
+  }
+
+  int get _modeIndex => _mode == 'products' ? 0 : 1;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final city = ref.watch(buyerCityProvider);
     ref.listen(buyerCityProvider, (previous, next) {
       if (previous != next) {
         setState(() => _future = _load());
@@ -83,50 +103,58 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenHorizontal,
+              AppSpacing.md,
+              AppSpacing.screenHorizontal,
+              0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.search,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  city,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                TextField(
+                MarGemSearchBar(
+                  hint: l10n.businessKeyword,
+                  controller: _searchController,
                   focusNode: _focusNode,
                   autofocus: widget.autofocusSearch,
-                  decoration: InputDecoration(
-                    hintText: l10n.businessKeyword,
-                    prefixIcon: const Icon(Icons.search),
-                  ),
                   onChanged: _onQueryChanged,
+                  trailing: IconButton(
+                    icon: const Icon(Icons.tune_rounded, size: 22),
+                    color: AppColors.textTertiary,
+                    onPressed: () {},
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(
-                      value: 'products',
-                      label: Text(l10n.products),
-                      icon: const Icon(Icons.inventory_2_outlined),
-                    ),
-                    ButtonSegment(
-                      value: 'sellers',
-                      label: Text(l10n.seller),
-                      icon: const Icon(Icons.storefront_outlined),
-                    ),
-                  ],
-                  selected: {_mode},
-                  onSelectionChanged: (values) {
+                if (_debounced.isEmpty) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    l10n.search,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: AppColors.textTertiary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _popularSearches
+                        .map(
+                          (term) => MarGemFilterChip(
+                            label: term,
+                            selected: false,
+                            onTap: () => _applyChipSearch(term),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.lg),
+                MarGemUnderlineTabs(
+                  tabs: [l10n.products, l10n.seller],
+                  selectedIndex: _modeIndex,
+                  onSelected: (index) {
                     setState(() {
-                      _mode = values.first;
+                      _mode = index == 0 ? 'products' : 'sellers';
                       _future = _load();
                     });
                   },
@@ -134,6 +162,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.md),
           Expanded(
             child: FutureBuilder<MarketplaceSearchPage>(
               future: _future,
@@ -159,68 +188,54 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 if (count == 0) {
                   return Center(child: Text(l10n.noBusinessesFound));
                 }
+
+                if (isProducts) {
+                  return GridView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.screenHorizontal,
+                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: AppSpacing.productGridGap,
+                      crossAxisSpacing: AppSpacing.productGridGap,
+                      childAspectRatio: 0.72,
+                    ),
+                    itemCount: count,
+                    itemBuilder: (_, index) {
+                      final product = page!.products[index];
+                      return ProductGridCard(
+                        name: product.name,
+                        priceLabel: product.priceMad == null
+                            ? '—'
+                            : '${product.priceMad!.toStringAsFixed(0)} MAD',
+                        imageUrl: product.imageUrl,
+                        locationLabel: product.sellerCity,
+                        onTap: () => context.push(
+                          '/product/${product.sellerId}/${product.id}',
+                        ),
+                      );
+                    },
+                  );
+                }
+
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.screenHorizontal),
+                    horizontal: AppSpacing.screenHorizontal,
+                  ),
                   itemCount: count,
                   separatorBuilder: (_, __) =>
                       const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (_, index) {
-                    if (isProducts) {
-                      final product = page!.products[index];
-                      return ListTile(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                        tileColor: Theme.of(context).cardTheme.color,
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: SizedBox(
-                            width: 52,
-                            height: 52,
-                            child: NetworkImageView(
-                              url: product.imageUrl,
-                              placeholderIcon: Icons.inventory_2_outlined,
-                            ),
-                          ),
-                        ),
-                        title: Text(product.name,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w700)),
-                        subtitle: Text(
-                            '${product.sellerName} · ${product.sellerCity}'),
-                        trailing: Text(
-                          product.priceMad == null
-                              ? '—'
-                              : '${product.priceMad!.toStringAsFixed(0)} MAD',
-                          style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w800),
-                        ),
-                        onTap: () => context
-                            .push('/product/${product.sellerId}/${product.id}'),
-                      );
-                    }
                     final seller = page!.sellers[index];
-                    return ListTile(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      tileColor: Theme.of(context).cardTheme.color,
-                      leading: ClipOval(
-                        child: SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: NetworkImageView(
-                            url: seller.coverImageUrl,
-                            placeholderIcon: Icons.storefront_rounded,
-                          ),
-                        ),
-                      ),
-                      title: Text(seller.businessName,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle:
-                          Text('${seller.city} · ${seller.averageRating} ★'),
-                      trailing: const Icon(Icons.chevron_right_rounded,
-                          color: AppColors.textSecondary),
+                    return SellerCard(
+                      businessName: seller.businessName,
+                      description: '',
+                      rating: seller.averageRating,
+                      reviewCount: seller.reviewCount,
+                      city: seller.city,
+                      imageUrl: seller.coverImageUrl,
+                      compact: true,
                       onTap: () => context.push('/seller/${seller.id}'),
                     );
                   },
