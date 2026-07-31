@@ -441,6 +441,51 @@ async def _handle_invoice_payment_failed(session: AsyncSession, invoice: dict) -
     )
 
 
+async def sync_user_subscription_from_stripe(
+    session: AsyncSession,
+    user: User,
+    *,
+    checkout_session_id: str | None = None,
+) -> Subscription | None:
+    """Pull the latest subscription state from Stripe for the current user."""
+    require_stripe_configured()
+    _configure_stripe()
+
+    if checkout_session_id:
+        checkout = stripe.checkout.Session.retrieve(checkout_session_id)
+        owner_id = checkout.get("client_reference_id") or (checkout.get("metadata") or {}).get("user_id")
+        if owner_id and str(owner_id) != str(user.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Checkout session does not belong to this account",
+            )
+        subscription_id = checkout.get("subscription")
+        if not subscription_id:
+            return None
+        stripe_sub = stripe.Subscription.retrieve(subscription_id)
+        plan_code = (checkout.get("metadata") or {}).get("plan_code")
+        plan = await get_plan_by_code(session, plan_code) if plan_code else None
+        return await sync_subscription_from_stripe_object(
+            session, user=user, stripe_sub=stripe_sub, plan=plan
+        )
+
+    active = (
+        await session.execute(
+            select(Subscription).where(
+                Subscription.user_id == user.id,
+                Subscription.stripe_subscription_id.is_not(None),
+            )
+            .order_by(Subscription.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if active is None or not active.stripe_subscription_id:
+        return None
+
+    stripe_sub = stripe.Subscription.retrieve(active.stripe_subscription_id)
+    return await sync_subscription_from_stripe_object(session, user=user, stripe_sub=stripe_sub)
+
+
 async def reconcile_stripe_subscriptions(session: AsyncSession) -> dict:
     """Sync local subscription rows with Stripe (repair drift)."""
     if not settings.stripe_enabled:

@@ -17,6 +17,7 @@ from app.schemas.billing import (
     CheckoutOut,
     PortalOut,
     SubscriptionOut,
+    SyncSubscriptionRequest,
 )
 from app.services.stripe_billing import (
     cancel_subscription_at_period_end,
@@ -25,6 +26,7 @@ from app.services.stripe_billing import (
     create_customer_portal_session,
     handle_stripe_webhook,
     require_stripe_configured,
+    sync_user_subscription_from_stripe,
 )
 from app.services.subscription_activation import get_subscription_out
 
@@ -89,6 +91,30 @@ async def change_plan(
         plan_code=payload.plan_code,
         interval=payload.interval,
     )
+    await session.commit()
+    return SubscriptionOut.from_subscription(subscription)
+
+
+@router.post("/sync", response_model=SubscriptionOut)
+@limiter.limit("30/minute")
+async def sync_subscription(
+    request: Request,
+    payload: SyncSubscriptionRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> SubscriptionOut:
+    """Refresh subscription state from Stripe (e.g. immediately after Checkout)."""
+    require_stripe_configured()
+    subscription = await sync_user_subscription_from_stripe(
+        session,
+        user,
+        checkout_session_id=payload.checkout_session_id,
+    )
+    if subscription is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No Stripe subscription found to sync",
+        )
     await session.commit()
     return SubscriptionOut.from_subscription(subscription)
 

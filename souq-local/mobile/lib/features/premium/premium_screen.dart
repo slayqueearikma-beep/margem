@@ -36,10 +36,30 @@ class PremiumScreen extends ConsumerStatefulWidget {
   ConsumerState<PremiumScreen> createState() => _PremiumScreenState();
 }
 
-class _PremiumScreenState extends ConsumerState<PremiumScreen> {
+class _PremiumScreenState extends ConsumerState<PremiumScreen>
+    with WidgetsBindingObserver {
   String? _loadingPlanCode;
   var _interval = 'monthly';
   var _openingPortal = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshAll();
+    }
+  }
 
   Future<void> _refreshAll() async {
     ref.invalidate(subscriptionPlansProvider);

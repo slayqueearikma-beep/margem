@@ -751,6 +751,17 @@ class ApiService {
     return data['portal_url'] as String;
   }
 
+  Future<SubscriptionModel> syncBillingSubscription({
+    String? checkoutSessionId,
+  }) async {
+    final body = <String, dynamic>{};
+    if (checkoutSessionId != null && checkoutSessionId.isNotEmpty) {
+      body['checkout_session_id'] = checkoutSessionId;
+    }
+    final data = await postJson('/billing/sync', body, auth: true);
+    return SubscriptionModel.fromJson(data);
+  }
+
   Future<void> requestPasswordReset(String email) {
     return postVoid('/auth/password-reset/request', {'email': email},
         auth: false);

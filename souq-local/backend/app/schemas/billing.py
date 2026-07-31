@@ -94,3 +94,7 @@ class PortalOut(BaseModel):
 class ChangePlanRequest(BaseModel):
     plan_code: str = Field(min_length=2, max_length=40)
     interval: str = Field(default="monthly", pattern=r"^(monthly|yearly)$")
+
+
+class SyncSubscriptionRequest(BaseModel):
+    checkout_session_id: str | None = Field(default=None, max_length=120)

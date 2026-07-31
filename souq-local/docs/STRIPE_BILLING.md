@@ -67,6 +67,7 @@ stripe listen --forward-to localhost:8000/billing/webhooks/stripe
 | POST | `/billing/checkout` | Create Stripe Checkout session (seller auth) |
 | POST | `/billing/portal` | Customer Portal URL |
 | POST | `/billing/change-plan` | Prorated upgrade/downgrade |
+| POST | `/billing/sync` | Refresh subscription from Stripe (post-checkout) |
 | POST | `/billing/cancel` | Cancel at period end |
 | POST | `/billing/webhooks/stripe` | Webhook receiver |
 
@@ -78,11 +79,29 @@ python scripts/stripe_reconcile.py
 
 Also runs on API startup when `STRIPE_SECRET_KEY` is set.
 
+### Sync Stripe Price IDs from env (deploy)
+
+```bash
+# Set STRIPE_VIP_PRICE_MONTHLY, STRIPE_VIP_PRICE_YEARLY, etc. then:
+python scripts/sync_stripe_prices.py
+```
+
 ## 6. Mobile
 
 - **Upgrade** → `POST /billing/checkout` → opens Stripe Checkout in browser
+- **After payment** → success URL opens `/premium/success?session_id=...` → `POST /billing/sync` activates immediately
 - **Manage billing** → `POST /billing/portal` → Stripe Customer Portal
 - Dev fallback: `POST /subscriptions/subscribe/{code}` when Stripe is not configured
+
+For native deep links, set:
+
+```env
+STRIPE_SUCCESS_URL=https://margem.ma/premium/success
+STRIPE_CANCEL_URL=https://margem.ma/premium/cancel
+STRIPE_PORTAL_RETURN_URL=https://margem.ma/premium
+```
+
+(Android/iOS deep links are registered for `/premium/success` and `/premium/cancel`.)
 
 ## 7. Admin
 

@@ -26,6 +26,7 @@ import 'features/onboarding/become_seller_screen.dart';
 import 'features/onboarding/buyer_registration_screen.dart';
 import 'features/onboarding/onboarding_welcome_screen.dart';
 import 'features/onboarding/seller_registration_screen.dart';
+import 'features/premium/premium_checkout_result_screen.dart';
 import 'features/premium/premium_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/seller/product_detail_screen.dart';
@@ -65,6 +66,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthProtected = isSellerManagement ||
           isAdminRoute ||
           path == '/premium' ||
+          path.startsWith('/premium/') ||
           path == '/profile' ||
           path == '/favorites' ||
           path.startsWith('/messages');
@@ -138,6 +140,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
       GoRoute(path: '/premium', builder: (_, __) => const PremiumScreen()),
+      GoRoute(
+        path: '/premium/success',
+        builder: (_, state) => PremiumCheckoutResultScreen(
+          success: true,
+          sessionId: state.uri.queryParameters['session_id'],
+        ),
+      ),
+      GoRoute(
+        path: '/premium/cancel',
+        builder: (_, __) => const PremiumCheckoutResultScreen(success: false),
+      ),
       GoRoute(path: '/profile', builder: (_, __) => const BuyerProfileScreen()),
       GoRoute(
           path: '/messages',

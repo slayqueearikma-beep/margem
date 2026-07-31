@@ -107,6 +107,13 @@ async def test_webhook_rejects_missing_signature(client: AsyncClient, monkeypatc
 
 
 @pytest.mark.asyncio
+async def test_billing_sync_requires_stripe_config(client: AsyncClient):
+    seller = await _register_seller(client)
+    res = await client.post("/billing/sync", headers=seller["headers"], json={})
+    assert res.status_code == 503
+
+
+@pytest.mark.asyncio
 async def test_record_webhook_idempotency():
     import app.database as database
     from app.services.stripe_billing import record_webhook_event

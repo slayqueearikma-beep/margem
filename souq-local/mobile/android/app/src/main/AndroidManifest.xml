@@ -42,6 +42,8 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="margem" android:host="app" android:pathPrefix="/reset-password"/>
                 <data android:scheme="margem" android:host="app" android:pathPrefix="/verify-email"/>
+                <data android:scheme="margem" android:host="app" android:pathPrefix="/premium/success"/>
+                <data android:scheme="margem" android:host="app" android:pathPrefix="/premium/cancel"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
@@ -57,12 +59,28 @@
                     android:pathPrefix="/verify-email"/>
                 <data
                     android:scheme="https"
+                    android:host="margem.ma"
+                    android:pathPrefix="/premium/success"/>
+                <data
+                    android:scheme="https"
+                    android:host="margem.ma"
+                    android:pathPrefix="/premium/cancel"/>
+                <data
+                    android:scheme="https"
                     android:host="www.margem.ma"
                     android:pathPrefix="/reset-password"/>
                 <data
                     android:scheme="https"
                     android:host="www.margem.ma"
                     android:pathPrefix="/verify-email"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.margem.ma"
+                    android:pathPrefix="/premium/success"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.margem.ma"
+                    android:pathPrefix="/premium/cancel"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
