@@ -417,93 +417,105 @@ class AdminKpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final trend = trendPercent;
     final isUp = trend != null && trend >= 0;
+    final textScaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.1);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AdminTheme.radiusXl),
-        child: Ink(
-          width: 168,
-          padding: const EdgeInsets.all(16),
-          decoration: AdminTheme.cardDecoration(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: iconBg,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: iconColor, size: 20),
-                  ),
-                  const Spacer(),
-                  if (trend != null)
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AdminTheme.radiusXl),
+          child: Ink(
+            width: 168,
+            height: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: AdminTheme.cardDecoration(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      width: 34,
+                      height: 34,
                       decoration: BoxDecoration(
-                        color: (isUp ? AdminTheme.success : AdminTheme.danger)
-                            .withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
+                        color: iconBg,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-                            size: 11,
-                            color: isUp ? AdminTheme.success : AdminTheme.danger,
-                          ),
-                          Text(
-                            '${trend.abs().toStringAsFixed(1)}%',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: isUp ? AdminTheme.success : AdminTheme.danger,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: Icon(icon, color: iconColor, size: 18),
                     ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  color: AdminTheme.textPrimary,
-                  height: 1.1,
+                    const Spacer(),
+                    if (trend != null)
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: (isUp ? AdminTheme.success : AdminTheme.danger)
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                                size: 10,
+                                color: isUp ? AdminTheme.success : AdminTheme.danger,
+                              ),
+                              Flexible(
+                                child: Text(
+                                  '${trend.abs().toStringAsFixed(1)}%',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: isUp ? AdminTheme.success : AdminTheme.danger,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
-              ),
-              if (sparkline.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 26,
-                  width: double.infinity,
-                  child: CustomPaint(
-                    painter: _SparklinePainter(
-                      values: sparkline,
-                      color: iconColor.withValues(alpha: 0.8),
-                    ),
+                const SizedBox(height: 10),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    color: AdminTheme.textPrimary,
+                    height: 1.0,
                   ),
                 ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+                ),
+                if (sparkline.isNotEmpty) ...[
+                  const Spacer(),
+                  SizedBox(
+                    height: 24,
+                    width: double.infinity,
+                    child: CustomPaint(
+                      painter: _SparklinePainter(
+                        values: sparkline,
+                        color: iconColor.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -573,11 +585,10 @@ class AdminLineChartCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: AdminTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,15 +607,15 @@ class AdminLineChartCard extends StatelessWidget {
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AdminTheme.background,
                   borderRadius: BorderRadius.circular(20),
@@ -621,48 +632,50 @@ class AdminLineChartCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Flexible(
+              Expanded(
                 child: Text(
                   totalLabel.isNotEmpty ? totalLabel : _formatNumber(total),
                   style: const TextStyle(
-                    fontSize: 28,
+                    fontSize: 26,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.8,
-                    height: 1.1,
+                    height: 1.0,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (trend != null) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: (trend >= 0 ? AdminTheme.success : AdminTheme.danger)
-                        .withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${trend >= 0 ? '+' : ''}${trend.toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: trend >= 0 ? AdminTheme.success : AdminTheme.danger,
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: (trend >= 0 ? AdminTheme.success : AdminTheme.danger)
+                          .withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${trend >= 0 ? '+' : ''}${trend.toStringAsFixed(1)}%',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: trend >= 0 ? AdminTheme.success : AdminTheme.danger,
+                      ),
                     ),
                   ),
                 ),
               ],
             ],
           ),
-          const SizedBox(height: 14),
-          SizedBox(
-            height: 120,
-            width: double.infinity,
+          const SizedBox(height: 10),
+          Expanded(
             child: CustomPaint(
               painter: _LineChartPainter(values: values, color: accentColor),
             ),
@@ -747,7 +760,7 @@ class AdminQuickActionsGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final columns = width < 400 ? 3 : 4;
-    final aspectRatio = width < 400 ? 0.92 : 0.78;
+    final aspectRatio = width < 400 ? 0.82 : 0.72;
 
     return GridView.builder(
       shrinkWrap: true,
@@ -772,32 +785,34 @@ class AdminQuickActionsGrid extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AdminTheme.radiusLg),
                 border: Border.all(color: AdminTheme.border.withValues(alpha: 0.7)),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 34,
+                    height: 34,
                     decoration: BoxDecoration(
                       color: action.color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(action.icon, color: action.color, size: 18),
+                    child: Icon(action.icon, color: action.color, size: 17),
                   ),
-                  const SizedBox(height: 6),
-                  Flexible(
-                    child: Text(
-                      action.label,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AdminTheme.textPrimary,
-                        height: 1.15,
+                  const SizedBox(height: 5),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: Text(
+                        action.label,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AdminTheme.textPrimary,
+                          height: 1.1,
+                        ),
                       ),
                     ),
                   ),

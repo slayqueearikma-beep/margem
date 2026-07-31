@@ -83,14 +83,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                         child: AdminSectionHeader(title: 'Key metrics'),
                       ),
                       SizedBox(
-                        height: 158,
+                        height: 168,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           physics: const BouncingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
-                          clipBehavior: Clip.none,
+                          clipBehavior: Clip.hardEdge,
                           itemCount: 6,
                           separatorBuilder: (_, __) => const SizedBox(width: 12),
                           itemBuilder: (context, index) {
@@ -148,7 +148,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                                 trendPercent: 6.8,
                               ),
                             ];
-                            return cards[index];
+                            return SizedBox(
+                              width: 168,
+                              height: 168,
+                              child: cards[index],
+                            );
                           },
                         ),
                       ),
@@ -168,33 +172,39 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                         onAction: () => context.go('/admin/analytics'),
                       ),
                       SizedBox(
-                        height: 276,
+                        height: 268,
                         child: PageView(
                           controller: _chartPage,
                           onPageChanged: (i) => setState(() => _chartIndex = i),
                           children: [
-                            AdminLineChartCard(
-                              title: 'User Growth',
-                              subtitle: 'New registrations over 30 days',
-                              points: data.userGrowth30d,
-                              totalLabel: adminFormatCount(data.newUsers7d),
-                              trendPercent: userTrend,
+                            SizedBox.expand(
+                              child: AdminLineChartCard(
+                                title: 'User Growth',
+                                subtitle: 'New registrations over 30 days',
+                                points: data.userGrowth30d,
+                                totalLabel: adminFormatCount(data.newUsers7d),
+                                trendPercent: userTrend,
+                              ),
                             ),
-                            AdminLineChartCard(
-                              title: 'Listing Growth',
-                              subtitle: 'New products over 30 days',
-                              points: data.listingGrowth30d,
-                              totalLabel: adminFormatCount(data.totalListings),
-                              trendPercent: listingTrend,
-                              accentColor: const Color(0xFF3B82F6),
+                            SizedBox.expand(
+                              child: AdminLineChartCard(
+                                title: 'Listing Growth',
+                                subtitle: 'New products over 30 days',
+                                points: data.listingGrowth30d,
+                                totalLabel: adminFormatCount(data.totalListings),
+                                trendPercent: listingTrend,
+                                accentColor: const Color(0xFF3B82F6),
+                              ),
                             ),
-                            AdminLineChartCard(
-                              title: 'Platform Activity',
-                              subtitle: 'Reviews & engagement',
-                              points: data.userGrowth30d,
-                              totalLabel: adminFormatCount(data.totalReviews),
-                              trendPercent: 4.2,
-                              accentColor: AdminTheme.gold,
+                            SizedBox.expand(
+                              child: AdminLineChartCard(
+                                title: 'Platform Activity',
+                                subtitle: 'Reviews & engagement',
+                                points: data.userGrowth30d,
+                                totalLabel: adminFormatCount(data.totalReviews),
+                                trendPercent: 4.2,
+                                accentColor: AdminTheme.gold,
+                              ),
                             ),
                           ],
                         ),
