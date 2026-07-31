@@ -248,7 +248,7 @@ class _ConversationTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.success,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(color: AppColors.white, width: 2),
               ),
             ),
           ),
@@ -313,7 +313,7 @@ class _ConversationTile extends StatelessWidget {
                     ? '99+'
                     : '${conversation.unreadCount}',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                 ),

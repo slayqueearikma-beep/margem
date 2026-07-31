@@ -149,7 +149,7 @@ class _Wordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final marColor = isDark ? Colors.white : AppColors.charcoal;
+    final marColor = isDark ? AppColors.white : AppColors.charcoal;
     return RichText(
       text: TextSpan(
         style: TextStyle(fontSize: height, fontWeight: FontWeight.w800, letterSpacing: -0.5),
@@ -175,7 +175,7 @@ class _FallbackLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final taglineColor = (isDark ? Colors.white : AppColors.charcoal).withValues(alpha: 0.75);
+    final taglineColor = (isDark ? AppColors.white : AppColors.charcoal).withValues(alpha: 0.75);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -213,7 +213,7 @@ class _MarGemGemPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
     final cx = w / 2;
-    final fill = isDark ? const Color(0xFF1A1A1A) : AppColors.charcoal;
+    final fill = isDark ? AppColors.logoDarkFill : AppColors.charcoal;
 
     final gem = Path()
       ..moveTo(cx, h * 0.06)

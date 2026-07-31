@@ -53,7 +53,7 @@ class OnboardingIllustration extends StatelessWidget {
           child: Icon(
             secondaryIcon ?? Icons.auto_awesome_rounded,
             size: 36,
-            color: Colors.white.withValues(alpha: 0.35),
+            color: AppColors.overlayFaint,
           ),
         ),
         Positioned(
@@ -62,17 +62,17 @@ class OnboardingIllustration extends StatelessWidget {
           child: Icon(
             Icons.location_on_rounded,
             size: 28,
-            color: Colors.white.withValues(alpha: 0.3),
+            color: AppColors.overlaySoft,
           ),
         ),
         Container(
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: AppColors.overlaySubtle,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 56, color: Colors.white),
+          child: Icon(icon, size: 56, color: AppColors.white),
         ),
       ],
     );
@@ -155,7 +155,7 @@ class FeaturedBusinessCard extends StatelessWidget {
     return SizedBox(
       width: cardWidth,
       child: Material(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: isDark ? AppColors.darkCard : AppColors.white,
         elevation: 0,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         clipBehavior: Clip.antiAlias,
@@ -183,7 +183,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                         top: 8,
                         right: 8,
                         child: Material(
-                          color: Colors.white.withValues(alpha: 0.92),
+                          color: AppColors.overlayLight,
                           shape: const CircleBorder(),
                           child: InkWell(
                             customBorder: const CircleBorder(),
@@ -285,7 +285,7 @@ class SellerCard extends StatelessWidget {
         vertical: compact ? 0 : 6,
       ),
       child: Material(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: isDark ? AppColors.darkCard : AppColors.white,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -312,7 +312,7 @@ class SellerCard extends StatelessWidget {
                           top: 8,
                           right: 8,
                           child: Material(
-                            color: Colors.white.withValues(alpha: 0.92),
+                            color: AppColors.overlayLight,
                             shape: const CircleBorder(),
                             child: InkWell(
                               customBorder: const CircleBorder(),
@@ -577,7 +577,7 @@ class DashboardMenuTile extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 child: Text(
                   badge!,
-                  style: const TextStyle(fontSize: 10, color: Colors.white),
+                  style: const TextStyle(fontSize: 10, color: AppColors.white),
                 ),
               )
             : Icon(
@@ -617,7 +617,7 @@ class ProductGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: isDark ? AppColors.darkCard : AppColors.white,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -643,7 +643,7 @@ class ProductGridCard extends StatelessWidget {
                         top: 8,
                         right: 8,
                         child: Material(
-                          color: Colors.white.withValues(alpha: 0.92),
+                          color: AppColors.overlayLight,
                           shape: const CircleBorder(),
                           child: InkWell(
                             customBorder: const CircleBorder(),

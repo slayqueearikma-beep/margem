@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_colors.dart';
+
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
@@ -194,7 +196,7 @@ class _SuccessMessage extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            const Icon(Icons.check_circle_outline, color: Colors.green),
+            const Icon(Icons.check_circle_outline, color: AppColors.success),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(message)),
           ],

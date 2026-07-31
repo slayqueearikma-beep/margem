@@ -115,7 +115,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       pinned: true,
                       automaticallyImplyLeading: false,
                       expandedHeight: MediaQuery.sizeOf(context).width * 0.92,
-                      backgroundColor: Colors.white,
+                      backgroundColor: AppColors.white,
                       flexibleSpace: FlexibleSpaceBar(
                         background: gallery.isEmpty
                             ? const ColoredBox(

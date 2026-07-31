@@ -69,7 +69,7 @@ class SellerDashboardScreen extends ConsumerWidget {
                             Row(
                               children: [
                                 Material(
-                                  color: Colors.transparent,
+                                  color: AppColors.transparent,
                                   child: InkWell(
                                     customBorder: const CircleBorder(),
                                     onTap: () =>
@@ -168,7 +168,7 @@ class SellerDashboardScreen extends ConsumerWidget {
                                           .displayName,
                                     ),
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -177,7 +177,7 @@ class SellerDashboardScreen extends ConsumerWidget {
                                   Text(
                                     l10n.manageStoreSubtitle,
                                     style: TextStyle(
-                                        color: Colors.white
+                                        color: AppColors.white
                                             .withValues(alpha: 0.85)),
                                   ),
                                   if (!stats.isActive) ...[
@@ -185,7 +185,7 @@ class SellerDashboardScreen extends ConsumerWidget {
                                     Text(
                                       l10n.storeInactiveHint,
                                       style: TextStyle(
-                                          color: Colors.white
+                                          color: AppColors.white
                                               .withValues(alpha: 0.95)),
                                     ),
                                   ],

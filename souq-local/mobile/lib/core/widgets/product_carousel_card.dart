@@ -37,7 +37,7 @@ class ProductCarouselCard extends StatelessWidget {
     final cardWidth = width ?? ((screenW - 48) / 3).clamp(118.0, 168.0);
 
     final card = Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: isDark ? AppColors.darkCard : AppColors.white,
       elevation: 0,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       clipBehavior: Clip.antiAlias,
@@ -65,7 +65,7 @@ class ProductCarouselCard extends StatelessWidget {
                         top: 8,
                         right: 8,
                         child: Material(
-                          color: Colors.white.withValues(alpha: 0.92),
+                          color: AppColors.overlayLight,
                           shape: const CircleBorder(),
                           child: InkWell(
                             customBorder: const CircleBorder(),
@@ -95,7 +95,7 @@ class ProductCarouselCard extends StatelessWidget {
                         left: 8,
                         child: Icon(
                           Icons.verified_rounded,
-                          color: Colors.blue,
+                          color: AppColors.info,
                           size: 20,
                         ),
                       ),

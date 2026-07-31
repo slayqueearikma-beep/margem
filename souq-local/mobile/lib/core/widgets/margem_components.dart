@@ -36,7 +36,7 @@ class MarGemSearchBar extends StatelessWidget {
         color: isDark ? AppColors.darkCard : AppColors.surfaceMuted,
         borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
         elevation: 0,
-        shadowColor: Colors.transparent,
+        shadowColor: AppColors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -145,7 +145,7 @@ class MarGemUnderlineTabs extends StatelessWidget {
                   duration: const Duration(milliseconds: 200),
                   height: 2.5,
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.primary : Colors.transparent,
+                    color: selected ? AppColors.primary : AppColors.transparent,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -193,7 +193,7 @@ class MarGemFilterChip extends StatelessWidget {
                 Icon(
                   icon,
                   size: 16,
-                  color: selected ? Colors.white : AppColors.textSecondary,
+                  color: selected ? AppColors.white : AppColors.textSecondary,
                 ),
                 const SizedBox(width: 6),
               ],
@@ -202,7 +202,7 @@ class MarGemFilterChip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: selected ? Colors.white : AppColors.textSecondary,
+                  color: selected ? AppColors.white : AppColors.textSecondary,
                 ),
               ),
             ],
@@ -253,7 +253,7 @@ class MarGemCategoryIcon extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 24,
-                color: selected ? Colors.white : AppColors.primary,
+                color: selected ? AppColors.white : AppColors.primary,
               ),
             ),
             const SizedBox(height: 6),
@@ -355,7 +355,7 @@ class MarGemHeroBanner extends StatelessWidget {
                         child: Text(
                           actionLabel!,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -428,7 +428,7 @@ class MarGemOnlineDot extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.success,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
+        border: Border.all(color: AppColors.white, width: 2),
       ),
     );
   }
@@ -493,7 +493,7 @@ class MarGemMenuTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
@@ -572,7 +572,7 @@ class MarGemBottomActionBar extends StatelessWidget {
         12,
       ),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: isDark ? AppColors.darkSurface : AppColors.white,
         boxShadow: AppShadows.bottomBar(isDark: isDark),
       ),
       child: SafeArea(
@@ -625,7 +625,7 @@ class MarGemChatBubble extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.4,
-                  color: isMine ? Colors.white : AppColors.textPrimary,
+                  color: isMine ? AppColors.white : AppColors.textPrimary,
                 ),
               ),
             ),
@@ -634,7 +634,7 @@ class MarGemChatBubble extends StatelessWidget {
               const Icon(
                 Icons.done_all_rounded,
                 size: 14,
-                color: Colors.white70,
+                color: AppColors.onPrimaryMuted,
               ),
             ],
           ],
@@ -658,10 +658,10 @@ class MarGemOverlayIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.92),
+      color: AppColors.overlayLight,
       shape: const CircleBorder(),
       elevation: 2,
-      shadowColor: Colors.black26,
+      shadowColor: AppColors.scrimMedium,
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onPressed,
@@ -691,13 +691,13 @@ class MarGemGalleryIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
+        color: AppColors.scrim,
         borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
       ),
       child: Text(
         '$current/$total',
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColors.white,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -842,7 +842,7 @@ class MarGemStepProgress extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: active ? Colors.white : AppColors.textTertiary,
+                    color: active ? AppColors.white : AppColors.textTertiary,
                   ),
                 ),
               ),

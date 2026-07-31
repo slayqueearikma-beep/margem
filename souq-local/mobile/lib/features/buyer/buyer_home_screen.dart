@@ -94,7 +94,7 @@ class BuyerHomeShell extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkSurface
-                  : Colors.white,
+                  : AppColors.white,
               boxShadow: AppShadows.bottomBar(
                 isDark: Theme.of(context).brightness == Brightness.dark,
               ),
@@ -712,7 +712,7 @@ class _ProfileHeader extends StatelessWidget {
                   fontSize: 34,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.5,
-                  color: isDark ? Colors.white : AppColors.primary,
+                  color: isDark ? AppColors.white : AppColors.primary,
                 ),
               ),
             ),

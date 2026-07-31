@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -153,7 +155,7 @@ class _BuyerRegistrationScreenState
                     : null,
                 child: _profileImage == null
                     ? const Icon(Icons.add_a_photo_outlined,
-                        size: 28, color: Colors.grey)
+                        size: 28, color: AppColors.textMuted)
                     : null,
               ),
             ),
@@ -161,7 +163,7 @@ class _BuyerRegistrationScreenState
           const SizedBox(height: 8),
           Center(
               child: Text(l10n.profilePictureOptional,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13))),
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 13))),
           const SizedBox(height: AppSpacing.lg),
           AppTextField(
               label: l10n.fullName,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Subtle elevation shadows from the MarGem reference design.
+import 'app_colors.dart';
+
+/// Subtle elevation shadows from the MarGem design system.
 class AppShadows {
   AppShadows._();
 
@@ -8,7 +10,7 @@ class AppShadows {
     if (isDark) return const [];
     return [
       BoxShadow(
-        color: Colors.black.withValues(alpha: 0.06),
+        color: AppColors.scrimLight,
         blurRadius: 12,
         offset: const Offset(0, 4),
       ),
@@ -19,7 +21,7 @@ class AppShadows {
     if (isDark) return const [];
     return [
       BoxShadow(
-        color: Colors.black.withValues(alpha: 0.08),
+        color: AppColors.scrimMedium,
         blurRadius: 16,
         offset: const Offset(0, 6),
       ),
@@ -30,7 +32,7 @@ class AppShadows {
     if (isDark) return const [];
     return [
       BoxShadow(
-        color: Colors.black.withValues(alpha: 0.05),
+        color: AppColors.shadowColor,
         blurRadius: 12,
         offset: const Offset(0, -4),
       ),
@@ -41,7 +43,7 @@ class AppShadows {
     if (isDark) return const [];
     return [
       BoxShadow(
-        color: Colors.black.withValues(alpha: 0.04),
+        color: AppColors.scrimLight,
         blurRadius: 8,
         offset: const Offset(0, 2),
       ),

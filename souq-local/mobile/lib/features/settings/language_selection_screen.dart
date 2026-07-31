@@ -207,10 +207,10 @@ class _LanguageCard extends StatelessWidget {
                     border: Border.all(
                         color: selected ? AppColors.primary : AppColors.border,
                         width: 2),
-                    color: selected ? AppColors.primary : Colors.transparent,
+                    color: selected ? AppColors.primary : AppColors.transparent,
                   ),
                   child: selected
-                      ? const Icon(Icons.check, size: 14, color: Colors.white)
+                      ? const Icon(Icons.check, size: 14, color: AppColors.white)
                       : null,
                 ),
               ],
