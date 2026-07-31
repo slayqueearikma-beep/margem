@@ -127,7 +127,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 if (_debounced.isEmpty) ...[
                   const SizedBox(height: AppSpacing.lg),
                   Text(
-                    l10n.search,
+                    'Popular searches',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: AppColors.textTertiary,
                           fontWeight: FontWeight.w600,

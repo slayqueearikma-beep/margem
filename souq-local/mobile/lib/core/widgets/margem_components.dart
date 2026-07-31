@@ -292,9 +292,9 @@ class MarGemHeroBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ?? AppColors.cardSelected;
+    final bg = backgroundColor ?? AppColors.heroBackground;
     return Container(
-      height: 120,
+      height: 140,
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
@@ -329,10 +329,10 @@ class MarGemHeroBanner extends StatelessWidget {
                 const SizedBox(height: 10),
                 Material(
                   color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
+                  borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
                   child: InkWell(
                     onTap: onAction,
-                    borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
+                    borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -386,7 +386,7 @@ class MarGemVerifiedBadge extends StatelessWidget {
           if (!compact) ...[
             const SizedBox(width: 4),
             Text(
-              'Verified',
+              'Verified Seller',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -623,6 +623,400 @@ class MarGemChatBubble extends StatelessWidget {
                 color: Colors.white70,
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Floating circular icon button over image galleries.
+class MarGemOverlayIconButton extends StatelessWidget {
+  const MarGemOverlayIconButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.92),
+      shape: const CircleBorder(),
+      elevation: 2,
+      shadowColor: Colors.black26,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, size: 20, color: AppColors.textPrimary),
+        ),
+      ),
+    );
+  }
+}
+
+/// Gallery page indicator pill (e.g. "1/6").
+class MarGemGalleryIndicator extends StatelessWidget {
+  const MarGemGalleryIndicator({
+    super.key,
+    required this.current,
+    required this.total,
+  });
+
+  final int current;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
+      ),
+      child: Text(
+        '$current/$total',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// Embedded seller card on product detail screen.
+class MarGemSellerPreviewCard extends StatelessWidget {
+  const MarGemSellerPreviewCard({
+    super.key,
+    required this.name,
+    required this.imageUrl,
+    required this.verified,
+    required this.onTap,
+    this.reviewLabel,
+    this.viewProfileLabel = 'View profile',
+  });
+
+  final String name;
+  final String imageUrl;
+  final bool verified;
+  final VoidCallback onTap;
+  final String? reviewLabel;
+  final String viewProfileLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceMuted,
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+            child: ClipOval(
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: imageUrl.isEmpty
+                    ? const Icon(Icons.storefront_rounded,
+                        color: AppColors.primary)
+                    : Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.storefront_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    if (verified) ...[
+                      const SizedBox(width: 4),
+                      const MarGemVerifiedBadge(compact: true),
+                    ],
+                  ],
+                ),
+                if (reviewLabel != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    reviewLabel!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          OutlinedButton(
+            onPressed: onTap,
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(viewProfileLabel, style: const TextStyle(fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Horizontal step progress for sell wizard.
+class MarGemStepProgress extends StatelessWidget {
+  const MarGemStepProgress({
+    super.key,
+    required this.currentStep,
+    required this.totalSteps,
+  });
+
+  final int currentStep;
+  final int totalSteps;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(totalSteps, (index) {
+        final step = index + 1;
+        final active = step <= currentStep;
+        return Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: active ? AppColors.primary : AppColors.surfaceMuted,
+                  border: Border.all(
+                    color: active ? AppColors.primary : AppColors.border,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$step',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: active ? Colors.white : AppColors.textTertiary,
+                  ),
+                ),
+              ),
+              if (index < totalSteps - 1)
+                Expanded(
+                  child: Container(
+                    height: 2,
+                    color: step < currentStep
+                        ? AppColors.primary
+                        : AppColors.divider,
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+}
+
+/// Notification list section header.
+class MarGemSectionLabel extends StatelessWidget {
+  const MarGemSectionLabel({super.key, required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
+/// Notification row matching reference.
+class MarGemNotificationTile extends StatelessWidget {
+  const MarGemNotificationTile({
+    super.key,
+    required this.title,
+    required this.body,
+    required this.timeLabel,
+    required this.icon,
+    this.isUnread = false,
+    this.onTap,
+  });
+
+  final String title;
+  final String body;
+  final String timeLabel;
+  final IconData icon;
+  final bool isUnread;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+              child: Icon(icon, size: 20, color: AppColors.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight:
+                          isUnread ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textTertiary,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              timeLabel,
+              style: TextStyle(
+                fontSize: 11,
+                color: isUnread ? AppColors.primary : AppColors.textMuted,
+                fontWeight: isUnread ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Chat composer bar matching reference.
+class MarGemChatInputBar extends StatelessWidget {
+  const MarGemChatInputBar({
+    super.key,
+    required this.controller,
+    required this.hint,
+    required this.onSend,
+    this.sending = false,
+    this.onAttach,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final VoidCallback onSend;
+  final bool sending;
+  final VoidCallback? onAttach;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Row(
+          children: [
+            if (onAttach != null)
+              IconButton(
+                onPressed: onAttach,
+                icon: const Icon(Icons.add_circle_outline_rounded,
+                    color: AppColors.textTertiary),
+              ),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                minLines: 1,
+                maxLines: 4,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => onSend(),
+                decoration: InputDecoration(
+                  hintText: hint,
+                  filled: true,
+                  fillColor: AppColors.surfaceMuted,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.inputRadius),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              onPressed: sending ? null : onSend,
+              icon: const Icon(Icons.photo_camera_outlined,
+                  color: AppColors.primary),
+            ),
+            IconButton(
+              onPressed: sending ? null : onSend,
+              icon: sending
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.send_rounded, color: AppColors.primary),
+            ),
           ],
         ),
       ),

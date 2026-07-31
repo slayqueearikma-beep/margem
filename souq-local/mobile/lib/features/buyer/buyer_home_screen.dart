@@ -200,10 +200,10 @@ class BuyerHomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   MarGemHeroBanner(
-                    title: l10n.exploreOnMap,
+                    title: 'Comfort that fits your space',
                     actionLabel: l10n.seeAll,
                     onAction: () => context.push('/map'),
-                    icon: Icons.map_outlined,
+                    icon: Icons.chair_outlined,
                   ),
                   if (isGuest) ...[
                     const SizedBox(height: AppSpacing.md),

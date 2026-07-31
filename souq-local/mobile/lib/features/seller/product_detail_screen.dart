@@ -113,7 +113,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   slivers: [
                     SliverAppBar(
                       pinned: true,
-                      expandedHeight: MediaQuery.sizeOf(context).width * 0.95,
+                      automaticallyImplyLeading: false,
+                      expandedHeight: MediaQuery.sizeOf(context).width * 0.92,
+                      backgroundColor: Colors.white,
                       flexibleSpace: FlexibleSpaceBar(
                         background: gallery.isEmpty
                             ? const ColoredBox(
@@ -139,32 +141,41 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                       ),
                                     ),
                                   ),
-                                  if (gallery.length > 1)
+                                  Positioned(
+                                    top: MediaQuery.paddingOf(context).top + 8,
+                                    left: 12,
+                                    child: MarGemOverlayIconButton(
+                                      icon: Icons.arrow_back_ios_new_rounded,
+                                      onPressed: () => context.pop(),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: MediaQuery.paddingOf(context).top + 8,
+                                    right: 12,
+                                    child: Row(
+                                      children: [
+                                        MarGemOverlayIconButton(
+                                          icon: Icons.favorite_border_rounded,
+                                          onPressed: _addingFavorite
+                                              ? () {}
+                                              : () => _addToFavorites(
+                                                    product, seller),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        MarGemOverlayIconButton(
+                                          icon: Icons.ios_share_rounded,
+                                          onPressed: () {},
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (gallery.isNotEmpty)
                                     Positioned(
                                       bottom: 16,
-                                      left: 0,
-                                      right: 0,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: List.generate(
-                                          gallery.length,
-                                          (i) => AnimatedContainer(
-                                            duration: const Duration(
-                                                milliseconds: 200),
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 3),
-                                            width: i == _galleryIndex ? 18 : 7,
-                                            height: 7,
-                                            decoration: BoxDecoration(
-                                              color: i == _galleryIndex
-                                                  ? Colors.white
-                                                  : Colors.white54,
-                                              borderRadius:
-                                                  BorderRadius.circular(99),
-                                            ),
-                                          ),
-                                        ),
+                                      right: 16,
+                                      child: MarGemGalleryIndicator(
+                                        current: _galleryIndex + 1,
+                                        total: gallery.length,
                                       ),
                                     ),
                                 ],
@@ -223,80 +234,26 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: AppSpacing.lg),
-                            InkWell(
-                              onTap: () =>
-                                  context.push('/seller/${seller.id}'),
-                              borderRadius: BorderRadius.circular(16),
-                              child: MarketSectionCard(
-                                title: l10n.seller,
-                                trailing: const Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: AppColors.textSecondary,
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: AppColors.cardSelected,
-                                      child: ClipOval(
-                                        child: SizedBox(
-                                          width: 48,
-                                          height: 48,
-                                          child: NetworkImageView(
-                                            url: seller.logoImageUrl.isNotEmpty
-                                                ? seller.logoImageUrl
-                                                : seller.coverImageUrl,
-                                            placeholderIcon:
-                                                Icons.storefront_rounded,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  seller.businessName,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.w800,
-                                                  ),
-                                                ),
-                                              ),
-                                              if (seller.verificationStatus ==
-                                                  'verified')
-                                                const Padding(
-                                                  padding:
-                                                      EdgeInsets.only(left: 4),
-                                                  child: Icon(
-                                                    Icons.verified_rounded,
-                                                    color: AppColors.verified,
-                                                    size: 18,
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            l10n.reviewsCount(
-                                                seller.reviewCount),
-                                            style: const TextStyle(
-                                              color: AppColors.textSecondary,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            const SizedBox(height: 6),
+                            Text(
+                              seller.city,
+                              style: const TextStyle(
+                                color: AppColors.textTertiary,
+                                fontSize: 13,
                               ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            MarGemSellerPreviewCard(
+                              name: seller.businessName,
+                              imageUrl: seller.logoImageUrl.isNotEmpty
+                                  ? seller.logoImageUrl
+                                  : seller.coverImageUrl,
+                              verified:
+                                  seller.verificationStatus == 'verified',
+                              reviewLabel:
+                                  l10n.reviewsCount(seller.reviewCount),
+                              viewProfileLabel: 'View profile',
+                              onTap: () => context.push('/seller/${seller.id}'),
                             ),
                             const SizedBox(height: AppSpacing.lg),
                             Text(
@@ -381,21 +338,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               MarGemBottomActionBar(
                 children: [
                   Expanded(
-                    child: MarketPrimaryButton(
-                      label: l10n.contactSeller,
-                      icon: Icons.chat_bubble_rounded,
-                      loading: _contacting,
-                      onPressed: () => _openChat(seller),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
                     child: MarketSecondaryButton(
                       label: l10n.callSeller,
                       icon: Icons.call_rounded,
                       onPressed: seller.phone.isEmpty
                           ? null
                           : () => _callSeller(seller),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: MarketPrimaryButton(
+                      label: l10n.contactSeller,
+                      icon: Icons.chat_bubble_rounded,
+                      loading: _contacting,
+                      onPressed: () => _openChat(seller),
                     ),
                   ),
                   const SizedBox(width: 8),

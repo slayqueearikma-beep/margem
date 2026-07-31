@@ -1,4 +1,4 @@
-/// Consistent spacing scale from the MarGem reference design.
+/// Spacing and radii measured from MarGem reference screens.
 class AppSpacing {
   AppSpacing._();
 
@@ -12,13 +12,14 @@ class AppSpacing {
   static const xxxl = 48.0;
 
   static const screenHorizontal = 16.0;
-  static const cardRadius = 14.0;
-  static const buttonRadius = 28.0;
-  static const inputRadius = 28.0;
-  static const chipRadius = 999.0;
+  static const cardRadius = 16.0;
+  static const buttonRadius = 12.0;
+  static const inputRadius = 10.0;
+  static const chipRadius = 20.0;
   static const illustrationRadius = 16.0;
-  static const categoryIconSize = 56.0;
-  static const bottomNavHeight = 64.0;
-  static const searchBarHeight = 48.0;
+  static const categoryIconSize = 52.0;
+  static const bottomNavHeight = 60.0;
+  static const searchBarHeight = 44.0;
   static const productGridGap = 12.0;
+  static const sectionGap = 20.0;
 }

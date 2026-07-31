@@ -5,11 +5,11 @@ import '../theme/app_spacing.dart';
 
 /// Shared marketplace action button sizes.
 class MarketButtonMetrics {
-  static const height = 50.0;
-  static const radius = 28.0;
+  static const height = 48.0;
+  static const radius = 12.0;
   static const iconSize = 20.0;
   static const gap = 8.0;
-  static const horizontalPadding = 20.0;
+  static const horizontalPadding = 16.0;
 }
 
 /// Primary filled action (Contact, Call, Directions).
