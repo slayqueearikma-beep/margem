@@ -6,6 +6,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_brand_logo.dart';
+import '../admin/admin_shell.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -94,7 +95,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       await storage.saveSession(hydrated);
       ref.read(userSessionProvider.notifier).state = hydrated;
       if (mounted) {
-        context.go(storage.homeRouteFor(hydrated));
+        final destination = restored.user.isStaff
+            ? staffHomeRoute()
+            : storage.homeRouteFor(hydrated);
+        context.go(destination);
       }
       return;
     }

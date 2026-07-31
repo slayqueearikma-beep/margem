@@ -39,7 +39,9 @@ class UserRole(str, enum.Enum):
     BUYER = "buyer"
     SELLER = "seller"
     ADMIN = "admin"
-    SUPPORT = "support"
+    MODERATOR = "moderator"
+    SUPER_ADMIN = "super_admin"
+    SUPPORT = "support"  # legacy read-only staff; prefer MODERATOR
 
 
 class SubscriptionStatus(str, enum.Enum):
@@ -151,6 +153,7 @@ class Category(Base):
     name_fr: Mapped[str] = mapped_column(String(80), default="")
     name_ar: Mapped[str] = mapped_column(String(80), default="")
     icon: Mapped[str] = mapped_column(String(32), default="store")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     sellers: Mapped[list["SellerProfile"]] = relationship(
         secondary="seller_categories", back_populates="categories"
@@ -491,4 +494,21 @@ class AdminAuditLog(Base):
     target_type: Mapped[str] = mapped_column(String(40), default="")
     target_id: Mapped[str] = mapped_column(String(64), default="")
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+    ip_address: Mapped[str] = mapped_column(String(64), default="")
+    user_agent: Mapped[str] = mapped_column(String(255), default="")
+    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    previous_value: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    new_value: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AdminLoginLog(Base):
+    __tablename__ = "admin_login_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    ip_address: Mapped[str] = mapped_column(String(64), default="")
+    user_agent: Mapped[str] = mapped_column(String(255), default="")
+    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    failure_reason: Mapped[str] = mapped_column(String(120), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
