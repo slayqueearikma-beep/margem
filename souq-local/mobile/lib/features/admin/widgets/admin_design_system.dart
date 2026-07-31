@@ -425,26 +425,27 @@ class AdminKpiCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AdminTheme.radiusXl),
         child: Ink(
           width: 168,
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(16),
           decoration: AdminTheme.cardDecoration(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: iconBg,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(icon, color: iconColor, size: 22),
+                    child: Icon(icon, color: iconColor, size: 20),
                   ),
                   const Spacer(),
                   if (trend != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                       decoration: BoxDecoration(
                         color: (isUp ? AdminTheme.success : AdminTheme.danger)
                             .withValues(alpha: 0.12),
@@ -455,13 +456,13 @@ class AdminKpiCard extends StatelessWidget {
                         children: [
                           Icon(
                             isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-                            size: 12,
+                            size: 11,
                             color: isUp ? AdminTheme.success : AdminTheme.danger,
                           ),
                           Text(
                             '${trend.abs().toStringAsFixed(1)}%',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: FontWeight.w700,
                               color: isUp ? AdminTheme.success : AdminTheme.danger,
                             ),
@@ -471,28 +472,34 @@ class AdminKpiCard extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 26,
+                  fontSize: 24,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.5,
                   color: AdminTheme.textPrimary,
+                  height: 1.1,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(label, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+              ),
               if (sparkline.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 SizedBox(
-                  height: 32,
+                  height: 26,
+                  width: double.infinity,
                   child: CustomPaint(
                     painter: _SparklinePainter(
                       values: sparkline,
                       color: iconColor.withValues(alpha: 0.8),
                     ),
-                    size: const Size(double.infinity, 32),
                   ),
                 ),
               ],
@@ -566,56 +573,75 @@ class AdminLineChartCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
       decoration: AdminTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 4),
-                    Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 15),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: AdminTheme.background,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AdminTheme.border),
                 ),
                 child: const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('30 days', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                    SizedBox(width: 4),
-                    Icon(Icons.expand_more_rounded, size: 16),
+                    Text('30d', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                    SizedBox(width: 2),
+                    Icon(Icons.expand_more_rounded, size: 14),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                totalLabel.isNotEmpty ? totalLabel : _formatNumber(total),
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.8,
+              Flexible(
+                child: Text(
+                  totalLabel.isNotEmpty ? totalLabel : _formatNumber(total),
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.8,
+                    height: 1.1,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 10),
-              if (trend != null)
+              if (trend != null) ...[
+                const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: (trend >= 0 ? AdminTheme.success : AdminTheme.danger)
                         .withValues(alpha: 0.12),
@@ -624,20 +650,21 @@ class AdminLineChartCard extends StatelessWidget {
                   child: Text(
                     '${trend >= 0 ? '+' : ''}${trend.toStringAsFixed(1)}%',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: trend >= 0 ? AdminTheme.success : AdminTheme.danger,
                     ),
                   ),
                 ),
+              ],
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
           SizedBox(
-            height: 160,
+            height: 120,
+            width: double.infinity,
             child: CustomPaint(
               painter: _LineChartPainter(values: values, color: accentColor),
-              size: const Size(double.infinity, 160),
             ),
           ),
         ],
@@ -718,14 +745,18 @@ class AdminQuickActionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final columns = width < 400 ? 3 : 4;
+    final aspectRatio = width < 400 ? 0.92 : 0.78;
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
-        childAspectRatio: 0.85,
+        childAspectRatio: aspectRatio,
       ),
       itemCount: actions.length,
       itemBuilder: (context, index) {
@@ -741,30 +772,33 @@ class AdminQuickActionsGrid extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AdminTheme.radiusLg),
                 border: Border.all(color: AdminTheme.border.withValues(alpha: 0.7)),
               ),
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: action.color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(action.icon, color: action.color, size: 20),
+                    child: Icon(action.icon, color: action.color, size: 18),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    action.label,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AdminTheme.textPrimary,
-                      height: 1.2,
+                  const SizedBox(height: 6),
+                  Flexible(
+                    child: Text(
+                      action.label,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AdminTheme.textPrimary,
+                        height: 1.15,
+                      ),
                     ),
                   ),
                 ],
