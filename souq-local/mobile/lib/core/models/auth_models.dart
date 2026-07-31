@@ -239,15 +239,3 @@ class ProductUpdatePayload {
     };
   }
 }
-
-/// Maps seller onboarding UI labels to backend category slugs.
-const sellerCategorySlugMap = <String, String>{
-  'Food': 'food',
-  'Clothing': 'clothing',
-  'Electronics': 'electronics',
-  'Beauty': 'beauty',
-  'Services': 'services',
-  'Home & Garden': 'home',
-  'Health': 'health',
-  'Sports': 'sports',
-};

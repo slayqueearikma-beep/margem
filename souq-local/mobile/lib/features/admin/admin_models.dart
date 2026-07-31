@@ -348,6 +348,7 @@ class AdminCategoryItem {
     required this.nameFr,
     required this.nameAr,
     required this.icon,
+    required this.accentColor,
     required this.sortOrder,
   });
 
@@ -357,6 +358,7 @@ class AdminCategoryItem {
   final String nameFr;
   final String nameAr;
   final String icon;
+  final String accentColor;
   final int sortOrder;
 
   factory AdminCategoryItem.fromJson(Map<String, dynamic> json) {
@@ -367,6 +369,7 @@ class AdminCategoryItem {
       nameFr: json['name_fr'] as String? ?? '',
       nameAr: json['name_ar'] as String? ?? '',
       icon: json['icon'] as String? ?? 'store',
+      accentColor: json['accent_color'] as String? ?? '#5B6CFF',
       sortOrder: json['sort_order'] as int? ?? 0,
     );
   }

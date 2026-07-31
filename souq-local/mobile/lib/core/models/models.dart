@@ -6,6 +6,7 @@ class CategoryModel {
     this.nameFr = '',
     this.nameAr = '',
     required this.icon,
+    this.accentColor = '#5B6CFF',
   });
 
   final String id;
@@ -14,6 +15,7 @@ class CategoryModel {
   final String nameFr;
   final String nameAr;
   final String icon;
+  final String accentColor;
 
   String localizedName(String languageCode) {
     switch (languageCode) {
@@ -34,6 +36,7 @@ class CategoryModel {
       nameFr: json['name_fr'] as String? ?? '',
       nameAr: json['name_ar'] as String? ?? '',
       icon: json['icon'] as String? ?? 'store',
+      accentColor: json['accent_color'] as String? ?? '#5B6CFF',
     );
   }
 }

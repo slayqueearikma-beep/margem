@@ -19,6 +19,7 @@ import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_email_screen.dart';
 import 'features/buyer/buyer_home_screen.dart';
+import 'features/categories/categories_browse_screen.dart';
 import 'features/map/map_screen.dart';
 import 'features/messages/messages_inbox_screen.dart';
 import 'features/onboarding/account_type_onboarding_screen.dart';
@@ -137,6 +138,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
+      GoRoute(path: '/categories', builder: (_, __) => const CategoriesBrowseScreen()),
       GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
       GoRoute(path: '/premium', builder: (_, __) => const PremiumScreen()),

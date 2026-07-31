@@ -154,6 +154,7 @@ class AdminCategoryOut(BaseModel):
     name_fr: str
     name_ar: str
     icon: str
+    accent_color: str = "#5B6CFF"
     sort_order: int
 
 
@@ -163,6 +164,7 @@ class AdminCategoryCreate(BaseModel):
     name_fr: str = ""
     name_ar: str = ""
     icon: str = "store"
+    accent_color: str = Field(default="#5B6CFF", pattern=r"^#[0-9A-Fa-f]{6}$")
     sort_order: int = 0
 
 
@@ -171,6 +173,7 @@ class AdminCategoryUpdate(BaseModel):
     name_fr: str | None = None
     name_ar: str | None = None
     icon: str | None = None
+    accent_color: str | None = Field(default=None, pattern=r"^#[0-9A-Fa-f]{6}$")
     sort_order: int | None = None
 
 
@@ -994,6 +997,7 @@ async def admin_list_categories(
             name_fr=c.name_fr,
             name_ar=c.name_ar,
             icon=c.icon,
+            accent_color=c.accent_color,
             sort_order=c.sort_order,
         )
         for c in result.scalars().all()
@@ -1019,6 +1023,7 @@ async def admin_create_category(
         name_fr=payload.name_fr,
         name_ar=payload.name_ar,
         icon=payload.icon,
+        accent_color=payload.accent_color,
         sort_order=payload.sort_order,
     )
     session.add(category)
@@ -1040,6 +1045,7 @@ async def admin_create_category(
         name_fr=category.name_fr,
         name_ar=category.name_ar,
         icon=category.icon,
+        accent_color=category.accent_color,
         sort_order=category.sort_order,
     )
 
@@ -1070,6 +1076,8 @@ async def admin_update_category(
         category.name_ar = payload.name_ar
     if payload.icon is not None:
         category.icon = payload.icon
+    if payload.accent_color is not None:
+        category.accent_color = payload.accent_color
     if payload.sort_order is not None:
         category.sort_order = payload.sort_order
     await record_admin_action(
@@ -1091,6 +1099,7 @@ async def admin_update_category(
         name_fr=category.name_fr,
         name_ar=category.name_ar,
         icon=category.icon,
+        accent_color=category.accent_color,
         sort_order=category.sort_order,
     )
 

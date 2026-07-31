@@ -205,6 +205,7 @@ class AdminApiService {
     String nameFr = '',
     String nameAr = '',
     String icon = 'store',
+    String accentColor = '#5B6CFF',
     int sortOrder = 0,
   }) async {
     final json = await _api.postJson(
@@ -215,11 +216,20 @@ class AdminApiService {
         'name_fr': nameFr,
         'name_ar': nameAr,
         'icon': icon,
+        'accent_color': accentColor,
         'sort_order': sortOrder,
       },
       auth: true,
     );
     return AdminCategoryItem.fromJson(json);
+  }
+
+  Future<void> reorderCategories(List<String> orderedIds) async {
+    await _api.postVoid(
+      '/admin/categories/reorder',
+      {'ordered_ids': orderedIds},
+      auth: true,
+    );
   }
 
   Future<void> grantPremium(String userId, String planCode, int days) async {

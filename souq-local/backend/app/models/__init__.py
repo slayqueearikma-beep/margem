@@ -157,6 +157,7 @@ class Category(Base):
     name_ar: Mapped[str] = mapped_column(String(80), default="")
     icon: Mapped[str] = mapped_column(String(32), default="store")
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    accent_color: Mapped[str] = mapped_column(String(7), default="#5B6CFF")
 
     sellers: Mapped[list["SellerProfile"]] = relationship(
         secondary="seller_categories", back_populates="categories"

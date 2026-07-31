@@ -8,6 +8,7 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/category_theme.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
@@ -28,6 +29,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _focusNode = FocusNode();
   var _mode = 'products';
   var _offset = 0;
+  String? _categorySlug;
   static const _pageSize = 20;
   MarketplaceSearchPage? _page;
   var _loading = true;
@@ -78,6 +80,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         query: _debounced,
         mode: _mode,
         city: city,
+        category: _categorySlug,
         offset: reset ? 0 : _offset,
         limit: _pageSize,
       );
@@ -123,6 +126,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final city = ref.watch(buyerCityProvider);
+    final categoriesAsync = ref.watch(buyerCategoriesProvider);
     ref.listen(buyerCityProvider, (previous, next) {
       if (previous != next) {
         _load(reset: true);
@@ -179,6 +183,58 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     setState(() => _mode = values.first);
                     _load(reset: true);
                   },
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                categoriesAsync.when(
+                  data: (categories) => SizedBox(
+                    height: 40,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: categories.length + 1,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(width: AppSpacing.sm),
+                      itemBuilder: (_, index) {
+                        final isAll = index == 0;
+                        final category =
+                            isAll ? null : categories[index - 1];
+                        final selected = isAll
+                            ? _categorySlug == null
+                            : _categorySlug == category?.slug;
+                        final label = isAll
+                            ? l10n.allCategories
+                            : category!.localizedName(
+                                Localizations.localeOf(context).languageCode,
+                              );
+                        final accent = isAll
+                            ? AppColors.primary
+                            : CategoryTheme.accentColor(
+                                category!.accentColor,
+                                slug: category.slug,
+                              );
+                        return FilterChip(
+                          label: Text(label),
+                          selected: selected,
+                          avatar: Icon(
+                            isAll
+                                ? Icons.apps_rounded
+                                : CategoryTheme.iconFor(category!.icon),
+                            size: 16,
+                            color: selected ? Colors.white : accent,
+                          ),
+                          selectedColor: accent,
+                          checkmarkColor: Colors.white,
+                          onSelected: (_) {
+                            setState(() {
+                              _categorySlug = isAll ? null : category!.slug;
+                            });
+                            _load(reset: true);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
               ],
             ),

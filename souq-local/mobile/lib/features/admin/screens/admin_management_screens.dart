@@ -579,11 +579,17 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
 
 // ── Categories ──────────────────────────────────────────────────────────────
 
-class AdminCategoriesScreen extends ConsumerWidget {
+class AdminCategoriesScreen extends ConsumerStatefulWidget {
   const AdminCategoriesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminCategoriesScreen> createState() =>
+      _AdminCategoriesScreenState();
+}
+
+class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
+  @override
+  Widget build(BuildContext context) {
     final categories = ref.watch(adminCategoriesProvider);
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -610,16 +616,33 @@ class AdminCategoriesScreen extends ConsumerWidget {
                     final reordered = [...items];
                     final item = reordered.removeAt(oldIndex);
                     reordered.insert(newIndex, item);
-                    // Reorder API would go here; refresh for now
+                    await ref
+                        .read(adminApiProvider)
+                        .reorderCategories(reordered.map((c) => c.id).toList());
                     ref.invalidate(adminCategoriesProvider);
                   },
                   itemBuilder: (context, i) {
                     final c = items[i];
+                    final color = Color(
+                      int.parse(c.accentColor.substring(1), radix: 16) +
+                          0xFF000000,
+                    );
                     return ListTile(
                       key: ValueKey(c.id),
-                      leading: const Icon(Icons.drag_handle),
+                      leading: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.drag_handle),
+                          const SizedBox(width: 8),
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: color.withValues(alpha: 0.15),
+                            child: Icon(Icons.category, size: 16, color: color),
+                          ),
+                        ],
+                      ),
                       title: Text(c.nameEn),
-                      subtitle: Text(c.slug),
+                      subtitle: Text('${c.slug} · ${c.icon}'),
                       trailing: Text('Order ${c.sortOrder}'),
                     );
                   },
