@@ -478,8 +478,8 @@ class _SellersPreview extends ConsumerWidget {
     return sellers.when(
       loading: () => const AdminSkeletonBox(width: double.infinity, height: 80),
       error: (_, __) => const SizedBox.shrink(),
-      data: (items) {
-        if (items.isEmpty) {
+      data: (page) {
+        if (page.items.isEmpty) {
           return const AdminEmptyState(
             icon: Icons.storefront_outlined,
             title: 'No pending sellers',
@@ -488,7 +488,7 @@ class _SellersPreview extends ConsumerWidget {
         }
         return Column(
           children: [
-            for (final s in items.take(4))
+            for (final s in page.items.take(4))
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: AdminEntityCard(
@@ -513,9 +513,9 @@ class _ProductsPreview extends ConsumerWidget {
     return products.when(
       loading: () => const AdminSkeletonBox(width: double.infinity, height: 80),
       error: (_, __) => const SizedBox.shrink(),
-      data: (items) => Column(
+      data: (page) => Column(
         children: [
-          for (final p in items.take(4))
+          for (final p in page.items.take(4))
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: AdminEntityCard(
@@ -539,8 +539,8 @@ class _ReportsPreview extends ConsumerWidget {
     return reports.when(
       loading: () => const AdminSkeletonBox(width: double.infinity, height: 80),
       error: (_, __) => const SizedBox.shrink(),
-      data: (items) {
-        if (items.isEmpty) {
+      data: (page) {
+        if (page.items.isEmpty) {
           return const AdminEmptyState(
             icon: Icons.flag_outlined,
             title: 'No open reports',
@@ -549,7 +549,7 @@ class _ReportsPreview extends ConsumerWidget {
         }
         return Column(
           children: [
-            for (final r in items.take(4))
+            for (final r in page.items.take(4))
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: AdminEntityCard(

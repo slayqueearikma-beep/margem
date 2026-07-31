@@ -544,7 +544,7 @@ async def create_report(
     request: Request,
     payload: ReportCreate,
     session: AsyncSession = Depends(get_db),
-    user: User | None = Depends(get_current_user_optional),
+    user: User = Depends(get_current_user),
 ) -> dict:
     if not payload.seller_id and not payload.product_id:
         raise HTTPException(status_code=400, detail="Provide seller_id or product_id")
@@ -561,7 +561,7 @@ async def create_report(
         raise HTTPException(status_code=400, detail="Invalid report reason")
     report = Report(
         id=uuid4(),
-        reporter_id=user.id if user else None,
+        reporter_id=user.id,
         seller_id=payload.seller_id,
         product_id=payload.product_id,
         reason=reason,

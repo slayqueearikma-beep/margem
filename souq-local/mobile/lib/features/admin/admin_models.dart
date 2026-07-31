@@ -494,3 +494,104 @@ class AdminSessionInfo {
     );
   }
 }
+
+class AdminSellerPage {
+  const AdminSellerPage({
+    required this.items,
+    required this.total,
+    required this.offset,
+    required this.limit,
+  });
+
+  final List<AdminSellerSummary> items;
+  final int total;
+  final int offset;
+  final int limit;
+
+  factory AdminSellerPage.fromJson(
+    Map<String, dynamic> json,
+    List<AdminSellerSummary> Function(List<dynamic>) parseItems,
+  ) {
+    return AdminSellerPage(
+      items: parseItems(json['items'] as List<dynamic>? ?? []),
+      total: json['total'] as int? ?? 0,
+      offset: json['offset'] as int? ?? 0,
+      limit: json['limit'] as int? ?? 50,
+    );
+  }
+}
+
+class AdminProductPage {
+  const AdminProductPage({
+    required this.items,
+    required this.total,
+    required this.offset,
+    required this.limit,
+  });
+
+  final List<AdminProductSummary> items;
+  final int total;
+  final int offset;
+  final int limit;
+
+  factory AdminProductPage.fromJson(Map<String, dynamic> json) {
+    return AdminProductPage(
+      items: (json['items'] as List<dynamic>? ?? [])
+          .map((e) => AdminProductSummary.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: json['total'] as int? ?? 0,
+      offset: json['offset'] as int? ?? 0,
+      limit: json['limit'] as int? ?? 50,
+    );
+  }
+}
+
+class AdminReportPage {
+  const AdminReportPage({
+    required this.items,
+    required this.total,
+    required this.offset,
+    required this.limit,
+  });
+
+  final List<AdminReportSummary> items;
+  final int total;
+  final int offset;
+  final int limit;
+
+  factory AdminReportPage.fromJson(Map<String, dynamic> json) {
+    return AdminReportPage(
+      items: (json['items'] as List<dynamic>? ?? [])
+          .map((e) => AdminReportSummary.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: json['total'] as int? ?? 0,
+      offset: json['offset'] as int? ?? 0,
+      limit: json['limit'] as int? ?? 50,
+    );
+  }
+}
+
+class AdminAuditPage {
+  const AdminAuditPage({
+    required this.items,
+    required this.total,
+    required this.offset,
+    required this.limit,
+  });
+
+  final List<AdminAuditEntry> items;
+  final int total;
+  final int offset;
+  final int limit;
+
+  factory AdminAuditPage.fromJson(Map<String, dynamic> json) {
+    return AdminAuditPage(
+      items: (json['items'] as List<dynamic>? ?? [])
+          .map((e) => AdminAuditEntry.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: json['total'] as int? ?? 0,
+      offset: json['offset'] as int? ?? 0,
+      limit: json['limit'] as int? ?? 50,
+    );
+  }
+}

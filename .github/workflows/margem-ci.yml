@@ -55,7 +55,7 @@ jobs:
           docker compose -f docker-compose.yml config >/dev/null
           docker compose -f docker-compose.home.yml config >/dev/null
           docker compose -f docker-compose.budget.yml config >/dev/null
-      - run: pytest -q
+      - run: pytest -q --cov=app --cov-report=term-missing --cov-fail-under=55
         env:
           PYTHONPATH: .
           DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local
@@ -162,5 +162,5 @@ jobs:
           storeFile=../ci-release.keystore
           EOF
       - name: Assemble signed release APK
-        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.margem.ma --dart-define=PRODUCTION=true
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.margem.ma --dart-define=PRODUCTION=true --dart-define=ENABLE_ADMIN=false
         continue-on-error: false

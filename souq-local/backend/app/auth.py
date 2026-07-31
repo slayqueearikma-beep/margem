@@ -38,13 +38,18 @@ async def _resolve_user_from_credentials(
     token = credentials.credentials
 
     # MarGem JWT (email/password accounts)
-    user_id = decode_access_token(token)
-    if user_id is not None:
+    decoded = decode_access_token(token)
+    if decoded is not None:
+        user_id, token_version = decoded
         result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user is None:
             if required:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+            return None
+        if getattr(user, "token_version", 0) != token_version:
+            if required:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
             return None
         return user
 

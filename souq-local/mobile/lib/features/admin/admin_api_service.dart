@@ -63,13 +63,13 @@ class AdminApiService {
         .toList();
   }
 
-  Future<List<AdminSellerSummary>> fetchSellers({
+  Future<AdminSellerPage> fetchSellers({
     String? query,
     String? verification,
     int limit = 50,
     int offset = 0,
   }) async {
-    final list = await _api.getJsonList(
+    final json = await _api.getJson(
       '/admin/sellers',
       auth: true,
       query: {
@@ -80,16 +80,32 @@ class AdminApiService {
         'offset': '$offset',
       },
     );
-    return list
-        .map((e) => AdminSellerSummary.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return AdminSellerPage.fromJson(
+      json,
+      (items) => items
+          .map((e) => AdminSellerSummary.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
   }
 
-  Future<List<AdminSellerSummary>> fetchPendingSellers() async {
-    final list = await _api.getJsonList('/admin/sellers/pending', auth: true);
-    return list
-        .map((e) => AdminSellerSummary.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<AdminSellerPage> fetchPendingSellers({
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final json = await _api.getJson(
+      '/admin/sellers/pending',
+      auth: true,
+      query: {
+        'limit': '$limit',
+        'offset': '$offset',
+      },
+    );
+    return AdminSellerPage.fromJson(
+      json,
+      (items) => items
+          .map((e) => AdminSellerSummary.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
   }
 
   Future<void> verifySeller(String sellerId, {required bool approve}) async {
@@ -110,14 +126,14 @@ class AdminApiService {
     );
   }
 
-  Future<List<AdminProductSummary>> fetchProducts({
+  Future<AdminProductPage> fetchProducts({
     String? query,
     bool? hidden,
     bool? featured,
     int limit = 50,
     int offset = 0,
   }) async {
-    final list = await _api.getJsonList(
+    final json = await _api.getJson(
       '/admin/products',
       auth: true,
       query: {
@@ -128,9 +144,7 @@ class AdminApiService {
         'offset': '$offset',
       },
     );
-    return list
-        .map((e) => AdminProductSummary.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return AdminProductPage.fromJson(json);
   }
 
   Future<AdminProductSummary> moderateProduct(
@@ -153,15 +167,21 @@ class AdminApiService {
     return AdminProductSummary.fromJson(json);
   }
 
-  Future<List<AdminReportSummary>> fetchReports({String status = 'open'}) async {
-    final list = await _api.getJsonList(
+  Future<AdminReportPage> fetchReports({
+    String status = 'open',
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final json = await _api.getJson(
       '/admin/reports',
       auth: true,
-      query: {'status': status},
+      query: {
+        'status': status,
+        'limit': '$limit',
+        'offset': '$offset',
+      },
     );
-    return list
-        .map((e) => AdminReportSummary.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return AdminReportPage.fromJson(json);
   }
 
   Future<void> updateReport(String reportId, String status, {String note = ''}) async {
@@ -231,12 +251,12 @@ class AdminApiService {
     );
   }
 
-  Future<List<AdminAuditEntry>> fetchAuditLogs({
+  Future<AdminAuditPage> fetchAuditLogs({
     String? action,
     int limit = 50,
     int offset = 0,
   }) async {
-    final list = await _api.getJsonList(
+    final json = await _api.getJson(
       '/admin/audit-logs',
       auth: true,
       query: {
@@ -245,8 +265,6 @@ class AdminApiService {
         'offset': '$offset',
       },
     );
-    return list
-        .map((e) => AdminAuditEntry.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return AdminAuditPage.fromJson(json);
   }
 }

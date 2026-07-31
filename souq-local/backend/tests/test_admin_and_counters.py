@@ -83,7 +83,7 @@ async def test_support_can_list_pending_but_cannot_verify(client: AsyncClient):
 
     pending = await client.get("/admin/sellers/pending", headers=support["headers"])
     assert pending.status_code == 200, pending.text
-    assert any(item["id"] == str(seller_id) for item in pending.json())
+    assert any(item["id"] == str(seller_id) for item in pending.json()["items"])
 
     verify = await client.post(
         f"/admin/sellers/{seller_id}/verify",
@@ -108,7 +108,7 @@ async def test_admin_can_verify_seller(client: AsyncClient):
 
     pending = await client.get("/admin/sellers/pending", headers=admin["headers"])
     assert pending.status_code == 200
-    assert all(item["id"] != str(seller_id) for item in pending.json())
+    assert all(item["id"] != str(seller_id) for item in pending.json()["items"])
 
 
 @pytest.mark.asyncio

@@ -60,22 +60,22 @@ class AdminUserQuery {
 }
 
 final adminSellersProvider =
-    FutureProvider.family<List<AdminSellerSummary>, String?>((ref, query) async {
+    FutureProvider.family<AdminSellerPage, String?>((ref, query) async {
   return ref.watch(adminApiProvider).fetchSellers(query: query);
 });
 
 final adminPendingSellersProvider =
-    FutureProvider<List<AdminSellerSummary>>((ref) async {
+    FutureProvider<AdminSellerPage>((ref) async {
   return ref.watch(adminApiProvider).fetchPendingSellers();
 });
 
 final adminProductsProvider =
-    FutureProvider.family<List<AdminProductSummary>, String?>((ref, query) async {
+    FutureProvider.family<AdminProductPage, String?>((ref, query) async {
   return ref.watch(adminApiProvider).fetchProducts(query: query);
 });
 
 final adminReportsProvider =
-    FutureProvider.family<List<AdminReportSummary>, String>((ref, status) async {
+    FutureProvider.family<AdminReportPage, String>((ref, status) async {
   return ref.watch(adminApiProvider).fetchReports(status: status);
 });
 
@@ -83,6 +83,6 @@ final adminCategoriesProvider = FutureProvider<List<AdminCategoryItem>>((ref) as
   return ref.watch(adminApiProvider).fetchCategories();
 });
 
-final adminAuditProvider = FutureProvider<List<AdminAuditEntry>>((ref) async {
+final adminAuditProvider = FutureProvider<AdminAuditPage>((ref) async {
   return ref.watch(adminApiProvider).fetchAuditLogs();
 });

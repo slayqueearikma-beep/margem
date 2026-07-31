@@ -144,7 +144,7 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
     has_store = await user_has_seller_profile(session, user.id)
     await session.commit()
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(user.id, token_version=getattr(user, "token_version", 0)),
         refresh_token=refresh_token,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -266,7 +266,7 @@ async def refresh_tokens(
 
     has_store = await user_has_seller_profile(session, user.id)
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(user.id, token_version=getattr(user, "token_version", 0)),
         refresh_token=new_refresh,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -420,6 +420,9 @@ async def request_email_verification(
     )
 
 
+_MAX_EMAIL_VERIFY_ATTEMPTS = 10
+
+
 @router.post("/verify-email/confirm", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("5/minute")
 @limiter.limit("30/hour")
@@ -435,13 +438,28 @@ async def confirm_email_verification(
         ).with_for_update()
     )
     token = result.scalar_one_or_none()
-    if token is None or token.used_at is not None or token.expires_at < datetime.now(UTC):
+    if token is None:
         log_security_event(
             "email_verify_failed",
             ip_address=request.client.host if request.client else "",
             detail="invalid_or_expired_token",
         )
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    if token.used_at is not None or token.expires_at < datetime.now(UTC):
+        token.failed_attempts += 1
+        if token.failed_attempts >= _MAX_EMAIL_VERIFY_ATTEMPTS:
+            token.used_at = datetime.now(UTC)
+        await session.commit()
+        log_security_event(
+            "email_verify_failed",
+            ip_address=request.client.host if request.client else "",
+            detail="invalid_or_expired_token",
+        )
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    if token.failed_attempts >= _MAX_EMAIL_VERIFY_ATTEMPTS:
+        token.used_at = datetime.now(UTC)
+        await session.commit()
+        raise HTTPException(status_code=429, detail="Too many verification attempts")
     user = await session.get(User, token.user_id)
     if user is None:
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")

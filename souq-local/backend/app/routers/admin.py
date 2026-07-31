@@ -36,7 +36,11 @@ from app.routers.seller_ops import AdminPremiumGrant, AdminUserOut, PendingSelle
 from app.services.admin_audit import record_admin_action
 from app.services.admin_permissions import assert_permission, role_label
 from app.services.admin_premium import admin_grant_premium as grant_premium_to_user
-from app.services.email import email_service
+from app.services.admin_analytics import (
+    fetch_daily_growth,
+    fetch_dashboard_counts,
+    fetch_monthly_growth,
+)
 from app.services.security import revoke_all_refresh_tokens
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -75,6 +79,32 @@ class AdminUserListOut(BaseModel):
     total: int
     offset: int
     limit: int
+
+
+class AdminPaginatedOut(BaseModel):
+    total: int
+    offset: int
+    limit: int
+
+
+class AdminSellerListOut(AdminPaginatedOut):
+    items: list[AdminSellerOut]
+
+
+class AdminProductListOut(AdminPaginatedOut):
+    items: list[AdminProductOut]
+
+
+class AdminReportListOut(AdminPaginatedOut):
+    items: list[AdminReportOut]
+
+
+class AdminPendingSellerListOut(AdminPaginatedOut):
+    items: list[PendingSellerOut]
+
+
+class AdminAuditLogListOut(AdminPaginatedOut):
+    items: list["AdminAuditLogOut"]
 
 
 class AdminRoleUpdate(BaseModel):
@@ -230,6 +260,20 @@ async def _count(session: AsyncSession, stmt) -> int:
     return int((await session.scalar(stmt)) or 0)
 
 
+async def _paginate(
+    session: AsyncSession,
+    stmt,
+    count_stmt,
+    *,
+    limit: int,
+    offset: int,
+    order_by,
+) -> tuple[list, int]:
+    total = await _count(session, count_stmt)
+    result = await session.execute(stmt.order_by(order_by).limit(limit).offset(offset))
+    return list(result.scalars().all()), total
+
+
 # ── Auth / identity ─────────────────────────────────────────────────────────
 
 
@@ -248,64 +292,10 @@ async def admin_dashboard(
 ) -> AdminDashboardOut:
     assert_permission(user.role, "dashboard.view")
     now = datetime.now(UTC)
-    week_ago = now - timedelta(days=7)
-    month_ago = now - timedelta(days=30)
 
-    total_users = await _count(session, select(func.count(User.id)))
-    active_users = await _count(
-        session, select(func.count(User.id)).where(User.status == UserStatus.ACTIVE)
-    )
-    new_users_7d = await _count(
-        session, select(func.count(User.id)).where(User.created_at >= week_ago)
-    )
-    total_businesses = await _count(session, select(func.count(SellerProfile.id)))
-    verified_businesses = await _count(
-        session,
-        select(func.count(SellerProfile.id)).where(
-            SellerProfile.verification_status == VerificationStatus.VERIFIED
-        ),
-    )
-    pending_verifications = await _count(
-        session,
-        select(func.count(SellerProfile.id)).where(
-            SellerProfile.verification_status == VerificationStatus.PENDING
-        ),
-    )
-    total_listings = await _count(session, select(func.count(Product.id)))
-    featured_listings = await _count(
-        session, select(func.count(Product.id)).where(Product.is_featured.is_(True))
-    )
-    total_categories = await _count(session, select(func.count(Category.id)))
-    total_reviews = await _count(session, select(func.count(Review.id)))
-    open_reports = await _count(
-        session, select(func.count(Report.id)).where(Report.status == "open")
-    )
-    premium_subscribers = await _count(
-        session,
-        select(func.count(User.id)).where(User.is_premium.is_(True)),
-    )
-
-    user_growth: list[dict] = []
-    for i in range(30):
-        day = (now - timedelta(days=29 - i)).date()
-        start = datetime.combine(day, datetime.min.time(), tzinfo=UTC)
-        end = start + timedelta(days=1)
-        count = await _count(
-            session,
-            select(func.count(User.id)).where(User.created_at >= start, User.created_at < end),
-        )
-        user_growth.append({"date": day.isoformat(), "count": count})
-
-    listing_growth: list[dict] = []
-    for i in range(30):
-        day = (now - timedelta(days=29 - i)).date()
-        start = datetime.combine(day, datetime.min.time(), tzinfo=UTC)
-        end = start + timedelta(days=1)
-        count = await _count(
-            session,
-            select(func.count(Product.id)).where(Product.created_at >= start, Product.created_at < end),
-        )
-        listing_growth.append({"date": day.isoformat(), "count": count})
+    counts = await fetch_dashboard_counts(session, now=now)
+    user_growth = await fetch_daily_growth(session, model=User, now=now)
+    listing_growth = await fetch_daily_growth(session, model=Product, now=now)
 
     recent_reports = (
         await session.execute(
@@ -346,18 +336,18 @@ async def admin_dashboard(
         db_ok = False
 
     return AdminDashboardOut(
-        total_users=total_users,
-        active_users=active_users,
-        new_users_7d=new_users_7d,
-        total_businesses=total_businesses,
-        verified_businesses=verified_businesses,
-        pending_verifications=pending_verifications,
-        total_listings=total_listings,
-        featured_listings=featured_listings,
-        total_categories=total_categories,
-        total_reviews=total_reviews,
-        open_reports=open_reports,
-        premium_subscribers=premium_subscribers,
+        total_users=counts["total_users"],
+        active_users=counts["active_users"],
+        new_users_7d=counts["new_users_7d"],
+        total_businesses=counts["total_businesses"],
+        verified_businesses=counts["verified_businesses"],
+        pending_verifications=counts["pending_verifications"],
+        total_listings=counts["total_listings"],
+        featured_listings=counts["featured_listings"],
+        total_categories=counts["total_categories"],
+        total_reviews=counts["total_reviews"],
+        open_reports=counts["open_reports"],
+        premium_subscribers=counts["premium_subscribers"],
         user_growth_30d=user_growth,
         listing_growth_30d=listing_growth,
         recent_activity=recent_activity,
@@ -365,7 +355,7 @@ async def admin_dashboard(
             "database": "ok" if db_ok else "error",
             "api": "ok",
             "storage": "ok",
-            "background_jobs": "ok",
+            "background_jobs": "scheduled_on_startup",
         },
     )
 
@@ -457,6 +447,11 @@ async def admin_set_status(
     target = await session.get(User, user_id)
     if target is None:
         raise HTTPException(status_code=404, detail="User not found")
+    if target.role == UserRole.SUPER_ADMIN and status_value in {
+        UserStatus.SUSPENDED,
+        UserStatus.DELETED,
+    }:
+        raise HTTPException(status_code=400, detail="Cannot suspend or delete a super admin")
     previous = {"status": target.status.value}
     target.status = status_value
     if status_value in {UserStatus.SUSPENDED, UserStatus.DELETED}:
@@ -490,6 +485,8 @@ async def admin_set_role(
     assert_permission(actor.role, "users.role")
     if payload.role not in {UserRole.ADMIN, UserRole.MODERATOR, UserRole.SUPPORT, UserRole.SUPER_ADMIN, UserRole.BUYER, UserRole.SELLER}:
         raise HTTPException(status_code=400, detail="Invalid staff role assignment")
+    if actor.id == user_id and payload.role != actor.role:
+        raise HTTPException(status_code=400, detail="Cannot change your own staff role")
     target = await session.get(User, user_id)
     if target is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -619,7 +616,7 @@ async def admin_revoke_user_sessions(
 # ── Businesses ────────────────────────────────────────────────────────────────
 
 
-@router.get("/sellers", response_model=list[AdminSellerOut])
+@router.get("/sellers", response_model=AdminSellerListOut)
 async def admin_list_sellers(
     user: User = Depends(require_staff),
     session: AsyncSession = Depends(get_db),
@@ -627,57 +624,83 @@ async def admin_list_sellers(
     verification: VerificationStatus | None = None,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-) -> list[AdminSellerOut]:
+) -> AdminSellerListOut:
     assert_permission(user.role, "businesses.view")
     stmt = select(SellerProfile)
+    count_stmt = select(func.count(SellerProfile.id))
     if q:
         pattern = f"%{q.strip().lower()}%"
-        stmt = stmt.where(func.lower(SellerProfile.business_name).like(pattern))
+        filt = func.lower(SellerProfile.business_name).like(pattern)
+        stmt = stmt.where(filt)
+        count_stmt = count_stmt.where(filt)
     if verification:
         stmt = stmt.where(SellerProfile.verification_status == verification)
-    result = await session.execute(
-        stmt.order_by(SellerProfile.created_at.desc()).limit(limit).offset(offset)
+        count_stmt = count_stmt.where(SellerProfile.verification_status == verification)
+    sellers, total = await _paginate(
+        session,
+        stmt,
+        count_stmt,
+        limit=limit,
+        offset=offset,
+        order_by=SellerProfile.created_at.desc(),
     )
-    return [
-        AdminSellerOut(
-            id=s.id,
-            business_name=s.business_name,
-            city=s.city,
-            verification_status=s.verification_status.value,
-            is_active=s.is_active,
-            is_premium=s.is_premium,
-            user_id=s.user_id,
-            created_at=s.created_at,
-        )
-        for s in result.scalars().all()
-    ]
+    return AdminSellerListOut(
+        items=[
+            AdminSellerOut(
+                id=s.id,
+                business_name=s.business_name,
+                city=s.city,
+                verification_status=s.verification_status.value,
+                is_active=s.is_active,
+                is_premium=s.is_premium,
+                user_id=s.user_id,
+                created_at=s.created_at,
+            )
+            for s in sellers
+        ],
+        total=total,
+        offset=offset,
+        limit=limit,
+    )
 
 
-@router.get("/sellers/pending", response_model=list[PendingSellerOut])
+@router.get("/sellers/pending", response_model=AdminPendingSellerListOut)
 async def admin_pending_sellers(
     user: User = Depends(require_staff),
     session: AsyncSession = Depends(get_db),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-) -> list[PendingSellerOut]:
+) -> AdminPendingSellerListOut:
     assert_permission(user.role, "businesses.view")
-    result = await session.execute(
-        select(SellerProfile)
-        .where(SellerProfile.verification_status == VerificationStatus.PENDING)
-        .order_by(SellerProfile.created_at.asc())
-        .limit(limit)
-        .offset(offset)
+    stmt = select(SellerProfile).where(
+        SellerProfile.verification_status == VerificationStatus.PENDING
     )
-    return [
-        PendingSellerOut(
-            id=s.id,
-            business_name=s.business_name,
-            city=s.city,
-            phone=s.phone,
-            user_id=s.user_id,
-        )
-        for s in result.scalars().all()
-    ]
+    count_stmt = select(func.count(SellerProfile.id)).where(
+        SellerProfile.verification_status == VerificationStatus.PENDING
+    )
+    sellers, total = await _paginate(
+        session,
+        stmt,
+        count_stmt,
+        limit=limit,
+        offset=offset,
+        order_by=SellerProfile.created_at.asc(),
+    )
+    return AdminPendingSellerListOut(
+        items=[
+            PendingSellerOut(
+                id=s.id,
+                business_name=s.business_name,
+                city=s.city,
+                phone=s.phone,
+                user_id=s.user_id,
+            )
+            for s in sellers
+        ],
+        total=total,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @router.post(
@@ -757,7 +780,7 @@ async def admin_set_seller_active(
 # ── Listings ────────────────────────────────────────────────────────────────
 
 
-@router.get("/products", response_model=list[AdminProductOut])
+@router.get("/products", response_model=AdminProductListOut)
 async def admin_list_products(
     user: User = Depends(require_staff),
     session: AsyncSession = Depends(get_db),
@@ -766,30 +789,47 @@ async def admin_list_products(
     featured: bool | None = None,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-) -> list[AdminProductOut]:
+) -> AdminProductListOut:
     assert_permission(user.role, "listings.view")
     stmt = select(Product)
+    count_stmt = select(func.count(Product.id))
     if q:
-        stmt = stmt.where(func.lower(Product.name).like(f"%{q.strip().lower()}%"))
+        filt = func.lower(Product.name).like(f"%{q.strip().lower()}%")
+        stmt = stmt.where(filt)
+        count_stmt = count_stmt.where(filt)
     if hidden is not None:
         stmt = stmt.where(Product.is_hidden.is_(hidden))
+        count_stmt = count_stmt.where(Product.is_hidden.is_(hidden))
     if featured is not None:
         stmt = stmt.where(Product.is_featured.is_(featured))
-    result = await session.execute(stmt.order_by(Product.created_at.desc()).limit(limit).offset(offset))
-    return [
-        AdminProductOut(
-            id=p.id,
-            name=p.name,
-            seller_id=p.seller_id,
-            category_slug=p.category_slug,
-            is_hidden=p.is_hidden,
-            is_featured=p.is_featured,
-            is_paused=p.is_paused,
-            is_available=p.is_available,
-            created_at=p.created_at,
-        )
-        for p in result.scalars().all()
-    ]
+        count_stmt = count_stmt.where(Product.is_featured.is_(featured))
+    products, total = await _paginate(
+        session,
+        stmt,
+        count_stmt,
+        limit=limit,
+        offset=offset,
+        order_by=Product.created_at.desc(),
+    )
+    return AdminProductListOut(
+        items=[
+            AdminProductOut(
+                id=p.id,
+                name=p.name,
+                seller_id=p.seller_id,
+                category_slug=p.category_slug,
+                is_hidden=p.is_hidden,
+                is_featured=p.is_featured,
+                is_paused=p.is_paused,
+                is_available=p.is_available,
+                created_at=p.created_at,
+            )
+            for p in products
+        ],
+        total=total,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @router.patch("/products/{product_id}", response_model=AdminProductOut)
@@ -853,32 +893,46 @@ async def admin_moderate_product(
 # ── Reports ─────────────────────────────────────────────────────────────────
 
 
-@router.get("/reports", response_model=list[AdminReportOut])
+@router.get("/reports", response_model=AdminReportListOut)
 async def admin_list_reports(
     user: User = Depends(require_staff),
     session: AsyncSession = Depends(get_db),
     status_filter: str | None = Query(default="open", alias="status"),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-) -> list[AdminReportOut]:
+) -> AdminReportListOut:
     assert_permission(user.role, "reports.view")
     stmt = select(Report)
+    count_stmt = select(func.count(Report.id))
     if status_filter and status_filter != "all":
         stmt = stmt.where(Report.status == status_filter)
-    result = await session.execute(stmt.order_by(Report.created_at.desc()).limit(limit).offset(offset))
-    return [
-        AdminReportOut(
-            id=r.id,
-            reason=r.reason,
-            details=r.details,
-            status=r.status,
-            seller_id=r.seller_id,
-            product_id=r.product_id,
-            reporter_id=r.reporter_id,
-            created_at=r.created_at,
-        )
-        for r in result.scalars().all()
-    ]
+        count_stmt = count_stmt.where(Report.status == status_filter)
+    reports, total = await _paginate(
+        session,
+        stmt,
+        count_stmt,
+        limit=limit,
+        offset=offset,
+        order_by=Report.created_at.desc(),
+    )
+    return AdminReportListOut(
+        items=[
+            AdminReportOut(
+                id=r.id,
+                reason=r.reason,
+                details=r.details,
+                status=r.status,
+                seller_id=r.seller_id,
+                product_id=r.product_id,
+                reporter_id=r.reporter_id,
+                created_at=r.created_at,
+            )
+            for r in reports
+        ],
+        total=total,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @router.patch("/reports/{report_id}", response_model=AdminReportOut)
@@ -1149,27 +1203,8 @@ async def admin_analytics(
     day_ago = now - timedelta(days=1)
     month_ago = now - timedelta(days=30)
 
-    user_growth = []
-    for i in range(12):
-        start = now - timedelta(days=30 * (12 - i))
-        end = start + timedelta(days=30)
-        count = await _count(
-            session,
-            select(func.count(User.id)).where(User.created_at >= start, User.created_at < end),
-        )
-        user_growth.append({"month": start.strftime("%Y-%m"), "count": count})
-
-    business_growth = []
-    for i in range(12):
-        start = now - timedelta(days=30 * (12 - i))
-        end = start + timedelta(days=30)
-        count = await _count(
-            session,
-            select(func.count(SellerProfile.id)).where(
-                SellerProfile.created_at >= start, SellerProfile.created_at < end
-            ),
-        )
-        business_growth.append({"month": start.strftime("%Y-%m"), "count": count})
+    user_growth = await fetch_monthly_growth(session, model=User, now=now)
+    business_growth = await fetch_monthly_growth(session, model=SellerProfile, now=now)
 
     cat_rows = await session.execute(
         select(Product.category_slug, func.count(Product.id))
@@ -1216,33 +1251,26 @@ async def admin_analytics(
 # ── Notifications (architecture) ─────────────────────────────────────────────
 
 
-@router.post("/announcements", status_code=status.HTTP_202_ACCEPTED)
+@router.post("/announcements", status_code=status.HTTP_501_NOT_IMPLEMENTED)
 @limiter.limit("10/minute")
 async def admin_send_announcement(
     request: Request,
     payload: AdminAnnouncement,
     actor: User = Depends(require_admin),
     session: AsyncSession = Depends(get_db),
-) -> dict:
-    """Queue a platform announcement. Email/push delivery is async in production."""
+) -> None:
+    """Broadcast announcements require email/push infrastructure (not yet wired)."""
     assert_permission(actor.role, "notifications.send")
-    await record_admin_action(
-        session,
-        actor_id=actor.id,
-        action="queue_announcement",
-        target_type="announcement",
-        target_id="broadcast",
-        new_value=payload.model_dump(),
-        request=request,
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Platform announcements are not enabled yet. Configure email/push delivery first.",
     )
-    await session.commit()
-    return {"status": "queued", "audience": payload.audience}
 
 
 # ── Audit logs ──────────────────────────────────────────────────────────────
 
 
-@router.get("/audit-logs", response_model=list[AdminAuditLogOut])
+@router.get("/audit-logs", response_model=AdminAuditLogListOut)
 async def admin_audit_logs(
     user: User = Depends(require_staff),
     session: AsyncSession = Depends(get_db),
@@ -1250,29 +1278,42 @@ async def admin_audit_logs(
     actor_id: UUID | None = None,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-) -> list[AdminAuditLogOut]:
+) -> AdminAuditLogListOut:
     assert_permission(user.role, "audit.view")
     stmt = select(AdminAuditLog)
+    count_stmt = select(func.count(AdminAuditLog.id))
     if action:
         stmt = stmt.where(AdminAuditLog.action == action)
+        count_stmt = count_stmt.where(AdminAuditLog.action == action)
     if actor_id:
         stmt = stmt.where(AdminAuditLog.actor_id == actor_id)
-    result = await session.execute(
-        stmt.order_by(AdminAuditLog.created_at.desc()).limit(limit).offset(offset)
+        count_stmt = count_stmt.where(AdminAuditLog.actor_id == actor_id)
+    logs, total = await _paginate(
+        session,
+        stmt,
+        count_stmt,
+        limit=limit,
+        offset=offset,
+        order_by=AdminAuditLog.created_at.desc(),
     )
-    return [
-        AdminAuditLogOut(
-            id=a.id,
-            actor_id=a.actor_id,
-            action=a.action,
-            target_type=a.target_type,
-            target_id=a.target_id,
-            ip_address=a.ip_address,
-            success=a.success,
-            previous_value=a.previous_value,
-            new_value=a.new_value,
-            metadata=a.metadata_ or {},
-            created_at=a.created_at,
-        )
-        for a in result.scalars().all()
-    ]
+    return AdminAuditLogListOut(
+        items=[
+            AdminAuditLogOut(
+                id=a.id,
+                actor_id=a.actor_id,
+                action=a.action,
+                target_type=a.target_type,
+                target_id=a.target_id,
+                ip_address=a.ip_address,
+                success=a.success,
+                previous_value=a.previous_value,
+                new_value=a.new_value,
+                metadata=a.metadata_ or {},
+                created_at=a.created_at,
+            )
+            for a in logs
+        ],
+        total=total,
+        offset=offset,
+        limit=limit,
+    )

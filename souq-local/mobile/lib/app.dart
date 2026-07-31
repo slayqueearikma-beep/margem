@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/config/app_config.dart';
 import 'core/models/models.dart';
 import 'core/navigation/app_back_handler.dart';
 import 'core/navigation/router_notifier.dart';
@@ -72,6 +73,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
       if (isAdminRoute) {
+        if (!AppConfig.enableAdmin) {
+          return '/buyer/home';
+        }
         final user = authSession?.user;
         if (user == null || !user.isStaff) {
           return '/buyer/home';

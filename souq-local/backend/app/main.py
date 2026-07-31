@@ -23,6 +23,7 @@ from app.middleware.security import SecurityHeadersMiddleware
 from app.models import SubscriptionPlan
 from app.routers import auth, admin, catalog, discovery, search, seller_ops, sellers, uploads
 from app.services.local_storage import media_root
+from app.services.premium_maintenance import expire_stale_premium
 from app.telemetry import configure_telemetry
 
 configure_logging(json_logs=settings.app_env in {"production", "prod"})
@@ -83,6 +84,20 @@ async def lifespan(app: FastAPI):
                 ]
             )
             await session.commit()
+        try:
+            expired = await expire_stale_premium(session)
+            if expired["users_expired"] or expired["subscriptions_expired"]:
+                import logging
+
+                logging.getLogger("margem.maintenance").info(
+                    "premium_expiry_startup users=%s subscriptions=%s",
+                    expired["users_expired"],
+                    expired["subscriptions_expired"],
+                )
+        except Exception:
+            import logging
+
+            logging.getLogger("margem.maintenance").exception("premium_expiry_startup_failed")
     yield
     await database.engine.dispose()
 

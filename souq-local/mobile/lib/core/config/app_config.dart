@@ -88,6 +88,15 @@ class AppConfig {
 
   static bool get allowDemoData => !isProduction && demoFallback;
 
+  /// When false, admin routes redirect to buyer home (use for Play Store builds).
+  static bool get enableAdmin {
+    const raw = String.fromEnvironment('ENABLE_ADMIN');
+    if (raw.isNotEmpty) {
+      return raw.toLowerCase() == 'true';
+    }
+    return !isProduction;
+  }
+
   /// Privacy policy URL for Play Store listing and in-app link.
   static const String privacyPolicyUrl = String.fromEnvironment(
     'PRIVACY_POLICY_URL',

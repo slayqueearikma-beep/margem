@@ -229,7 +229,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                   title: 'Failed to load businesses',
                   subtitle: '$e',
                 ),
-                data: (sellers) => _SellerCardList(sellers: sellers, onVerify: _verify),
+                data: (page) => _SellerCardList(sellers: page.items, onVerify: _verify),
               ),
             ),
           ],
@@ -383,8 +383,8 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> {
                   title: 'Failed to load listings',
                   subtitle: '$e',
                 ),
-                data: (items) => _ProductCardList(
-                  products: items,
+                data: (page) => _ProductCardList(
+                  products: page.items,
                   onModerate: (p, field, value) async {
                     await ref.read(adminApiProvider).moderateProduct(
                           p.id,
@@ -520,8 +520,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                   title: 'Failed to load reports',
                   subtitle: '$e',
                 ),
-                data: (items) {
-                  if (items.isEmpty) {
+                data: (page) {
+                  if (page.items.isEmpty) {
                     return const AdminEmptyState(
                       icon: Icons.flag_outlined,
                       title: 'No reports',
@@ -530,9 +530,20 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                   }
                   return ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: items.length,
+                    itemCount: page.items.length + 1,
                     itemBuilder: (context, i) {
-                      final r = items[i];
+                      if (i == 0) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            '${page.total} reports',
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: AdminTheme.textSecondary,
+                                ),
+                          ),
+                        );
+                      }
+                      final r = page.items[i - 1];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: AdminEntityCard(
@@ -916,12 +927,23 @@ class AdminAuditScreen extends ConsumerWidget {
       child: logs.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
-        data: (items) => ListView.builder(
+        data: (page) => ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 100),
-          itemCount: items.length,
+          itemCount: page.items.length + 1,
           itemBuilder: (context, index) {
-            final log = items[index];
+            if (index == 0) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  '${page.total} audit entries',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: AdminTheme.textSecondary,
+                      ),
+                ),
+              );
+            }
+            final log = page.items[index - 1];
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: AdminEntityCard(
