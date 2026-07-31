@@ -376,7 +376,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                         crossAxisCount: 2,
                         mainAxisSpacing: AppSpacing.productGridGap,
                         crossAxisSpacing: AppSpacing.productGridGap,
-                        childAspectRatio: 0.72,
+                        childAspectRatio: 0.68,
                       ),
                       itemCount: sellers.take(4).length,
                       itemBuilder: (_, i) {
