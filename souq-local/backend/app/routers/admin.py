@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth import require_admin, require_moderator, require_staff, require_super_admin
+from app.config import settings
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (
@@ -32,7 +33,8 @@ from app.models import (
     UserStatus,
     VerificationStatus,
 )
-from app.routers.seller_ops import AdminPremiumGrant, AdminUserOut, PendingSellerOut, SubscriptionOut
+from app.routers.seller_ops import AdminPremiumGrant, AdminUserOut, PendingSellerOut
+from app.schemas.billing import SubscriptionOut
 from app.services.admin_audit import record_admin_action
 from app.services.admin_permissions import assert_permission, role_label
 from app.services.admin_premium import admin_grant_premium as grant_premium_to_user
@@ -1172,6 +1174,14 @@ async def admin_revoke_premium(
     )
     for sub in subs.scalars().all():
         sub.status = SubscriptionStatus.CANCELED
+        if sub.stripe_subscription_id and settings.stripe_enabled:
+            import stripe
+
+            stripe.api_key = settings.stripe_secret_key
+            try:
+                stripe.Subscription.delete(sub.stripe_subscription_id)
+            except stripe.error.StripeError:
+                pass
     seller = (
         await session.execute(select(SellerProfile).where(SellerProfile.user_id == target.id))
     ).scalar_one_or_none()
@@ -1188,6 +1198,45 @@ async def admin_revoke_premium(
         request=request,
     )
     await session.commit()
+
+
+@router.post("/users/{user_id}/premium/sync-stripe", response_model=SubscriptionOut)
+@limiter.limit("10/minute")
+async def admin_sync_stripe_subscription(
+    request: Request,
+    user_id: UUID,
+    actor: User = Depends(require_admin),
+    session: AsyncSession = Depends(get_db),
+) -> SubscriptionOut:
+    """Reconcile a user's Stripe subscription with the local database."""
+    assert_permission(actor.role, "premium.write")
+    from app.services.stripe_billing import require_stripe_configured, reconcile_stripe_subscriptions
+
+    require_stripe_configured()
+    target = await session.get(User, user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    await reconcile_stripe_subscriptions(session)
+    result = await session.execute(
+        select(Subscription)
+        .options(selectinload(Subscription.plan))
+        .where(Subscription.user_id == user_id)
+        .order_by(Subscription.created_at.desc())
+        .limit(1)
+    )
+    subscription = result.scalar_one_or_none()
+    if subscription is None:
+        raise HTTPException(status_code=404, detail="No subscription found for user")
+    await record_admin_action(
+        session,
+        actor_id=actor.id,
+        action="sync_stripe_subscription",
+        target_type="user",
+        target_id=str(user_id),
+        request=request,
+    )
+    await session.commit()
+    return SubscriptionOut.from_subscription(subscription)
 
 
 # ── Analytics ───────────────────────────────────────────────────────────────

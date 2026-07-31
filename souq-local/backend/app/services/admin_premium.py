@@ -17,7 +17,7 @@ from app.models import (
     SubscriptionStatus,
     User,
 )
-from app.routers.seller_ops import PlanOut, SubscriptionOut
+from app.schemas.billing import PlanOut, SubscriptionOut
 from app.services.admin_audit import record_admin_action
 from app.services.notifications import notify_user
 
@@ -98,11 +98,4 @@ async def admin_grant_premium(
         select(Subscription).options(selectinload(Subscription.plan)).where(Subscription.id == subscription.id)
     )
     subscription = result.scalar_one()
-    return SubscriptionOut(
-        id=subscription.id,
-        plan=PlanOut.model_validate(subscription.plan),
-        status=subscription.status,
-        current_period_start=subscription.current_period_start,
-        current_period_end=subscription.current_period_end,
-        provider=subscription.provider,
-    )
+    return SubscriptionOut.from_subscription(subscription)

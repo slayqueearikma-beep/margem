@@ -672,7 +672,7 @@ class AdminPremiumScreen extends ConsumerStatefulWidget {
 
 class _AdminPremiumScreenState extends ConsumerState<AdminPremiumScreen> {
   final _userId = TextEditingController();
-  String _plan = 'buyer_premium';
+  String _plan = 'premium';
   int _days = 30;
 
   @override
@@ -704,10 +704,11 @@ class _AdminPremiumScreenState extends ConsumerState<AdminPremiumScreen> {
                 value: _plan,
                 decoration: const InputDecoration(labelText: 'Plan'),
                 items: const [
-                  DropdownMenuItem(value: 'buyer_premium', child: Text('MarGem Plus (VIP)')),
-                  DropdownMenuItem(value: 'seller_pro', child: Text('Seller Pro (Premium)')),
+                  DropdownMenuItem(value: 'vip', child: Text('VIP')),
+                  DropdownMenuItem(value: 'premium', child: Text('Premium')),
+                  DropdownMenuItem(value: 'enterprise', child: Text('Enterprise')),
                 ],
-                onChanged: (v) => setState(() => _plan = v ?? 'buyer_premium'),
+                onChanged: (v) => setState(() => _plan = v ?? 'premium'),
               ),
               const SizedBox(height: 12),
               TextFormField(

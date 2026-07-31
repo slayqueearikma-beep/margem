@@ -96,28 +96,7 @@ class ConversationOut(BaseModel):
     last_message_preview: str = ""
 
 
-class PlanOut(BaseModel):
-    id: UUID
-    code: str
-    name: str
-    description: str
-    price_mad: float
-    billing_period_days: int
-    features: list
-    is_active: bool
-
-    model_config = {"from_attributes": True}
-
-
-class SubscriptionOut(BaseModel):
-    id: UUID
-    plan: PlanOut
-    status: SubscriptionStatus
-    current_period_start: datetime
-    current_period_end: datetime
-    provider: str
-
-
+from app.schemas.billing import PlanOut, SubscriptionOut
 class AdminUserOut(BaseModel):
     id: UUID
     email: str
@@ -458,11 +437,13 @@ async def reply_message(
 
 
 @router.get("/subscriptions/plans", response_model=list[PlanOut])
-async def list_plans(session: AsyncSession = Depends(get_db)) -> list[SubscriptionPlan]:
+async def list_plans(session: AsyncSession = Depends(get_db)) -> list[PlanOut]:
     result = await session.execute(
-        select(SubscriptionPlan).where(SubscriptionPlan.is_active.is_(True)).order_by(SubscriptionPlan.price_mad.asc())
+        select(SubscriptionPlan)
+        .where(SubscriptionPlan.is_active.is_(True))
+        .order_by(SubscriptionPlan.sort_order.asc(), SubscriptionPlan.tier_level.asc())
     )
-    return list(result.scalars().all())
+    return [PlanOut.from_plan(plan) for plan in result.scalars().all()]
 
 
 @router.get("/subscriptions/me", response_model=SubscriptionOut | None)
@@ -473,46 +454,41 @@ async def my_subscription(
     result = await session.execute(
         select(Subscription)
         .options(selectinload(Subscription.plan))
-        .where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
+        .where(
+            Subscription.user_id == user.id,
+            Subscription.status.in_(
+                [
+                    SubscriptionStatus.ACTIVE,
+                    SubscriptionStatus.TRIALING,
+                    SubscriptionStatus.PAST_DUE,
+                ]
+            ),
+        )
         .order_by(Subscription.created_at.desc())
         .limit(1)
     )
     sub = result.scalar_one_or_none()
     if sub is None:
         return None
-    return SubscriptionOut(
-        id=sub.id,
-        plan=PlanOut.model_validate(sub.plan),
-        status=sub.status,
-        current_period_start=sub.current_period_start,
-        current_period_end=sub.current_period_end,
-        provider=sub.provider,
-    )
+    return SubscriptionOut.from_subscription(sub)
 
 
 @router.post("/subscriptions/subscribe/{plan_code}", response_model=SubscriptionOut, status_code=status.HTTP_201_CREATED)
 async def subscribe(
     plan_code: str,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut:
-    """Activate premium membership for platform visibility (not buyer↔seller payments).
+    """Dev-only manual activation when Stripe is not configured.
 
-    Membership billing can later plug into an external provider via provider/provider_reference.
-    This endpoint never processes marketplace transaction payments.
-
-    In production, free self-activation is disabled — a payment provider webhook or admin
-    grant must set the subscription. Development keeps manual activation for local testing.
+    Production and Stripe-enabled servers must use POST /billing/checkout instead.
     """
     from app.config import settings
 
-    if settings.app_env in {"production", "prod"}:
+    if settings.stripe_enabled or settings.app_env in {"production", "prod"}:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=(
-                "Self-serve premium activation is disabled until a billing provider is configured. "
-                "Contact support or use an admin grant."
-            ),
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Use POST /billing/checkout to purchase a subscription plan",
         )
 
     result = await session.execute(
@@ -522,53 +498,25 @@ async def subscribe(
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
 
-    existing = await session.execute(
-        select(Subscription).where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
-    )
-    for sub in existing.scalars().all():
-        sub.status = SubscriptionStatus.CANCELED
-
     now = datetime.now(UTC)
-    subscription = Subscription(
-        id=uuid4(),
-        user_id=user.id,
-        plan_id=plan.id,
+    period_end = now + timedelta(days=plan.billing_period_days)
+    from app.services.subscription_activation import upsert_subscription_record
+
+    subscription = await upsert_subscription_record(
+        session,
+        user=user,
+        plan=plan,
         status=SubscriptionStatus.ACTIVE,
-        current_period_start=now,
-        current_period_end=now + timedelta(days=plan.billing_period_days),
+        period_start=now,
+        period_end=period_end,
         provider="manual",
         provider_reference=f"manual-{uuid4().hex[:12]}",
-    )
-    session.add(subscription)
-    user.is_premium = True
-    user.premium_until = subscription.current_period_end
-
-    if user.account_type.value == "seller" or plan.code.startswith("seller"):
-        seller = (
-            await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-        ).scalar_one_or_none()
-        if seller:
-            seller.is_premium = True
-
-    await notify_user(
-        session,
-        user_id=user.id,
-        title="Premium activated",
-        body=f"{plan.name} is now active — enjoy higher visibility",
-        kind="premium",
-        data={"plan_code": plan.code},
+        billing_interval="monthly",
     )
     await session.commit()
     await session.refresh(subscription)
     subscription.plan = plan
-    return SubscriptionOut(
-        id=subscription.id,
-        plan=PlanOut.model_validate(plan),
-        status=subscription.status,
-        current_period_start=subscription.current_period_start,
-        current_period_end=subscription.current_period_end,
-        provider=subscription.provider,
-    )
+    return SubscriptionOut.from_subscription(subscription)
 
 
 class AdminPremiumGrant(BaseModel):

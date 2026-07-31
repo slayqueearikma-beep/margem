@@ -729,6 +729,28 @@ class ApiService {
     return SubscriptionModel.fromJson(data);
   }
 
+  Future<BillingConfigModel> fetchBillingConfig() async {
+    final data = await getJson('/billing/config', auth: false);
+    return BillingConfigModel.fromJson(data);
+  }
+
+  Future<String> createCheckoutSession({
+    required String planCode,
+    required String interval,
+  }) async {
+    final data = await postJson(
+      '/billing/checkout',
+      {'plan_code': planCode, 'interval': interval},
+      auth: true,
+    );
+    return data['checkout_url'] as String;
+  }
+
+  Future<String> createCustomerPortalSession() async {
+    final data = await postJson('/billing/portal', {}, auth: true);
+    return data['portal_url'] as String;
+  }
+
   Future<void> requestPasswordReset(String email) {
     return postVoid('/auth/password-reset/request', {'email': email},
         auth: false);

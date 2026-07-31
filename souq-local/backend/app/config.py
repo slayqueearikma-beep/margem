@@ -91,6 +91,31 @@ class Settings(BaseSettings):
     public_app_url: str = "https://margem.ma"
     public_api_url: str = "http://localhost:8000"
 
+    # Stripe billing (business subscriptions — VIP / Premium / Enterprise)
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_publishable_key: str = ""
+    stripe_success_url: str = ""
+    stripe_cancel_url: str = ""
+    stripe_portal_return_url: str = ""
+    stripe_trial_enabled: bool = True
+
+    @property
+    def stripe_enabled(self) -> bool:
+        return bool(self.stripe_secret_key.strip())
+
+    @property
+    def stripe_checkout_success_url(self) -> str:
+        return self.stripe_success_url.strip() or f"{self.public_app_url.rstrip('/')}/premium/success"
+
+    @property
+    def stripe_checkout_cancel_url(self) -> str:
+        return self.stripe_cancel_url.strip() or f"{self.public_app_url.rstrip('/')}/premium/cancel"
+
+    @property
+    def stripe_customer_portal_return_url(self) -> str:
+        return self.stripe_portal_return_url.strip() or f"{self.public_app_url.rstrip('/')}/premium"
+
     default_cities: list[str] = [
         "Casablanca",
     ]
@@ -196,6 +221,13 @@ class Settings(BaseSettings):
                     "REDIS_URL is not set in production — rate limits are per-instance only. "
                     "Set REDIS_URL when running more than one API replica."
                 )
+            if not self.stripe_secret_key:
+                logger.warning(
+                    "STRIPE_SECRET_KEY is not set — self-serve business subscriptions are disabled. "
+                    "Use admin grants or configure Stripe before launch."
+                )
+            if self.stripe_secret_key and not self.stripe_webhook_secret:
+                raise ValueError("STRIPE_WEBHOOK_SECRET is required in production when STRIPE_SECRET_KEY is set")
         return self
 
 

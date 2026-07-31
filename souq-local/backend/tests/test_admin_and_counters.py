@@ -182,7 +182,7 @@ async def test_admin_can_grant_premium(client: AsyncClient):
     grant = await client.post(
         f"/admin/users/{user_id}/premium",
         headers=admin["headers"],
-        json={"plan_code": "buyer_premium", "days": 14},
+        json={"plan_code": "premium", "days": 14},
     )
     assert grant.status_code == 201, grant.text
     assert grant.json()["provider"] == "admin_grant"

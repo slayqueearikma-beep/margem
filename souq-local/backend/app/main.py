@@ -21,7 +21,7 @@ from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.models import SubscriptionPlan
-from app.routers import auth, admin, catalog, discovery, search, seller_ops, sellers, uploads
+from app.routers import auth, admin, billing, catalog, discovery, search, seller_ops, sellers, uploads
 from app.services.local_storage import media_root
 from app.services.premium_maintenance import expire_stale_premium
 from app.telemetry import configure_telemetry
@@ -54,31 +54,58 @@ async def lifespan(app: FastAPI):
                 [
                     SubscriptionPlan(
                         id=uuid4(),
-                        code="buyer_premium",
-                        name="MarGem Plus",
-                        description="Saved searches, personalized recommendations, priority support",
-                        price_mad=49,
+                        code="vip",
+                        name="VIP",
+                        description="Enhanced visibility and priority placement for growing businesses",
+                        price_mad=99,
+                        price_mad_yearly=990,
                         billing_period_days=30,
+                        tier_level=1,
+                        sort_order=1,
+                        trial_days=7,
                         features=[
-                            "Saved searches sync",
-                            "Personalized recommendations",
-                            "Priority support",
-                            "Early access to featured listings",
+                            "Priority listing placement",
+                            "VIP badge",
+                            "Basic analytics",
+                            "Email support",
                         ],
                     ),
                     SubscriptionPlan(
                         id=uuid4(),
-                        code="seller_pro",
-                        name="Seller Pro",
-                        description="Featured placement, premium storefront, advanced discovery analytics",
+                        code="premium",
+                        name="Premium",
+                        description="Featured placement, premium storefront, and advanced discovery tools",
                         price_mad=199,
+                        price_mad_yearly=1990,
                         billing_period_days=30,
+                        tier_level=2,
+                        sort_order=2,
+                        trial_days=7,
                         features=[
                             "Featured placement",
                             "Premium badge",
                             "Advanced analytics",
+                            "Priority verification",
                             "Extra media uploads",
-                            "Verification priority",
+                        ],
+                    ),
+                    SubscriptionPlan(
+                        id=uuid4(),
+                        code="enterprise",
+                        name="Enterprise",
+                        description="Maximum visibility, dedicated support, and enterprise-grade tools",
+                        price_mad=499,
+                        price_mad_yearly=4990,
+                        billing_period_days=30,
+                        tier_level=3,
+                        sort_order=3,
+                        trial_days=14,
+                        features=[
+                            "Top search placement",
+                            "Enterprise badge",
+                            "Full analytics suite",
+                            "Dedicated support",
+                            "Unlimited featured slots",
                         ],
                     ),
                 ]
@@ -98,6 +125,19 @@ async def lifespan(app: FastAPI):
             import logging
 
             logging.getLogger("margem.maintenance").exception("premium_expiry_startup_failed")
+
+        if settings.stripe_enabled:
+            try:
+                from app.services.stripe_billing import reconcile_stripe_subscriptions
+
+                stats = await reconcile_stripe_subscriptions(session)
+                import logging
+
+                logging.getLogger("margem.stripe").info("stripe_reconcile_startup %s", stats)
+            except Exception:
+                import logging
+
+                logging.getLogger("margem.stripe").exception("stripe_reconcile_startup_failed")
     yield
     await database.engine.dispose()
 
@@ -141,6 +181,7 @@ _proxy_trusted = (
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=_proxy_trusted)
 
 app.include_router(auth.router)
+app.include_router(billing.router)
 app.include_router(admin.router)
 app.include_router(catalog.router)
 app.include_router(sellers.router)
