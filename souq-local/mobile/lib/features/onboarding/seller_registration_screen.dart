@@ -19,6 +19,7 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/map_widgets.dart';
+import '../../core/widgets/legal_consent_checkbox.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/services/upload_service.dart';
 
@@ -35,6 +36,7 @@ class _SellerRegistrationScreenState
   static const _totalSteps = 5;
   int _step = 1;
   bool _loading = false;
+  bool _acceptedTerms = false;
 
   // Step 1
   final _businessNameController = TextEditingController();
@@ -103,7 +105,8 @@ class _SellerRegistrationScreenState
   bool _validateStep() {
     switch (_step) {
       case 1:
-        return _businessNameController.text.trim().isNotEmpty &&
+        return _acceptedTerms &&
+            _businessNameController.text.trim().isNotEmpty &&
             _ownerNameController.text.trim().isNotEmpty &&
             _emailController.text.trim().isNotEmpty &&
             _passwordController.text.length >= 8;
@@ -316,6 +319,11 @@ class _SellerRegistrationScreenState
             controller: _passwordController,
             hint: l10n.passwordHint,
             obscureText: true),
+        const SizedBox(height: AppSpacing.md),
+        LegalConsentCheckbox(
+          value: _acceptedTerms,
+          onChanged: (v) => setState(() => _acceptedTerms = v ?? false),
+        ),
       ],
     );
   }

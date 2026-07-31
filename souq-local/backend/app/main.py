@@ -21,12 +21,26 @@ from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.models import SubscriptionPlan
-from app.routers import auth, catalog, discovery, search, seller_ops, sellers, uploads
+from app.routers import auth, admin, catalog, discovery, search, seller_ops, sellers, uploads
 from app.services.local_storage import media_root
 from app.telemetry import configure_telemetry
 
 configure_logging(json_logs=settings.app_env in {"production", "prod"})
 configure_telemetry()
+
+_sentry_dsn = __import__("os").environ.get("SENTRY_DSN", "").strip()
+if _sentry_dsn:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.starlette import StarletteIntegration
+
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        integrations=[StarletteIntegration(), FastApiIntegration()],
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+        environment=settings.app_env,
+    )
 
 
 @asynccontextmanager
@@ -112,6 +126,7 @@ _proxy_trusted = (
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=_proxy_trusted)
 
 app.include_router(auth.router)
+app.include_router(admin.router)
 app.include_router(catalog.router)
 app.include_router(sellers.router)
 app.include_router(uploads.router)

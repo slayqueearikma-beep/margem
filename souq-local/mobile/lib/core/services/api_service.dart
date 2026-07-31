@@ -70,10 +70,11 @@ class ApiService {
     String path,
     Map<String, dynamic> body, {
     bool auth = false,
+    Map<String, String>? query,
   }) async {
     final response = await _request(
       () => _post(
-        _uri(path),
+        _uri(path, query),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
       ),
@@ -87,10 +88,11 @@ class ApiService {
     String path,
     Map<String, dynamic> body, {
     bool auth = false,
+    Map<String, String>? query,
   }) async {
     final response = await _request(
       () => _client.patch(
-        _uri(path),
+        _uri(path, query),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
       ),
@@ -101,29 +103,41 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> getJson(String path, {bool auth = false}) async {
+  Future<Map<String, dynamic>> getJson(
+    String path, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
-      () => _get(_uri(path), headers: auth ? _authHeaders : null),
+      () => _get(_uri(path, query), headers: auth ? _authHeaders : null),
       auth: auth,
     );
     _ensureSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<List<dynamic>> getJsonList(String path, {bool auth = false}) async {
+  Future<List<dynamic>> getJsonList(
+    String path, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
-      () => _get(_uri(path), headers: auth ? _authHeaders : null),
+      () => _get(_uri(path, query), headers: auth ? _authHeaders : null),
       auth: auth,
     );
     _ensureSuccess(response);
     return jsonDecode(response.body) as List<dynamic>;
   }
 
-  Future<void> deleteJson(String path, Map<String, dynamic> body,
-      {bool auth = false}) async {
+  Future<void> deleteJson(
+    String path,
+    Map<String, dynamic> body, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
       () => _client.delete(
-        _uri(path),
+        _uri(path, query),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
       ),
@@ -143,11 +157,15 @@ class ApiService {
     _ensureSuccess(response);
   }
 
-  Future<void> postVoid(String path, Map<String, dynamic> body,
-      {bool auth = false}) async {
+  Future<void> postVoid(
+    String path,
+    Map<String, dynamic> body, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
       () => _post(
-        _uri(path),
+        _uri(path, query),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
       ),
@@ -207,19 +225,48 @@ class ApiService {
   }
 
   Future<http.Response> _send(Future<http.Response> Function() request) async {
-    try {
-      return await request().timeout(_requestTimeout);
-    } on TimeoutException {
-      throw ApiException(_connectionErrorMessage);
-    } on SocketException {
-      throw ApiException(_connectionErrorMessage);
-    } on http.ClientException {
-      throw ApiException(_connectionErrorMessage);
-    } on ApiException {
-      rethrow;
-    } on Object {
-      throw ApiException(_connectionErrorMessage);
+    const maxAttempts = 3;
+    var attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        final response = await request().timeout(_requestTimeout);
+        if (attempt < maxAttempts &&
+            (response.statusCode == 502 ||
+                response.statusCode == 503 ||
+                response.statusCode == 504)) {
+          await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+          continue;
+        }
+        return response;
+      } on TimeoutException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on SocketException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on http.ClientException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on ApiException {
+        rethrow;
+      } on Object {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      }
     }
+  }
+
+  void dispose() {
+    _client.close();
   }
 
   Future<T> runSubmit<T>(Future<T> Function() action) {

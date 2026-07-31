@@ -13,6 +13,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
+import '../admin/admin_shell.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -117,7 +118,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ref.read(authSessionProvider.notifier).state = session;
 
         if (!mounted) return;
-        context.go(storage.homeRouteFor(userSession));
+        final destination = session.user.isStaff
+            ? staffHomeRoute()
+            : storage.homeRouteFor(userSession);
+        context.go(destination);
       });
     } on ApiException catch (e) {
       if (!mounted) return;

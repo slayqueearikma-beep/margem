@@ -9,15 +9,12 @@ from sqlalchemy.orm import selectinload
 
 from app.auth import (
     get_current_user,
-    require_admin,
     require_seller,
-    require_staff,
     require_verified_email,
 )
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (
-    AdminAuditLog,
     Conversation,
     Message,
     Notification,
@@ -32,7 +29,6 @@ from app.models import (
     VerificationStatus,
 )
 from app.services.notifications import notify_user
-from app.services.security import revoke_all_refresh_tokens
 
 router = APIRouter(tags=["seller-ops"])
 
@@ -575,182 +571,9 @@ async def subscribe(
     )
 
 
-@router.get("/admin/users", response_model=list[AdminUserOut])
-async def admin_list_users(
-    user: User = Depends(require_staff),
-    session: AsyncSession = Depends(get_db),
-    limit: int = Query(default=50, ge=1, le=200),
-) -> list[AdminUserOut]:
-    result = await session.execute(select(User).order_by(User.created_at.desc()).limit(limit))
-    users = list(result.scalars().all())
-    return [
-        AdminUserOut(
-            id=u.id,
-            email=u.email,
-            display_name=u.display_name,
-            account_type=u.account_type.value,
-            role=u.role,
-            status=u.status,
-            is_premium=u.is_premium,
-            created_at=u.created_at,
-        )
-        for u in users
-    ]
-
-
-@router.patch("/admin/users/{user_id}/status", status_code=status.HTTP_204_NO_CONTENT)
-@limiter.limit("30/minute")
-async def admin_set_status(
-    request: Request,
-    user_id: UUID,
-    status_value: UserStatus = Query(alias="status"),
-    user: User = Depends(require_admin),
-    session: AsyncSession = Depends(get_db),
-) -> None:
-    target = await session.get(User, user_id)
-    if target is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    target.status = status_value
-    if status_value in {UserStatus.SUSPENDED, UserStatus.DELETED}:
-        await revoke_all_refresh_tokens(session, target.id)
-    session.add(
-        AdminAuditLog(
-            id=uuid4(),
-            actor_id=user.id,
-            action="set_user_status",
-            target_type="user",
-            target_id=str(user_id),
-            metadata_={"status": status_value.value},
-        )
-    )
-    await session.commit()
-
-
 class AdminPremiumGrant(BaseModel):
     plan_code: str = Field(min_length=2, max_length=64)
     days: int = Field(default=30, ge=1, le=366)
-
-
-@router.post("/admin/users/{user_id}/premium", response_model=SubscriptionOut, status_code=status.HTTP_201_CREATED)
-@limiter.limit("30/minute")
-async def admin_grant_premium(
-    request: Request,
-    user_id: UUID,
-    payload: AdminPremiumGrant,
-    admin: User = Depends(require_admin),
-    session: AsyncSession = Depends(get_db),
-) -> SubscriptionOut:
-    """Admin-only premium visibility grant (no in-app payment)."""
-    target = await session.get(User, user_id)
-    if target is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    plan = (
-        await session.execute(
-            select(SubscriptionPlan).where(
-                SubscriptionPlan.code == payload.plan_code,
-                SubscriptionPlan.is_active.is_(True),
-            )
-        )
-    ).scalar_one_or_none()
-    if plan is None:
-        raise HTTPException(status_code=404, detail="Plan not found")
-
-    existing = await session.execute(
-        select(Subscription).where(
-            Subscription.user_id == target.id,
-            Subscription.status == SubscriptionStatus.ACTIVE,
-        )
-    )
-    for sub in existing.scalars().all():
-        sub.status = SubscriptionStatus.CANCELED
-
-    now = datetime.now(UTC)
-    subscription = Subscription(
-        id=uuid4(),
-        user_id=target.id,
-        plan_id=plan.id,
-        status=SubscriptionStatus.ACTIVE,
-        current_period_start=now,
-        current_period_end=now + timedelta(days=payload.days),
-        provider="admin_grant",
-        provider_reference=f"admin-{admin.id.hex[:8]}-{uuid4().hex[:8]}",
-    )
-    session.add(subscription)
-    target.is_premium = True
-    target.premium_until = subscription.current_period_end
-    if target.account_type.value == "seller" or plan.code.startswith("seller"):
-        seller = (
-            await session.execute(select(SellerProfile).where(SellerProfile.user_id == target.id))
-        ).scalar_one_or_none()
-        if seller:
-            seller.is_premium = True
-
-    session.add(
-        AdminAuditLog(
-            id=uuid4(),
-            actor_id=admin.id,
-            action="grant_premium",
-            target_type="user",
-            target_id=str(user_id),
-            metadata_={"plan_code": plan.code, "days": payload.days},
-        )
-    )
-    await notify_user(
-        session,
-        user_id=target.id,
-        title="Premium activated",
-        body=f"{plan.name} granted by MarGem staff",
-        kind="premium",
-        data={"plan_code": plan.code},
-    )
-    await session.commit()
-    await session.refresh(subscription)
-    result = await session.execute(
-        select(Subscription).options(selectinload(Subscription.plan)).where(Subscription.id == subscription.id)
-    )
-    subscription = result.scalar_one()
-    return SubscriptionOut(
-        id=subscription.id,
-        plan=PlanOut.model_validate(subscription.plan),
-        status=subscription.status,
-        current_period_start=subscription.current_period_start,
-        current_period_end=subscription.current_period_end,
-        provider=subscription.provider,
-    )
-
-
-@router.post("/admin/sellers/{seller_id}/verify", status_code=status.HTTP_204_NO_CONTENT)
-@limiter.limit("30/minute")
-async def admin_verify_seller(
-    request: Request,
-    seller_id: UUID,
-    approve: bool = True,
-    user: User = Depends(require_admin),
-    session: AsyncSession = Depends(get_db),
-) -> None:
-    seller = await session.get(SellerProfile, seller_id)
-    if seller is None:
-        raise HTTPException(status_code=404, detail="Seller not found")
-    seller.verification_status = VerificationStatus.VERIFIED if approve else VerificationStatus.REJECTED
-    session.add(
-        AdminAuditLog(
-            id=uuid4(),
-            actor_id=user.id,
-            action="verify_seller" if approve else "reject_seller",
-            target_type="seller",
-            target_id=str(seller_id),
-            metadata_={},
-        )
-    )
-    await notify_user(
-        session,
-        user_id=seller.user_id,
-        title="Verification update",
-        body="Your business was verified" if approve else "Verification was rejected",
-        kind="verification",
-        data={"seller_id": str(seller_id)},
-    )
-    await session.commit()
 
 
 class PendingSellerOut(BaseModel):
@@ -761,29 +584,3 @@ class PendingSellerOut(BaseModel):
     user_id: UUID
 
     model_config = {"from_attributes": True}
-
-
-@router.get("/admin/sellers/pending", response_model=list[PendingSellerOut])
-async def admin_pending_sellers(
-    user: User = Depends(require_staff),
-    session: AsyncSession = Depends(get_db),
-    limit: int = Query(default=50, ge=1, le=200),
-    offset: int = Query(default=0, ge=0),
-) -> list[PendingSellerOut]:
-    result = await session.execute(
-        select(SellerProfile)
-        .where(SellerProfile.verification_status == VerificationStatus.PENDING)
-        .order_by(SellerProfile.created_at.asc())
-        .limit(limit)
-        .offset(offset)
-    )
-    return [
-        PendingSellerOut(
-            id=s.id,
-            business_name=s.business_name,
-            city=s.city,
-            phone=s.phone,
-            user_id=s.user_id,
-        )
-        for s in result.scalars().all()
-    ]

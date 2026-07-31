@@ -113,6 +113,7 @@ async def _issue_auth_token(session: AsyncSession, user_id: UUID, purpose: str, 
 
 async def _token_response(session: AsyncSession, user: User, request: Request | None = None) -> TokenResponse:
     from app.auth import user_has_seller_profile
+    from app.services.admin_login import is_staff_role, record_staff_login
 
     device = ""
     ip = ""
@@ -138,6 +139,8 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
         stored.last_seen_at = datetime.now(UTC)
 
     user.last_login_at = datetime.now(UTC)
+    if is_staff_role(user.role):
+        await record_staff_login(session, user_id=user.id, request=request, success=True)
     has_store = await user_has_seller_profile(session, user.id)
     await session.commit()
     return TokenResponse(
@@ -203,9 +206,20 @@ async def login(
     payload: LoginRequest,
     session: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
+    from app.services.admin_login import is_staff_role, record_staff_login
+
     result = await session.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
     if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
+        if user is not None and is_staff_role(user.role):
+            await record_staff_login(
+                session,
+                user_id=user.id,
+                request=request,
+                success=False,
+                failure_reason="invalid_credentials",
+            )
+            await session.commit()
         log_security_event(
             "login_failed",
             email=payload.email.lower(),
@@ -327,6 +341,7 @@ async def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="New password must be different from the current password",
         )
+    validate_password_strength(payload.new_password)
     user.password_hash = hash_password(payload.new_password)
     await revoke_all_refresh_tokens(session, user.id)
     await session.commit()
@@ -489,6 +504,90 @@ async def confirm_password_reset(
     await revoke_all_refresh_tokens(session, user.id)
     await session.commit()
     log_security_event("password_reset", user_id=str(user.id))
+
+
+@router.get("/me/export")
+@limiter.limit("5/hour")
+async def export_my_data(
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    """GDPR/Law 09-08 data portability — returns a JSON export of user data."""
+    from app.auth import user_has_seller_profile
+    from app.models import Notification, Review, SellerFollow, Subscription
+    from sqlalchemy.orm import selectinload
+
+    has_store = await user_has_seller_profile(session, user.id)
+
+    favorites = (
+        await session.execute(select(Favorite).where(Favorite.user_id == user.id))
+    ).scalars().all()
+    saved = (
+        await session.execute(select(SavedSearch).where(SavedSearch.user_id == user.id))
+    ).scalars().all()
+    follows = (
+        await session.execute(select(SellerFollow).where(SellerFollow.user_id == user.id))
+    ).scalars().all()
+    reviews = (
+        await session.execute(select(Review).where(Review.buyer_id == user.id))
+    ).scalars().all()
+    notifications = (
+        await session.execute(select(Notification).where(Notification.user_id == user.id).limit(100))
+    ).scalars().all()
+    subscriptions = (
+        await session.execute(
+            select(Subscription).where(Subscription.user_id == user.id).options(
+                selectinload(Subscription.plan)
+            )
+        )
+    ).scalars().all()
+
+    seller_data = None
+    if has_store:
+        profile = (
+            await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
+        ).scalar_one_or_none()
+        if profile:
+            seller_data = {
+                "business_name": profile.business_name,
+                "city": profile.city,
+                "verification_status": profile.verification_status.value,
+            }
+
+    return {
+        "exported_at": datetime.now(UTC).isoformat(),
+        "account": {
+            "id": str(user.id),
+            "email": user.email,
+            "display_name": user.display_name,
+            "account_type": user.account_type.value,
+            "role": user.role.value,
+            "status": user.status.value,
+            "email_verified": user.email_verified_at is not None,
+            "is_premium": user.is_premium,
+            "premium_until": user.premium_until.isoformat() if user.premium_until else None,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "has_seller_profile": has_store,
+        },
+        "seller": seller_data,
+        "favorites_count": len(favorites),
+        "saved_searches": [
+            {"query": s.query, "city": s.city, "category": s.category} for s in saved
+        ],
+        "follows_count": len(follows),
+        "reviews_count": len(reviews),
+        "notifications_count": len(notifications),
+        "subscriptions": [
+            {
+                "plan_code": sub.plan.code if sub.plan else "",
+                "status": sub.status.value,
+                "started_at": sub.current_period_start.isoformat() if sub.current_period_start else None,
+                "expires_at": sub.current_period_end.isoformat() if sub.current_period_end else None,
+            }
+            for sub in subscriptions
+        ],
+    }
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

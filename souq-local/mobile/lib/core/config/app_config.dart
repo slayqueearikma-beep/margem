@@ -94,6 +94,18 @@ class AppConfig {
     defaultValue: 'https://margem.app/privacy',
   );
 
+  /// Terms of Service URL for registration consent and settings.
+  static const String termsOfServiceUrl = String.fromEnvironment(
+    'TERMS_OF_SERVICE_URL',
+    defaultValue: 'https://margem.app/terms',
+  );
+
+  /// Legal index URL.
+  static const String legalIndexUrl = String.fromEnvironment(
+    'LEGAL_INDEX_URL',
+    defaultValue: 'https://margem.app/legal',
+  );
+
   static const String appName = 'MarGem';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';
 

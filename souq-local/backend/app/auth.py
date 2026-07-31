@@ -180,19 +180,33 @@ async def require_buyer(user: User = Depends(get_current_user)) -> User:
 
 
 async def require_admin(user: User = Depends(get_current_user)) -> User:
-    from app.models import UserRole
+    from app.services.admin_permissions import ADMIN_WRITE_ROLES, require_role
 
-    if user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    require_role(user.role, ADMIN_WRITE_ROLES, detail="Admin access required")
     return user
 
 
 async def require_staff(user: User = Depends(get_current_user)) -> User:
-    """Admin or support — read-oriented staff tools only."""
+    """Admin, moderator, super-admin, or legacy support — staff console access."""
     from app.models import UserRole
+    from app.services.admin_permissions import STAFF_ROLES
 
-    if user.role not in {UserRole.ADMIN, UserRole.SUPPORT}:
+    if user.role not in STAFF_ROLES:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Staff access required")
+    return user
+
+
+async def require_moderator(user: User = Depends(get_current_user)) -> User:
+    from app.services.admin_permissions import MODERATOR_WRITE_ROLES, require_role
+
+    require_role(user.role, MODERATOR_WRITE_ROLES, detail="Moderator access required")
+    return user
+
+
+async def require_super_admin(user: User = Depends(get_current_user)) -> User:
+    from app.services.admin_permissions import SUPER_ADMIN_ROLES, require_role
+
+    require_role(user.role, SUPER_ADMIN_ROLES, detail="Super admin access required")
     return user
 
 

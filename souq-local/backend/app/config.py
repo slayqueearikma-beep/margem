@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     # Defaults to the JWT key only in development for backwards compatibility.
     upload_token_secret: str = ""
     jwt_algorithm: str = "HS256"
-    jwt_access_expire_minutes: int = 60
+    jwt_access_expire_minutes: int = 30
     jwt_refresh_expire_days: int = 7
     bcrypt_rounds: int = 12
 
@@ -190,6 +190,11 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "PUBLIC_APP_URL must use HTTPS in production "
                     "(http is only allowed for localhost / private LAN IPs)"
+                )
+            if not self.redis_url:
+                logger.warning(
+                    "REDIS_URL is not set in production — rate limits are per-instance only. "
+                    "Set REDIS_URL when running more than one API replica."
                 )
         return self
 
