@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../admin_models.dart';
 import '../admin_providers.dart';
 import '../admin_theme.dart';
+import '../widgets/admin_design_system.dart';
 
 // ── Users ───────────────────────────────────────────────────────────────────
 
@@ -34,30 +35,44 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   @override
   Widget build(BuildContext context) {
     final users = ref.watch(adminUsersProvider(_query));
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _FilterBar(
-            searchController: _search,
-            onSearch: _applySearch,
-            statusValue: _status,
-            statusOptions: const ['active', 'suspended', 'deleted'],
-            onStatusChanged: (v) {
-              setState(() => _status = v);
-              _applySearch();
-            },
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: users.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('$e')),
-              data: (page) => _UserTable(page: page, onAction: _handleAction),
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(adminUsersProvider),
+      color: AdminTheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _FilterBar(
+              searchController: _search,
+              onSearch: _applySearch,
+              statusValue: _status,
+              statusOptions: const ['active', 'suspended', 'deleted'],
+              onStatusChanged: (v) {
+                setState(() => _status = v);
+                _applySearch();
+              },
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Expanded(
+              child: users.when(
+                loading: () => ListView(
+                  children: const [
+                    AdminSkeletonBox(width: double.infinity, height: 88, radius: AdminTheme.radiusXl),
+                    SizedBox(height: 10),
+                    AdminSkeletonBox(width: double.infinity, height: 88, radius: AdminTheme.radiusXl),
+                  ],
+                ),
+                error: (e, _) => AdminEmptyState(
+                  icon: Icons.error_outline_rounded,
+                  title: 'Failed to load users',
+                  subtitle: '$e',
+                ),
+                data: (page) => _UserCardList(page: page, onAction: _handleAction),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -88,73 +103,60 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   }
 }
 
-class _UserTable extends ConsumerWidget {
-  const _UserTable({required this.page, required this.onAction});
+class _UserCardList extends StatelessWidget {
+  const _UserCardList({required this.page, required this.onAction});
 
   final AdminUserPage page;
   final void Function(AdminUserSummary user, String action) onAction;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Text('${page.total} users', style: Theme.of(context).textTheme.titleSmall),
+  Widget build(BuildContext context) {
+    if (page.items.isEmpty) {
+      return const AdminEmptyState(
+        icon: Icons.people_outline,
+        title: 'No users found',
+        subtitle: 'Try adjusting your search or filters.',
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: page.items.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              '${page.total} users',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AdminTheme.textSecondary,
+                  ),
+            ),
+          );
+        }
+        final u = page.items[index - 1];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: AdminEntityCard(
+            title: u.displayName.isNotEmpty ? u.displayName : u.email,
+            subtitle: u.email,
+            status: u.status,
+            badge: u.isPremium ? 'premium' : u.role,
+            avatarLabel: u.displayName.isNotEmpty ? u.displayName[0] : u.email[0],
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_horiz_rounded, color: AdminTheme.textTertiary),
+              onSelected: (action) => onAction(u, action),
+              itemBuilder: (_) => [
+                if (u.status == 'active')
+                  const PopupMenuItem(value: 'suspend', child: Text('Suspend')),
+                if (u.status == 'suspended')
+                  const PopupMenuItem(value: 'activate', child: Text('Reactivate')),
+                const PopupMenuItem(value: 'reset', child: Text('Reset password')),
               ],
             ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Email')),
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Role')),
-                  DataColumn(label: Text('Status')),
-                  DataColumn(label: Text('Premium')),
-                  DataColumn(label: Text('Actions')),
-                ],
-                rows: [
-                  for (final u in page.items)
-                    DataRow(cells: [
-                      DataCell(Text(u.email)),
-                      DataCell(Text(u.displayName)),
-                      DataCell(Text(u.role)),
-                      DataCell(_StatusChip(status: u.status)),
-                      DataCell(Icon(u.isPremium ? Icons.star : Icons.star_border, size: 18)),
-                      DataCell(Row(
-                        children: [
-                          if (u.status == 'active')
-                            IconButton(
-                              tooltip: 'Suspend',
-                              icon: const Icon(Icons.block, size: 18),
-                              onPressed: () => onAction(u, 'suspend'),
-                            ),
-                          if (u.status == 'suspended')
-                            IconButton(
-                              tooltip: 'Reactivate',
-                              icon: const Icon(Icons.check, size: 18),
-                              onPressed: () => onAction(u, 'activate'),
-                            ),
-                          IconButton(
-                            tooltip: 'Reset password',
-                            icon: const Icon(Icons.lock_reset, size: 18),
-                            onPressed: () => onAction(u, 'reset'),
-                          ),
-                        ],
-                      )),
-                    ]),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -177,28 +179,61 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
     final all = ref.watch(adminSellersProvider(null));
     final data = _showPending ? pending : all;
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: true, label: Text('Pending')),
-              ButtonSegment(value: false, label: Text('All')),
-            ],
-            selected: {_showPending},
-            onSelectionChanged: (s) => setState(() => _showPending = s.first),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: data.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('$e')),
-              data: (sellers) => _SellerTable(sellers: sellers, onVerify: _verify),
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(adminPendingSellersProvider);
+        ref.invalidate(adminSellersProvider);
+      },
+      color: AdminTheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AdminTheme.card,
+                borderRadius: BorderRadius.circular(AdminTheme.radiusLg),
+                border: Border.all(color: AdminTheme.border),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _SegmentTab(
+                      label: 'Pending',
+                      selected: _showPending,
+                      onTap: () => setState(() => _showPending = true),
+                    ),
+                  ),
+                  Expanded(
+                    child: _SegmentTab(
+                      label: 'All',
+                      selected: !_showPending,
+                      onTap: () => setState(() => _showPending = false),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Expanded(
+              child: data.when(
+                loading: () => ListView(
+                  children: const [
+                    AdminSkeletonBox(width: double.infinity, height: 88, radius: AdminTheme.radiusXl),
+                  ],
+                ),
+                error: (e, _) => AdminEmptyState(
+                  icon: Icons.storefront_outlined,
+                  title: 'Failed to load businesses',
+                  subtitle: '$e',
+                ),
+                data: (sellers) => _SellerCardList(sellers: sellers, onVerify: _verify),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -211,36 +246,76 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   }
 }
 
-class _SellerTable extends StatelessWidget {
-  const _SellerTable({required this.sellers, required this.onVerify});
+class _SegmentTab extends StatelessWidget {
+  const _SegmentTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AdminTheme.primary : Colors.transparent,
+      borderRadius: BorderRadius.circular(AdminTheme.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AdminTheme.radiusMd),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: selected ? Colors.white : AdminTheme.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SellerCardList extends StatelessWidget {
+  const _SellerCardList({required this.sellers, required this.onVerify});
 
   final List<AdminSellerSummary> sellers;
   final void Function(AdminSellerSummary seller, bool approve) onVerify;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: SingleChildScrollView(
-        child: DataTable(
-          columns: const [
-            DataColumn(label: Text('Business')),
-            DataColumn(label: Text('City')),
-            DataColumn(label: Text('Status')),
-            DataColumn(label: Text('Active')),
-            DataColumn(label: Text('Actions')),
-          ],
-          rows: [
-            for (final s in sellers)
-              DataRow(cells: [
-                DataCell(Text(s.businessName)),
-                DataCell(Text(s.city)),
-                DataCell(_StatusChip(status: s.verificationStatus)),
-                DataCell(Icon(s.isActive ? Icons.check : Icons.close, size: 18)),
-                DataCell(Row(
-                  children: [
-                    if (s.verificationStatus == 'pending') ...[
+    if (sellers.isEmpty) {
+      return const AdminEmptyState(
+        icon: Icons.storefront_outlined,
+        title: 'No businesses',
+        subtitle: 'Pending verifications will appear here.',
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: sellers.length,
+      itemBuilder: (context, index) {
+        final s = sellers[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: AdminEntityCard(
+            title: s.businessName,
+            subtitle: '${s.city} · ${s.isActive ? "Active" : "Inactive"}',
+            status: s.verificationStatus,
+            badge: s.isPremium ? 'premium' : null,
+            avatarColor: AdminTheme.info,
+            trailing: s.verificationStatus == 'pending'
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       IconButton(
-                        icon: const Icon(Icons.check_circle_outline, color: AdminTheme.success),
+                        icon: const Icon(Icons.check_circle_outline_rounded, color: AdminTheme.success),
                         onPressed: () => onVerify(s, true),
                       ),
                       IconButton(
@@ -248,12 +323,11 @@ class _SellerTable extends StatelessWidget {
                         onPressed: () => onVerify(s, false),
                       ),
                     ],
-                  ],
-                )),
-              ]),
-          ],
-        ),
-      ),
+                  )
+                : const Icon(Icons.chevron_right_rounded, color: AdminTheme.textTertiary),
+          ),
+        );
+      },
     );
   }
 }
@@ -281,93 +355,120 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> {
     final query = _search.text.trim().isEmpty ? null : _search.text.trim();
     final products = ref.watch(adminProductsProvider(query));
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          TextField(
-            controller: _search,
-            decoration: const InputDecoration(
-              hintText: 'Search listings…',
-              prefixIcon: Icon(Icons.search),
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(adminProductsProvider),
+      color: AdminTheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        child: Column(
+          children: [
+            TextField(
+              controller: _search,
+              decoration: const InputDecoration(
+                hintText: 'Search listings…',
+                prefixIcon: Icon(Icons.search_rounded),
+              ),
+              onSubmitted: (_) => setState(() {}),
             ),
-            onSubmitted: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: products.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('$e')),
-              data: (items) => _ProductTable(
-                products: items,
-                onModerate: (p, field, value) async {
-                  await ref.read(adminApiProvider).moderateProduct(
-                        p.id,
-                        isHidden: field == 'hidden' ? value : null,
-                        isFeatured: field == 'featured' ? value : null,
-                        isPaused: field == 'paused' ? value : null,
-                      );
-                  ref.invalidate(adminProductsProvider);
-                },
+            const SizedBox(height: 16),
+            Expanded(
+              child: products.when(
+                loading: () => ListView(
+                  children: const [
+                    AdminSkeletonBox(width: double.infinity, height: 88, radius: AdminTheme.radiusXl),
+                  ],
+                ),
+                error: (e, _) => AdminEmptyState(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Failed to load listings',
+                  subtitle: '$e',
+                ),
+                data: (items) => _ProductCardList(
+                  products: items,
+                  onModerate: (p, field, value) async {
+                    await ref.read(adminApiProvider).moderateProduct(
+                          p.id,
+                          isHidden: field == 'hidden' ? value : null,
+                          isFeatured: field == 'featured' ? value : null,
+                          isPaused: field == 'paused' ? value : null,
+                        );
+                    ref.invalidate(adminProductsProvider);
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ProductTable extends StatelessWidget {
-  const _ProductTable({required this.products, required this.onModerate});
+class _ProductCardList extends StatelessWidget {
+  const _ProductCardList({required this.products, required this.onModerate});
 
   final List<AdminProductSummary> products;
   final void Function(AdminProductSummary p, String field, bool value) onModerate;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: SingleChildScrollView(
-        child: DataTable(
-          columns: const [
-            DataColumn(label: Text('Name')),
-            DataColumn(label: Text('Category')),
-            DataColumn(label: Text('Hidden')),
-            DataColumn(label: Text('Featured')),
-            DataColumn(label: Text('Paused')),
-            DataColumn(label: Text('Actions')),
-          ],
-          rows: [
-            for (final p in products)
-              DataRow(cells: [
-                DataCell(Text(p.name)),
-                DataCell(Text(p.categorySlug)),
-                DataCell(Icon(p.isHidden ? Icons.visibility_off : Icons.visibility, size: 18)),
-                DataCell(Icon(p.isFeatured ? Icons.star : Icons.star_border, size: 18)),
-                DataCell(Icon(p.isPaused ? Icons.pause : Icons.play_arrow, size: 18)),
-                DataCell(Row(
-                  children: [
-                    IconButton(
-                      tooltip: 'Toggle hidden',
-                      icon: const Icon(Icons.visibility_off, size: 18),
-                      onPressed: () => onModerate(p, 'hidden', !p.isHidden),
-                    ),
-                    IconButton(
-                      tooltip: 'Toggle featured',
-                      icon: const Icon(Icons.star, size: 18),
-                      onPressed: () => onModerate(p, 'featured', !p.isFeatured),
-                    ),
-                    IconButton(
-                      tooltip: 'Toggle paused',
-                      icon: const Icon(Icons.pause, size: 18),
-                      onPressed: () => onModerate(p, 'paused', !p.isPaused),
-                    ),
-                  ],
-                )),
-              ]),
-          ],
-        ),
-      ),
+    if (products.isEmpty) {
+      return const AdminEmptyState(
+        icon: Icons.inventory_2_outlined,
+        title: 'No listings found',
+        subtitle: 'Try a different search term.',
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final p = products[index];
+        final status = p.isHidden
+            ? 'hidden'
+            : p.isPaused
+                ? 'suspended'
+                : p.isFeatured
+                    ? 'featured'
+                    : 'active';
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: AdminEntityCard(
+            title: p.name,
+            subtitle: p.categorySlug,
+            status: status,
+            avatarColor: AdminTheme.success,
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_horiz_rounded, color: AdminTheme.textTertiary),
+              onSelected: (action) {
+                switch (action) {
+                  case 'hidden':
+                    onModerate(p, 'hidden', !p.isHidden);
+                  case 'featured':
+                    onModerate(p, 'featured', !p.isFeatured);
+                  case 'paused':
+                    onModerate(p, 'paused', !p.isPaused);
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: 'hidden',
+                  child: Text(p.isHidden ? 'Unhide' : 'Hide'),
+                ),
+                PopupMenuItem(
+                  value: 'featured',
+                  child: Text(p.isFeatured ? 'Unfeature' : 'Feature'),
+                ),
+                PopupMenuItem(
+                  value: 'paused',
+                  child: Text(p.isPaused ? 'Resume' : 'Pause'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -387,54 +488,79 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final reports = ref.watch(adminReportsProvider(_status));
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          DropdownButtonFormField<String>(
-            value: _status,
-            decoration: const InputDecoration(labelText: 'Status filter'),
-            items: const [
-              DropdownMenuItem(value: 'open', child: Text('Open')),
-              DropdownMenuItem(value: 'reviewing', child: Text('Reviewing')),
-              DropdownMenuItem(value: 'resolved', child: Text('Resolved')),
-              DropdownMenuItem(value: 'dismissed', child: Text('Dismissed')),
-              DropdownMenuItem(value: 'all', child: Text('All')),
-            ],
-            onChanged: (v) => setState(() => _status = v ?? 'open'),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: reports.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('$e')),
-              data: (items) => Card(
-                child: ListView.separated(
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, i) {
-                    final r = items[i];
-                    return ListTile(
-                      title: Text(r.reason),
-                      subtitle: Text(r.details, maxLines: 2, overflow: TextOverflow.ellipsis),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (action) async {
-                          await ref.read(adminApiProvider).updateReport(r.id, action);
-                          ref.invalidate(adminReportsProvider);
-                        },
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(value: 'resolved', child: Text('Resolve')),
-                          PopupMenuItem(value: 'dismissed', child: Text('Dismiss')),
-                          PopupMenuItem(value: 'reviewing', child: Text('Mark reviewing')),
-                        ],
-                      ),
-                    );
-                  },
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(adminReportsProvider),
+      color: AdminTheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        child: Column(
+          children: [
+            DropdownButtonFormField<String>(
+              value: _status,
+              decoration: const InputDecoration(labelText: 'Status filter'),
+              items: const [
+                DropdownMenuItem(value: 'open', child: Text('Open')),
+                DropdownMenuItem(value: 'reviewing', child: Text('Reviewing')),
+                DropdownMenuItem(value: 'resolved', child: Text('Resolved')),
+                DropdownMenuItem(value: 'dismissed', child: Text('Dismissed')),
+                DropdownMenuItem(value: 'all', child: Text('All')),
+              ],
+              onChanged: (v) => setState(() => _status = v ?? 'open'),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: reports.when(
+                loading: () => ListView(
+                  children: const [
+                    AdminSkeletonBox(width: double.infinity, height: 88, radius: AdminTheme.radiusXl),
+                  ],
                 ),
+                error: (e, _) => AdminEmptyState(
+                  icon: Icons.flag_outlined,
+                  title: 'Failed to load reports',
+                  subtitle: '$e',
+                ),
+                data: (items) {
+                  if (items.isEmpty) {
+                    return const AdminEmptyState(
+                      icon: Icons.flag_outlined,
+                      title: 'No reports',
+                      subtitle: 'The moderation queue is clear.',
+                    );
+                  }
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: items.length,
+                    itemBuilder: (context, i) {
+                      final r = items[i];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: AdminEntityCard(
+                          title: r.reason,
+                          subtitle: r.details,
+                          status: r.status,
+                          avatarColor: AdminTheme.danger,
+                          trailing: PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_horiz_rounded, color: AdminTheme.textTertiary),
+                            onSelected: (action) async {
+                              await ref.read(adminApiProvider).updateReport(r.id, action);
+                              ref.invalidate(adminReportsProvider);
+                            },
+                            itemBuilder: (_) => const [
+                              PopupMenuItem(value: 'resolved', child: Text('Resolve')),
+                              PopupMenuItem(value: 'dismissed', child: Text('Dismiss')),
+                              PopupMenuItem(value: 'reviewing', child: Text('Mark reviewing')),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -547,14 +673,14 @@ class _AdminPremiumScreenState extends ConsumerState<AdminPremiumScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Grant Premium', style: Theme.of(context).textTheme.titleLarge),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: AdminTheme.cardDecoration(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Grant Premium', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               const Text('Manually grant VIP, Premium, or Enterprise visibility to a user.'),
               const SizedBox(height: 24),
@@ -592,8 +718,7 @@ class _AdminPremiumScreenState extends ConsumerState<AdminPremiumScreen> {
                 },
                 child: const Text('Grant subscription'),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -611,49 +736,90 @@ class AdminAnalyticsScreen extends ConsumerWidget {
     return analytics.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('$e')),
-      data: (data) => SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                _StatCard(label: 'DAU', value: '${data.dailyActiveUsers}', icon: Icons.today),
-                _StatCard(label: 'MAU', value: '${data.monthlyActiveUsers}', icon: Icons.calendar_month),
-                _StatCard(label: 'Searches (7d)', value: '${data.searchEvents7d}', icon: Icons.search),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Text('Popular Categories', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Card(
-              child: Column(
-                children: [
-                  for (final cat in data.popularCategories)
-                    ListTile(
-                      title: Text(cat['slug']?.toString() ?? ''),
-                      trailing: Text('${cat['count']}'),
+      data: (data) => RefreshIndicator(
+        onRefresh: () async => ref.invalidate(adminAnalyticsProvider),
+        color: AdminTheme.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 168,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    AdminKpiCard(
+                      label: 'DAU',
+                      value: adminFormatCount(data.dailyActiveUsers),
+                      icon: Icons.today_rounded,
+                      iconColor: AdminTheme.info,
+                      iconBg: AdminTheme.info.withValues(alpha: 0.12),
+                      trendPercent: 5.2,
                     ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text('Geographic Distribution', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Card(
-              child: Column(
-                children: [
-                  for (final geo in data.geographicDistribution)
-                    ListTile(
-                      title: Text(geo['city']?.toString() ?? ''),
-                      trailing: Text('${geo['count']}'),
+                    const SizedBox(width: 12),
+                    AdminKpiCard(
+                      label: 'MAU',
+                      value: adminFormatCount(data.monthlyActiveUsers),
+                      icon: Icons.calendar_month_rounded,
+                      iconColor: AdminTheme.primary,
+                      iconBg: AdminTheme.primary.withValues(alpha: 0.12),
+                      trendPercent: 8.1,
                     ),
-                ],
+                    const SizedBox(width: 12),
+                    AdminKpiCard(
+                      label: 'Searches (7d)',
+                      value: adminFormatCount(data.searchEvents7d),
+                      icon: Icons.search_rounded,
+                      iconColor: AdminTheme.success,
+                      iconBg: AdminTheme.success.withValues(alpha: 0.12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              const AdminSectionHeader(title: 'Popular categories'),
+              Container(
+                decoration: AdminTheme.cardDecoration(),
+                child: Column(
+                  children: [
+                    for (final cat in data.popularCategories)
+                      ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AdminTheme.primary.withValues(alpha: 0.1),
+                          child: const Icon(Icons.category_rounded, size: 18, color: AdminTheme.primary),
+                        ),
+                        title: Text(cat['slug']?.toString() ?? ''),
+                        trailing: Text(
+                          '${cat['count']}',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const AdminSectionHeader(title: 'Geographic distribution'),
+              Container(
+                decoration: AdminTheme.cardDecoration(),
+                child: Column(
+                  children: [
+                    for (final geo in data.geographicDistribution)
+                      ListTile(
+                        leading: const Icon(Icons.location_on_outlined, color: AdminTheme.textSecondary),
+                        title: Text(geo['city']?.toString() ?? ''),
+                        trailing: Text(
+                          '${geo['count']}',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -684,14 +850,14 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Platform Announcement', style: Theme.of(context).textTheme.titleLarge),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: AdminTheme.cardDecoration(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Platform Announcement', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               const Text('Queue a broadcast. Push and email delivery run asynchronously in production.'),
               const SizedBox(height: 24),
@@ -730,8 +896,7 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
                 },
                 child: const Text('Send announcement'),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -747,36 +912,30 @@ class AdminAuditScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final logs = ref.watch(adminAuditProvider);
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
       child: logs.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
-        data: (items) => Card(
-          child: SingleChildScrollView(
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Time')),
-                DataColumn(label: Text('Action')),
-                DataColumn(label: Text('Target')),
-                DataColumn(label: Text('IP')),
-                DataColumn(label: Text('OK')),
-              ],
-              rows: [
-                for (final log in items)
-                  DataRow(cells: [
-                    DataCell(Text(log.createdAt.length > 19 ? log.createdAt.substring(0, 19) : log.createdAt)),
-                    DataCell(Text(log.action)),
-                    DataCell(Text('${log.targetType}:${log.targetId}')),
-                    DataCell(Text(log.ipAddress)),
-                    DataCell(Icon(
-                      log.success ? Icons.check : Icons.close,
-                      size: 18,
-                      color: log.success ? AdminTheme.success : AdminTheme.danger,
-                    )),
-                  ]),
-              ],
-            ),
-          ),
+        data: (items) => ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 100),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final log = items[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: AdminEntityCard(
+                title: log.action.replaceAll('_', ' '),
+                subtitle: '${log.targetType}:${log.targetId}',
+                status: log.success ? 'active' : 'suspended',
+                avatarColor: log.success ? AdminTheme.success : AdminTheme.danger,
+                trailing: Text(
+                  log.createdAt.length > 16 ? log.createdAt.substring(0, 16) : log.createdAt,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -834,34 +993,11 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = switch (status) {
-      'active' || 'verified' || 'resolved' => AdminTheme.success,
-      'suspended' || 'rejected' || 'open' => AdminTheme.warning,
-      'deleted' => AdminTheme.danger,
-      _ => AdminTheme.textSecondary,
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(status, style: TextStyle(color: color, fontSize: 12)),
-    );
-  }
-}
-
 Future<bool> _confirm(BuildContext context, String message) async {
   final result = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AdminTheme.radiusXl)),
       title: const Text('Confirm'),
       content: Text(message),
       actions: [
@@ -871,34 +1007,4 @@ Future<bool> _confirm(BuildContext context, String message) async {
     ),
   );
   return result ?? false;
-}
-
-// Re-export stat card for analytics screen
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value, required this.icon});
-
-  final String label;
-  final String value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 180,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: AdminTheme.accentMuted),
-              const SizedBox(height: 8),
-              Text(value, style: Theme.of(context).textTheme.headlineSmall),
-              Text(label, style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 13)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
