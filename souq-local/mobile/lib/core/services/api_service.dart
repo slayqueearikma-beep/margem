@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
 import '../models/models.dart';
+import 'secure_http_client.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -22,7 +23,7 @@ typedef TokenRefreshCallback = Future<bool> Function();
 typedef SessionExpiredCallback = Future<void> Function();
 
 class ApiService {
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  ApiService({http.Client? client}) : _client = client ?? createSecureHttpClient();
 
   static const _requestTimeout = Duration(seconds: 15);
   static const _submitTimeout = Duration(seconds: 25);

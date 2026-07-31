@@ -407,6 +407,7 @@ async def request_email_verification(
 
 @router.post("/verify-email/confirm", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("5/minute")
+@limiter.limit("30/hour")
 async def confirm_email_verification(
     request: Request,
     payload: TokenConfirmRequest,
@@ -420,6 +421,11 @@ async def confirm_email_verification(
     )
     token = result.scalar_one_or_none()
     if token is None or token.used_at is not None or token.expires_at < datetime.now(UTC):
+        log_security_event(
+            "email_verify_failed",
+            ip_address=request.client.host if request.client else "",
+            detail="invalid_or_expired_token",
+        )
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")
     user = await session.get(User, token.user_id)
     if user is None:

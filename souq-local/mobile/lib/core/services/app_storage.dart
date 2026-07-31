@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/app_config.dart';
+
 enum AccountType { buyer, seller, guest }
 
 /// Client preference for which shell to show. Capability still comes from sellerId/profile.
@@ -290,6 +292,15 @@ class AppStorage {
   Future<List<GuestFavoriteItem>> addGuestFavoriteItem(
       GuestFavoriteItem item) async {
     final items = [...getGuestFavoriteItems()];
+    if (items.length >= AppConfig.maxGuestFavorites &&
+        !items.any((entry) {
+          if (item.productId.isNotEmpty) {
+            return entry.productId == item.productId;
+          }
+          return entry.productId.isEmpty && entry.sellerId == item.sellerId;
+        })) {
+      return items;
+    }
     final index = items.indexWhere((entry) {
       if (item.productId.isNotEmpty) {
         return entry.productId == item.productId;

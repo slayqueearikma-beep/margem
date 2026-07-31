@@ -70,9 +70,16 @@ class AuthService {
         'refresh_token': refresh,
       });
       await _saveSession(AuthSession.fromJson(response));
-      await _storage.write(key: _accessTokenKey, value: _accessToken!);
-      await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
       return true;
+    } on ApiException catch (error) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        _accessToken = null;
+        _refreshToken = null;
+        await _storage.delete(key: _accessTokenKey);
+        await _storage.delete(key: _refreshTokenKey);
+        _syncTokenProvider();
+      }
+      return false;
     } on Object {
       return false;
     }
@@ -148,6 +155,8 @@ class AuthService {
   Future<AuthSession> _saveSession(AuthSession session) async {
     _accessToken = session.accessToken;
     _refreshToken = session.refreshToken;
+    await _storage.write(key: _accessTokenKey, value: _accessToken!);
+    await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
     _syncTokenProvider();
     return session;
   }

@@ -77,6 +77,10 @@ class Settings(BaseSettings):
     max_request_body_bytes: int = 1_048_576
     redis_url: str = ""
     allow_insecure_email_fallback: bool = False
+    # Number of trusted reverse-proxy hops that append X-Forwarded-For (0 = direct).
+    trusted_proxy_hops: int = 0
+    # Optional comma-separated extra hosts allowed for presigned upload URLs.
+    upload_allowed_hosts: list[str] = []
 
     smtp_host: str = ""
     smtp_port: int = 587
@@ -108,7 +112,7 @@ class Settings(BaseSettings):
             return value.strip().strip('"').strip("'")
         return value
 
-    @field_validator("cors_origins", "allowed_hosts", mode="before")
+    @field_validator("cors_origins", "allowed_hosts", "upload_allowed_hosts", mode="before")
     @classmethod
     def parse_string_list(cls, value: Any) -> list[str]:
         if isinstance(value, str):
