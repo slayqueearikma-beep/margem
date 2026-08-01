@@ -146,15 +146,15 @@ jobs:
       - run: flutter test
       - name: Create ephemeral CI release signing key
         run: |
-          keytool -genkeypair -keystore ci-release.keystore -storepass ci-release-password \
+          keytool -genkeypair -keystore android/ci-release.keystore -storepass ci-release-password \
             -keypass ci-release-password -alias margem-ci -keyalg RSA -keysize 2048 \
             -validity 1 -dname "CN=MarGem CI,OU=CI,O=MarGem,L=Casablanca,C=MA"
-          cat > android/key.properties <<'EOF'
-          storePassword=ci-release-password
-          keyPassword=ci-release-password
-          keyAlias=margem-ci
-          storeFile=../ci-release.keystore
-          EOF
+          printf '%s\n' \
+            'storePassword=ci-release-password' \
+            'keyPassword=ci-release-password' \
+            'keyAlias=margem-ci' \
+            'storeFile=../ci-release.keystore' \
+            > android/key.properties
       - name: Assemble signed release APK
         run: flutter build apk --release --dart-define=API_BASE_URL=https://api.margem.ma --dart-define=PRODUCTION=true
         continue-on-error: false
