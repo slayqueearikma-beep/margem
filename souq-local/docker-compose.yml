@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: margem-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   api:
     build:
       context: ./backend
@@ -27,12 +38,16 @@ services:
       APP_ENV: development
       DEBUG: "true"
       DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@postgres:5432/souq_local
+      REDIS_URL: redis://redis:6379/0
       JWT_SECRET_KEY: local-dev-secret-change-in-production-min-32-chars
       UPLOAD_TOKEN_SECRET: local-dev-upload-token-secret-change-in-production-min-32-chars
       AUTH_DEV_BYPASS: "false"
       CORS_ORIGINS: '["http://localhost:3000","http://10.0.2.2:8000"]'
+      PUBLIC_API_URL: http://localhost:8000
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready')\""]

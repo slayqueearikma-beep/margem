@@ -25,7 +25,10 @@ class LegalConsentCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
+    return Semantics(
+      container: true,
+      label: 'I agree to the Terms of Service and Privacy Policy',
+      child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Checkbox(
@@ -67,6 +70,7 @@ class LegalConsentCheckbox extends StatelessWidget {
           ),
         ),
       ],
+    ),
     );
   }
 }

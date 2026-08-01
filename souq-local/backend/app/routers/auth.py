@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -411,6 +411,15 @@ async def request_email_verification(
 ) -> None:
     if user.email_verified_at is not None:
         return
+    await session.execute(
+        update(AuthToken)
+        .where(
+            AuthToken.user_id == user.id,
+            AuthToken.purpose == "email_verify",
+            AuthToken.used_at.is_(None),
+        )
+        .values(used_at=datetime.now(UTC))
+    )
     token = await _issue_auth_token(session, user.id, "email_verify", hours=0.25)
     await session.commit()
     email_service.send(

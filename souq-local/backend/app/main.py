@@ -1,5 +1,8 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 from uuid import uuid4
+
+import logging
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -139,7 +142,9 @@ async def lifespan(app: FastAPI):
 
                 logging.getLogger("margem.stripe").exception("stripe_reconcile_startup_failed")
     yield
+    logging.getLogger("margem.lifecycle").info("api_shutdown_begin")
     await database.engine.dispose()
+    logging.getLogger("margem.lifecycle").info("api_shutdown_complete")
 
 
 app = FastAPI(
@@ -196,6 +201,14 @@ if settings.storage_backend == "local":
         StaticFiles(directory=str(media_root())),
         name="media",
     )
+
+_legal_candidates = (
+    Path(__file__).resolve().parents[2] / "legal",
+    Path(__file__).resolve().parents[1] / "legal",
+)
+_legal_dir = next((path for path in _legal_candidates if path.is_dir()), None)
+if _legal_dir is not None:
+    app.mount("/legal", StaticFiles(directory=str(_legal_dir), html=True), name="legal")
 
 
 def _request_id(request: Request) -> str:

@@ -14,9 +14,12 @@ COPY app ./app
 COPY scripts ./scripts
 COPY alembic ./alembic
 COPY alembic.ini .
+COPY legal ./legal
 
 RUN chmod +x /app/scripts/entrypoint.sh \
     && chown -R margem:margem /app
+
+STOPSIGNAL SIGTERM
 
 USER margem
 

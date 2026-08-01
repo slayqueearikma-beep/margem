@@ -36,6 +36,7 @@ from app.schemas.billing import SubscriptionOut
 from app.services.admin_audit import record_admin_action
 from app.services.admin_permissions import assert_permission, role_label
 from app.services.admin_premium import admin_grant_premium as grant_premium_to_user
+from app.services.email import email_service
 from app.services.admin_analytics import (
     fetch_daily_growth,
     fetch_dashboard_counts,
@@ -195,6 +196,11 @@ class AdminAnnouncement(BaseModel):
     title: str = Field(min_length=1, max_length=120)
     body: str = Field(min_length=1, max_length=2000)
     audience: str = Field(default="all", pattern=r"^(all|buyers|sellers|premium)$")
+
+
+class AdminAnnouncementResult(BaseModel):
+    sent: int
+    audience: str
 
 
 class AdminAuditLogOut(BaseModel):
@@ -1310,20 +1316,40 @@ async def admin_analytics(
 # ── Notifications (architecture) ─────────────────────────────────────────────
 
 
-@router.post("/announcements", status_code=status.HTTP_501_NOT_IMPLEMENTED)
+@router.post("/announcements", response_model=AdminAnnouncementResult, status_code=status.HTTP_201_CREATED)
 @limiter.limit("10/minute")
 async def admin_send_announcement(
     request: Request,
     payload: AdminAnnouncement,
     actor: User = Depends(require_admin),
     session: AsyncSession = Depends(get_db),
-) -> None:
-    """Broadcast announcements require email/push infrastructure (not yet wired)."""
+) -> AdminAnnouncementResult:
+    """Deliver an in-app announcement to the selected audience."""
     assert_permission(actor.role, "notifications.send")
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Platform announcements are not enabled yet. Configure email/push delivery first.",
+    from app.services.admin_announcements import send_platform_announcement
+    from app.services.text_sanitizer import sanitize_free_text
+
+    title = sanitize_free_text(payload.title, max_length=120)
+    body = sanitize_free_text(payload.body, max_length=2000)
+    if not title or not body:
+        raise HTTPException(status_code=400, detail="Title and message are required")
+
+    sent = await send_platform_announcement(
+        session,
+        title=title,
+        body=body,
+        audience=payload.audience,
     )
+    await record_admin_action(
+        session,
+        actor_id=actor.id,
+        action="send_announcement",
+        target_type="announcement",
+        metadata={"audience": payload.audience, "sent": sent},
+        request=request,
+    )
+    await session.commit()
+    return AdminAnnouncementResult(sent=sent, audience=payload.audience)
 
 
 # ── Audit logs ──────────────────────────────────────────────────────────────

@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/legal_links_section.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
 
@@ -181,6 +182,8 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
             onPressed: _changePassword,
             isLoading: _loadingPassword,
           ),
+          const SizedBox(height: AppSpacing.xxl),
+          const LegalLinksSection(),
           const SizedBox(height: AppSpacing.xxl),
           OutlinedButton(
             style: OutlinedButton.styleFrom(foregroundColor: AppColors.danger),

@@ -41,4 +41,5 @@ echo "Running database migrations..."
 alembic upgrade head
 
 echo "Starting MarGem API..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 \
+  --timeout-graceful-shutdown 30 --timeout-keep-alive 5

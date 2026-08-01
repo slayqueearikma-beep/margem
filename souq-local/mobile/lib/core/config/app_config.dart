@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// App configuration — update for your environment.
 class AppConfig {
   /// Production API URL. Set at build time:
@@ -86,7 +88,7 @@ class AppConfig {
     defaultValue: false,
   );
 
-  static bool get allowDemoData => !isProduction && demoFallback;
+  static bool get allowDemoData => !isProduction && !kReleaseMode && demoFallback;
 
   /// When false, admin routes redirect to buyer home (use for Play Store builds).
   static bool get enableAdmin {
@@ -94,26 +96,40 @@ class AppConfig {
     if (raw.isNotEmpty) {
       return raw.toLowerCase() == 'true';
     }
-    return !isProduction;
+    return !isProduction && !kReleaseMode;
   }
 
   /// Privacy policy URL for Play Store listing and in-app link.
-  static const String privacyPolicyUrl = String.fromEnvironment(
-    'PRIVACY_POLICY_URL',
-    defaultValue: 'https://margem.app/privacy',
-  );
+  static String get privacyPolicyUrl {
+    const raw = String.fromEnvironment('PRIVACY_POLICY_URL');
+    if (raw.isNotEmpty) return raw;
+    if (!isProduction) return '$apiBaseUrl/legal/privacy.html';
+    return 'https://margem.app/privacy';
+  }
 
   /// Terms of Service URL for registration consent and settings.
-  static const String termsOfServiceUrl = String.fromEnvironment(
-    'TERMS_OF_SERVICE_URL',
-    defaultValue: 'https://margem.app/terms',
-  );
+  static String get termsOfServiceUrl {
+    const raw = String.fromEnvironment('TERMS_OF_SERVICE_URL');
+    if (raw.isNotEmpty) return raw;
+    if (!isProduction) return '$apiBaseUrl/legal/terms.html';
+    return 'https://margem.app/terms';
+  }
+
+  /// Cookie policy URL.
+  static String get cookiePolicyUrl {
+    const raw = String.fromEnvironment('COOKIE_POLICY_URL');
+    if (raw.isNotEmpty) return raw;
+    if (!isProduction) return '$apiBaseUrl/legal/cookies.html';
+    return 'https://margem.app/cookies';
+  }
 
   /// Legal index URL.
-  static const String legalIndexUrl = String.fromEnvironment(
-    'LEGAL_INDEX_URL',
-    defaultValue: 'https://margem.app/legal',
-  );
+  static String get legalIndexUrl {
+    const raw = String.fromEnvironment('LEGAL_INDEX_URL');
+    if (raw.isNotEmpty) return raw;
+    if (!isProduction) return '$apiBaseUrl/legal/index.html';
+    return 'https://margem.app/legal';
+  }
 
   static const String appName = 'MarGem';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';

@@ -21,6 +21,7 @@ import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/legal_links_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
 import '../search/search_screen.dart';
@@ -1070,6 +1071,9 @@ class BuyerProfileScreen extends ConsumerWidget {
                 },
               ),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            const LegalLinksSection(),
+            const SizedBox(height: AppSpacing.lg),
             if (!isGuest)
               ListTile(
                 leading: const Icon(Icons.delete_forever_outlined,

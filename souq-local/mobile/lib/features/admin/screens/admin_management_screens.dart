@@ -982,15 +982,23 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: () async {
-                  await ref.read(adminApiProvider).sendAnnouncement(
-                        title: _title.text.trim(),
-                        body: _body.text.trim(),
-                        audience: _audience,
+                  try {
+                    final sent = await ref.read(adminApiProvider).sendAnnouncement(
+                          title: _title.text.trim(),
+                          body: _body.text.trim(),
+                          audience: _audience,
+                        );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Announcement sent to $sent users')),
                       );
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Announcement queued')),
-                    );
+                    }
+                  } on ApiException catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.message)),
+                      );
+                    }
                   }
                 },
                 child: const Text('Send announcement'),

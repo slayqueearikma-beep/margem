@@ -253,16 +253,17 @@ class AdminApiService {
     return AdminAnalytics.fromJson(json);
   }
 
-  Future<void> sendAnnouncement({
+  Future<int> sendAnnouncement({
     required String title,
     required String body,
     String audience = 'all',
   }) async {
-    await _api.postJson(
+    final data = await _api.postJson(
       '/admin/announcements',
       {'title': title, 'body': body, 'audience': audience},
       auth: true,
     );
+    return (data['sent'] as num?)?.toInt() ?? 0;
   }
 
   Future<AdminAuditPage> fetchAuditLogs({
