@@ -743,12 +743,14 @@ class ApiService {
       {'plan_code': planCode, 'interval': interval},
       auth: true,
     );
-    return data['checkout_url'] as String;
+    return data['checkout_url'] as String? ??
+        (throw ApiException('Checkout URL missing from server response'));
   }
 
   Future<String> createCustomerPortalSession() async {
     final data = await postJson('/billing/portal', {}, auth: true);
-    return data['portal_url'] as String;
+    return data['portal_url'] as String? ??
+        (throw ApiException('Billing portal URL missing from server response'));
   }
 
   Future<SubscriptionModel> syncBillingSubscription({

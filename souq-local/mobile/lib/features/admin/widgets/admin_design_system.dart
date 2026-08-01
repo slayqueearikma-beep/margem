@@ -1214,7 +1214,7 @@ class _AdminSearchSheetState extends State<AdminSearchSheet> {
               onSubmitted: (_) => Navigator.pop(context, _controller.text.trim()),
             ),
             const SizedBox(height: 12),
-            Wrap(
+            const Wrap(
               spacing: 8,
               children: [
                 _SearchChip(label: 'Users', icon: Icons.people_outline),

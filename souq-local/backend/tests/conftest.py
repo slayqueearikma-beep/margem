@@ -13,6 +13,7 @@ os.environ["AUTH_DEV_BYPASS"] = "false"
 os.environ["DEBUG"] = "false"
 
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
@@ -55,6 +56,8 @@ async def prepare_database():
         from app.data.business_categories import BUSINESS_CATEGORIES
         from app.models import Category
         from tests.factories import set_category_ids
+
+        set_category_ids([])
 
         session.add_all(
             [
@@ -146,3 +149,13 @@ async def prepare_database():
         ):
             await conn.execute(text(f"DELETE FROM {table}"))
     await database.engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def client():
+    """Shared async HTTP client for API integration tests."""
+    from app.main import app
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac

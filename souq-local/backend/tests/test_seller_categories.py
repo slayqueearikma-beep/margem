@@ -13,12 +13,6 @@ from tests.factories import sample_category_ids, seller_create_payload
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
 
-@pytest.fixture
-async def client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-
 
 async def _register_seller(client: AsyncClient) -> dict:
     email = f"seller-{uuid4().hex[:8]}@example.com"
@@ -59,16 +53,15 @@ async def test_create_seller_accepts_up_to_three_categories(client: AsyncClient)
     )
     assert res.status_code == 201, res.text
     body = res.json()
-    assert len(body["category_slugs"]) == 3
+    assert len(body["categories"]) == 3
 
 
 @pytest.mark.asyncio
 async def test_create_seller_rejects_more_than_three_categories(client: AsyncClient):
     seller = await _register_seller(client)
-    ids = sample_category_ids(3) + sample_category_ids(1)
     res = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json=seller_create_payload(category_ids=ids),
+        json=seller_create_payload(category_ids=sample_category_ids(4)),
     )
     assert res.status_code == 422

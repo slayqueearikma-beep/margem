@@ -34,7 +34,7 @@ We do not sell your personal data. We share data only with service providers req
 
 ## Your rights
 
-You may request account deletion by contacting us at **privacy@margem.app**.
+You can delete your account at any time from **Settings → Account security** in the app (password confirmation required). You may also request a copy of your data via the in-app export feature or by contacting **privacy@margem.app**.
 
 ## Contact
 

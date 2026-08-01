@@ -8,12 +8,13 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import AdminAuditLog
+from app.services.client_ip import get_client_ip
 
 
 def _client_meta(request: Request | None) -> tuple[str, str]:
     if request is None:
         return "", ""
-    ip = request.client.host if request.client else ""
+    ip = get_client_ip(request)
     ua = request.headers.get("user-agent", "")[:255]
     return ip, ua
 

@@ -299,7 +299,7 @@ async def migrate_guest_favorites(
                 session.add(Favorite(id=uuid4(), user_id=user.id, seller_id=item.seller_id))
                 await bump_favorite_count(session, item.seller_id, delta=1)
     await session.commit()
-    return await list_favorites(user=user, session=session)
+    return await list_favorites(user=user, session=session, limit=100, offset=0)
 
 
 @router.get("/follows", response_model=list[FollowOut])

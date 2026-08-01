@@ -442,12 +442,20 @@ class BuyerHomeScreen extends ConsumerWidget {
         await apiServiceProvider.addFavoriteSeller(seller.id);
       }
       ref.invalidate(buyerFavoriteSellerIdsProvider);
-    } catch (e) {
+    } on ApiException catch (error) {
       if (context.mounted) {
         await showAppErrorDialog(
           context,
           title: l10n.somethingWentWrong,
-          message: e.toString(),
+          message: error.message,
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        await showAppErrorDialog(
+          context,
+          title: l10n.somethingWentWrong,
+          message: l10n.serverUnreachable,
         );
       }
     }

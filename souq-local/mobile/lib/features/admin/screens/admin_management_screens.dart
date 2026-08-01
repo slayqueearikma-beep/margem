@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/api_service.dart';
 import '../admin_models.dart';
 import '../admin_providers.dart';
 import '../admin_theme.dart';
 import '../widgets/admin_design_system.dart';
+
+String _adminErrorMessage(Object error) {
+  if (error is ApiException) return error.message;
+  return 'Something went wrong. Please try again.';
+}
 
 // ── Users ───────────────────────────────────────────────────────────────────
 
@@ -68,7 +74,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                 error: (e, _) => AdminEmptyState(
                   icon: Icons.error_outline_rounded,
                   title: 'Failed to load users',
-                  subtitle: '$e',
+                  subtitle: _adminErrorMessage(e),
                 ),
                 data: (page) => _UserCardList(
                   page: page,
@@ -99,7 +105,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
     try {
       if (action == 'suspend') {
         final ok = await _confirm(context, 'Suspend ${user.email}?');
-        if (!ok) return;
+        if (!ok || !mounted) return;
         await api.setUserStatus(user.id, 'suspended');
       } else if (action == 'activate') {
         await api.setUserStatus(user.id, 'active');
@@ -109,14 +115,14 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
           'Permanently delete ${user.email}? This cannot be undone.',
           confirmLabel: 'Delete',
         );
-        if (!ok) return;
+        if (!ok || !mounted) return;
         await api.setUserStatus(user.id, 'deleted');
       } else if (action == 'revoke_sessions') {
         final ok = await _confirm(
           context,
           'Sign out ${user.email} from all devices?',
         );
-        if (!ok) return;
+        if (!ok || !mounted) return;
         await api.revokeUserSessions(user.id);
       } else if (action == 'reset') {
         await api.triggerPasswordReset(user.id);
@@ -134,7 +140,9 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
       ref.invalidate(adminUsersProvider);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_adminErrorMessage(e))),
+        );
       }
     }
   }
@@ -283,7 +291,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                 error: (e, _) => AdminEmptyState(
                   icon: Icons.storefront_outlined,
                   title: 'Failed to load businesses',
-                  subtitle: '$e',
+                  subtitle: _adminErrorMessage(e),
                 ),
                 data: (page) => _SellerCardList(sellers: page.items, onVerify: _verify),
               ),
@@ -437,7 +445,7 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> {
                 error: (e, _) => AdminEmptyState(
                   icon: Icons.inventory_2_outlined,
                   title: 'Failed to load listings',
-                  subtitle: '$e',
+                  subtitle: _adminErrorMessage(e),
                 ),
                 data: (page) => _ProductCardList(
                   products: page.items,
@@ -574,7 +582,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen> {
                 error: (e, _) => AdminEmptyState(
                   icon: Icons.flag_outlined,
                   title: 'Failed to load reports',
-                  subtitle: '$e',
+                  subtitle: _adminErrorMessage(e),
                 ),
                 data: (page) {
                   if (page.items.isEmpty) {

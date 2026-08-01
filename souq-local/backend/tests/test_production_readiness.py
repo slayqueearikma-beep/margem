@@ -62,10 +62,10 @@ async def test_change_password_enforces_strength() -> None:
         headers = {"Authorization": f"Bearer {user['access_token']}"}
         response = await client.post(
             "/auth/me/password",
-            json={"current_password": user["password"], "new_password": "weak"},
+            json={"current_password": user["password"], "new_password": "weakpass"},
             headers=headers,
         )
-        assert response.status_code == 400
+        assert response.status_code == 422
 
 
 @pytest.mark.asyncio

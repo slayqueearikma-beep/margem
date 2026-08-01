@@ -26,6 +26,7 @@ from app.schemas import (
     UserRegisterFirebase,
 )
 from app.services.audit import log_security_event
+from app.services.client_ip import get_client_ip
 from app.services.email import email_service
 from app.services.password_policy import validate_password_strength
 from app.services.security import (
@@ -39,6 +40,10 @@ from app.services.security import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def _request_ip(request: Request) -> str:
+    return get_client_ip(request)
 
 
 def _auth_action_body(*, path: str, token: str, intro: str) -> str:
@@ -119,7 +124,7 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
     ip = ""
     ua = ""
     if request is not None:
-        ip = request.client.host if request.client else ""
+        ip = _request_ip(request)
         ua = (request.headers.get("user-agent") or "")[:255]
         device = (request.headers.get("x-device-name") or ua[:80] or "Device")[:120]
 
@@ -223,7 +228,7 @@ async def login(
         log_security_event(
             "login_failed",
             email=payload.email.lower(),
-            client=request.client.host if request.client else "unknown",
+            client=_request_ip(request) or "unknown",
         )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     if user.status == UserStatus.SUSPENDED:
@@ -244,7 +249,7 @@ async def refresh_tokens(
 ) -> TokenResponse:
     rotated = await rotate_refresh_token(session, payload.refresh_token)
     if rotated is None:
-        log_security_event("refresh_failed", client=request.client.host if request.client else "unknown")
+        log_security_event("refresh_failed", client=_request_ip(request) or "unknown")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
 
     user_id, new_refresh = rotated
@@ -282,7 +287,7 @@ async def logout(
 ) -> None:
     await revoke_refresh_token(session, payload.refresh_token)
     await session.commit()
-    log_security_event("logout", client=request.client.host if request.client else "unknown")
+    log_security_event("logout", client=_request_ip(request) or "unknown")
 
 
 @router.post("/register-firebase", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -341,7 +346,6 @@ async def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="New password must be different from the current password",
         )
-    validate_password_strength(payload.new_password)
     user.password_hash = hash_password(payload.new_password)
     await revoke_all_refresh_tokens(session, user.id)
     await session.commit()
@@ -441,7 +445,7 @@ async def confirm_email_verification(
     if token is None:
         log_security_event(
             "email_verify_failed",
-            ip_address=request.client.host if request.client else "",
+            ip_address=_request_ip(request),
             detail="invalid_or_expired_token",
         )
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")
@@ -452,7 +456,7 @@ async def confirm_email_verification(
         await session.commit()
         log_security_event(
             "email_verify_failed",
-            ip_address=request.client.host if request.client else "",
+            ip_address=_request_ip(request),
             detail="invalid_or_expired_token",
         )
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")
@@ -533,7 +537,7 @@ async def export_my_data(
 ) -> dict:
     """GDPR/Law 09-08 data portability — returns a JSON export of user data."""
     from app.auth import user_has_seller_profile
-    from app.models import Notification, Review, SellerFollow, Subscription
+    from app.models import Favorite, Notification, Review, SavedSearch, SellerFollow, Subscription
     from sqlalchemy.orm import selectinload
 
     has_store = await user_has_seller_profile(session, user.id)

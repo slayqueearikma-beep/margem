@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/api_service.dart';
-import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
+import 'premium_screen.dart';
 
 class PremiumCheckoutResultScreen extends ConsumerStatefulWidget {
   const PremiumCheckoutResultScreen({
@@ -43,7 +43,8 @@ class _PremiumCheckoutResultScreenState
       await apiServiceProvider.syncBillingSubscription(
         checkoutSessionId: widget.sessionId,
       );
-      ref.invalidate(userSessionProvider);
+      ref.invalidate(mySubscriptionProvider);
+      ref.invalidate(billingConfigProvider);
       if (mounted) setState(() => _synced = true);
     } on ApiException catch (error) {
       if (mounted) {

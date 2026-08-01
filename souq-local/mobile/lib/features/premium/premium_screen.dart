@@ -255,10 +255,10 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen>
                     selfServeEnabled: selfServe,
                     trialEnabled: billing?.trialEnabled ?? false,
                     onUpgrade: () {
-                      if (billing != null) {
-                        _upgrade(plan, billing);
-                      }
+                      if (billingAsync.isLoading || billing == null) return;
+                      _upgrade(plan, billing);
                     },
+                    billingLoading: billingAsync.isLoading,
                   ),
                 ),
               ],
@@ -279,6 +279,7 @@ class _PlanCard extends StatelessWidget {
     required this.selfServeEnabled,
     required this.trialEnabled,
     required this.onUpgrade,
+    this.billingLoading = false,
   });
 
   final SubscriptionPlanModel plan;
@@ -287,6 +288,7 @@ class _PlanCard extends StatelessWidget {
   final bool loading;
   final bool selfServeEnabled;
   final bool trialEnabled;
+  final bool billingLoading;
   final VoidCallback onUpgrade;
 
   @override
@@ -388,7 +390,7 @@ class _PlanCard extends StatelessWidget {
               )
             else
               FilledButton(
-                onPressed: active || loading ? null : onUpgrade,
+                onPressed: active || loading || billingLoading ? null : onUpgrade,
                 child: loading
                     ? const SizedBox(
                         width: 20,

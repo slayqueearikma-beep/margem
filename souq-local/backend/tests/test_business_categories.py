@@ -11,12 +11,6 @@ from app.main import app
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
 
-@pytest.fixture
-async def client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-
 
 @pytest.mark.asyncio
 async def test_categories_include_business_taxonomy(client: AsyncClient):

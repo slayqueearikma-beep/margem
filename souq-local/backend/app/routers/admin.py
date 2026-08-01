@@ -1,7 +1,5 @@
 """MarGem administration API — isolated from public marketplace routes."""
 
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -89,30 +87,6 @@ class AdminPaginatedOut(BaseModel):
     limit: int
 
 
-class AdminSellerListOut(AdminPaginatedOut):
-    items: list[AdminSellerOut]
-
-
-class AdminProductListOut(AdminPaginatedOut):
-    items: list[AdminProductOut]
-
-
-class AdminReportListOut(AdminPaginatedOut):
-    items: list[AdminReportOut]
-
-
-class AdminPendingSellerListOut(AdminPaginatedOut):
-    items: list[PendingSellerOut]
-
-
-class AdminAuditLogListOut(AdminPaginatedOut):
-    items: list["AdminAuditLogOut"]
-
-
-class AdminRoleUpdate(BaseModel):
-    role: UserRole
-
-
 class AdminSellerOut(BaseModel):
     id: UUID
     business_name: str
@@ -145,6 +119,30 @@ class AdminReportOut(BaseModel):
     product_id: UUID | None
     reporter_id: UUID | None
     created_at: datetime
+
+
+class AdminSellerListOut(AdminPaginatedOut):
+    items: list[AdminSellerOut]
+
+
+class AdminProductListOut(AdminPaginatedOut):
+    items: list[AdminProductOut]
+
+
+class AdminReportListOut(AdminPaginatedOut):
+    items: list[AdminReportOut]
+
+
+class AdminPendingSellerListOut(AdminPaginatedOut):
+    items: list[PendingSellerOut]
+
+
+class AdminAuditLogListOut(AdminPaginatedOut):
+    items: list["AdminAuditLogOut"]
+
+
+class AdminRoleUpdate(BaseModel):
+    role: UserRole
 
 
 class AdminCategoryOut(BaseModel):

@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
 from uuid import uuid4
 
 import stripe
 from fastapi import HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -20,7 +20,10 @@ from app.models import (
     SubscriptionStatus,
     User,
 )
-from app.services.subscription_plans import plan_allows_stripe_checkout
+from app.services.subscription_plans import (
+    get_plan_by_code_optional,
+    plan_allows_stripe_checkout,
+)
 from app.services.subscription_activation import (
     ACTIVE_PREMIUM_STATUSES,
     deactivate_user_subscription,
@@ -59,14 +62,7 @@ async def require_business_user(session: AsyncSession, user: User) -> SellerProf
 
 
 async def get_plan_by_code(session: AsyncSession, plan_code: str) -> SubscriptionPlan:
-    plan = (
-        await session.execute(
-            select(SubscriptionPlan).where(
-                SubscriptionPlan.code == plan_code,
-                SubscriptionPlan.is_active.is_(True),
-            )
-        )
-    ).scalar_one_or_none()
+    plan = await get_plan_by_code_optional(session, plan_code)
     if plan is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found")
     return plan
@@ -83,15 +79,20 @@ def resolve_stripe_price_id(plan: SubscriptionPlan, interval: str) -> str:
 
 
 async def get_or_create_stripe_customer(session: AsyncSession, user: User) -> str:
-    if user.stripe_customer_id:
-        return user.stripe_customer_id
+    locked = (
+        await session.execute(select(User).where(User.id == user.id).with_for_update())
+    ).scalar_one()
+    if locked.stripe_customer_id:
+        user.stripe_customer_id = locked.stripe_customer_id
+        return locked.stripe_customer_id
 
     _configure_stripe()
     customer = stripe.Customer.create(
-        email=user.email,
-        name=user.display_name or user.email,
-        metadata={"user_id": str(user.id)},
+        email=locked.email,
+        name=locked.display_name or locked.email,
+        metadata={"user_id": str(locked.id)},
     )
+    locked.stripe_customer_id = customer["id"]
     user.stripe_customer_id = customer["id"]
     await session.flush()
     return customer["id"]
@@ -178,9 +179,7 @@ async def change_subscription_plan(
     plan_code: str,
     interval: str,
 ) -> Subscription:
-    """Upgrade or downgrade an active Stripe subscription (prorated)."""
     require_stripe_configured()
-    await require_business_user(session, user)
     plan = await get_plan_by_code(session, plan_code)
     if not plan_allows_stripe_checkout(plan):
         raise HTTPException(
@@ -188,7 +187,6 @@ async def change_subscription_plan(
             detail="This plan does not require checkout — it is included for free",
         )
     price_id = resolve_stripe_price_id(plan, interval)
-
     active = (
         await session.execute(
             select(Subscription).where(
@@ -199,17 +197,7 @@ async def change_subscription_plan(
         )
     ).scalar_one_or_none()
     if active is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No active Stripe subscription to change — use checkout instead",
-        )
-
-    current_plan = await session.get(SubscriptionPlan, active.plan_id)
-    if current_plan is None:
-        raise HTTPException(status_code=404, detail="Current plan not found")
-
-    if current_plan.tier_level == plan.tier_level and active.billing_interval == interval:
-        raise HTTPException(status_code=400, detail="Already on this plan and billing interval")
+        raise HTTPException(status_code=400, detail="No active Stripe subscription")
 
     _configure_stripe()
     stripe_sub = stripe.Subscription.retrieve(active.stripe_subscription_id)
@@ -217,14 +205,19 @@ async def change_subscription_plan(
     updated = stripe.Subscription.modify(
         active.stripe_subscription_id,
         items=[{"id": item_id, "price": price_id}],
-        proration_behavior="create_prorations",
         metadata={
             "user_id": str(user.id),
             "plan_code": plan.code,
             "interval": interval,
         },
+        proration_behavior="create_prorations",
     )
-    return await sync_subscription_from_stripe_object(session, user=user, stripe_sub=updated, plan=plan)
+    return await sync_subscription_from_stripe_object(
+        session,
+        user=user,
+        stripe_sub=updated,
+        plan=plan,
+    )
 
 
 async def cancel_subscription_at_period_end(session: AsyncSession, user: User) -> Subscription:
@@ -251,6 +244,36 @@ async def cancel_subscription_at_period_end(session: AsyncSession, user: User) -
     return await sync_subscription_from_stripe_object(session, user=user, stripe_sub=updated, plan=plan)
 
 
+async def _resolve_plan_from_stripe_sub(
+    session: AsyncSession,
+    stripe_sub: dict,
+    plan: SubscriptionPlan | None = None,
+) -> SubscriptionPlan | None:
+    if plan is not None:
+        return plan
+    plan_code = (stripe_sub.get("metadata") or {}).get("plan_code")
+    if plan_code:
+        plan = await get_plan_by_code_optional(session, plan_code)
+    if plan is not None:
+        return plan
+
+    items = stripe_sub.get("items", {}).get("data") or []
+    if not items:
+        return None
+    price = items[0].get("price") or {}
+    price_id = price.get("id")
+    if not price_id:
+        return None
+    return (
+        await session.execute(
+            select(SubscriptionPlan).where(
+                (SubscriptionPlan.stripe_price_id_monthly == price_id)
+                | (SubscriptionPlan.stripe_price_id_yearly == price_id)
+            )
+        )
+    ).scalar_one_or_none()
+
+
 async def sync_subscription_from_stripe_object(
     session: AsyncSession,
     *,
@@ -258,31 +281,30 @@ async def sync_subscription_from_stripe_object(
     stripe_sub: dict,
     plan: SubscriptionPlan | None = None,
     notify: bool = True,
-) -> Subscription:
-    plan_code = (stripe_sub.get("metadata") or {}).get("plan_code")
-    if plan is None and plan_code:
-        plan = await get_plan_by_code(session, plan_code)
+    strict: bool = True,
+) -> Subscription | None:
+    plan = await _resolve_plan_from_stripe_sub(session, stripe_sub, plan)
     if plan is None:
-        price_id = stripe_sub["items"]["data"][0]["price"]["id"]
-        plan = (
-            await session.execute(
-                select(SubscriptionPlan).where(
-                    (SubscriptionPlan.stripe_price_id_monthly == price_id)
-                    | (SubscriptionPlan.stripe_price_id_yearly == price_id)
-                )
-            )
-        ).scalar_one_or_none()
-    if plan is None:
-        raise HTTPException(status_code=500, detail="Unable to resolve subscription plan from Stripe data")
+        message = "Unable to resolve subscription plan from Stripe data"
+        if strict:
+            raise HTTPException(status_code=500, detail=message)
+        logger.error(
+            "stripe_plan_resolution_failed sub=%s user=%s",
+            stripe_sub.get("id"),
+            user.id,
+        )
+        return None
 
+    items = stripe_sub.get("items", {}).get("data") or []
     interval = (stripe_sub.get("metadata") or {}).get("interval")
-    if not interval:
-        recurring = stripe_sub["items"]["data"][0]["price"].get("recurring") or {}
+    if not interval and items:
+        recurring = items[0].get("price", {}).get("recurring") or {}
         interval = recurring.get("interval", "month")
         if interval == "year":
             interval = "yearly"
         elif interval == "month":
             interval = "monthly"
+    interval = interval or "monthly"
 
     sub_status = stripe_status_to_subscription_status(stripe_sub.get("status", "canceled"))
     subscription = await upsert_subscription_record(
@@ -317,7 +339,11 @@ async def record_webhook_event(session: AsyncSession, event_id: str, event_type:
             event_type=event_type,
         )
     )
-    await session.flush()
+    try:
+        await session.flush()
+    except IntegrityError:
+        await session.rollback()
+        return False
     return True
 
 
@@ -386,8 +412,14 @@ async def _handle_checkout_completed(session: AsyncSession, checkout_session: di
     _configure_stripe()
     stripe_sub = stripe.Subscription.retrieve(subscription_id)
     plan_code = (checkout_session.get("metadata") or {}).get("plan_code")
-    plan = await get_plan_by_code(session, plan_code) if plan_code else None
-    await sync_subscription_from_stripe_object(session, user=user, stripe_sub=stripe_sub, plan=plan)
+    plan = await get_plan_by_code_optional(session, plan_code) if plan_code else None
+    await sync_subscription_from_stripe_object(
+        session,
+        user=user,
+        stripe_sub=stripe_sub,
+        plan=plan,
+        strict=False,
+    )
 
 
 async def _handle_subscription_upsert(session: AsyncSession, stripe_sub: dict) -> None:
@@ -397,7 +429,7 @@ async def _handle_subscription_upsert(session: AsyncSession, stripe_sub: dict) -
     if user is None:
         logger.error("subscription_upsert_user_not_found sub=%s", stripe_sub.get("id"))
         return
-    await sync_subscription_from_stripe_object(session, user=user, stripe_sub=stripe_sub)
+    await sync_subscription_from_stripe_object(session, user=user, stripe_sub=stripe_sub, strict=False)
 
 
 async def _handle_subscription_deleted(session: AsyncSession, stripe_sub: dict) -> None:
@@ -475,9 +507,12 @@ async def sync_user_subscription_from_stripe(
             return None
         stripe_sub = stripe.Subscription.retrieve(subscription_id)
         plan_code = (checkout.get("metadata") or {}).get("plan_code")
-        plan = await get_plan_by_code(session, plan_code) if plan_code else None
+        plan = await get_plan_by_code_optional(session, plan_code) if plan_code else None
         return await sync_subscription_from_stripe_object(
-            session, user=user, stripe_sub=stripe_sub, plan=plan
+            session,
+            user=user,
+            stripe_sub=stripe_sub,
+            plan=plan,
         )
 
     active = (
@@ -515,12 +550,18 @@ async def reconcile_stripe_subscriptions(session: AsyncSession) -> dict:
             user = await session.get(User, local.user_id)
             if user is None:
                 continue
-            await sync_subscription_from_stripe_object(
-                session, user=user, stripe_sub=stripe_sub, notify=False
+            synced = await sync_subscription_from_stripe_object(
+                session,
+                user=user,
+                stripe_sub=stripe_sub,
+                notify=False,
+                strict=False,
             )
-            updated += 1
+            if synced is not None:
+                updated += 1
         except Exception:
             logger.exception("stripe_reconcile_failed sub=%s", local.stripe_subscription_id)
             errors += 1
     await session.commit()
     return {"checked": len(subs), "updated": updated, "errors": errors}
+

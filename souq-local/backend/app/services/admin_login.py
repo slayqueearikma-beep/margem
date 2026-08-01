@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import AdminLoginLog, UserRole
 from app.services.admin_permissions import STAFF_ROLES
+from app.services.client_ip import get_client_ip
 
 
 def is_staff_role(role: UserRole) -> bool:
@@ -18,7 +19,7 @@ def is_staff_role(role: UserRole) -> bool:
 def _client_meta(request: Request | None) -> tuple[str, str]:
     if request is None:
         return "", ""
-    ip = request.client.host if request.client else ""
+    ip = get_client_ip(request)
     ua = (request.headers.get("user-agent") or "")[:255]
     return ip, ua
 

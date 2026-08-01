@@ -1,8 +1,8 @@
 """Stripe billing: Checkout, Customer Portal, plan changes, webhooks."""
 
-from __future__ import annotations
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user, require_seller
@@ -47,7 +47,7 @@ async def billing_config() -> BillingConfigOut:
 @limiter.limit("20/minute")
 async def start_checkout(
     request: Request,
-    payload: CheckoutCreate,
+    payload: Annotated[CheckoutCreate, Body()],
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> CheckoutOut:
@@ -80,7 +80,7 @@ async def customer_portal(
 @limiter.limit("10/minute")
 async def change_plan(
     request: Request,
-    payload: ChangePlanRequest,
+    payload: Annotated[ChangePlanRequest, Body()],
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut:
@@ -99,7 +99,7 @@ async def change_plan(
 @limiter.limit("30/minute")
 async def sync_subscription(
     request: Request,
-    payload: SyncSubscriptionRequest,
+    payload: Annotated[SyncSubscriptionRequest, Body()],
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut:

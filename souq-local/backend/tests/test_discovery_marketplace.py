@@ -11,12 +11,6 @@ from tests.factories import seller_create_payload
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
 
-@pytest.fixture
-async def client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-
 
 async def _register(client: AsyncClient, account_type: str, email: str | None = None) -> dict:
     email = email or f"{account_type}-{uuid4().hex[:8]}@example.com"
@@ -197,8 +191,10 @@ async def test_report_requires_auth(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_report_rejects_unknown_seller(client: AsyncClient):
+    buyer = await _register(client, "buyer")
     report = await client.post(
         "/reports",
+        headers=buyer["headers"],
         json={"seller_id": str(uuid4()), "reason": "spam", "details": "x"},
     )
     assert report.status_code == 404

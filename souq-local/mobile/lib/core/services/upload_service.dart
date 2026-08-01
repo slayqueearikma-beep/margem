@@ -1,10 +1,12 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../config/app_config.dart';
 import 'api_service.dart';
-import 'secure_http_client.dart';
 import 'secure_http_client.dart';
 
 /// Uploads images via the API presign → PUT flow.
@@ -40,6 +42,12 @@ class UploadService {
             error.message.toLowerCase().contains('timeout') ||
             error.message.toLowerCase().contains('unavailable');
         if (!retryable || attempt == 1) rethrow;
+      } on SocketException {
+        lastError = ApiException('Network error while uploading image');
+        if (attempt == 1) rethrow;
+      } on TimeoutException {
+        lastError = ApiException('Image upload timed out');
+        if (attempt == 1) rethrow;
       }
     }
     throw lastError is ApiException
