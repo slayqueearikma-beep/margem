@@ -11,6 +11,7 @@ import app.database as database
 from app.main import app
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.models import SellerProfile, User, UserRole, VerificationStatus
+from tests.factories import seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -52,18 +53,13 @@ async def _create_pending_seller(client: AsyncClient) -> UUID:
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json={
-            "business_name": "Pending Shop",
-            "description": "Awaiting verification",
-            "address": "1 Test St",
-            "city": "Casablanca",
-            "latitude": 33.57,
-            "longitude": -7.59,
-            "phone": "+212600000099",
-            "whatsapp_number": "+212600000099",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Pending Shop",
+            description="Awaiting verification",
+            address="1 Test St",
+            phone="+212600000099",
+            whatsapp_number="+212600000099",
+        ),
     )
     assert profile.status_code == 201, profile.text
     seller_id = UUID(profile.json()["id"])
@@ -117,18 +113,15 @@ async def test_favorite_count_increments_atomically(client: AsyncClient):
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json={
-            "business_name": "Counter Shop",
-            "description": "Counters",
-            "address": "2 Test St",
-            "city": "Casablanca",
-            "latitude": 34.02,
-            "longitude": -6.83,
-            "phone": "+212600000088",
-            "whatsapp_number": "+212600000088",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Counter Shop",
+            description="Counters",
+            address="2 Test St",
+            latitude=34.02,
+            longitude=-6.83,
+            phone="+212600000088",
+            whatsapp_number="+212600000088",
+        ),
     )
     assert profile.status_code == 201, profile.text
     seller_id = profile.json()["id"]
@@ -224,18 +217,15 @@ async def test_whitespace_message_rejected(client: AsyncClient):
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json={
-            "business_name": "Msg Shop",
-            "description": "Msgs",
-            "address": "3 Test St",
-            "city": "Casablanca",
-            "latitude": 34.03,
-            "longitude": -5.0,
-            "phone": "+212600000077",
-            "whatsapp_number": "+212600000077",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Msg Shop",
+            description="Msgs",
+            address="3 Test St",
+            latitude=34.03,
+            longitude=-5.0,
+            phone="+212600000077",
+            whatsapp_number="+212600000077",
+        ),
     )
     assert profile.status_code == 201, profile.text
     buyer = await _register(client, "buyer")

@@ -9,6 +9,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from tests.factories import seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -37,18 +38,7 @@ async def _register_seller(client: AsyncClient) -> dict:
     profile = await client.post(
         "/sellers",
         headers=headers,
-        json={
-            "business_name": "Stripe Test Shop",
-            "description": "Billing test",
-            "address": "1 Test St",
-            "city": "Casablanca",
-            "latitude": 33.57,
-            "longitude": -7.59,
-            "phone": "+212600000001",
-            "whatsapp_number": "+212600000001",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(business_name="Stripe Test Shop", description="Billing test"),
     )
     assert profile.status_code == 201, profile.text
     return {"email": email, "headers": headers}

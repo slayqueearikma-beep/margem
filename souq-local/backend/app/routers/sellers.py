@@ -35,6 +35,7 @@ from app.services.ratings import (
     rounded_overall,
 )
 from app.services.reviews import get_review_eligibility
+from app.services.seller_categories import resolve_seller_categories
 from app.services.upload_security import validate_media_url
 
 router = APIRouter(prefix="/sellers", tags=["sellers"])
@@ -280,10 +281,7 @@ async def create_seller(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Seller profile already exists")
 
-    categories = []
-    if payload.category_ids:
-        result = await session.execute(select(Category).where(Category.id.in_(payload.category_ids)))
-        categories = list(result.scalars().all())
+    categories = await resolve_seller_categories(session, payload.category_ids)
 
     cover = _validate_owner_media(payload.cover_image_url, user.id)
     logo = _validate_owner_media(payload.logo_image_url, user.id)
@@ -378,8 +376,7 @@ async def update_seller(
         setattr(seller, key, value)
 
     if category_ids is not None:
-        result = await session.execute(select(Category).where(Category.id.in_(category_ids)))
-        seller.categories = list(result.scalars().all())
+        seller.categories = await resolve_seller_categories(session, category_ids)
 
     await session.commit()
     return await _load_seller_detail(session, seller_id)

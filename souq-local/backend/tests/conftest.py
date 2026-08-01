@@ -52,6 +52,10 @@ async def prepare_database():
         await conn.run_sync(Base.metadata.create_all)
 
     async with database.SessionLocal() as session:
+        from app.data.business_categories import BUSINESS_CATEGORIES
+        from app.models import Category
+        from tests.factories import set_category_ids
+
         session.add_all(
             [
                 SubscriptionPlan(
@@ -95,7 +99,22 @@ async def prepare_database():
                 ),
             ]
         )
+        category_rows = [
+            Category(
+                id=uuid4(),
+                slug=cat.slug,
+                name_en=cat.name_en,
+                name_fr=cat.name_fr,
+                name_ar=cat.name_ar,
+                icon=cat.icon,
+                accent_color=cat.accent_color,
+                sort_order=cat.sort_order,
+            )
+            for cat in BUSINESS_CATEGORIES
+        ]
+        session.add_all(category_rows)
         await session.commit()
+        set_category_ids([str(row.id) for row in category_rows])
 
     yield
     async with database.engine.begin() as conn:

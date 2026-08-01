@@ -47,7 +47,7 @@ class _SellerRegistrationScreenState
   final _passwordController = TextEditingController();
 
   // Step 2
-  CategoryModel? _selectedCategory;
+  final List<CategoryModel> _selectedCategories = [];
   final String _city = AppConfig.launchCity;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -102,7 +102,7 @@ class _SellerRegistrationScreenState
             _emailController.text.trim().isNotEmpty &&
             _passwordController.text.length >= 8;
       case 2:
-        return _selectedCategory != null &&
+        return _selectedCategories.isNotEmpty &&
             _addressController.text.trim().isNotEmpty &&
             _phoneController.text.trim().isNotEmpty;
       case 3:
@@ -154,8 +154,8 @@ class _SellerRegistrationScreenState
         final prefs = await ref.read(sharedPreferencesProvider.future);
         await auth.persistToken(prefs);
 
-        if (_selectedCategory == null) {
-          throw ApiException('Please select a business category');
+        if (_selectedCategories.isEmpty) {
+          throw ApiException('Please select at least one business category');
         }
 
         final uploader = ref.read(uploadServiceProvider);
@@ -186,7 +186,7 @@ class _SellerRegistrationScreenState
               'close':
                   '${_closeTime.hour.toString().padLeft(2, '0')}:${_closeTime.minute.toString().padLeft(2, '0')}',
             },
-            categoryIds: [_selectedCategory!.id],
+            categoryIds: _selectedCategories.map((c) => c.id).toList(),
           ),
         );
         final sellerId = seller.id;
@@ -324,7 +324,9 @@ class _SellerRegistrationScreenState
   Widget _buildStep2(AppStrings l10n) {
     final categoriesAsync = ref.watch(onboardingCategoriesProvider);
     final locale = Localizations.localeOf(context).languageCode;
-    final categoryLabel = _selectedCategory?.localizedName(locale) ?? '';
+    final categorySummary = _selectedCategories.isEmpty
+        ? l10n.businessCategoriesHint(maxSellerCategories)
+        : _selectedCategories.map((c) => c.localizedName(locale)).join(', ');
 
     return Column(
       key: const ValueKey(2),
@@ -336,21 +338,42 @@ class _SellerRegistrationScreenState
         categoriesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Text(error.toString()),
-          data: (categories) => AppTextField(
-            label: l10n.businessCategory,
-            hint: categoryLabel.isEmpty ? l10n.businessCategory : categoryLabel,
-            readOnly: true,
-            prefixIcon: Icons.category_outlined,
-            onTap: () async {
-              final selected = await showCategoryPicker(
-                context,
-                categories,
-                selected: _selectedCategory,
-              );
-              if (selected != null) {
-                setState(() => _selectedCategory = selected);
-              }
-            },
+          data: (categories) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppTextField(
+                label: l10n.businessCategories,
+                hint: categorySummary,
+                readOnly: true,
+                prefixIcon: Icons.category_outlined,
+                onTap: () async {
+                  final selected = await showCategoryMultiPicker(
+                    context,
+                    categories,
+                    selected: _selectedCategories,
+                  );
+                  if (selected.isNotEmpty) {
+                    setState(() {
+                      _selectedCategories
+                        ..clear()
+                        ..addAll(selected);
+                    });
+                  }
+                },
+              ),
+              if (_selectedCategories.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _selectedCategories.map((category) {
+                    return Chip(
+                      label: Text(category.localizedName(locale)),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ],
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -533,10 +556,13 @@ class _SellerRegistrationScreenState
         _ReviewRow(l10n.email, _emailController.text),
         _ReviewRow(
           l10n.reviewCategory,
-          _selectedCategory?.localizedName(
-                Localizations.localeOf(context).languageCode,
-              ) ??
-              '',
+          _selectedCategories
+                  .map(
+                    (category) => category.localizedName(
+                      Localizations.localeOf(context).languageCode,
+                    ),
+                  )
+                  .join(', '),
         ),
         _ReviewRow(l10n.reviewCity, _city),
         _ReviewRow(l10n.reviewAddress, _addressController.text),

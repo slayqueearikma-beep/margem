@@ -302,6 +302,13 @@ class SellerCreate(BaseModel):
     service_areas: list[str] = Field(default_factory=list)
     category_ids: list[UUID] = Field(default_factory=list)
 
+    @field_validator("category_ids")
+    @classmethod
+    def validate_category_ids(cls, value: list[UUID]) -> list[UUID]:
+        from app.services.seller_categories import validate_category_ids
+
+        return validate_category_ids(value)
+
     @field_validator("city")
     @classmethod
     def launch_city_only(cls, value: str) -> str:
@@ -337,6 +344,15 @@ class SellerUpdate(BaseModel):
     service_areas: list[str] | None = None
     category_ids: list[UUID] | None = None
     is_active: bool | None = None
+
+    @field_validator("category_ids")
+    @classmethod
+    def validate_category_ids(cls, value: list[UUID] | None) -> list[UUID] | None:
+        if value is None:
+            return None
+        from app.services.seller_categories import validate_category_ids
+
+        return validate_category_ids(value)
 
     @field_validator("city")
     @classmethod

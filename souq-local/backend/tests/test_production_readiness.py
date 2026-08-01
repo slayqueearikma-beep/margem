@@ -10,6 +10,7 @@ import app.database as database
 from app.main import app
 from app.models import User
 from app.services.security import revoke_all_refresh_tokens
+from tests.factories import seller_create_payload
 
 
 async def _register_buyer(client: AsyncClient, email: str = "export-test@example.com") -> dict:
@@ -143,18 +144,13 @@ async def test_non_premium_cannot_feature_product() -> None:
         profile = await client.post(
             "/sellers",
             headers=headers,
-            json={
-                "business_name": "Feature Shop",
-                "description": "Test",
-                "address": "1 Test St",
-                "city": "Casablanca",
-                "latitude": 33.57,
-                "longitude": -7.59,
-                "phone": "+212600000001",
-                "whatsapp_number": "+212600000001",
-                "payment_methods": ["cash"],
-                "delivery_methods": ["in_store"],
-            },
+            json=seller_create_payload(
+                business_name="Feature Shop",
+                description="Test",
+                address="1 Test St",
+                phone="+212600000001",
+                whatsapp_number="+212600000001",
+            ),
         )
         assert profile.status_code == 201, profile.text
         seller_id = profile.json()["id"]

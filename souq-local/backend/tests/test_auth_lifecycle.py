@@ -11,6 +11,7 @@ import app.database as database
 from app.config import Settings
 from app.main import app
 from app.models import AuthToken, SellerProfile, User, UserStatus
+from tests.factories import seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -174,18 +175,13 @@ async def test_delete_account_removes_seller_storefront(client: AsyncClient):
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json={
-            "business_name": "Delete Me Shop",
-            "description": "Temp",
-            "address": "12 Rue Example",
-            "city": "Casablanca",
-            "latitude": 33.5,
-            "longitude": -7.5,
-            "phone": "+212600000066",
-            "whatsapp_number": "+212600000066",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Delete Me Shop",
+            description="Temp",
+            address="12 Rue Example",
+            phone="+212600000066",
+            whatsapp_number="+212600000066",
+        ),
     )
     assert profile.status_code == 201, profile.text
     seller_id = profile.json()["id"]
