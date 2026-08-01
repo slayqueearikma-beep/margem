@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -125,6 +127,21 @@ if settings.storage_backend == "local":
         StaticFiles(directory=str(media_root())),
         name="media",
     )
+
+_brand_dir = Path(__file__).resolve().parents[1] / "static" / "brand"
+if _brand_dir.is_dir():
+    app.mount("/brand", StaticFiles(directory=str(_brand_dir)), name="brand")
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon() -> FileResponse:
+        return FileResponse(_brand_dir / "favicon.ico")
+
+    @app.get("/site.webmanifest", include_in_schema=False)
+    async def web_manifest() -> FileResponse:
+        manifest = _brand_dir / "site.webmanifest"
+        if manifest.is_file():
+            return FileResponse(manifest, media_type="application/manifest+json")
+        return FileResponse(_brand_dir / "icon-192.png")
 
 
 def _request_id(request: Request) -> str:

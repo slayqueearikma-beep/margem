@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
-import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
@@ -28,7 +27,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
           subtitle: l10n.discoverSubtitle,
           backgroundColor: const Color(0xFFE8F1FA),
           icon: Icons.lightbulb_outline_rounded,
-          imageAsset: 'assets/images/onboarding/onboarding_01_ideas.png',
+          imageAsset: 'assets/images/margem_logo.png',
         ),
         _SlideData(
           title: l10n.exploreMapTitle,
@@ -94,13 +93,6 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
                           imageAsset: slide.imageAsset,
                         ),
                         const SizedBox(height: AppSpacing.xl),
-                        if (index == 0) ...[
-                          const AppBrandLogo(
-                            variant: AppBrandLogoVariant.full,
-                            width: 220,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                        ],
                         Text(
                           slide.title,
                           textAlign: TextAlign.center,

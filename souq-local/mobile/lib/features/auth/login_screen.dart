@@ -10,6 +10,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/models/auth_models.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
@@ -222,24 +223,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.illustrationRadius),
-                child: AspectRatio(
-                  aspectRatio: 1.15,
-                  child: Image.asset(
-                    'assets/images/onboarding/onboarding_01_ideas.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: AppColors.cardSelected,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.waving_hand_rounded,
-                        size: 64,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
+              Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                child: const AppBrandLogo(
+                  variant: AppBrandLogoVariant.full,
+                  width: 200,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
