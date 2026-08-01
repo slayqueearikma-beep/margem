@@ -228,7 +228,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 child: const AppBrandLogo(
                   variant: AppBrandLogoVariant.full,
-                  width: 200,
+                  showTagline: true,
+                  iconSize: 100,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),

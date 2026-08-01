@@ -25,9 +25,10 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
         _SlideData(
           title: l10n.discoverTitle,
           subtitle: l10n.discoverSubtitle,
-          backgroundColor: const Color(0xFFE8F1FA),
+          backgroundColor: AppColors.surfaceMuted,
           icon: Icons.lightbulb_outline_rounded,
           imageAsset: 'assets/images/margem_logo.png',
+          imageFit: BoxFit.contain,
         ),
         _SlideData(
           title: l10n.exploreMapTitle,
@@ -91,6 +92,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
                           backgroundColor: slide.backgroundColor,
                           icon: slide.icon,
                           imageAsset: slide.imageAsset,
+                          imageFit: slide.imageFit,
                         ),
                         const SizedBox(height: AppSpacing.xl),
                         Text(
@@ -149,6 +151,7 @@ class _SlideData {
     required this.backgroundColor,
     required this.icon,
     this.imageAsset,
+    this.imageFit = BoxFit.cover,
   });
 
   final String title;
@@ -156,4 +159,5 @@ class _SlideData {
   final Color backgroundColor;
   final IconData icon;
   final String? imageAsset;
+  final BoxFit imageFit;
 }
