@@ -58,9 +58,14 @@ class Settings(BaseSettings):
     # Defaults to the JWT key only in development for backwards compatibility.
     upload_token_secret: str = ""
     jwt_algorithm: str = "HS256"
+    jwt_issuer: str = "margem-api"
+    jwt_audience: str = "margem-mobile"
     jwt_access_expire_minutes: int = 60
     jwt_refresh_expire_days: int = 7
     bcrypt_rounds: int = 12
+    login_lockout_threshold: int = 5
+    staff_mfa_required: bool = True
+    mfa_encryption_key: str = ""
 
     azure_storage_connection_string: str = ""
     azure_storage_container: str = "margem-media"
@@ -144,6 +149,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
+        if not self.mfa_encryption_key:
+            object.__setattr__(self, "mfa_encryption_key", self.jwt_secret_key)
         if self.app_env in {"production", "prod"}:
             if self.debug:
                 raise ValueError("DEBUG must be false in production")

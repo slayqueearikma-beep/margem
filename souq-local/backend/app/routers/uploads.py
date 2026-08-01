@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from pydantic import BaseModel, Field
 
 from app.auth import get_current_user
 from app.config import settings
@@ -181,3 +182,51 @@ async def put_local_upload(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     return Response(status_code=status.HTTP_201_CREATED)
+
+
+class ValidateUploadRequest(BaseModel):
+    public_url: str = Field(max_length=2048)
+    content_type: str = Field(max_length=64)
+
+
+@router.post("/validate")
+@limiter.limit("30/minute")
+async def validate_uploaded_blob(
+    request: Request,
+    payload: ValidateUploadRequest,
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Server-side validation hook for direct-to-Azure uploads."""
+    from urllib.parse import urlparse
+
+    from app.services.upload_security import validate_image_bytes, validate_media_url, validate_upload_content_type
+
+    try:
+        validate_upload_content_type(payload.content_type)
+        validate_media_url(
+            payload.public_url,
+            owner_user_id=user.id,
+            container=settings.azure_storage_container,
+            public_api_url=settings.public_api_url,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    parsed = urlparse(payload.public_url)
+    if not parsed.hostname or not parsed.hostname.endswith(".blob.core.windows.net"):
+        raise HTTPException(status_code=400, detail="Only Azure blob URLs can be validated")
+
+    import httpx
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(payload.public_url)
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Uploaded blob is not readable")
+        body = response.content
+    if len(body) > settings.max_upload_bytes:
+        raise HTTPException(status_code=413, detail="Image too large")
+    try:
+        validate_image_bytes(body, payload.content_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"status": "valid", "bytes": len(body)}

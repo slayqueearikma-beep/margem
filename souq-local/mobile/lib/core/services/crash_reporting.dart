@@ -93,6 +93,10 @@ class CrashReporting {
         }
       }
     }
+    final url = event.request?.url;
+    if (url != null && sensitive.hasMatch(url)) {
+      event.request?.url = '[redacted]';
+    }
     return event;
   }
 }

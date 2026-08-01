@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 
 import '../config/app_config.dart';
 
@@ -32,16 +37,21 @@ class UploadUrlGuard {
   }
 }
 
+String _certificatePinSha256(X509Certificate cert) {
+  return base64.encode(sha256.convert(cert.der).bytes);
+}
+
 /// Optional TLS certificate pinning for release builds.
-///
-/// Provide comma-separated SHA-256 pins via `--dart-define=CERTIFICATE_PINS=...`
-/// When unset, the default system trust store is used.
 http.Client createSecureHttpClient() {
   final pins = AppConfig.certificatePins;
   if (pins.isEmpty || !AppConfig.isProduction) {
     return http.Client();
   }
-  // Pinning requires platform SecurityContext wiring; fall back to system CAs
-  // until pins are provisioned in CI. Host allowlisting still applies above.
-  return http.Client();
+
+  final httpClient = HttpClient();
+  httpClient.badCertificateCallback = (cert, host, port) {
+    final fingerprint = _certificatePinSha256(cert);
+    return pins.contains(fingerprint);
+  };
+  return IOClient(httpClient);
 }

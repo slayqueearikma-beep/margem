@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import '../config/app_config.dart';
 import 'api_service.dart';
 import 'secure_http_client.dart';
-import 'secure_http_client.dart';
 
 /// Uploads images via the API presign → PUT flow.
 class UploadService {
