@@ -232,6 +232,10 @@ class AdminApiService {
     );
   }
 
+  Future<void> revokeUserSessions(String userId) async {
+    await _api.deletePath('/admin/users/$userId/sessions', auth: true);
+  }
+
   Future<void> grantPremium(String userId, String planCode, int days) async {
     await _api.postJson(
       '/admin/users/$userId/premium',

@@ -619,65 +619,7 @@ async def delete_account(
     if not user.password_hash or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
 
-    from sqlalchemy import delete as sql_delete
+    from app.services.account_lifecycle import soft_delete_user
 
-    from app.models import (
-        AuthToken,
-        Conversation,
-        Favorite,
-        Message,
-        Notification,
-        RecentlyViewed,
-        Review,
-        SavedSearch,
-        SellerFollow,
-        Subscription,
-    )
-
-    seller = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-    profile = seller.scalar_one_or_none()
-
-    # Remove message history the user authored, then any peer conversations they belong to.
-    await session.execute(sql_delete(Message).where(Message.sender_id == user.id))
-    peer_conversations = (
-        await session.execute(
-            select(Conversation.id).where(
-                (Conversation.participant_a_id == user.id) | (Conversation.participant_b_id == user.id)
-            )
-        )
-    ).scalars().all()
-    if peer_conversations:
-        await session.execute(sql_delete(Message).where(Message.conversation_id.in_(peer_conversations)))
-        await session.execute(sql_delete(Conversation).where(Conversation.id.in_(peer_conversations)))
-
-    if profile is not None:
-        from app.models import Product, SellerCategory, Service
-
-        # Clear association + owned rows before deleting the storefront (no ON DELETE CASCADE).
-        await session.execute(sql_delete(SellerCategory).where(SellerCategory.seller_id == profile.id))
-        await session.execute(sql_delete(Product).where(Product.seller_id == profile.id))
-        await session.execute(sql_delete(Service).where(Service.seller_id == profile.id))
-        await session.execute(sql_delete(Review).where(Review.seller_id == profile.id))
-        await session.delete(profile)
-
-    for model, column in (
-        (Favorite, Favorite.user_id),
-        (SellerFollow, SellerFollow.user_id),
-        (SavedSearch, SavedSearch.user_id),
-        (RecentlyViewed, RecentlyViewed.user_id),
-        (Notification, Notification.user_id),
-        (Subscription, Subscription.user_id),
-        (AuthToken, AuthToken.user_id),
-        (Review, Review.buyer_id),
-    ):
-        await session.execute(sql_delete(model).where(column == user.id))
-
-    await revoke_all_refresh_tokens(session, user.id)
-    user.status = UserStatus.DELETED
-    user.email = f"deleted+{user.id}@invalid.local"
-    user.display_name = "Deleted user"
-    user.password_hash = None
-    user.is_premium = False
-    user.premium_until = None
+    await soft_delete_user(session, user)
     await session.commit()
-    log_security_event("account_deleted", user_id=str(user.id))

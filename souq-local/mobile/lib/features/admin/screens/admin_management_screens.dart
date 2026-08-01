@@ -35,6 +35,8 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   @override
   Widget build(BuildContext context) {
     final users = ref.watch(adminUsersProvider(_query));
+    final staff = ref.watch(staffMeProvider).valueOrNull;
+    final canWrite = staff?.hasPermission('users.write') ?? false;
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(adminUsersProvider),
       color: AdminTheme.primary,
@@ -68,7 +70,12 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                   title: 'Failed to load users',
                   subtitle: '$e',
                 ),
-                data: (page) => _UserCardList(page: page, onAction: _handleAction),
+                data: (page) => _UserCardList(
+                  page: page,
+                  canWrite: canWrite,
+                  currentUserId: staff?.id,
+                  onAction: _handleAction,
+                ),
               ),
             ),
           ],
@@ -78,6 +85,16 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   }
 
   Future<void> _handleAction(AdminUserSummary user, String action) async {
+    final staff = ref.read(staffMeProvider).valueOrNull;
+    if (!(staff?.hasPermission('users.write') ?? false)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You do not have permission to manage users')),
+        );
+      }
+      return;
+    }
+
     final api = ref.read(adminApiProvider);
     try {
       if (action == 'suspend') {
@@ -86,6 +103,21 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         await api.setUserStatus(user.id, 'suspended');
       } else if (action == 'activate') {
         await api.setUserStatus(user.id, 'active');
+      } else if (action == 'delete') {
+        final ok = await _confirm(
+          context,
+          'Permanently delete ${user.email}? This cannot be undone.',
+          confirmLabel: 'Delete',
+        );
+        if (!ok) return;
+        await api.setUserStatus(user.id, 'deleted');
+      } else if (action == 'revoke_sessions') {
+        final ok = await _confirm(
+          context,
+          'Sign out ${user.email} from all devices?',
+        );
+        if (!ok) return;
+        await api.revokeUserSessions(user.id);
       } else if (action == 'reset') {
         await api.triggerPasswordReset(user.id);
         if (mounted) {
@@ -93,6 +125,11 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
             const SnackBar(content: Text('Password reset email sent')),
           );
         }
+      }
+      if (mounted && action != 'reset') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User updated')),
+        );
       }
       ref.invalidate(adminUsersProvider);
     } catch (e) {
@@ -104,10 +141,17 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
 }
 
 class _UserCardList extends StatelessWidget {
-  const _UserCardList({required this.page, required this.onAction});
+  const _UserCardList({
+    required this.page,
+    required this.onAction,
+    required this.canWrite,
+    this.currentUserId,
+  });
 
   final AdminUserPage page;
   final void Function(AdminUserSummary user, String action) onAction;
+  final bool canWrite;
+  final String? currentUserId;
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +179,7 @@ class _UserCardList extends StatelessWidget {
           );
         }
         final u = page.items[index - 1];
+        final isSelf = currentUserId != null && u.id == currentUserId;
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: AdminEntityCard(
@@ -143,17 +188,28 @@ class _UserCardList extends StatelessWidget {
             status: u.status,
             badge: u.isPremium ? 'premium' : u.role,
             avatarLabel: u.displayName.isNotEmpty ? u.displayName[0] : u.email[0],
-            trailing: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_horiz_rounded, color: AdminTheme.textTertiary),
-              onSelected: (action) => onAction(u, action),
-              itemBuilder: (_) => [
-                if (u.status == 'active')
-                  const PopupMenuItem(value: 'suspend', child: Text('Suspend')),
-                if (u.status == 'suspended')
-                  const PopupMenuItem(value: 'activate', child: Text('Reactivate')),
-                const PopupMenuItem(value: 'reset', child: Text('Reset password')),
-              ],
-            ),
+            trailing: canWrite && u.status != 'deleted'
+                ? PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_horiz_rounded, color: AdminTheme.textTertiary),
+                    onSelected: (action) => onAction(u, action),
+                    itemBuilder: (_) => [
+                      if (u.status == 'active' && !isSelf)
+                        const PopupMenuItem(value: 'suspend', child: Text('Suspend')),
+                      if (u.status == 'suspended')
+                        const PopupMenuItem(value: 'activate', child: Text('Reactivate')),
+                      if (!isSelf && u.status != 'deleted')
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Delete account'),
+                        ),
+                      const PopupMenuItem(
+                        value: 'revoke_sessions',
+                        child: Text('Sign out all devices'),
+                      ),
+                      const PopupMenuItem(value: 'reset', child: Text('Reset password')),
+                    ],
+                  )
+                : null,
           ),
         );
       },
@@ -1039,7 +1095,11 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-Future<bool> _confirm(BuildContext context, String message) async {
+Future<bool> _confirm(
+  BuildContext context,
+  String message, {
+  String confirmLabel = 'Confirm',
+}) async {
   final result = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
@@ -1048,7 +1108,13 @@ Future<bool> _confirm(BuildContext context, String message) async {
       content: Text(message),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm')),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          style: confirmLabel == 'Delete'
+              ? FilledButton.styleFrom(backgroundColor: AdminTheme.danger)
+              : null,
+          child: Text(confirmLabel),
+        ),
       ],
     ),
   );

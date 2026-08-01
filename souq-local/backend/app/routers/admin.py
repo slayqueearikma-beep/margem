@@ -452,23 +452,23 @@ async def admin_set_status(
     target = await session.get(User, user_id)
     if target is None:
         raise HTTPException(status_code=404, detail="User not found")
-    if target.role == UserRole.SUPER_ADMIN and status_value in {
-        UserStatus.SUSPENDED,
-        UserStatus.DELETED,
-    }:
-        raise HTTPException(status_code=400, detail="Cannot suspend or delete a super admin")
-    previous = {"status": target.status.value}
-    target.status = status_value
-    if status_value in {UserStatus.SUSPENDED, UserStatus.DELETED}:
-        await revoke_all_refresh_tokens(session, target.id)
+
+    from app.services.account_lifecycle import apply_user_status
+
+    change = await apply_user_status(
+        session,
+        actor=actor,
+        target=target,
+        status_value=status_value,
+    )
     await record_admin_action(
         session,
         actor_id=actor.id,
         action="set_user_status",
         target_type="user",
         target_id=str(user_id),
-        previous_value=previous,
-        new_value={"status": status_value.value},
+        previous_value=change["previous"],
+        new_value=change["new"],
         request=request,
     )
     await session.commit()
