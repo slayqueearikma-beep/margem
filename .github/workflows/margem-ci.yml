@@ -106,7 +106,7 @@ jobs:
       - name: Build API Docker image
         run: docker build -t margem-api:ci ./backend
       - name: Scan API image for known vulnerabilities
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: margem-api:ci
           format: table
