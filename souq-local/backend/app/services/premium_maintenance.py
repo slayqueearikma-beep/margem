@@ -11,7 +11,9 @@ from app.models import SellerProfile, Subscription, SubscriptionStatus, User
 
 
 async def expire_stale_premium(session: AsyncSession) -> dict:
-    """Clear expired premium flags and mark subscriptions expired. Returns counts."""
+    """Clear expired premium flags, mark subscriptions expired, and assign Basic."""
+    from app.services.subscription_plans import assign_basic_plan
+
     now = datetime.now(UTC)
 
     expired_users = (
@@ -26,6 +28,7 @@ async def expire_stale_premium(session: AsyncSession) -> dict:
     user_ids = [u.id for u in expired_users]
     for user in expired_users:
         user.is_premium = False
+        await assign_basic_plan(session, user, provider="system", notify=False)
 
     if user_ids:
         await session.execute(
@@ -41,8 +44,13 @@ async def expire_stale_premium(session: AsyncSession) -> dict:
             Subscription.current_period_end < now,
         )
         .values(status=SubscriptionStatus.EXPIRED)
-        .returning(Subscription.id)
+        .returning(Subscription.id, Subscription.user_id)
     )
-    expired_subs = len(subs.scalars().all())
+    expired_rows = subs.all()
+    expired_subs = len(expired_rows)
+    for _, user_id in expired_rows:
+        user = await session.get(User, user_id)
+        if user is not None:
+            await assign_basic_plan(session, user, provider="system", notify=False)
     await session.commit()
     return {"users_expired": len(user_ids), "subscriptions_expired": expired_subs}

@@ -1196,6 +1196,9 @@ async def admin_revoke_premium(
     ).scalar_one_or_none()
     if seller:
         seller.is_premium = False
+    from app.services.subscription_plans import assign_basic_plan
+
+    await assign_basic_plan(session, target, provider="admin_revoke", notify=False)
     await record_admin_action(
         session,
         actor_id=actor.id,

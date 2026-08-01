@@ -801,6 +801,10 @@ class SubscriptionPlanModel {
   final List<String> features;
   final bool isActive;
 
+  bool get isFree => code == 'basic' || priceMad <= 0;
+
+  bool get isPaid => !isFree;
+
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanModel(
       id: json['id'] as String,

@@ -13,7 +13,6 @@ from app.database import SessionLocal
 from app.models import SubscriptionPlan
 
 PLAN_ENV_KEYS = {
-    "vip": ("STRIPE_VIP_PRICE_MONTHLY", "STRIPE_VIP_PRICE_YEARLY"),
     "premium": ("STRIPE_PREMIUM_PRICE_MONTHLY", "STRIPE_PREMIUM_PRICE_YEARLY"),
     "enterprise": ("STRIPE_ENTERPRISE_PRICE_MONTHLY", "STRIPE_ENTERPRISE_PRICE_YEARLY"),
 }

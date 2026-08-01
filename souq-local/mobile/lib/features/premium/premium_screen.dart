@@ -68,6 +68,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen>
   }
 
   Future<void> _upgrade(SubscriptionPlanModel plan, BillingConfigModel billing) async {
+    if (plan.isFree) return;
     final l10n = context.l10n;
     final session = ref.read(userSessionProvider);
     if (session == null || session.isGuest) {
@@ -151,6 +152,9 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen>
           final active = subscriptionAsync.valueOrNull;
           final billing = billingAsync.valueOrNull;
           final selfServe = billing?.selfServeEnabled ?? !AppConfig.isProduction;
+          final paidPlans = plans.where((plan) => plan.isPaid).toList();
+          final displayPlans = plans.toList()
+            ..sort((a, b) => a.tierLevel.compareTo(b.tierLevel));
 
           return RefreshIndicator(
             onRefresh: _refreshAll,
@@ -230,18 +234,19 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen>
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'monthly', label: Text('Monthly')),
-                    ButtonSegment(value: 'yearly', label: Text('Yearly')),
-                  ],
-                  selected: {_interval},
-                  onSelectionChanged: (values) {
-                    setState(() => _interval = values.first);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.md),
-                ...plans.map(
+                if (paidPlans.isNotEmpty)
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'monthly', label: Text('Monthly')),
+                      ButtonSegment(value: 'yearly', label: Text('Yearly')),
+                    ],
+                    selected: {_interval},
+                    onSelectionChanged: (values) {
+                      setState(() => _interval = values.first);
+                    },
+                  ),
+                if (paidPlans.isNotEmpty) const SizedBox(height: AppSpacing.md),
+                ...displayPlans.map(
                   (plan) => _PlanCard(
                     plan: plan,
                     interval: _interval,
@@ -290,6 +295,7 @@ class _PlanCard extends StatelessWidget {
     final yearly = interval == 'yearly';
     final price = yearly ? (plan.priceMadYearly ?? plan.priceMad * 10) : plan.priceMad;
     final periodLabel = yearly ? 'year' : '${plan.billingPeriodDays} ${l10n.days}';
+    final isCurrent = active;
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -321,15 +327,25 @@ class _PlanCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            Text(
-              '${price.toStringAsFixed(0)} MAD / $periodLabel',
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
+            if (plan.isFree)
+              const Text(
+                'Free forever',
+                style: TextStyle(
+                  color: AppColors.success,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              )
+            else
+              Text(
+                '${price.toStringAsFixed(0)} MAD / $periodLabel',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            if (trialEnabled && plan.trialDays > 0 && !active)
+            if (trialEnabled && plan.trialDays > 0 && !active && plan.isPaid)
               Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.sm),
                 child: Text(
@@ -356,7 +372,12 @@ class _PlanCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: AppSpacing.md),
-            if (!selfServeEnabled && !active)
+            if (plan.isFree)
+              FilledButton(
+                onPressed: null,
+                child: Text(isCurrent ? l10n.currentPlan : 'Included'),
+              )
+            else if (!selfServeEnabled && !active)
               Text(
                 l10n.premiumBillingUnavailable,
                 style: TextStyle(

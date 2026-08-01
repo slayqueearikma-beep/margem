@@ -20,6 +20,7 @@ from app.models import (
     SubscriptionStatus,
     User,
 )
+from app.services.subscription_plans import plan_allows_stripe_checkout
 from app.services.subscription_activation import (
     ACTIVE_PREMIUM_STATUSES,
     deactivate_user_subscription,
@@ -106,6 +107,11 @@ async def create_checkout_session(
     require_stripe_configured()
     await require_business_user(session, user)
     plan = await get_plan_by_code(session, plan_code)
+    if not plan_allows_stripe_checkout(plan):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This plan does not require checkout — it is included for free",
+        )
     price_id = resolve_stripe_price_id(plan, interval)
     customer_id = await get_or_create_stripe_customer(session, user)
 
@@ -176,6 +182,11 @@ async def change_subscription_plan(
     require_stripe_configured()
     await require_business_user(session, user)
     plan = await get_plan_by_code(session, plan_code)
+    if not plan_allows_stripe_checkout(plan):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This plan does not require checkout — it is included for free",
+        )
     price_id = resolve_stripe_price_id(plan, interval)
 
     active = (

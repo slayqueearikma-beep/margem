@@ -716,7 +716,7 @@ class _AdminPremiumScreenState extends ConsumerState<AdminPremiumScreen> {
           children: [
             Text('Grant Premium', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
-              const Text('Manually grant VIP, Premium, or Enterprise visibility to a user.'),
+              const Text('Manually assign Basic, Premium, or Enterprise to a business.'),
               const SizedBox(height: 24),
               TextField(
                 controller: _userId,
@@ -727,7 +727,7 @@ class _AdminPremiumScreenState extends ConsumerState<AdminPremiumScreen> {
                 value: _plan,
                 decoration: const InputDecoration(labelText: 'Plan'),
                 items: const [
-                  DropdownMenuItem(value: 'vip', child: Text('VIP')),
+                  DropdownMenuItem(value: 'basic', child: Text('Basic (Free)')),
                   DropdownMenuItem(value: 'premium', child: Text('Premium')),
                   DropdownMenuItem(value: 'enterprise', child: Text('Enterprise')),
                 ],

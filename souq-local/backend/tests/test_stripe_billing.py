@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -10,7 +9,6 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.models import SubscriptionPlan, User
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -76,24 +74,61 @@ async def test_checkout_requires_stripe_config(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_checkout_rejects_basic_plan(client: AsyncClient, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "stripe_secret_key", "sk_test_mock")
+    seller = await _register_seller(client)
+    res = await client.post(
+        "/billing/checkout",
+        headers=seller["headers"],
+        json={"plan_code": "basic", "interval": "monthly"},
+    )
+    assert res.status_code == 400
+
+
+@pytest.mark.asyncio
 async def test_list_plans_returns_business_tiers(client: AsyncClient):
     res = await client.get("/subscriptions/plans")
     assert res.status_code == 200
     codes = {plan["code"] for plan in res.json()}
-    assert codes == {"vip", "premium", "enterprise"}
+    assert codes == {"basic", "premium", "enterprise"}
+    basic = next(p for p in res.json() if p["code"] == "basic")
     premium = next(p for p in res.json() if p["code"] == "premium")
-    assert premium["price_mad_yearly"] == 1990
-    assert premium["tier_level"] == 2
+    enterprise = next(p for p in res.json() if p["code"] == "enterprise")
+    assert basic["price_mad"] == 0
+    assert premium["price_mad_yearly"] == 1999
+    assert premium["tier_level"] == 1
+    assert enterprise["price_mad"] == 499
+    assert enterprise["price_mad_yearly"] == 3999
+
+
+@pytest.mark.asyncio
+async def test_new_seller_gets_basic_plan(client: AsyncClient):
+    seller = await _register_seller(client)
+    res = await client.get("/subscriptions/me", headers=seller["headers"])
+    assert res.status_code == 200
+    body = res.json()
+    assert body is not None
+    assert body["plan"]["code"] == "basic"
+    assert body["provider"] == "system"
 
 
 @pytest.mark.asyncio
 async def test_manual_subscribe_dev_only(client: AsyncClient):
     seller = await _register_seller(client)
-    res = await client.post("/subscriptions/subscribe/vip", headers=seller["headers"])
+    res = await client.post("/subscriptions/subscribe/premium", headers=seller["headers"])
     assert res.status_code == 201, res.text
     body = res.json()
     assert body["provider"] == "manual"
-    assert body["plan"]["code"] == "vip"
+    assert body["plan"]["code"] == "premium"
+
+
+@pytest.mark.asyncio
+async def test_manual_subscribe_rejects_basic(client: AsyncClient):
+    seller = await _register_seller(client)
+    res = await client.post("/subscriptions/subscribe/basic", headers=seller["headers"])
+    assert res.status_code == 400
 
 
 @pytest.mark.asyncio

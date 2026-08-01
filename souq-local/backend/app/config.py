@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     public_app_url: str = "https://margem.ma"
     public_api_url: str = "http://localhost:8000"
 
-    # Stripe billing (business subscriptions — VIP / Premium / Enterprise)
+    # Stripe billing (business subscriptions — Basic / Premium / Enterprise)
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
     stripe_publishable_key: str = ""

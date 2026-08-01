@@ -498,6 +498,16 @@ async def subscribe(
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
 
+    from app.services.subscription_plans import is_free_plan, plan_allows_stripe_checkout
+
+    if is_free_plan(plan):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Basic plan is free and is assigned automatically",
+        )
+    if settings.stripe_enabled and not plan_allows_stripe_checkout(plan):
+        raise HTTPException(status_code=400, detail="Plan is not available for manual activation")
+
     now = datetime.now(UTC)
     period_end = now + timedelta(days=plan.billing_period_days)
     from app.services.subscription_activation import upsert_subscription_record

@@ -20,6 +20,7 @@ from app.models import (
 from app.schemas.billing import PlanOut, SubscriptionOut
 from app.services.admin_audit import record_admin_action
 from app.services.notifications import notify_user
+from app.services.subscription_plans import is_free_plan
 
 
 async def admin_grant_premium(
@@ -44,6 +45,26 @@ async def admin_grant_premium(
     ).scalar_one_or_none()
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
+
+    if is_free_plan(plan):
+        from app.services.subscription_plans import assign_basic_plan
+
+        subscription = await assign_basic_plan(session, target, provider="admin_grant", notify=True)
+        await record_admin_action(
+            session,
+            actor_id=admin.id,
+            action="grant_premium",
+            target_type="user",
+            target_id=str(user_id),
+            new_value={"plan_code": plan.code, "days": 0},
+            request=request,
+        )
+        await session.commit()
+        result = await session.execute(
+            select(Subscription).options(selectinload(Subscription.plan)).where(Subscription.id == subscription.id)
+        )
+        subscription = result.scalar_one()
+        return SubscriptionOut.from_subscription(subscription)
 
     existing = await session.execute(
         select(Subscription).where(

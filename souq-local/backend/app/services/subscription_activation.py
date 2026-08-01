@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models import SellerProfile, Subscription, SubscriptionPlan, SubscriptionStatus, User
 from app.services.notifications import notify_user
+from app.services.subscription_plans import plan_grants_premium
 from app.services.premium import is_premium_active
 
 ACTIVE_PREMIUM_STATUSES = {
@@ -94,7 +95,7 @@ async def upsert_subscription_record(
             )
         ).scalar_one_or_none()
 
-    grants = subscription_grants_premium(status)
+    grants = subscription_grants_premium(status) and plan_grants_premium(plan)
     premium_until = period_end if grants else None
 
     if existing is not None:
@@ -151,6 +152,8 @@ async def deactivate_user_subscription(
     *,
     reason: str = "canceled",
 ) -> None:
+    from app.services.subscription_plans import assign_basic_plan
+
     result = await session.execute(
         select(Subscription).where(
             Subscription.user_id == user.id,
@@ -160,7 +163,7 @@ async def deactivate_user_subscription(
     for sub in result.scalars().all():
         if sub.status != SubscriptionStatus.CANCELED:
             sub.status = SubscriptionStatus.CANCELED
-    await sync_user_premium_flags(session, user, premium_until=None, is_premium=False)
+    await assign_basic_plan(session, user, provider="system", notify=False)
     await notify_user(
         session,
         user_id=user.id,

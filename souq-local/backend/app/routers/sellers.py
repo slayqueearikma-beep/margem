@@ -314,6 +314,10 @@ async def create_seller(
     # Dual-mode: keep one identity; mark account as seller-capable.
     user.account_type = AccountType.SELLER
     user.role = UserRole.SELLER
+    await session.flush()
+    from app.services.subscription_plans import assign_basic_plan
+
+    await assign_basic_plan(session, user, provider="system")
     await session.commit()
     return await _load_seller_detail(session, seller.id)
 
