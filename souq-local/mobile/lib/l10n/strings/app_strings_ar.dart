@@ -863,6 +863,35 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get resendVerificationEmail => 'إعادة إرسال رسالة التحقق';
   @override
+  String get signupOtpChannelTitle => 'أين نرسل رمز التحقق المكوّن من 6 أرقام؟';
+  @override
+  String get signupOtpChannelSubtitle =>
+      'اختر طريقة التحقق من هويتك للمتابعة.';
+  @override
+  String get signupOtpSendPhone => 'إرسال إلى الهاتف';
+  @override
+  String get signupOtpSendEmail => 'إرسال إلى البريد الإلكتروني';
+  @override
+  String get signupOtpPrivacyNote => 'لن نشارك رمزك مع أي شخص.';
+  @override
+  String get signupOtpCodeTitle => 'أدخل الرمز المكوّن من 6 أرقام';
+  @override
+  String signupOtpCodeSentTo(String destination) =>
+      'أرسلنا رمزًا مكوّنًا من 6 أرقام إلى $destination. ';
+  @override
+  String get signupOtpChange => 'تغيير';
+  @override
+  String get signupOtpCodeInvalid => 'أدخل الرمز المكوّن من 6 أرقام.';
+  @override
+  String get signupOtpDidntReceive => 'لم يصلك الرمز؟';
+  @override
+  String signupOtpResendCountdown(int seconds) =>
+      'إعادة الإرسال (00:${seconds.toString().padLeft(2, '0')})';
+  @override
+  String get signupOtpResend => 'إعادة إرسال الرمز';
+  @override
+  String get signupOtpVerify => 'تحقق';
+  @override
   String get premiumTitle => 'نمّ عملك مع MarGem بريميوم';
   @override
   String get premiumSubtitle =>

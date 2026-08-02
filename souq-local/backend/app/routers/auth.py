@@ -25,6 +25,9 @@ from app.schemas import (
     MfaEnrollOut,
     MfaLoginRequest,
     RefreshRequest,
+    SignupOtpSendRequest,
+    SignupOtpSendResponse,
+    SignupOtpVerifyRequest,
     TokenResponse,
     UserOut,
     UserRegister,
@@ -45,6 +48,7 @@ from app.services.mfa import (
     disable_mfa,
     verify_user_mfa,
 )
+from app.services.signup_verification import consume_signup_proof, send_signup_otp, verify_signup_otp
 from app.services.password_policy import validate_password_strength
 from app.services.security import (
     create_access_token,
@@ -184,6 +188,44 @@ def _role_for_account(account_type: AccountType) -> UserRole:
     return UserRole.SELLER if account_type == AccountType.SELLER else UserRole.BUYER
 
 
+class SignupOtpProofResponse(BaseModel):
+    signup_proof: str
+
+
+@router.post("/signup/otp/send", response_model=SignupOtpSendResponse)
+@limiter.limit(settings.auth_rate_limit)
+async def signup_otp_send(
+    request: Request,
+    payload: SignupOtpSendRequest,
+    session: AsyncSession = Depends(get_db),
+) -> SignupOtpSendResponse:
+    _ = request
+    result = await send_signup_otp(
+        session,
+        email=str(payload.email),
+        phone=payload.phone,
+        channel=payload.channel,
+    )
+    return SignupOtpSendResponse(**result)
+
+
+@router.post("/signup/otp/verify", response_model=SignupOtpProofResponse)
+@limiter.limit(settings.auth_rate_limit)
+async def signup_otp_verify(
+    request: Request,
+    payload: SignupOtpVerifyRequest,
+    session: AsyncSession = Depends(get_db),
+) -> SignupOtpProofResponse:
+    _ = request
+    proof = await verify_signup_otp(
+        session,
+        email=str(payload.email),
+        code=payload.code,
+        channel=payload.channel,
+    )
+    return SignupOtpProofResponse(signup_proof=proof)
+
+
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit(settings.auth_rate_limit)
 async def register(
@@ -192,6 +234,7 @@ async def register(
     session: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     email = payload.email.lower()
+    await consume_signup_proof(session, email=email, proof=payload.signup_proof)
     existing = await session.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
         log_security_event("register_conflict", email=email)

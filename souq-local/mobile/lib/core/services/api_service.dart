@@ -19,6 +19,23 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
+class SignupOtpSendResult {
+  SignupOtpSendResult({
+    required this.channel,
+    required this.destinationMasked,
+  });
+
+  final String channel;
+  final String destinationMasked;
+
+  factory SignupOtpSendResult.fromJson(Map<String, dynamic> json) {
+    return SignupOtpSendResult(
+      channel: json['channel'] as String,
+      destinationMasked: json['destination_masked'] as String,
+    );
+  }
+}
+
 typedef TokenRefreshCallback = Future<bool> Function();
 typedef SessionExpiredCallback = Future<void> Function();
 
@@ -64,6 +81,32 @@ class ApiService {
     if (body['database'] == 'error') {
       throw ApiException('API database is unavailable');
     }
+  }
+
+  Future<SignupOtpSendResult> sendSignupOtp({
+    required String email,
+    required String phone,
+    required String channel,
+  }) async {
+    final response = await postJson('/auth/signup/otp/send', {
+      'email': email,
+      'phone': phone,
+      'channel': channel,
+    });
+    return SignupOtpSendResult.fromJson(response);
+  }
+
+  Future<String> verifySignupOtp({
+    required String email,
+    required String code,
+    required String channel,
+  }) async {
+    final response = await postJson('/auth/signup/otp/verify', {
+      'email': email,
+      'code': code,
+      'channel': channel,
+    });
+    return response['signup_proof'] as String;
   }
 
   Future<Map<String, dynamic>> postJson(

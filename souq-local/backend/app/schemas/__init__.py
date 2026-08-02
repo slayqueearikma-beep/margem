@@ -38,12 +38,31 @@ class UserRegister(BaseModel):
     # Optional — defaults to buyer. Sellers unlock storefront later on the same account.
     account_type: AccountType = AccountType.BUYER
     display_name: str = Field(default="", max_length=120)
+    signup_proof: str = Field(min_length=20, max_length=128)
 
     @field_validator("password")
     @classmethod
     def strong_password(cls, value: str) -> str:
         validate_password_strength(value)
         return value
+
+
+class SignupOtpSendRequest(BaseModel):
+    email: EmailStr
+    phone: str = Field(default="", max_length=32)
+    channel: str = Field(pattern=r"^(email|phone)$")
+
+
+class SignupOtpVerifyRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    channel: str = Field(pattern=r"^(email|phone)$")
+
+
+class SignupOtpSendResponse(BaseModel):
+    channel: str
+    destination_masked: str
+    dev_code: str | None = None
 
 
 class UserRegisterFirebase(BaseModel):

@@ -3,23 +3,19 @@ from httpx import ASGITransport, AsyncClient
 from pydantic import ValidationError
 
 from app.main import app
+from tests.auth_helpers import register_test_user
 from app.services.service_pricing import PricingModel, normalize_service_pricing
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
 
 async def _register(client: AsyncClient, email: str) -> dict:
-    response = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": "SecurePass1",
-            "account_type": "seller",
-            "display_name": email.split("@")[0],
-        },
+    return await register_test_user(
+        client,
+        email=email,
+        account_type="seller",
+        display_name=email.split("@")[0],
     )
-    assert response.status_code == 201, response.text
-    return response.json()
 
 
 async def _create_seller(client: AsyncClient, token: str) -> dict:

@@ -885,6 +885,35 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get resendVerificationEmail => 'Renvoyer l’e-mail de vérification';
   @override
+  String get signupOtpChannelTitle => 'Où envoyer votre code à 6 chiffres ?';
+  @override
+  String get signupOtpChannelSubtitle =>
+      'Choisissez comment vérifier votre identité pour continuer.';
+  @override
+  String get signupOtpSendPhone => 'Envoyer au téléphone';
+  @override
+  String get signupOtpSendEmail => 'Envoyer par e-mail';
+  @override
+  String get signupOtpPrivacyNote => 'Nous ne partagerons jamais votre code.';
+  @override
+  String get signupOtpCodeTitle => 'Entrez le code à 6 chiffres';
+  @override
+  String signupOtpCodeSentTo(String destination) =>
+      'Nous avons envoyé un code à 6 chiffres à $destination. ';
+  @override
+  String get signupOtpChange => 'Modifier';
+  @override
+  String get signupOtpCodeInvalid => 'Entrez le code à 6 chiffres.';
+  @override
+  String get signupOtpDidntReceive => 'Vous n’avez pas reçu le code ?';
+  @override
+  String signupOtpResendCountdown(int seconds) =>
+      'Renvoyer le code (00:${seconds.toString().padLeft(2, '0')})';
+  @override
+  String get signupOtpResend => 'Renvoyer le code';
+  @override
+  String get signupOtpVerify => 'Vérifier';
+  @override
   String get premiumTitle => 'Développez-vous avec MarGem Premium';
   @override
   String get premiumSubtitle =>

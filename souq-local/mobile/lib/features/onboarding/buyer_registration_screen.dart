@@ -16,6 +16,7 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
+import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../l10n/app_localizations.dart';
 
 class BuyerRegistrationScreen extends ConsumerStatefulWidget {
@@ -59,6 +60,14 @@ class _BuyerRegistrationScreenState
       return;
     }
 
+    final email = _emailController.text.trim();
+    final signupProof = await showSignupVerificationFlow(
+      context: context,
+      email: email,
+      phone: '',
+    );
+    if (!mounted || signupProof == null) return;
+
     setState(() => _loading = true);
     try {
       await apiServiceProvider.runSubmit(() async {
@@ -66,10 +75,11 @@ class _BuyerRegistrationScreenState
 
         final auth = ref.read(authServiceProvider);
         final session = await auth.register(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text,
           accountType: 'buyer',
           displayName: _nameController.text.trim(),
+          signupProof: signupProof,
         );
 
         final prefs = await ref.read(sharedPreferencesProvider.future);

@@ -40,12 +40,14 @@ class AuthService {
     required String password,
     required String accountType,
     required String displayName,
+    required String signupProof,
   }) async {
     final response = await _api.postJson('/auth/register', {
       'email': email,
       'password': password,
       'account_type': accountType,
       'display_name': displayName,
+      'signup_proof': signupProof,
     });
     return _saveSession(AuthSession.fromJson(response));
   }

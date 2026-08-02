@@ -5,6 +5,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from tests.auth_helpers import register_test_user
 from app.services.mfa import encrypt_secret, verify_totp_code
 
 
@@ -16,17 +17,13 @@ async def client():
 
 
 async def _register(client: AsyncClient, email: str, password: str = "SecurePass1") -> dict:
-    response = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-            "account_type": "buyer",
-            "display_name": "Security Tester",
-        },
+    return await register_test_user(
+        client,
+        email=email,
+        password=password,
+        account_type="buyer",
+        display_name="Security Tester",
     )
-    assert response.status_code == 201, response.text
-    return response.json()
 
 
 async def _login(client: AsyncClient, email: str, password: str = "SecurePass1") -> dict:
