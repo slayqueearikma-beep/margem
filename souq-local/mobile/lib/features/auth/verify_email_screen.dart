@@ -113,10 +113,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: AppSpacing.lg),
-              const Center(
-                child: AppBrandLogo(
-                  variant: AppBrandLogoVariant.icon,
-                  iconSize: 56,
+              Center(
+                child: AppBrandLogo.forContext(
+                  AppBrandContext.compactBranding,
+                  size: 56,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),

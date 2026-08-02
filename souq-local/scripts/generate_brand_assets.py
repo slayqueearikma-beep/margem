@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Regenerate MarGem brand assets from brand/margem_logo.png (single source)."""
+"""Regenerate MarGem brand assets from brand source PNGs.
+
+Sources:
+  brand/margem_logo.png       — full lockup (icon + wordmark + tagline)
+  brand/margem_logo_icon.png  — icon only (map pin + gem), optional but preferred
+"""
 
 from __future__ import annotations
 
@@ -9,7 +14,8 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "brand" / "margem_logo.png"
+SRC_FULL = ROOT / "brand" / "margem_logo.png"
+SRC_ICON = ROOT / "brand" / "margem_logo_icon.png"
 WHITE_THRESHOLD = 245
 
 
@@ -46,13 +52,8 @@ def _trim_margins(img: Image.Image, *, padding: int = 24) -> Image.Image:
     return img.crop((left, top, right, bottom))
 
 
-def _extract_icon(full: Image.Image) -> Image.Image:
-    """Take the map-pin icon from the top of the vertical lockup."""
-    width, height = full.size
-    top = full.crop((0, 0, width, int(height * 0.56)))
-    icon = top.crop(_content_bbox(top))
-
-    rgba = icon.convert("RGBA")
+def _strip_white_background(img: Image.Image) -> Image.Image:
+    rgba = img.convert("RGBA")
     pixels = rgba.load()
     for y in range(rgba.height):
         for x in range(rgba.width):
@@ -60,6 +61,30 @@ def _extract_icon(full: Image.Image) -> Image.Image:
             if _is_background_pixel(r, g, b):
                 pixels[x, y] = (255, 255, 255, 0)
     return rgba
+
+
+def _extract_icon_from_lockup(full: Image.Image) -> Image.Image:
+    """Fallback: crop the pin from the top of the vertical lockup."""
+    width, height = full.size
+    top = full.crop((0, 0, width, int(height * 0.56)))
+    return _strip_white_background(top.crop(_content_bbox(top)))
+
+
+def _load_icon(full: Image.Image) -> Image.Image:
+    if SRC_ICON.exists():
+        icon = Image.open(SRC_ICON).convert("RGBA")
+        if icon.mode == "RGBA":
+            # Honour transparency; only strip near-white opaque pixels.
+            pixels = icon.load()
+            for y in range(icon.height):
+                for x in range(icon.width):
+                    r, g, b, a = pixels[x, y]
+                    if a > 0 and _is_background_pixel(r, g, b):
+                        pixels[x, y] = (255, 255, 255, 0)
+        else:
+            icon = _strip_white_background(icon)
+        return _trim_margins(icon.convert("RGBA"), padding=8)
+    return _extract_icon_from_lockup(full)
 
 
 def _square_icon(img: Image.Image, size: int, *, scale: float = 0.78) -> Image.Image:
@@ -87,15 +112,14 @@ def _adaptive_foreground(img: Image.Image, size: int) -> Image.Image:
 
 
 def main() -> None:
-    if not SRC.exists():
+    if not SRC_FULL.exists():
         raise SystemExit(
-            f"Missing source logo: {SRC}\n"
-            "Place your full MarGem lockup PNG at souq-local/brand/margem_logo.png"
+            f"Missing full lockup source: {SRC_FULL}\n"
+            "Place your full MarGem lockup at souq-local/brand/margem_logo.png"
         )
 
-    source = _trim_margins(Image.open(SRC).convert("RGB"))
-    icon = _extract_icon(source)
-    full = source.convert("RGBA")
+    full = _trim_margins(Image.open(SRC_FULL).convert("RGB"))
+    icon = _load_icon(full)
 
     assets = ROOT / "mobile" / "assets" / "images"
     assets.mkdir(parents=True, exist_ok=True)
@@ -104,7 +128,7 @@ def main() -> None:
     icon_master.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
     icon_master.save(assets / "margem_logo.png", optimize=True)
 
-    full_master = _fit_lockup(full, 1024)
+    full_master = _fit_lockup(full.convert("RGBA"), 1024)
     full_master.save(assets / "margem_logo_full.png", optimize=True)
 
     res = ROOT / "mobile" / "android" / "app" / "src" / "main" / "res"
@@ -145,7 +169,7 @@ def main() -> None:
 
     splash_dir = res / "drawable"
     splash_dir.mkdir(parents=True, exist_ok=True)
-    _fit_lockup(full, 400).save(splash_dir / "splash_logo.png", optimize=True)
+    _fit_lockup(full.convert("RGBA"), 400).save(splash_dir / "splash_logo.png", optimize=True)
 
     brand = ROOT / "brand"
     brand.mkdir(parents=True, exist_ok=True)
@@ -160,7 +184,7 @@ def main() -> None:
         _square_icon(icon, dim).save(brand / name, optimize=True)
 
     og = Image.new("RGBA", (1200, 630), (255, 255, 255, 255))
-    og_logo = _fit_lockup(full, 420)
+    og_logo = _fit_lockup(full.convert("RGBA"), 420)
     og.paste(og_logo, ((1200 - og_logo.width) // 2, (630 - og_logo.height) // 2), og_logo)
     og.save(brand / "og-image.png", optimize=True)
 
@@ -211,7 +235,8 @@ def main() -> None:
         shutil.copy2(brand / name, static / name)
     icon_master.save(static / "margem_logo.png", optimize=True)
     full_master.save(static / "margem_logo_full.png", optimize=True)
-    print("Brand assets regenerated from brand/margem_logo.png")
+    icon_source = "margem_logo_icon.png" if SRC_ICON.exists() else "margem_logo.png (cropped)"
+    print(f"Brand assets regenerated (icon from {icon_source}).")
 
 
 if __name__ == "__main__":

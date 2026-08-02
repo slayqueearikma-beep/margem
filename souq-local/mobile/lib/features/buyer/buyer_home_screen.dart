@@ -482,7 +482,10 @@ class _HomeTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const AppBrandLogo(variant: AppBrandLogoVariant.lockup, iconSize: 28),
+        AppBrandLogo.forContext(
+          AppBrandContext.compactBranding,
+          size: 28,
+        ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(

@@ -102,9 +102,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
           children: [
-            const Center(
-                child: AppBrandLogo(
-                    variant: AppBrandLogoVariant.icon, iconSize: 56)),
+            Center(
+                child: AppBrandLogo.forContext(
+                  AppBrandContext.compactBranding,
+                  size: 56,
+                )),
             const SizedBox(height: AppSpacing.lg),
             Text(
               resetMode ? l10n.resetPassword : l10n.forgotPassword,

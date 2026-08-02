@@ -36,9 +36,9 @@ class SellerDrawer extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const AppBrandLogo(
-                    variant: AppBrandLogoVariant.lockup,
-                    iconSize: 32,
+                  AppBrandLogo.forContext(
+                    AppBrandContext.compactBranding,
+                    size: 32,
                   ),
                   const SizedBox(height: 16),
                   if (profile != null)

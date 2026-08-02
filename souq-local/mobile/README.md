@@ -80,7 +80,7 @@ Output: `build/app/outputs/bundle/release/app-release.aab`
 
 - [ ] Upload `app-release.aab`
 - [ ] Privacy policy URL (see `PRIVACY_POLICY.md`)
-- [x] App icon (generated from `brand/margem_logo.png` via `scripts/generate_brand_assets.py`)
+- [x] App icons from `brand/margem_logo_icon.png` + full lockup from `brand/margem_logo.png` (`scripts/generate_brand_assets.py`)
 - [ ] Screenshots and store listing
 - [ ] Content rating questionnaire
 
