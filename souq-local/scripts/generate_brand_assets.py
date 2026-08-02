@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate MarGem brand assets from brand/margem_logo_master.png."""
+"""Regenerate MarGem brand assets from brand source PNGs."""
 
 from __future__ import annotations
 
@@ -9,8 +9,9 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "brand" / "margem_logo_master.png"
-BRAND_RED = (114, 16, 25, 255)  # #721019
+SRC_ICON = ROOT / "brand" / "margem_logo_master.png"
+SRC_FULL = ROOT / "brand" / "margem_logo_full.png"
+FULL_ASPECT = 1536 / 1024  # height / width
 
 
 def _trim_logo(img: Image.Image) -> Image.Image:
@@ -32,22 +33,43 @@ def _square_icon(img: Image.Image, size: int, *, scale: float = 0.78) -> Image.I
     return canvas
 
 
+def _fit_full_lockup(img: Image.Image, width: int) -> Image.Image:
+    """Scale the vertical lockup to a target width, preserving aspect ratio."""
+    height = int(width * FULL_ASPECT)
+    fitted = img.copy()
+    fitted.thumbnail((width, height), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+    canvas.paste(
+        fitted,
+        ((width - fitted.width) // 2, (height - fitted.height) // 2),
+        fitted,
+    )
+    return canvas
+
+
 def _adaptive_foreground(img: Image.Image, size: int) -> Image.Image:
     """Android adaptive icon foreground (108dp safe zone)."""
     return _square_icon(img, size, scale=0.62)
 
 
 def main() -> None:
-    if not SRC.exists():
-        raise SystemExit(f"Missing source logo: {SRC}")
+    if not SRC_ICON.exists():
+        raise SystemExit(f"Missing icon source: {SRC_ICON}")
+    if not SRC_FULL.exists():
+        raise SystemExit(f"Missing full lockup source: {SRC_FULL}")
 
-    img = _trim_logo(Image.open(SRC).convert("RGBA"))
+    icon = _trim_logo(Image.open(SRC_ICON).convert("RGBA"))
+    full = Image.open(SRC_FULL).convert("RGBA")
 
     assets = ROOT / "mobile" / "assets" / "images"
     assets.mkdir(parents=True, exist_ok=True)
-    master = img.copy()
-    master.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
-    master.save(assets / "margem_logo.png", optimize=True)
+
+    icon_master = icon.copy()
+    icon_master.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+    icon_master.save(assets / "margem_logo.png", optimize=True)
+
+    full_master = _fit_full_lockup(full, 1024)
+    full_master.save(assets / "margem_logo_full.png", optimize=True)
 
     res = ROOT / "mobile" / "android" / "app" / "src" / "main" / "res"
     for folder, size in {
@@ -59,8 +81,8 @@ def main() -> None:
     }.items():
         out = res / folder
         out.mkdir(parents=True, exist_ok=True)
-        _square_icon(img, size).save(out / "ic_launcher.png", optimize=True)
-        _adaptive_foreground(img, size).save(out / "ic_launcher_foreground.png", optimize=True)
+        _square_icon(icon, size).save(out / "ic_launcher.png", optimize=True)
+        _adaptive_foreground(icon, size).save(out / "ic_launcher_foreground.png", optimize=True)
 
     adaptive_dir = res / "mipmap-anydpi-v26"
     adaptive_dir.mkdir(parents=True, exist_ok=True)
@@ -88,7 +110,7 @@ def main() -> None:
 
     splash_dir = res / "drawable"
     splash_dir.mkdir(parents=True, exist_ok=True)
-    _square_icon(img, 400, scale=0.72).save(splash_dir / "splash_logo.png", optimize=True)
+    _fit_full_lockup(full, 400).save(splash_dir / "splash_logo.png", optimize=True)
 
     brand = ROOT / "brand"
     brand.mkdir(parents=True, exist_ok=True)
@@ -100,16 +122,15 @@ def main() -> None:
         ("icon-192.png", 192),
         ("icon-512.png", 512),
     ]:
-        _square_icon(img, dim).save(brand / name, optimize=True)
+        _square_icon(icon, dim).save(brand / name, optimize=True)
 
     og = Image.new("RGBA", (1200, 630), (255, 255, 255, 255))
-    logo = img.copy()
-    logo.thumbnail((360, 360), Image.Resampling.LANCZOS)
-    og.paste(logo, ((1200 - logo.width) // 2, (630 - logo.height) // 2 - 20), logo)
+    og_logo = _fit_full_lockup(full, 420)
+    og.paste(og_logo, ((1200 - og_logo.width) // 2, (630 - og_logo.height) // 2), og_logo)
     og.save(brand / "og-image.png", optimize=True)
 
     ico_sizes = [16, 32, 48]
-    ico_imgs = [_square_icon(img, s) for s in ico_sizes]
+    ico_imgs = [_square_icon(icon, s) for s in ico_sizes]
     ico_imgs[0].save(brand / "favicon.ico", format="ICO", sizes=[(s, s) for s in ico_sizes])
 
     manifest = brand / "site.webmanifest"
@@ -153,7 +174,8 @@ def main() -> None:
         "site.webmanifest",
     ):
         shutil.copy2(brand / name, static / name)
-    master.save(static / "margem_logo.png", optimize=True)
+    icon_master.save(static / "margem_logo.png", optimize=True)
+    full_master.save(static / "margem_logo_full.png", optimize=True)
     print("Brand assets regenerated.")
 
 
