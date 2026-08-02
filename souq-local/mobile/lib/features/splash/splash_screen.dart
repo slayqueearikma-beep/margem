@@ -125,9 +125,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           child: ScaleTransition(
             scale: _scale,
             child: AppBrandLogo.forContext(
-              AppBrandContext.primaryBranding,
+              AppBrandContext.compactBranding,
               size: 120,
-              showTagline: true,
             ),
           ),
         ),
