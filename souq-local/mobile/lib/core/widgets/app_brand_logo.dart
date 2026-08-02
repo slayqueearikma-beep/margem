@@ -21,7 +21,6 @@ class AppBrandLogo extends StatelessWidget {
 
   static const _iconAsset = 'assets/images/margem_logo.png';
   static const _fullAsset = 'assets/images/margem_logo_full.png';
-  static const _fullAspect = 1536 / 1024;
 
   @override
   Widget build(BuildContext context) {
@@ -59,12 +58,11 @@ class _FullLockup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayWidth = width ?? iconSize * 1.15;
-    final displayHeight = height ?? displayWidth * AppBrandLogo._fullAspect;
 
     return _LogoImage(
       asset: AppBrandLogo._fullAsset,
       width: displayWidth,
-      height: displayHeight,
+      height: height,
     );
   }
 }
