@@ -272,6 +272,8 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get noBusinessesFound => 'Aucun commerce trouvé';
   @override
+  String get searchSortedByNearest => 'Résultats les plus proches';
+  @override
   String warningZones(int count) => '$count zone(s) d\'alerte';
   @override
   String get yourProfile => 'Votre profil';

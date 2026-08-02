@@ -265,6 +265,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get noBusinessesFound => 'لم يتم العثور على محلات';
   @override
+  String get searchSortedByNearest => 'عرض الأقرب أولاً';
+  @override
   String warningZones(int count) => '$count منطقة تحذير';
   @override
   String get yourProfile => 'ملفك الشخصي';

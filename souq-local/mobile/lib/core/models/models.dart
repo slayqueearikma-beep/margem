@@ -120,6 +120,7 @@ class SellerModel {
     this.categories = const [],
     this.products = const [],
     this.services = const [],
+    this.distanceKm,
   });
 
   final String id;
@@ -161,6 +162,7 @@ class SellerModel {
   final List<CategoryModel> categories;
   final List<ProductModel> products;
   final List<ServiceModel> services;
+  final double? distanceKm;
 
   factory SellerModel.fromJson(Map<String, dynamic> json) {
     return SellerModel(
@@ -224,6 +226,7 @@ class SellerModel {
       services: (json['services'] as List<dynamic>? ?? [])
           .map((e) => ServiceModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      distanceKm: (json['distance_km'] as num?)?.toDouble(),
     );
   }
 }
@@ -387,6 +390,7 @@ class SearchProductModel {
     required this.priceMad,
     required this.imageUrl,
     required this.isAvailable,
+    this.distanceKm,
   });
 
   final String id;
@@ -401,6 +405,7 @@ class SearchProductModel {
   final double? priceMad;
   final String imageUrl;
   final bool isAvailable;
+  final double? distanceKm;
 
   factory SearchProductModel.fromJson(Map<String, dynamic> json) {
     return SearchProductModel(
@@ -416,6 +421,7 @@ class SearchProductModel {
       priceMad: (json['price_mad'] as num?)?.toDouble(),
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
+      distanceKm: (json['distance_km'] as num?)?.toDouble(),
     );
   }
 }

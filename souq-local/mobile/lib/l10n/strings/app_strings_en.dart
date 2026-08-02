@@ -266,6 +266,8 @@ class AppStringsEn extends AppStrings {
   @override
   String get noBusinessesFound => 'No businesses found';
   @override
+  String get searchSortedByNearest => 'Showing nearest matches';
+  @override
   String warningZones(int count) => '$count warning zone(s)';
   @override
   String get yourProfile => 'Your profile';

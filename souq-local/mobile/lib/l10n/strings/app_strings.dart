@@ -125,6 +125,7 @@ abstract class AppStrings {
   String get search;
   String get businessKeyword;
   String get noBusinessesFound;
+  String get searchSortedByNearest;
   String warningZones(int count);
   String get yourProfile;
   String get darkMode;

@@ -427,6 +427,8 @@ class ApiService {
     String? city,
     String? category,
     String sort = 'relevance',
+    double? lat,
+    double? lng,
     int offset = 0,
     int limit = 20,
   }) async {
@@ -438,6 +440,8 @@ class ApiService {
       'limit': '$limit',
       if (city != null && city.isNotEmpty) 'city': city,
       if (category != null && category.isNotEmpty) 'category': category,
+      if (lat != null) 'lat': '$lat',
+      if (lng != null) 'lng': '$lng',
     };
     final response = await _request(
       () => _get(_uri('/search', params), headers: _authHeaders),

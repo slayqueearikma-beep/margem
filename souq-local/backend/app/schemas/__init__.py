@@ -442,6 +442,7 @@ class SellerSummary(BaseModel):
     verification_status: str = "unverified"
     avg_response_minutes: int = 0
     categories: list[CategoryOut]
+    distance_km: float | None = None
 
     model_config = {"from_attributes": True}
 
