@@ -3,9 +3,10 @@ from enum import Enum
 from urllib.parse import urlparse
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.services.password_policy import validate_password_strength
+from app.services.service_pricing import PricingModel, normalize_service_pricing
 
 
 def _validate_http_url(value: str, *, field_name: str = "url") -> str:
@@ -241,7 +242,10 @@ class ProductOut(BaseModel):
 class ServiceCreate(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     description: str = ""
+    pricing_model: PricingModel = PricingModel.FIXED_PRICE
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    price_min_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    price_max_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     price_negotiable: bool = False
     coverage_areas: list[str] = Field(default_factory=list)
     image_url: str = ""
@@ -252,11 +256,28 @@ class ServiceCreate(BaseModel):
     def validate_image_url(cls, value: str) -> str:
         return _validate_http_url(value)
 
+    @model_validator(mode="before")
+    @classmethod
+    def legacy_pricing_fields(cls, data):
+        if not isinstance(data, dict) or "pricing_model" in data:
+            return data
+        if data.get("price_negotiable"):
+            data["pricing_model"] = PricingModel.NEGOTIABLE
+        elif data.get("price_mad") is None:
+            data["pricing_model"] = PricingModel.REQUEST_QUOTE
+        return data
+
+    def normalized_pricing(self) -> dict:
+        return normalize_service_pricing(self.model_dump())
+
 
 class ServiceUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
     description: str | None = None
+    pricing_model: PricingModel | None = None
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    price_min_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    price_max_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     price_negotiable: bool | None = None
     coverage_areas: list[str] | None = None
     image_url: str | None = None
@@ -275,7 +296,10 @@ class ServiceOut(BaseModel):
     id: UUID
     name: str
     description: str
+    pricing_model: PricingModel = PricingModel.FIXED_PRICE
     price_mad: float | None
+    price_min_mad: float | None = None
+    price_max_mad: float | None = None
     price_negotiable: bool = False
     coverage_areas: list = Field(default_factory=list)
     image_url: str

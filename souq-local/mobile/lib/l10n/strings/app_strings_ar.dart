@@ -295,6 +295,25 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get productDeleted => 'تم حذف المنتج';
   @override
+  String get serviceManagement => 'إدارة الخدمات';
+  @override
+  String get serviceManagementSub => 'إضافة أو تعديل أو حذف الخدمات والأسعار';
+  @override
+  String get addService => 'إضافة خدمة';
+  @override
+  String get editService => 'تعديل الخدمة';
+  @override
+  String get deleteService => 'حذف الخدمة';
+  @override
+  String get deleteServiceConfirm =>
+      'حذف هذه الخدمة؟ لن يراها المشترون في متجرك بعد الآن.';
+  @override
+  String get noServicesYet => 'لا توجد خدمات بعد. أضف خدمتك الأولى.';
+  @override
+  String get serviceSaved => 'تم حفظ الخدمة';
+  @override
+  String get serviceDeleted => 'تم حذف الخدمة';
+  @override
   String get profileSaved => 'تم تحديث الملف';
   @override
   String get storeVisible => 'المتجر ظاهر للمشترين';
@@ -376,6 +395,8 @@ class AppStringsAr extends AppStringsEn {
   String get description => 'الوصف';
   @override
   String get priceOptional => 'السعر (درهم، اختياري)';
+  @override
+  String get priceMad => 'السعر (درهم)';
   @override
   String get addAnotherItem => 'إضافة عنصر آخر';
   @override
@@ -518,6 +539,69 @@ class AppStringsAr extends AppStringsEn {
   String get priceOnRequest => 'السعر عند الطلب';
   @override
   String get priceNegotiable => 'السعر قابل للتفاوض';
+  @override
+  String get pricingModel => 'نموذج التسعير';
+  @override
+  String get pricingModelFixedPrice => 'سعر ثابت';
+  @override
+  String get pricingModelStartingFrom => 'يبدأ من';
+  @override
+  String get pricingModelPriceRange => 'نطاق سعري';
+  @override
+  String get pricingModelHourly => 'بالساعة';
+  @override
+  String get pricingModelDaily => 'يومي';
+  @override
+  String get pricingModelWeekly => 'أسبوعي';
+  @override
+  String get pricingModelMonthly => 'شهري';
+  @override
+  String get pricingModelPerPerson => 'للشخص';
+  @override
+  String get pricingModelPerUnit => 'للوحدة';
+  @override
+  String get pricingModelPerSqm => 'للمتر المربع';
+  @override
+  String get pricingModelPerKm => 'للكيلومتر';
+  @override
+  String get pricingModelRequestQuote => 'اطلب عرض سعر';
+  @override
+  String get pricingModelContactForPrice => 'تواصل للسعر';
+  @override
+  String get pricingModelNegotiable => 'قابل للتفاوض';
+  @override
+  String get pricingModelFree => 'مجاني';
+  @override
+  String get minPrice => 'الحد الأدنى للسعر (درهم)';
+  @override
+  String get maxPrice => 'الحد الأقصى للسعر (درهم)';
+  @override
+  String priceStartingFrom(String amount) => 'يبدأ من $amount';
+  @override
+  String priceRangeLabel(String min, String max) => '$min – $max';
+  @override
+  String pricePerHour(String amount) => '$amount / ساعة';
+  @override
+  String pricePerDay(String amount) => '$amount / يوم';
+  @override
+  String pricePerWeek(String amount) => '$amount / أسبوع';
+  @override
+  String pricePerMonth(String amount) => '$amount / شهر';
+  @override
+  String pricePerPerson(String amount) => '$amount / شخص';
+  @override
+  String pricePerUnit(String amount) => '$amount / وحدة';
+  @override
+  String pricePerSqm(String amount) => '$amount / م²';
+  @override
+  String pricePerKm(String amount) => '$amount / كم';
+  @override
+  String priceNegotiableWithAmount(String amount) => '$amount · قابل للتفاوض';
+  @override
+  String get enterValidPrice => 'أدخل سعرًا صالحًا';
+  @override
+  String get minPriceExceedsMax =>
+      'لا يمكن أن يتجاوز الحد الأدنى للسعر الحد الأقصى';
   @override
   String get acceptedPaymentMethods => 'طرق الدفع المقبولة';
   @override

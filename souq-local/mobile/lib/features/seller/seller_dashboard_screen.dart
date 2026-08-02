@@ -351,6 +351,12 @@ class SellerDashboardScreen extends ConsumerWidget {
                             onTap: () => context.push('/seller/products'),
                           ),
                           DashboardMenuTile(
+                            title: l10n.serviceManagement,
+                            subtitle: l10n.serviceManagementSub,
+                            icon: Icons.handyman_outlined,
+                            onTap: () => context.push('/seller/services'),
+                          ),
+                          DashboardMenuTile(
                             title: l10n.reviews,
                             subtitle: l10n.reviewsSub,
                             icon: Icons.rate_review_outlined,

@@ -297,6 +297,25 @@ class AppStringsEn extends AppStrings {
   @override
   String get productDeleted => 'Product deleted';
   @override
+  String get serviceManagement => 'Service management';
+  @override
+  String get serviceManagementSub => 'Add, edit, or remove services and pricing';
+  @override
+  String get addService => 'Add service';
+  @override
+  String get editService => 'Edit service';
+  @override
+  String get deleteService => 'Delete service';
+  @override
+  String get deleteServiceConfirm =>
+      'Delete this service? Buyers will no longer see it on your storefront.';
+  @override
+  String get noServicesYet => 'No services yet. Add your first service.';
+  @override
+  String get serviceSaved => 'Service saved';
+  @override
+  String get serviceDeleted => 'Service deleted';
+  @override
   String get profileSaved => 'Profile updated';
   @override
   String get storeVisible => 'Store is visible to buyers';
@@ -379,6 +398,8 @@ class AppStringsEn extends AppStrings {
   String get description => 'Description';
   @override
   String get priceOptional => 'Price (MAD, optional)';
+  @override
+  String get priceMad => 'Price (MAD)';
   @override
   String get addAnotherItem => 'Add another item';
   @override
@@ -521,6 +542,68 @@ class AppStringsEn extends AppStrings {
   String get priceOnRequest => 'Price on request';
   @override
   String get priceNegotiable => 'Price negotiable';
+  @override
+  String get pricingModel => 'Pricing model';
+  @override
+  String get pricingModelFixedPrice => 'Fixed price';
+  @override
+  String get pricingModelStartingFrom => 'Starting from';
+  @override
+  String get pricingModelPriceRange => 'Price range';
+  @override
+  String get pricingModelHourly => 'Hourly';
+  @override
+  String get pricingModelDaily => 'Daily';
+  @override
+  String get pricingModelWeekly => 'Weekly';
+  @override
+  String get pricingModelMonthly => 'Monthly';
+  @override
+  String get pricingModelPerPerson => 'Per person';
+  @override
+  String get pricingModelPerUnit => 'Per unit';
+  @override
+  String get pricingModelPerSqm => 'Per m²';
+  @override
+  String get pricingModelPerKm => 'Per km';
+  @override
+  String get pricingModelRequestQuote => 'Request quote';
+  @override
+  String get pricingModelContactForPrice => 'Contact for price';
+  @override
+  String get pricingModelNegotiable => 'Negotiable';
+  @override
+  String get pricingModelFree => 'Free';
+  @override
+  String get minPrice => 'Minimum price (MAD)';
+  @override
+  String get maxPrice => 'Maximum price (MAD)';
+  @override
+  String priceStartingFrom(String amount) => 'From $amount';
+  @override
+  String priceRangeLabel(String min, String max) => '$min – $max';
+  @override
+  String pricePerHour(String amount) => '$amount / hour';
+  @override
+  String pricePerDay(String amount) => '$amount / day';
+  @override
+  String pricePerWeek(String amount) => '$amount / week';
+  @override
+  String pricePerMonth(String amount) => '$amount / month';
+  @override
+  String pricePerPerson(String amount) => '$amount / person';
+  @override
+  String pricePerUnit(String amount) => '$amount / unit';
+  @override
+  String pricePerSqm(String amount) => '$amount / m²';
+  @override
+  String pricePerKm(String amount) => '$amount / km';
+  @override
+  String priceNegotiableWithAmount(String amount) => '$amount · negotiable';
+  @override
+  String get enterValidPrice => 'Enter a valid price';
+  @override
+  String get minPriceExceedsMax => 'Minimum price cannot exceed maximum price';
   @override
   String get acceptedPaymentMethods => 'Accepted payment methods';
   @override

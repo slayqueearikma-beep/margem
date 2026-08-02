@@ -28,6 +28,7 @@ import 'features/seller/seller_catalog_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
 import 'features/seller/seller_products_screen.dart';
+import 'features/seller/seller_services_screen.dart';
 import 'features/seller/seller_profile_screen.dart';
 import 'features/seller/seller_reviews_screen.dart';
 import 'features/seller/seller_settings_screen.dart';
@@ -48,6 +49,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final path = state.matchedLocation;
       final isSellerManagement = path == '/seller/dashboard' ||
           path.startsWith('/seller/products') ||
+          path.startsWith('/seller/services') ||
           path.startsWith('/seller/profile') ||
           path.startsWith('/seller/reviews') ||
           path.startsWith('/seller/notifications') ||
@@ -143,9 +145,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/seller/products/new',
           builder: (_, __) => const SellerProductEditorScreen()),
       GoRoute(
-        path: '/seller/products/:productId',
-        builder: (_, state) => SellerProductEditorScreen(
-            productId: state.pathParameters['productId']),
+          path: '/seller/products/:productId',
+          builder: (_, state) => SellerProductEditorScreen(
+              productId: state.pathParameters['productId'])),
+      GoRoute(
+          path: '/seller/services',
+          builder: (_, __) => const SellerServicesScreen()),
+      GoRoute(
+          path: '/seller/services/new',
+          builder: (_, __) => const SellerServiceEditorScreen()),
+      GoRoute(
+        path: '/seller/services/:serviceId',
+        builder: (_, state) => SellerServiceEditorScreen(
+            serviceId: state.pathParameters['serviceId']),
       ),
       GoRoute(
           path: '/seller/profile',

@@ -289,6 +289,31 @@ class ApiService {
     await deletePath('/sellers/$sellerId/products/$productId', auth: true);
   }
 
+  Future<ServiceModel> addService(
+    String sellerId,
+    ServiceCreatePayload payload,
+  ) async {
+    final data = await postJson('/sellers/$sellerId/services', payload.toJson(), auth: true);
+    return ServiceModel.fromJson(data);
+  }
+
+  Future<ServiceModel> updateService(
+    String sellerId,
+    String serviceId,
+    ServiceUpdatePayload payload,
+  ) async {
+    final data = await patchJson(
+      '/sellers/$sellerId/services/$serviceId',
+      payload.toJson(),
+      auth: true,
+    );
+    return ServiceModel.fromJson(data);
+  }
+
+  Future<void> deleteService(String sellerId, String serviceId) async {
+    await deletePath('/sellers/$sellerId/services/$serviceId', auth: true);
+  }
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
