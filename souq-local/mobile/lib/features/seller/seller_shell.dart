@@ -51,6 +51,10 @@ class SellerShell extends ConsumerWidget {
     );
   }
 
+  void _selectTab(WidgetRef ref, int tabIndex) {
+    ref.read(sellerTabIndexProvider.notifier).state = tabIndex;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -86,39 +90,42 @@ class SellerShell extends ConsumerWidget {
           child: const Icon(Icons.add_rounded, size: 30),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: index < 2 ? index : index + 1,
+        bottomNavigationBar: BottomAppBar(
           height: 68,
-          onDestinationSelected: (i) {
-            if (i == 2) return;
-            ref.read(sellerTabIndexProvider.notifier).state = i < 2 ? i : i - 1;
-          },
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.dashboard_outlined),
-              selectedIcon: const Icon(Icons.dashboard_rounded),
-              label: l10n.navDashboard,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.handyman_outlined),
-              selectedIcon: const Icon(Icons.handyman_rounded),
-              label: l10n.navServices,
-            ),
-            const NavigationDestination(
-              icon: SizedBox(width: 56),
-              label: '',
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.event_note_outlined),
-              selectedIcon: const Icon(Icons.event_note_rounded),
-              label: l10n.navBookings,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.menu_rounded),
-              selectedIcon: const Icon(Icons.menu_rounded),
-              label: l10n.navMore,
-            ),
-          ],
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: [
+              _SellerNavItem(
+                icon: Icons.dashboard_outlined,
+                selectedIcon: Icons.dashboard_rounded,
+                label: l10n.navDashboard,
+                selected: index == 0,
+                onTap: () => _selectTab(ref, 0),
+              ),
+              _SellerNavItem(
+                icon: Icons.handyman_outlined,
+                selectedIcon: Icons.handyman_rounded,
+                label: l10n.navServices,
+                selected: index == 1,
+                onTap: () => _selectTab(ref, 1),
+              ),
+              const SizedBox(width: 56),
+              _SellerNavItem(
+                icon: Icons.event_note_outlined,
+                selectedIcon: Icons.event_note_rounded,
+                label: l10n.navBookings,
+                selected: index == 2,
+                onTap: () => _selectTab(ref, 2),
+              ),
+              _SellerNavItem(
+                icon: Icons.menu_rounded,
+                selectedIcon: Icons.menu_rounded,
+                label: l10n.navMore,
+                selected: index == 3,
+                onTap: () => _selectTab(ref, 3),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -151,5 +158,53 @@ class SellerShell extends ConsumerWidget {
       ];
     }
     return null;
+  }
+}
+
+class _SellerNavItem extends StatelessWidget {
+  const _SellerNavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.primary : AppColors.textSecondary;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(selected ? selectedIcon : icon, color: color, size: 24),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

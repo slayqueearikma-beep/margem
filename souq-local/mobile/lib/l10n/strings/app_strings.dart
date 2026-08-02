@@ -83,8 +83,8 @@ abstract class AppStrings {
   String filterActive(int count);
   String filterInactive(int count);
   String bookingsUpcoming(int count);
-  String get bookingsCompleted;
-  String get bookingsCancelled;
+  String bookingsCompleted(int count);
+  String bookingsCancelled(int count);
   String get noBookingsYet;
   String get noBookingsInCategory;
   String get bookingsInquiryHint;

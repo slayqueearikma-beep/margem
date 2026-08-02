@@ -169,11 +169,14 @@ class AppStringsEn extends AppStrings {
   @override
   String filterInactive(int count) => 'Inactive ($count)';
   @override
-  String bookingsUpcoming(int count) => 'Upcoming ($count)';
+  String bookingsUpcoming(int count) =>
+      count > 0 ? 'Upcoming ($count)' : 'Upcoming';
   @override
-  String get bookingsCompleted => 'Completed';
+  String bookingsCompleted(int count) =>
+      count > 0 ? 'Completed ($count)' : 'Completed';
   @override
-  String get bookingsCancelled => 'Cancelled';
+  String bookingsCancelled(int count) =>
+      count > 0 ? 'Cancelled ($count)' : 'Cancelled';
   @override
   String get noBookingsYet => 'No bookings yet. Customer inquiries appear here.';
   @override

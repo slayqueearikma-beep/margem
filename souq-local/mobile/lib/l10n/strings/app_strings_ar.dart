@@ -168,11 +168,14 @@ class AppStringsAr extends AppStringsEn {
   @override
   String filterInactive(int count) => 'غير نشط ($count)';
   @override
-  String bookingsUpcoming(int count) => 'قادم ($count)';
+  String bookingsUpcoming(int count) =>
+      count > 0 ? 'قادم ($count)' : 'قادم';
   @override
-  String get bookingsCompleted => 'مكتمل';
+  String bookingsCompleted(int count) =>
+      count > 0 ? 'مكتمل ($count)' : 'مكتمل';
   @override
-  String get bookingsCancelled => 'ملغى';
+  String bookingsCancelled(int count) =>
+      count > 0 ? 'ملغى ($count)' : 'ملغى';
   @override
   String get noBookingsYet =>
       'لا توجد حجوزات بعد. ستظهر استفسارات العملاء هنا.';
