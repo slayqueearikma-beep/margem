@@ -27,7 +27,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
           subtitle: l10n.discoverSubtitle,
           backgroundColor: AppColors.surfaceMuted,
           icon: Icons.lightbulb_outline_rounded,
-          imageAsset: 'assets/images/margem_logo.png',
+          imageAsset: 'assets/images/margem_logo_full.png',
           imageFit: BoxFit.contain,
         ),
         _SlideData(

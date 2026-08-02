@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../config/app_config.dart';
 import '../theme/app_colors.dart';
 
-/// MarGem brand logo — icon, wordmark, and lockup variants.
+/// MarGem brand logo — raster lockup and icon variants.
 class AppBrandLogo extends StatelessWidget {
   const AppBrandLogo({
     super.key,
@@ -20,33 +19,27 @@ class AppBrandLogo extends StatelessWidget {
   final double iconSize;
   final bool showTagline;
 
-  static const _logoAsset = 'assets/images/margem_logo.png';
+  static const _iconAsset = 'assets/images/margem_logo.png';
+  static const _fullAsset = 'assets/images/margem_logo_full.png';
+  static const _fullAspect = 1536 / 1024;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Semantics(
       label: 'MarGem logo',
       child: switch (variant) {
         AppBrandLogoVariant.full => _FullLockup(
-            iconSize: width != null ? width! * 0.55 : 120,
-            showTagline: showTagline,
-            isDark: isDark,
-          ),
-        AppBrandLogoVariant.lockup => _HorizontalLockup(
+            width: width,
+            height: height,
             iconSize: iconSize,
-            isDark: isDark,
           ),
+        AppBrandLogoVariant.lockup => _HorizontalLockup(iconSize: iconSize),
         AppBrandLogoVariant.icon => _LogoImage(
-            asset: _logoAsset,
+            asset: _iconAsset,
             width: iconSize,
             height: iconSize,
           ),
-        AppBrandLogoVariant.wordmark => _Wordmark(
-            height: iconSize * 0.55,
-            isDark: isDark,
-          ),
+        AppBrandLogoVariant.wordmark => _Wordmark(height: iconSize * 0.55),
       },
     );
   }
@@ -54,51 +47,32 @@ class AppBrandLogo extends StatelessWidget {
 
 class _FullLockup extends StatelessWidget {
   const _FullLockup({
+    required this.width,
+    required this.height,
     required this.iconSize,
-    required this.showTagline,
-    required this.isDark,
   });
 
+  final double? width;
+  final double? height;
   final double iconSize;
-  final bool showTagline;
-  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    final taglineColor =
-        (isDark ? Colors.white : AppColors.charcoal).withValues(alpha: 0.72);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _LogoImage(asset: AppBrandLogo._logoAsset, width: iconSize, height: iconSize),
-        SizedBox(height: iconSize * 0.18),
-        _Wordmark(height: iconSize * 0.28, isDark: isDark),
-        if (showTagline) ...[
-          SizedBox(height: iconSize * 0.1),
-          Text(
-            AppConfig.appTagline.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: iconSize * 0.09,
-              letterSpacing: 1.1,
-              fontWeight: FontWeight.w600,
-              color: taglineColor,
-            ),
-          ),
-        ],
-      ],
+    final displayWidth = width ?? iconSize * 1.15;
+    final displayHeight = height ?? displayWidth * AppBrandLogo._fullAspect;
+
+    return _LogoImage(
+      asset: AppBrandLogo._fullAsset,
+      width: displayWidth,
+      height: displayHeight,
     );
   }
 }
 
 class _HorizontalLockup extends StatelessWidget {
-  const _HorizontalLockup({
-    required this.iconSize,
-    required this.isDark,
-  });
+  const _HorizontalLockup({required this.iconSize});
 
   final double iconSize;
-  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
@@ -106,12 +80,12 @@ class _HorizontalLockup extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _LogoImage(
-          asset: AppBrandLogo._logoAsset,
+          asset: AppBrandLogo._iconAsset,
           width: iconSize,
           height: iconSize,
         ),
         SizedBox(width: iconSize * 0.22),
-        _Wordmark(height: iconSize * 0.52, isDark: isDark),
+        _Wordmark(height: iconSize * 0.52),
       ],
     );
   }
@@ -189,13 +163,13 @@ class AppLogoHeader extends StatelessWidget {
 }
 
 class _Wordmark extends StatelessWidget {
-  const _Wordmark({required this.height, required this.isDark});
+  const _Wordmark({required this.height});
 
   final double height;
-  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final marColor = isDark ? Colors.white : AppColors.charcoal;
     return RichText(
       text: TextSpan(
