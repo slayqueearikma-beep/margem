@@ -139,6 +139,75 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get navMessages => 'Messages';
   @override
+  String get navDashboard => 'Tableau de bord';
+  @override
+  String get navServices => 'Services';
+  @override
+  String get navBookings => 'Réservations';
+  @override
+  String get navMore => 'Plus';
+  @override
+  String get earnings => 'Revenus';
+  @override
+  String get gallery => 'Galerie';
+  @override
+  String get businessInfo => 'Infos commerce';
+  @override
+  String get helpSupport => 'Aide & support';
+  @override
+  String get comingSoon => 'Bientôt';
+  @override
+  String get upcomingBookings => 'Réservations à venir';
+  @override
+  String get viewAll => 'Tout voir';
+  @override
+  String get highlightServices => 'Services en vedette';
+  @override
+  String get upcoming => 'À venir';
+  @override
+  String filterAll(int count) => 'Tous ($count)';
+  @override
+  String filterActive(int count) => 'Actifs ($count)';
+  @override
+  String filterInactive(int count) => 'Inactifs ($count)';
+  @override
+  String bookingsUpcoming(int count) => 'À venir ($count)';
+  @override
+  String get bookingsCompleted => 'Terminées';
+  @override
+  String get bookingsCancelled => 'Annulées';
+  @override
+  String get noBookingsYet =>
+      'Aucune réservation. Les demandes clients apparaîtront ici.';
+  @override
+  String get noBookingsInCategory => 'Rien dans cette catégorie.';
+  @override
+  String get bookingsInquiryHint =>
+      'Ouvrez les messages pour répondre aux clients.';
+  @override
+  String get viewMessages => 'Voir les messages';
+  @override
+  String get today => 'Aujourd\'hui';
+  @override
+  String favoritesCount(int count) => '$count favoris sur votre vitrine';
+  @override
+  String get stepBasicInfo => 'Infos de base';
+  @override
+  String get stepPricing => 'Tarification';
+  @override
+  String get stepDetails => 'Détails';
+  @override
+  String get customersWillSee => 'Les clients verront :';
+  @override
+  String get nextStep => 'Continuer';
+  @override
+  String get publishService => 'Publier le service';
+  @override
+  String get serviceStatusLive => 'Service en ligne';
+  @override
+  String get serviceDetailsHint =>
+      'Vous pouvez modifier la disponibilité et les tarifs à tout moment.';
+  @override
   String get margemMember => 'Membre MarGem';
   @override
   String get allCategories => 'Tous';
@@ -701,8 +770,6 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get writeYourMessage => 'Écrivez votre message...';
   @override
-  String favoritesCount(int count) =>
-      count == 1 ? '1 favori' : '$count favoris';
   @override
   String followersCount(int count) =>
       count == 1 ? '1 abonné' : '$count abonnés';

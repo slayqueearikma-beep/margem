@@ -136,6 +136,74 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get navMessages => 'الرسائل';
   @override
+  String get navDashboard => 'لوحة التحكم';
+  @override
+  String get navServices => 'الخدمات';
+  @override
+  String get navBookings => 'الحجوزات';
+  @override
+  String get navMore => 'المزيد';
+  @override
+  String get earnings => 'الأرباح';
+  @override
+  String get gallery => 'المعرض';
+  @override
+  String get businessInfo => 'معلومات النشاط';
+  @override
+  String get helpSupport => 'المساعدة والدعم';
+  @override
+  String get comingSoon => 'قريبًا';
+  @override
+  String get upcomingBookings => 'الحجوزات القادمة';
+  @override
+  String get viewAll => 'عرض الكل';
+  @override
+  String get highlightServices => 'خدمات مميزة';
+  @override
+  String get upcoming => 'قادم';
+  @override
+  String filterAll(int count) => 'الكل ($count)';
+  @override
+  String filterActive(int count) => 'نشط ($count)';
+  @override
+  String filterInactive(int count) => 'غير نشط ($count)';
+  @override
+  String bookingsUpcoming(int count) => 'قادم ($count)';
+  @override
+  String get bookingsCompleted => 'مكتمل';
+  @override
+  String get bookingsCancelled => 'ملغى';
+  @override
+  String get noBookingsYet =>
+      'لا توجد حجوزات بعد. ستظهر استفسارات العملاء هنا.';
+  @override
+  String get noBookingsInCategory => 'لا يوجد شيء في هذه الفئة بعد.';
+  @override
+  String get bookingsInquiryHint => 'افتح الرسائل للرد على العملاء.';
+  @override
+  String get viewMessages => 'عرض الرسائل';
+  @override
+  String get today => 'اليوم';
+  @override
+  String favoritesCount(int count) => '$count مفضلة في متجرك';
+  @override
+  String get stepBasicInfo => 'المعلومات الأساسية';
+  @override
+  String get stepPricing => 'التسعير';
+  @override
+  String get stepDetails => 'التفاصيل';
+  @override
+  String get customersWillSee => 'سيرى العملاء:';
+  @override
+  String get nextStep => 'متابعة';
+  @override
+  String get publishService => 'نشر الخدمة';
+  @override
+  String get serviceStatusLive => 'الخدمة متاحة';
+  @override
+  String get serviceDetailsHint =>
+      'يمكنك تحديث التوفر والأسعار في أي وقت من تبويب الخدمات.';
+  @override
   String get margemMember => 'عضو MarGem';
   @override
   String get allCategories => 'الكل';
@@ -681,7 +749,6 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get writeYourMessage => 'اكتب رسالتك...';
   @override
-  String favoritesCount(int count) => '$count مفضلة';
   @override
   String followersCount(int count) =>
       count == 1 ? 'متابع واحد' : '$count متابع';
