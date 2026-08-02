@@ -371,6 +371,7 @@ class BuyerHomeScreen extends ConsumerWidget {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (e, _) => SliverFillRemaining(
+              hasScrollBody: true,
               child: AsyncErrorView.fromError(
                 e,
                 onRetry: () => ref.invalidate(buyerSellersProvider),

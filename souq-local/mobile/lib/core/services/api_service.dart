@@ -237,10 +237,15 @@ class ApiService {
       return 'Cannot reach the server. Check your internet connection and try again.';
     }
     final base = AppConfig.apiBaseUrl;
-    final tip = RegExp(r':\d+$').hasMatch(base)
+    final tunnelHint = base.contains('trycloudflare.com')
+        ? '\n\nCloudflare quick tunnels expire when you stop cloudflared. '
+            'Restart the tunnel and update API_BASE_URL, or use your laptop IP:\n'
+            'flutter run --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000'
+        : '';
+    final portTip = RegExp(r':\d+$').hasMatch(base)
         ? ''
         : '\nTip: API_BASE_URL must include a colon before the port, e.g. http://192.168.1.10:8000';
-    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$tip';
+    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$portTip$tunnelHint';
   }
 
   Future<SellerModel> createSeller(SellerCreatePayload payload) async {
