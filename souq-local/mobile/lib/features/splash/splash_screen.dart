@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_brand_logo.dart';
+import '../../core/widgets/margem_background.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -24,14 +24,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1200));
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
     _scale = Tween<double>(begin: 0.85, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
     _fade = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
-          parent: _controller,
-          curve: const Interval(0, 0.6, curve: Curves.easeOut)),
+        parent: _controller,
+        curve: const Interval(0, 0.6, curve: Curves.easeOut),
+      ),
     );
     _controller.forward();
     _navigateNext();
@@ -75,9 +78,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         if (mounted) context.go('/login');
         return;
       }
-      // A refresh may have succeeded after the first restore attempt. Re-read
-      // /auth/me so authSessionProvider and the persisted routing session stay
-      // coherent after a cold start.
       restored ??= await ref.read(authServiceProvider).restoreAuthSession();
       if (restored == null) {
         await storage.logout();
@@ -118,15 +118,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.splashBackground,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fade,
-          child: ScaleTransition(
-            scale: _scale,
-            child: AppBrandLogo.forContext(
-              AppBrandContext.compactBranding,
-              size: 120,
+      body: MargemBackground(
+        child: Center(
+          child: FadeTransition(
+            opacity: _fade,
+            child: ScaleTransition(
+              scale: _scale,
+              child: AppBrandLogo.forContext(
+                AppBrandContext.primaryBranding,
+                size: 100,
+              ),
             ),
           ),
         ),

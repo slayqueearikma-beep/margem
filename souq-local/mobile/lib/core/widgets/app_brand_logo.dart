@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'margem_m_logo.dart';
 
 /// Where the logo appears — drives full lockup vs icon-only per brand rules.
 enum AppBrandContext {
@@ -17,7 +18,7 @@ enum AppBrandContext {
   compactBranding,
 }
 
-/// MarGem brand logo — raster full lockup or icon-only.
+/// MarGem brand logo — vector M mark or raster lockup.
 class AppBrandLogo extends StatelessWidget {
   const AppBrandLogo({
     super.key,
@@ -91,12 +92,9 @@ class AppBrandLogo extends StatelessWidget {
             width: width,
             height: height,
             iconSize: iconSize,
+            showTagline: showTagline,
           ),
-        AppBrandLogoVariant.icon => _LogoImage(
-            asset: _iconAsset,
-            width: iconSize,
-            height: iconSize,
-          ),
+        AppBrandLogoVariant.icon => _LogoMark(size: iconSize),
         AppBrandLogoVariant.lockup => _HorizontalLockup(iconSize: iconSize),
         AppBrandLogoVariant.wordmark => _Wordmark(height: iconSize * 0.55),
       },
@@ -109,25 +107,29 @@ class _FullLockup extends StatelessWidget {
     required this.width,
     required this.height,
     required this.iconSize,
+    required this.showTagline,
   });
 
   final double? width;
   final double? height;
   final double iconSize;
+  final bool showTagline;
 
   @override
   Widget build(BuildContext context) {
-    final displayWidth = width ?? iconSize * 1.15;
-
     return _LogoImage(
       asset: AppBrandLogo._fullAsset,
-      width: displayWidth,
+      width: width ?? iconSize * 1.15,
       height: height,
+      fallback: MargemMLogo(
+        size: iconSize,
+        showWordmark: true,
+        wordmarkSize: iconSize * 0.22,
+      ),
     );
   }
 }
 
-/// Prefer [AppBrandLogo.forContext] — horizontal lockup is legacy only.
 class _HorizontalLockup extends StatelessWidget {
   const _HorizontalLockup({required this.iconSize});
 
@@ -135,10 +137,29 @@ class _HorizontalLockup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _LogoMark(size: iconSize),
+        SizedBox(width: iconSize * 0.2),
+        _Wordmark(height: iconSize * 0.55),
+      ],
+    );
+  }
+}
+
+class _LogoMark extends StatelessWidget {
+  const _LogoMark({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
     return _LogoImage(
       asset: AppBrandLogo._iconAsset,
-      width: iconSize,
-      height: iconSize,
+      width: size,
+      height: size,
+      fallback: MargemMLogo(size: size),
     );
   }
 }
@@ -148,11 +169,13 @@ class _LogoImage extends StatelessWidget {
     required this.asset,
     this.width,
     this.height,
+    required this.fallback,
   });
 
   final String asset;
   final double? width;
   final double? height;
+  final Widget fallback;
 
   @override
   Widget build(BuildContext context) {
@@ -162,11 +185,7 @@ class _LogoImage extends StatelessWidget {
       height: height,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,
-      errorBuilder: (_, __, ___) => Icon(
-        Icons.location_on_rounded,
-        size: width ?? height ?? 40,
-        color: AppColors.primary,
-      ),
+      errorBuilder: (_, __, ___) => fallback,
     );
   }
 }
@@ -226,7 +245,7 @@ class _Wordmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final marColor = isDark ? Colors.white : AppColors.charcoal;
+    final marColor = isDark ? Colors.white : AppColors.navy;
     return RichText(
       text: TextSpan(
         style: TextStyle(
@@ -237,7 +256,7 @@ class _Wordmark extends StatelessWidget {
         ),
         children: [
           TextSpan(text: 'Mar', style: TextStyle(color: marColor)),
-          const TextSpan(text: 'Gem', style: TextStyle(color: AppColors.primary)),
+          const TextSpan(text: 'Gem', style: TextStyle(color: AppColors.lavender)),
         ],
       ),
     );

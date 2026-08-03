@@ -84,9 +84,6 @@ class SellerShell extends ConsumerWidget {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _showAddSheet(context),
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 4,
           child: const Icon(Icons.add_rounded, size: 30),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

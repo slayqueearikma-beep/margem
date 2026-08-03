@@ -68,10 +68,23 @@ class AppStringsFr extends AppStringsEn {
   String get trustedReviewsSubtitle =>
       'Consultez les notes des acheteurs et découvrez les commerces les plus fiables de votre ville.';
   @override
-  String get chooseAccountType => 'Choisissez votre type de compte';
+  String get chooseAccountType => 'Bienvenue sur MarGem';
   @override
   String get chooseAccountTypeSubtitle =>
-      'Un seul compte pour les deux. Commencez comme acheteur ou créez une boutique — changez à tout moment avec le même e-mail et mot de passe.';
+      'Rejoignez notre communauté et découvrez les perles cachées du Maroc.';
+  @override
+  String get accountTypeSectionLabel => 'Choisissez votre type de compte';
+  @override
+  String get decideLater => 'Je déciderai plus tard';
+  @override
+  String get secureSignupLine1 => 'Vos données sont chiffrées et sécurisées.';
+  @override
+  String get secureSignupLine2 =>
+      'Nous ne partageons jamais vos informations personnelles.';
+  @override
+  String get continueAsBuyer => 'Continuer en tant qu\'acheteur';
+  @override
+  String get continueAsSeller => 'Continuer en tant que vendeur';
   @override
   String get buyer => 'Acheteur';
   @override

@@ -36,6 +36,12 @@ abstract class AppStrings {
   String get trustedReviewsSubtitle;
   String get chooseAccountType;
   String get chooseAccountTypeSubtitle;
+  String get accountTypeSectionLabel;
+  String get decideLater;
+  String get secureSignupLine1;
+  String get secureSignupLine2;
+  String get continueAsBuyer;
+  String get continueAsSeller;
   String get buyer;
   String get buyerSubtitle;
   String get seller;

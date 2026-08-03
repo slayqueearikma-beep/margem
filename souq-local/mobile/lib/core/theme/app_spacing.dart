@@ -12,8 +12,14 @@ class AppSpacing {
 
   static const screenHorizontal = 24.0;
   static const cardRadius = 20.0;
+  static const cardRadiusLg = 24.0;
   static const buttonRadius = 16.0;
   static const inputRadius = 16.0;
   static const chipRadius = 999.0;
   static const illustrationRadius = 24.0;
+
+  static const minTouchTarget = 48.0;
+  static const iconSm = 20.0;
+  static const iconMd = 24.0;
+  static const iconLg = 32.0;
 }

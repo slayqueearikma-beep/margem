@@ -68,10 +68,22 @@ class AppStringsAr extends AppStringsEn {
   String get trustedReviewsSubtitle =>
       'اقرأ تقييمات المشترين الحقيقيين واكتشف أكثر المحلات موثوقية في مدينتك.';
   @override
-  String get chooseAccountType => 'اختر نوع حسابك';
+  String get chooseAccountType => 'مرحباً بك في MarGem';
   @override
   String get chooseAccountTypeSubtitle =>
-      'حساب واحد للاثنين. ابدأ كمتسوّق أو أنشئ متجراً — يمكنك التبديل في أي وقت بنفس البريد وكلمة المرور.';
+      'انضم إلى مجتمعنا واكتشف جواهر المغرب المخفية.';
+  @override
+  String get accountTypeSectionLabel => 'اختر نوع حسابك';
+  @override
+  String get decideLater => 'سأقرر لاحقاً';
+  @override
+  String get secureSignupLine1 => 'بياناتك مشفرة وآمنة.';
+  @override
+  String get secureSignupLine2 => 'لن نشارك معلوماتك الشخصية أبداً.';
+  @override
+  String get continueAsBuyer => 'المتابعة كمشتري';
+  @override
+  String get continueAsSeller => 'المتابعة كبائع';
   @override
   String get buyer => 'مشتري';
   @override

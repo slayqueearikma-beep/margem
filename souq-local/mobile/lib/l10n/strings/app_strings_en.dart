@@ -67,10 +67,22 @@ class AppStringsEn extends AppStrings {
   String get trustedReviewsSubtitle =>
       'Read ratings from real buyers and discover the most trusted businesses in your city.';
   @override
-  String get chooseAccountType => 'Choose your account type';
+  String get chooseAccountType => 'Welcome to MarGem';
   @override
   String get chooseAccountTypeSubtitle =>
-      'One account for both. Start as a shopper or set up a business — you can switch anytime with the same email and password.';
+      'Join our community and discover Morocco\'s hidden gems.';
+  @override
+  String get accountTypeSectionLabel => 'Choose your account type';
+  @override
+  String get decideLater => 'I\'ll decide later';
+  @override
+  String get secureSignupLine1 => 'Your data is encrypted and secure.';
+  @override
+  String get secureSignupLine2 => 'We never share your personal information.';
+  @override
+  String get continueAsBuyer => 'Continue as Buyer';
+  @override
+  String get continueAsSeller => 'Continue as Seller';
   @override
   String get buyer => 'Buyer';
   @override
