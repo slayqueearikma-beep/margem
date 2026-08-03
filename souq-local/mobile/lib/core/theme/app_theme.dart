@@ -38,7 +38,7 @@ class AppTheme {
       scaffoldBackgroundColor:
           isDark ? AppColors.darkBackground : AppColors.surfaceLight,
       textTheme: textTheme,
-      appBarTheme: AppBarTheme(
+      appBarTheme: AppBarThemeData(
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -64,7 +64,7 @@ class AppTheme {
         color: isDark ? AppColors.darkBorder : AppColors.border,
         thickness: 1,
       ),
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: InputDecorationThemeData(
         filled: true,
         fillColor: isDark ? AppColors.darkCard : AppColors.surfaceMuted,
         labelStyle: TextStyle(
@@ -168,7 +168,7 @@ class AppTheme {
           );
         }),
       ),
-      bottomAppBarTheme: BottomAppBarTheme(
+      bottomAppBarTheme: BottomAppBarThemeData(
         color: isDark ? AppColors.darkSurface : Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -203,7 +203,7 @@ class AppTheme {
         ),
         dragHandleColor: isDark ? AppColors.darkBorder : AppColors.border,
       ),
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: AppColors.lavender,
         unselectedLabelColor:
             isDark ? AppColors.textTertiary : AppColors.textSecondary,
