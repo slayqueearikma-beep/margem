@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../utils/directional_ui.dart';
 import '../../l10n/app_localizations.dart';
 
 enum SignupVerificationChannel { email, phone }
@@ -188,7 +189,7 @@ class _ChannelTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded,
+              Icon(DirectionalUi.forwardChevron(context),
                   color: AppColors.textSecondary),
             ],
           ),
@@ -341,7 +342,7 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                  icon: Icon(DirectionalUi.backArrow(context), size: 18),
                 ),
                 const Spacer(),
                 IconButton(

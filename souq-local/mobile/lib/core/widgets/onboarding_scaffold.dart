@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../utils/directional_ui.dart';
 import 'margem_background.dart';
 
 class StepProgressBar extends StatelessWidget {
@@ -24,7 +25,9 @@ class StepProgressBar extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            margin: EdgeInsets.only(right: index < totalSteps - 1 ? 6 : 0),
+            margin: EdgeInsetsDirectional.only(
+              end: index < totalSteps - 1 ? 6 : 0,
+            ),
             height: 4,
             decoration: BoxDecoration(
               color: isActive ? AppColors.lavender : AppColors.border,
@@ -106,9 +109,9 @@ class OnboardingScaffold extends StatelessWidget {
                   children: [
                     if (showBack)
                       Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: AlignmentDirectional.centerStart,
                         child: _GlassIconButton(
-                          icon: Icons.arrow_back_ios_new_rounded,
+                          icon: DirectionalUi.backArrow(context),
                           onPressed:
                               onBack ?? () => Navigator.of(context).maybePop(),
                         ),

@@ -1030,6 +1030,41 @@ class AppStringsEn extends AppStrings {
   @override
   String get markAllRead => 'Mark all read';
   @override
+  String get ok => 'OK';
+  @override
+  String get done => 'Done';
+  @override
+  String get twoFactorAuthTitle => 'Two-factor authentication';
+  @override
+  String get twoFactorAuthCodeLabel => 'Authenticator code';
+  @override
+  String get conversationDefault => 'Conversation';
+  @override
+  String get tapToOpenConversation => 'Tap to open conversation';
+  @override
+  String get demoLabel => 'Demo';
+  @override
+  String get demoBusinessesMapHint =>
+      'Demo businesses shown — start the backend API for live data.';
+  @override
+  String get communityPinned => 'Pinned';
+  @override
+  String get mapPreviewTitle => 'Map preview';
+  @override
+  String get mapDemoModeTitle => 'Demo map mode';
+  @override
+  String get mapApiKeyHint =>
+      'Add GOOGLE_MAPS_API_KEY to android/local.properties';
+  @override
+  String mapLocationsInArea(int count) =>
+      count == 1 ? '1 location in this area' : '$count locations in this area';
+  @override
+  String distanceLabel(double km) {
+    if (km < 1) return '${(km * 1000).round()} m';
+    return '${km.toStringAsFixed(1)} km';
+  }
+
+  @override
   String get communityChatTitle => 'City Community';
   @override
   String get communitySearchHint => 'Search channels...';

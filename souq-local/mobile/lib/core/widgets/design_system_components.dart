@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_decorations.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../utils/directional_ui.dart';
 import '../theme/app_typography.dart';
 
 /// Uppercase section label with accent bar — matches account type screen.
@@ -207,7 +208,7 @@ class AppSecondaryActionRow extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded,
+                DirectionalUi.forwardChevron(context),
                 color: isDark ? AppColors.darkTextSecondary : AppColors.textTertiary,
               ),
             ],

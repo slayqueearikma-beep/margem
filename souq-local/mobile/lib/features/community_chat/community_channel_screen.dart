@@ -317,6 +317,7 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final bubbleColor = isMine
         ? AppColors.lavender.withValues(alpha: 0.18)
         : Colors.white.withValues(alpha: 0.9);
@@ -362,8 +363,8 @@ class _MessageBubble extends StatelessWidget {
                           const SizedBox(width: 6),
                           _TrustBadge(score: message.sender.trustScore),
                           if (message.sender.isVerified)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 4),
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(start: 4),
                               child: Icon(
                                 Icons.verified_rounded,
                                 size: 14,
@@ -371,8 +372,8 @@ class _MessageBubble extends StatelessWidget {
                               ),
                             ),
                           if (message.sender.isPremium)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 4),
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(start: 4),
                               child: Icon(
                                 Icons.workspace_premium_rounded,
                                 size: 14,
@@ -382,13 +383,16 @@ class _MessageBubble extends StatelessWidget {
                         ],
                       ),
                     if (message.isPinned)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
                         child: Row(
                           children: [
-                            Icon(Icons.push_pin_rounded, size: 12),
-                            SizedBox(width: 4),
-                            Text('Pinned', style: TextStyle(fontSize: 11)),
+                            const Icon(Icons.push_pin_rounded, size: 12),
+                            const SizedBox(width: 4),
+                            Text(
+                              l10n.communityPinned,
+                              style: const TextStyle(fontSize: 11),
+                            ),
                           ],
                         ),
                       ),

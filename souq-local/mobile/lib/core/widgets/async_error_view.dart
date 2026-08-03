@@ -20,10 +20,8 @@ class AsyncErrorView extends StatelessWidget {
   factory AsyncErrorView.fromError(Object error, {VoidCallback? onRetry}) {
     final text = error is ApiException
         ? error.message
-        : (AppConfig.isProduction
-            ? 'Something went wrong. Please try again.'
-            : error.toString());
-    return AsyncErrorView(message: text, onRetry: onRetry);
+        : (AppConfig.isProduction ? null : error.toString());
+    return AsyncErrorView(message: text ?? '', onRetry: onRetry);
   }
 
   @override
@@ -58,7 +56,9 @@ class AsyncErrorView extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    message,
+                    message.isEmpty
+                        ? context.l10n.somethingWentWrong
+                        : message,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,

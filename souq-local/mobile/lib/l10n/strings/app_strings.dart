@@ -485,6 +485,20 @@ abstract class AppStrings {
   String get followers;
   String get verification;
   String get markAllRead;
+  String get ok;
+  String get done;
+  String get twoFactorAuthTitle;
+  String get twoFactorAuthCodeLabel;
+  String get conversationDefault;
+  String get tapToOpenConversation;
+  String get demoLabel;
+  String get demoBusinessesMapHint;
+  String get communityPinned;
+  String get mapPreviewTitle;
+  String get mapDemoModeTitle;
+  String get mapApiKeyHint;
+  String mapLocationsInArea(int count);
+  String distanceLabel(double km);
 
   // Community chat
   String get communityChatTitle;

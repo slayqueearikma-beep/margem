@@ -168,9 +168,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             color: AppColors.warningMuted,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'Demo',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.demoLabel,
+                            style: const TextStyle(
                               color: AppColors.warning,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -210,7 +210,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     child: Text(
-                      'Demo businesses shown — start the backend API for live data.',
+                      l10n.demoBusinessesMapHint,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),

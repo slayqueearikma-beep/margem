@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_decorations.dart';
 import '../theme/app_shadows.dart';
@@ -250,17 +252,17 @@ class ImageUploadTile extends StatelessWidget {
                     child: Image.asset(
                       imagePath!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder(),
+                      errorBuilder: (_, __, ___) => _placeholder(context),
                     ),
                   )
-                : _placeholder(),
+                : _placeholder(context),
           ),
         ),
       ],
     );
   }
 
-  Widget _placeholder() {
+  Widget _placeholder(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -271,7 +273,7 @@ class ImageUploadTile extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Tap to upload',
+          context.l10n.tapToUpload,
           style: TextStyle(
             color: AppColors.textSecondary.withValues(alpha: 0.9),
             fontSize: 13,

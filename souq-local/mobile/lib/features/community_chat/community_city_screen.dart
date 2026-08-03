@@ -7,6 +7,7 @@ import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/design_system_components.dart';
 import '../../core/widgets/margem_background.dart';
@@ -418,7 +419,7 @@ class _ChannelTile extends StatelessWidget {
         ),
         trailing: channel.messageCount > 0
             ? AppBadge(label: '${channel.messageCount}', small: true)
-            : const Icon(Icons.chevron_right_rounded),
+            : Icon(DirectionalUi.forwardChevron(context)),
       ),
     );
   }

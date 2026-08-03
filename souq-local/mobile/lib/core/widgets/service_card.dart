@@ -4,6 +4,7 @@ import '../../l10n/app_localizations.dart';
 import '../models/models.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../utils/directional_ui.dart';
 import 'network_image_view.dart';
 
 class ServiceCard extends StatelessWidget {
@@ -90,7 +91,7 @@ class ServiceCard extends StatelessWidget {
               ),
               if (onTap != null)
                 Icon(
-                  Icons.chevron_right_rounded,
+                  DirectionalUi.forwardChevron(context),
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
             ],

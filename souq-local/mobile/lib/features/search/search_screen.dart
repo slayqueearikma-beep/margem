@@ -8,7 +8,7 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/utils/geo_utils.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -87,7 +87,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   String _distanceLabel(double? distanceKm) {
     if (distanceKm == null) return '';
-    return GeoUtils.formatDistanceKm(distanceKm);
+    return context.l10n.distanceLabel(distanceKm);
   }
 
   @override
@@ -279,8 +279,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(subtitle),
-                        trailing: const Icon(
-                          Icons.chevron_right_rounded,
+                        trailing: Icon(
+                          DirectionalUi.forwardChevron(context),
                           color: AppColors.textTertiary,
                         ),
                       ),

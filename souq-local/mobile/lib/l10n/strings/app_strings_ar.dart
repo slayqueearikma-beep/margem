@@ -2,7 +2,6 @@ import 'app_strings_en.dart';
 
 class AppStringsAr extends AppStringsEn {
   @override
-  @override
   String get appName => 'MarGem';
   @override
   String get appTagline => 'اكتشف كنوز المغرب المخفية';
@@ -61,7 +60,7 @@ class AppStringsAr extends AppStringsEn {
   String get exploreMapTitle => 'استكشف على الخريطة';
   @override
   String get exploreMapSubtitle =>
-      'تصفح المتاجر القريبة، وفلتر حسب الفئة، واحصل على الاتجاهات فوراً.';
+      'تصفّح المتاجر القريبة، وصفِّ حسب الفئة، واحصل على الاتجاهات فوراً.';
   @override
   String get trustedReviewsTitle => 'تقييمات موثوقة';
   @override
@@ -144,7 +143,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get navMap => 'الخريطة';
   @override
-  String get navProfile => 'الملف';
+  String get navProfile => 'الملف الشخصي';
   @override
   String get navMessages => 'الرسائل';
   @override
@@ -292,7 +291,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get searchSortedByNearest => 'عرض الأقرب أولاً';
   @override
-  String warningZones(int count) => '$count منطقة تحذير';
+  String warningZones(int count) =>
+      count == 1 ? 'منطقة تحذير واحدة' : '$count مناطق تحذير';
   @override
   String get yourProfile => 'ملفك الشخصي';
   @override
@@ -327,7 +327,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get reviewsSub => 'عرض والرد على تقييمات العملاء';
   @override
-  String get profileManagement => 'إدارة الملف';
+  String get profileManagement => 'إدارة الملف الشخصي';
   @override
   String get profileManagementSub => 'تحديث معلومات المحل والساعات والصور';
   @override
@@ -427,12 +427,12 @@ class AppStringsAr extends AppStringsEn {
   String get passwordChanged =>
       'تم تحديث كلمة المرور. سجّل الدخول مجدداً على الأجهزة الأخرى.';
   @override
-  String get recentReviews => 'المراجعات الأخيرة';
+  String get recentReviews => 'أحدث التقييمات';
   @override
   String get noNotifications => 'لا توجد إشعارات جديدة';
   @override
   String get notificationsSubtitle =>
-      'تظهر هنا الاستفسارات والرسائل وتحديثات بريميوم والحساب.';
+      'تظهر هنا الاستفسارات والرسائل وتحديثات الاشتراك المميز والحساب.';
   @override
   String get appearance => 'المظهر';
   @override
@@ -585,11 +585,16 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get priceHint => 'مثال: 49.99';
   @override
-  String get returningUser => 'مستخدم';
+  String get returningUser => 'هل لديك حساب؟';
   @override
   String get sellerDefault => 'بائع';
   @override
-  String itemsCount(int count) => '$count عنصر';
+  String itemsCount(int count) {
+    if (count == 1) return 'عنصر واحد';
+    if (count == 2) return 'عنصران';
+    if (count >= 3 && count <= 10) return '$count عناصر';
+    return '$count عنصراً';
+  }
   @override
   String get guestContinue => 'المتابعة كضيف';
   @override
@@ -609,13 +614,13 @@ class AppStringsAr extends AppStringsEn {
   String get premium => 'بريميوم';
   @override
   String get guestCartSignInHint =>
-      'مفضلتك محفوظة على هذا الجهاز. سجّل الدخول لمزامنتها مع حسابك.';
+      'مفضلاتك محفوظة على هذا الجهاز. سجّل الدخول لمزامنتها مع حسابك.';
   @override
   String get signInToCheckout => 'سجّل الدخول للتواصل مع البائعين';
   @override
   String get subtotal => 'المجموع الفرعي';
   @override
-  String get emptyCart => 'لا توجد مفضلة بعد';
+  String get emptyCart => 'لا توجد مفضلات بعد';
   @override
   String get emptyCartSubtitle =>
       'احفظ المنتجات المحلية التي تعجبك وستظهر هنا.';
@@ -703,7 +708,6 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get acceptedPaymentMethods => 'طرق الدفع المقبولة';
   @override
-  @override
   String get contactSeller => 'تواصل مع البائع';
   @override
   String get messageBusiness => 'مراسلة';
@@ -778,7 +782,6 @@ class AppStringsAr extends AppStringsEn {
   String get moreFromSeller => 'المزيد من هذا البائع';
   @override
   String get writeYourMessage => 'اكتب رسالتك...';
-  @override
   @override
   String followersCount(int count) =>
       count == 1 ? 'متابع واحد' : '$count متابع';
@@ -857,12 +860,12 @@ class AppStringsAr extends AppStringsEn {
   String get cancelOrderConfirm =>
       'هل تريد إلغاء هذا الاستفسار؟ سيتم إشعار البائع.';
   @override
-  String get emptyWishlist => 'المفضلة فارغة';
+  String get emptyWishlist => 'لا توجد مفضلات بعد';
   @override
   String get emptyWishlistSubtitle =>
       'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
   @override
-  String get emptyFavorites => 'المفضلة فارغة';
+  String get emptyFavorites => 'لا توجد مفضلات بعد';
   @override
   String get emptyFavoritesSubtitle =>
       'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
@@ -1025,6 +1028,42 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get markAllRead => 'تعيين الكل كمقروء';
   @override
+  String get ok => 'حسناً';
+  @override
+  String get done => 'تم';
+  @override
+  String get twoFactorAuthTitle => 'المصادقة الثنائية';
+  @override
+  String get twoFactorAuthCodeLabel => 'رمز المصادقة';
+  @override
+  String get conversationDefault => 'محادثة';
+  @override
+  String get tapToOpenConversation => 'اضغط لفتح المحادثة';
+  @override
+  String get demoLabel => 'تجريبي';
+  @override
+  String get demoBusinessesMapHint =>
+      'محلات تجريبية معروضة — شغّل واجهة الخادم للحصول على بيانات حية.';
+  @override
+  String get communityPinned => 'مثبّت';
+  @override
+  String get mapPreviewTitle => 'معاينة الخريطة';
+  @override
+  String get mapDemoModeTitle => 'وضع الخريطة التجريبي';
+  @override
+  String get mapApiKeyHint =>
+      'أضف GOOGLE_MAPS_API_KEY إلى android/local.properties';
+  @override
+  String mapLocationsInArea(int count) => count == 1
+      ? 'موقع واحد في هذه المنطقة'
+      : '$count مواقع في هذه المنطقة';
+  @override
+  String distanceLabel(double km) {
+    if (km < 1) return '${(km * 1000).round()} م';
+    return '${km.toStringAsFixed(1)} كم';
+  }
+
+  @override
   String get communityChatTitle => 'مجتمع المدينة';
   @override
   String get communitySearchHint => 'البحث في القنوات...';
@@ -1037,7 +1076,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get communityNoChannels => 'لم يتم العثور على قنوات';
   @override
-  String get communityNoChannelsSubtitle => 'جرّب فلتراً أو كلمة بحث أخرى.';
+  String get communityNoChannelsSubtitle =>
+      'جرّب تصفية أو كلمة بحث أخرى.';
   @override
   String get communityNewMessage => 'رسالة جديدة';
   @override

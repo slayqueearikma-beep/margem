@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../utils/directional_ui.dart';
 import 'app_brand_logo.dart';
 
 /// Customer-facing UI components matching the Home Screen mockup.
@@ -66,8 +67,8 @@ class BuyerShellHeader extends StatelessWidget {
                 ),
               ),
               if (showPremiumBadge)
-                Positioned(
-                  right: -2,
+                PositionedDirectional(
+                  end: -2,
                   bottom: -2,
                   child: Container(
                     padding: const EdgeInsets.all(3),
@@ -545,7 +546,7 @@ class BuyerSectionHeader extends StatelessWidget {
                     actionLabel!,
                     style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                   ),
-                  const Icon(Icons.chevron_right_rounded, size: 18),
+                  Icon(DirectionalUi.forwardChevron(context), size: 18),
                 ],
               ),
             ),
@@ -612,8 +613,8 @@ class BuyerNearYouCard extends StatelessWidget {
                           ? Image.network(imageUrl, fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _imagePlaceholder())
                           : _imagePlaceholder(),
-                      Positioned(
-                        left: 8,
+                      PositionedDirectional(
+                        start: 8,
                         bottom: 8,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -634,9 +635,9 @@ class BuyerNearYouCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Positioned(
+                      PositionedDirectional(
                         top: 8,
-                        right: 8,
+                        end: 8,
                         child: Material(
                           color: Colors.white,
                           shape: const CircleBorder(),
@@ -1035,8 +1036,8 @@ class BuyerMenuTile extends StatelessWidget {
               if (trailing != null)
                 trailing!
               else if (onTap != null)
-                const Icon(
-                  Icons.chevron_right_rounded,
+                Icon(
+                  DirectionalUi.forwardChevron(context),
                   color: AppColors.textTertiary,
                   size: 20,
                 ),
@@ -1268,8 +1269,8 @@ class BuyerBottomNavBar extends StatelessWidget {
                             size: 24,
                           ),
                           if ((badges[i] ?? 0) > 0)
-                            Positioned(
-                              right: -10,
+                            PositionedDirectional(
+                              end: -10,
                               top: -4,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(

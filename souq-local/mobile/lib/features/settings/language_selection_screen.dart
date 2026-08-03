@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/app_logo_placeholder.dart';
@@ -84,7 +85,7 @@ class _LanguageSelectionScreenState
                 alignment: AlignmentDirectional.centerStart,
                 child: IconButton(
                   onPressed: () => context.pop(),
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                  icon: Icon(DirectionalUi.backArrow(context), size: 20),
                 ),
               ),
             Expanded(

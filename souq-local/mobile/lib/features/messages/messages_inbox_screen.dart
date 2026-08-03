@@ -150,6 +150,7 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final initial = conversation.peerName.isNotEmpty
         ? conversation.peerName.substring(0, 1).toUpperCase()
         : '?';
@@ -202,7 +203,7 @@ class _ConversationTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           conversation.peerName.isEmpty
-                              ? 'Conversation'
+                              ? l10n.conversationDefault
                               : conversation.peerName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -233,7 +234,7 @@ class _ConversationTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           conversation.lastMessagePreview.isEmpty
-                              ? 'Tap to open conversation'
+                              ? l10n.tapToOpenConversation
                               : conversation.lastMessagePreview,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

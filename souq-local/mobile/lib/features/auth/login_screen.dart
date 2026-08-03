@@ -94,29 +94,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<String?> _promptMfaCode() async {
+    final l10n = context.l10n;
     final controller = TextEditingController();
     final code = await showDialog<String>(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Two-factor authentication'),
+        title: Text(l10n.twoFactorAuthTitle),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           maxLength: 8,
-          decoration: const InputDecoration(
-            labelText: 'Authenticator code',
+          decoration: InputDecoration(
+            labelText: l10n.twoFactorAuthCodeLabel,
             counterText: '',
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Verify'),
+            child: Text(l10n.signupOtpVerify),
           ),
         ],
       ),
