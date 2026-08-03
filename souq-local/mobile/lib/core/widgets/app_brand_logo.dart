@@ -3,6 +3,35 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import 'margem_m_logo.dart';
 
+/// Official MarGem logo sizes — use everywhere for consistent proportions.
+class AppBrandSizes {
+  AppBrandSizes._();
+
+  /// Splash, welcome hero, authentication welcome.
+  static const double splash = 120;
+
+  /// Primary branding screens (onboarding welcome, login hero).
+  static const double primaryBranding = 112;
+
+  /// Settings, about, language picker.
+  static const double settingsBranding = 96;
+
+  /// Large empty states.
+  static const double emptyState = 88;
+
+  /// Drawer header mark.
+  static const double drawerHeader = 36;
+
+  /// Top app bars, compact headers, navigation.
+  static const double compact = 32;
+
+  /// Tight inline placements.
+  static const double compactSmall = 28;
+
+  /// Minimum clear-space padding around the logo (each side).
+  static const double clearSpace = 8;
+}
+
 /// Where the logo appears — drives full lockup vs icon-only per brand rules.
 enum AppBrandContext {
   /// Splash, onboarding hero, login/sign-up welcome.
@@ -64,10 +93,10 @@ class AppBrandLogo extends StatelessWidget {
 
   static double _defaultSizeFor(AppBrandContext context) {
     return switch (context) {
-      AppBrandContext.primaryBranding => 120,
-      AppBrandContext.settingsBranding => 96,
-      AppBrandContext.emptyState => 88,
-      AppBrandContext.compactBranding => 28,
+      AppBrandContext.primaryBranding => AppBrandSizes.primaryBranding,
+      AppBrandContext.settingsBranding => AppBrandSizes.settingsBranding,
+      AppBrandContext.emptyState => AppBrandSizes.emptyState,
+      AppBrandContext.compactBranding => AppBrandSizes.compact,
     };
   }
 
@@ -85,7 +114,7 @@ class AppBrandLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolved = _resolvedVariant;
-    return Semantics(
+    final logo = Semantics(
       label: 'MarGem logo',
       child: switch (resolved) {
         AppBrandLogoVariant.full => _FullLockup(
@@ -98,6 +127,11 @@ class AppBrandLogo extends StatelessWidget {
         AppBrandLogoVariant.lockup => _HorizontalLockup(iconSize: iconSize),
         AppBrandLogoVariant.wordmark => _Wordmark(height: iconSize * 0.55),
       },
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(AppBrandSizes.clearSpace),
+      child: logo,
     );
   }
 }

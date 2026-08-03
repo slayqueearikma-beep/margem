@@ -1,50 +1,58 @@
 import 'package:flutter/material.dart';
 
-/// MarGem design tokens — lavender (customer) + peach (provider) brand palette.
+/// MarGem design tokens — warm beige primary surfaces + lavender accents.
 class AppColors {
   AppColors._();
 
-  // Brand accents — Customer Home mockup palette
-  static const lavender = Color(0xFF9A87F6);
-  static const lavenderDark = Color(0xFF7C6AE8);
-  static const lavenderLight = Color(0xFFB8ACFC);
-  static const lavenderMuted = Color(0xFFF3F0FF);
-  static const lavenderSurface = Color(0xFFF8F6FF);
+  // ── Beige / warm neutrals (60% — primary surfaces) ──────────────────────
+  static const beige = Color(0xFFF6D7B8);
+  static const beigeLight = Color(0xFFFAF3EC);
+  static const cream = Color(0xFFFFF9F3);
+  static const ultraLight = Color(0xFFFAF8FF);
 
-  static const peach = Color(0xFFF6D7B4);
+  // Aliases used across the codebase
+  static const peach = beige;
   static const peachDark = Color(0xFFE8C49A);
-  static const peachLight = Color(0xFFFBE8D0);
-  static const peachMuted = Color(0xFFFFF6EC);
-  static const peachSurface = Color(0xFFFFFAF5);
+  static const peachLight = beigeLight;
+  static const peachMuted = beigeLight;
+  static const peachSurface = cream;
 
-  /// Primary brand color — lavender (customer-facing default).
+  // ── Lavender / purple (40% — accents & CTAs only) ───────────────────────
+  static const lavender = Color(0xFF9A87F6);
+  static const lavenderDark = Color(0xFF7E6BE7);
+  static const lavenderLight = Color(0xFFB9A9FF);
+  static const lavenderMuted = Color(0xFFF5F2FF);
+  static const lavenderSurface = Color(0xFFF5F2FF);
+  static const lavenderShadow = Color(0xFF7E6BE7);
+
+  /// Primary brand accent — lavender (buttons, links, selected states).
   static const primary = lavender;
   static const primaryLight = lavenderLight;
-  static const secondary = peach;
-  static const secondaryLight = peachLight;
+  static const secondary = beige;
+  static const secondaryLight = beigeLight;
 
-  // Legacy aliases (mapped to new palette for gradual migration)
+  // Legacy aliases
   static const illustrationBurgundy = lavenderDark;
-  static const illustrationOrange = peach;
+  static const illustrationOrange = beige;
   static const illustrationBlue = lavender;
   static const illustrationGreen = Color(0xFF6BCB77);
 
-  // Neutrals
+  // ── Neutrals ────────────────────────────────────────────────────────────
   static const navy = Color(0xFF1A1D2E);
   static const charcoal = navy;
   static const textPrimary = navy;
   static const textSecondary = Color(0xFF6B7280);
   static const textTertiary = Color(0xFF9CA3AF);
 
-  static const surfaceLight = Color(0xFFFFFFFF);
-  static const surfaceMuted = Color(0xFFF9FAFB);
-  static const cardUnselected = Color(0xFFFAFAFC);
-  static const cardSelected = lavenderMuted;
-  static const border = Color(0xFFE8EAEF);
-  static const borderLight = Color(0xFFF0F1F5);
+  static const surfaceLight = cream;
+  static const surfaceMuted = beigeLight;
+  static const cardUnselected = cream;
+  static const cardSelected = beigeLight;
+  static const border = Color(0xFFE8E0D6);
+  static const borderLight = Color(0xFFF0EBE4);
 
-  static const splashBackground = surfaceLight;
-  static const logoPlaceholder = lavenderMuted;
+  static const splashBackground = cream;
+  static const logoPlaceholder = beigeLight;
   static const logoInner = lavender;
 
   // Dark mode
@@ -68,11 +76,10 @@ class AppColors {
 
   // Role-specific accents
   static const customerAccent = lavender;
-  static const providerAccent = peach;
+  static const providerAccent = beige;
 
-  // Glass overlays
   static Color glassLight(BuildContext context) =>
-      surfaceLight.withValues(alpha: 0.72);
+      cream.withValues(alpha: 0.85);
   static Color glassDark(BuildContext context) =>
       darkCard.withValues(alpha: 0.65);
 
@@ -80,8 +87,8 @@ class AppColors {
       isProvider ? providerAccent : customerAccent;
 
   static Color roleMuted(bool isProvider) =>
-      isProvider ? peachMuted : lavenderMuted;
+      isProvider ? beigeLight : lavenderMuted;
 
   static Color roleSurface(bool isProvider) =>
-      isProvider ? peachSurface : lavenderSurface;
+      isProvider ? cream : ultraLight;
 }

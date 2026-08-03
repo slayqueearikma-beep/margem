@@ -126,7 +126,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               scale: _scale,
               child: AppBrandLogo.forContext(
                 AppBrandContext.primaryBranding,
-                size: 100,
+                size: AppBrandSizes.splash,
               ),
             ),
           ),

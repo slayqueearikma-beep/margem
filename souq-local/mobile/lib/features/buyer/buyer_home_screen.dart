@@ -19,6 +19,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -90,6 +91,7 @@ class BuyerHomeShell extends ConsumerWidget {
 
     return RootBackScope(
       child: BuyerScreenScaffold(
+        drawer: const BuyerDrawer(),
         body: IndexedStack(
           index: index,
           children: [
@@ -151,61 +153,7 @@ class BuyerHomeScreen extends ConsumerWidget {
     final firstName = session?.name.split(' ').first ?? l10n.guestMode;
 
     void openMenu() {
-      showModalBottomSheet<void>(
-        context: context,
-        showDragHandle: true,
-        backgroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        builder: (ctx) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.person_outline_rounded),
-                title: Text(l10n.navProfile),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  context.push('/profile');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.favorite_border_rounded),
-                title: Text(l10n.favorites),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  context.push('/favorites');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.map_outlined),
-                title: Text(l10n.exploreOnMap),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  context.push('/map');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.groups_rounded),
-                title: Text(l10n.communityHomeCardTitle),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  context.push('/community');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.workspace_premium_outlined),
-                title: Text(l10n.premium),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  context.push('/premium');
-                },
-              ),
-            ],
-          ),
-        ),
-      );
+      Scaffold.of(context).openDrawer();
     }
 
     return SafeArea(
@@ -316,8 +264,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                             ),
                             icon: _categoryIcon(cat.icon),
                             tint: i.isEven
-                                ? AppColors.lavenderMuted
-                                : AppColors.peachMuted,
+                                ? AppColors.beigeLight
+                                : AppColors.cream,
                             onTap: () {
                               ref
                                   .read(buyerCategorySlugProvider.notifier)
@@ -358,8 +306,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                     ctaLabel: l10n.exploreNow,
                     onTap: () => context.push('/map'),
                     gradientColors: const [
-                      Color(0xFFFBE8D0),
-                      Color(0xFFFFF6EC),
+                      Color(0xFFFAF3EC),
+                      Color(0xFFFFF9F3),
                     ],
                   ),
                   BuyerPromoBanner(
@@ -462,8 +410,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                               ),
                               icon: _categoryIcon(cat.icon),
                               tint: i.isEven
-                                  ? AppColors.lavenderMuted
-                                  : AppColors.peachMuted,
+                                  ? AppColors.beigeLight
+                                  : AppColors.cream,
                               onTap: () {
                                 ref
                                     .read(buyerCategorySlugProvider.notifier)
@@ -606,7 +554,7 @@ class _GuestModeBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.lavenderMuted,
+      color: AppColors.beigeLight,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
       child: InkWell(
         onTap: onLogin,
@@ -615,7 +563,7 @@ class _GuestModeBanner extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-            boxShadow: AppShadows.soft(color: AppColors.lavender, blur: 16, y: 4),
+            boxShadow: AppShadows.soft(color: AppColors.beige, blur: 16, y: 4),
           ),
           child: Row(
             children: [

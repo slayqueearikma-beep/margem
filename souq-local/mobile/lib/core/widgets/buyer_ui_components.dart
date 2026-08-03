@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
-import 'margem_m_logo.dart';
+import 'app_brand_logo.dart';
 
 /// Customer-facing UI components matching the Home Screen mockup.
 class BuyerShellHeader extends StatelessWidget {
@@ -32,7 +32,10 @@ class BuyerShellHeader extends StatelessWidget {
             onTap: onMenu,
           ),
           const Spacer(),
-          const MargemMLogo(size: 32),
+          AppBrandLogo.forContext(
+            AppBrandContext.compactBranding,
+            size: AppBrandSizes.compact,
+          ),
           const Spacer(),
           _HeaderIconButton(
             icon: Icons.notifications_none_rounded,
@@ -53,7 +56,7 @@ class BuyerShellHeader extends StatelessWidget {
                     boxShadow: AppShadows.soft(blur: 12, y: 2),
                   ),
                   child: const CircleAvatar(
-                    backgroundColor: AppColors.lavenderMuted,
+                    backgroundColor: AppColors.beigeLight,
                     child: Icon(
                       Icons.person_rounded,
                       color: AppColors.lavender,
@@ -215,9 +218,10 @@ class BuyerSearchBar extends StatelessWidget {
     final field = Container(
       height: 52,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cream,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: AppShadows.soft(blur: 20, y: 4),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: AppShadows.soft(blur: 16, y: 3),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
@@ -254,7 +258,7 @@ class BuyerSearchBar extends StatelessWidget {
           ),
           if (onFilter != null)
             Material(
-              color: AppColors.lavenderMuted,
+              color: AppColors.beigeLight,
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 onTap: onFilter,
@@ -291,7 +295,7 @@ class BuyerQuickCategoryTile extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
-    this.tint = AppColors.lavenderMuted,
+    this.tint = AppColors.beigeLight,
   });
 
   final String label;
@@ -347,7 +351,7 @@ class BuyerPromoBanner extends StatelessWidget {
     required this.subtitle,
     required this.ctaLabel,
     required this.onTap,
-    this.gradientColors = const [Color(0xFFE8DEFF), Color(0xFFF3EEFF)],
+    this.gradientColors = const [Color(0xFFFAF3EC), Color(0xFFFFF9F3)],
   });
 
   final String title;
@@ -359,7 +363,7 @@ class BuyerPromoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 148,
+      constraints: const BoxConstraints(minHeight: 152),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
@@ -367,7 +371,7 @@ class BuyerPromoBanner extends StatelessWidget {
           colors: gradientColors,
         ),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-        boxShadow: AppShadows.soft(color: AppColors.lavender, blur: 24, y: 6),
+        boxShadow: AppShadows.soft(color: AppColors.beige, blur: 20, y: 4),
       ),
       child: Material(
         color: Colors.transparent,
@@ -377,11 +381,12 @@ class BuyerPromoBanner extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         title,
@@ -393,6 +398,8 @@ class BuyerPromoBanner extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -419,16 +426,16 @@ class BuyerPromoBanner extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 Icon(
                   Icons.chair_outlined,
-                  size: 56,
-                  color: AppColors.lavender.withValues(alpha: 0.35),
+                  size: 48,
+                  color: AppColors.lavender.withValues(alpha: 0.25),
                 ),
                 Icon(
                   Icons.shopping_bag_outlined,
-                  size: 40,
-                  color: AppColors.peach.withValues(alpha: 0.6),
+                  size: 36,
+                  color: AppColors.beige.withValues(alpha: 0.9),
                 ),
               ],
             ),
@@ -464,7 +471,7 @@ class _BuyerPromoCarouselState extends State<BuyerPromoCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 148,
+          height: 160,
           child: PageView.builder(
             controller: _controller,
             itemCount: widget.slides.length,
@@ -581,7 +588,7 @@ class BuyerNearYouCard extends StatelessWidget {
     return SizedBox(
       width: 200,
       child: Material(
-        color: Colors.white,
+        color: AppColors.cream,
         elevation: 0,
         shadowColor: Colors.transparent,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
@@ -714,7 +721,7 @@ class BuyerNearYouCard extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 10,
-                            backgroundColor: AppColors.lavenderMuted,
+                            backgroundColor: AppColors.beigeLight,
                             backgroundImage: sellerAvatarUrl.isNotEmpty
                                 ? NetworkImage(sellerAvatarUrl)
                                 : null,
@@ -748,7 +755,7 @@ class BuyerNearYouCard extends StatelessWidget {
 
   Widget _imagePlaceholder() {
     return Container(
-      color: AppColors.lavenderMuted,
+      color: AppColors.beigeLight,
       child: const Center(
         child: Icon(Icons.storefront_rounded, color: AppColors.lavender, size: 40),
       ),
@@ -762,7 +769,7 @@ class BuyerPopularCategoryCard extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
-    this.tint = AppColors.lavenderMuted,
+    this.tint = AppColors.beigeLight,
   });
 
   final String label;
@@ -881,7 +888,7 @@ class BuyerAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cream,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -990,7 +997,7 @@ class BuyerMenuTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: destructive
                       ? AppColors.dangerMuted
-                      : AppColors.lavenderMuted,
+                      : AppColors.beigeLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1070,9 +1077,9 @@ class BuyerEmptyState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.lavenderMuted,
+                color: AppColors.beigeLight,
                 shape: BoxShape.circle,
-                boxShadow: AppShadows.soft(color: AppColors.lavender, blur: 20),
+                boxShadow: AppShadows.soft(color: AppColors.beige, blur: 20),
               ),
               child: Icon(icon, size: 32, color: AppColors.lavender),
             ),
@@ -1135,7 +1142,7 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.lavenderMuted,
+        color: AppColors.beigeLight,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -1146,7 +1153,7 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                color: active ? Colors.white : Colors.transparent,
+                color: active ? AppColors.cream : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
                 boxShadow: active ? AppShadows.soft(blur: 8, y: 2) : null,
               ),
@@ -1226,7 +1233,7 @@ class BuyerBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cream,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -1338,19 +1345,22 @@ class BuyerScreenScaffold extends StatelessWidget {
     required this.body,
     this.bottomNavigationBar,
     this.appBar,
+    this.drawer,
   });
 
   final Widget body;
   final Widget? bottomNavigationBar;
   final PreferredSizeWidget? appBar;
+  final Widget? drawer;
 
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.cream,
         appBar: appBar,
+        drawer: drawer,
         body: body,
         bottomNavigationBar: bottomNavigationBar,
       ),

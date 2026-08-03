@@ -36,7 +36,7 @@ class AppTheme {
       brightness: brightness,
       colorScheme: colorScheme,
       scaffoldBackgroundColor:
-          isDark ? AppColors.darkBackground : AppColors.surfaceLight,
+          isDark ? AppColors.darkBackground : AppColors.cream,
       textTheme: textTheme,
       appBarTheme: AppBarThemeData(
         centerTitle: true,
@@ -50,7 +50,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: isDark ? AppColors.darkCard : AppColors.cream,
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
@@ -66,7 +66,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationThemeData(
         filled: true,
-        fillColor: isDark ? AppColors.darkCard : AppColors.surfaceMuted,
+        fillColor: isDark ? AppColors.darkCard : AppColors.beigeLight,
         labelStyle: TextStyle(
           color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
         ),
@@ -130,7 +130,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor:
-            isDark ? AppColors.darkCard : AppColors.surfaceMuted,
+            isDark ? AppColors.darkCard : AppColors.beigeLight,
         selectedColor: AppColors.lavender.withValues(alpha: 0.18),
         labelStyle: textTheme.bodySmall!,
         side: BorderSide(
@@ -143,7 +143,7 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: isDark
             ? AppColors.darkSurface.withValues(alpha: 0.95)
-            : Colors.white.withValues(alpha: 0.95),
+            : AppColors.cream.withValues(alpha: 0.98),
         indicatorColor: AppColors.lavender.withValues(alpha: 0.15),
         elevation: 0,
         height: 68,
@@ -169,7 +169,7 @@ class AppTheme {
         }),
       ),
       bottomAppBarTheme: BottomAppBarThemeData(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: isDark ? AppColors.darkSurface : AppColors.cream,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
@@ -180,7 +180,7 @@ class AppTheme {
         shape: CircleBorder(),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.cream,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
@@ -196,7 +196,7 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.beigeLight,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
