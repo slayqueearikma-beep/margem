@@ -78,59 +78,69 @@ class _LanguageSelectionScreenState
       body: MargemBackground(
         child: SafeArea(
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (widget.fromSettings)
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: IconButton(
-                  onPressed: () => context.pop(),
-                  icon: Icon(DirectionalUi.backArrow(context), size: 20),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.fromSettings)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: IconButton(
+                    onPressed: () => context.pop(),
+                    icon: Icon(DirectionalUi.backArrow(context), size: 20),
+                  ),
                 ),
-              ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screenHorizontal),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (widget.fromSettings)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: AppSpacing.md),
-                          child: const AppBrandLogo(
-                            tier: AppLogoTier.compact,
-                            includeClearSpace: false,
+              if (!widget.fromSettings)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenHorizontal,
+                  ),
+                  child: AppBrandHeader(
+                    tier: AppLogoTier.header,
+                    title: l10n.selectLanguage,
+                    subtitle: l10n.selectLanguageSubtitle,
+                  ),
+                ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenHorizontal,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (widget.fromSettings) ...[
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.md),
+                            child: const AppBrandLogo(
+                              tier: AppLogoTier.header,
+                              includeClearSpace: false,
+                            ),
                           ),
                         ),
-                      )
-                    else
-                      AppBrandHeader(
-                        tier: AppLogoTier.header,
-                        title: l10n.selectLanguage,
-                        subtitle: l10n.selectLanguageSubtitle,
-                      ),
-                    if (widget.fromSettings) ...[
-                      const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        l10n.selectLanguage,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        l10n.selectLanguageSubtitle,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary, height: 1.4),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                    ] else
-                      const SizedBox(height: AppSpacing.xl),
+                        const SizedBox(height: AppSpacing.lg),
+                        Text(
+                          l10n.selectLanguage,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          l10n.selectLanguageSubtitle,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                                color: AppColors.textSecondary,
+                                height: 1.4,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+                      ] else
+                        const SizedBox(height: AppSpacing.lg),
                     ..._options(l10n).map((option) => _LanguageCard(
                           flag: option.flag,
                           label: option.label,
@@ -159,10 +169,10 @@ class _LanguageSelectionScreenState
                 child: PrimaryButton(
                     label: l10n.continueLabel, onPressed: _continue),
               ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

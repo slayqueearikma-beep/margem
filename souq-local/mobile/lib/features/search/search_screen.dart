@@ -72,7 +72,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _refreshResults() {
-    setState(() => _future = _load());
+    setState(() {
+      _future = _load();
+    });
   }
 
   void _onQueryChanged(String value) {

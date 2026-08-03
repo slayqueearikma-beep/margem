@@ -28,16 +28,16 @@ class AppLogoLayout {
 
     return switch (tier) {
       AppLogoTier.splash => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 150.0,
-          (_, _, true) => 142.0,
-          (_, true, _) => 172.0,
-          _ => 164.0,
+          (true, _, _) => 168.0,
+          (_, _, true) => 152.0,
+          (_, true, _) => 184.0,
+          _ => 176.0,
         },
       AppLogoTier.header => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 128.0,
-          (_, _, true) => 78.0,
-          (_, true, _) => 96.0,
-          _ => 88.0,
+          (true, _, _) => 136.0,
+          (_, _, true) => 84.0,
+          (_, true, _) => 104.0,
+          _ => 96.0,
         },
       AppLogoTier.compact => switch ((isTablet, isLargePhone, isSmallPhone)) {
           (true, _, _) => 40.0,
@@ -48,12 +48,12 @@ class AppLogoLayout {
     };
   }
 
-  /// Top inset from safe area to logo (60–80 px on typical phones).
+  /// Top inset from the safe-area edge to the logo (60–80 px).
   static double topFromSafeArea(BuildContext context) {
     final height = MediaQuery.sizeOf(context).height;
     if (height < 640) return AppSpacing.logoTopFromSafeAreaMin;
     if (height > 820) return AppSpacing.logoTopFromSafeAreaMax;
-    return 68.0;
+    return 72.0;
   }
 }
 
@@ -124,7 +124,14 @@ class AppBrandHeader extends StatelessWidget {
       children: [
         if (top > 0) SizedBox(height: top),
         Center(
-          child: AppBrandLogo(tier: tier, includeClearSpace: false),
+          child: SizedBox(
+            width: AppLogoLayout.sizeFor(context, tier),
+            height: AppLogoLayout.sizeFor(context, tier),
+            child: AppBrandLogo(
+              tier: tier,
+              includeClearSpace: false,
+            ),
+          ),
         ),
         if (title != null) ...[
           SizedBox(height: gap),
@@ -274,11 +281,21 @@ class AppBrandLogo extends StatelessWidget {
       },
     );
 
-    if (clearSpace <= 0) return logo;
+    if (clearSpace <= 0) {
+      return SizedBox(
+        width: resolvedSize,
+        height: resolvedSize,
+        child: Center(child: logo),
+      );
+    }
 
     return Padding(
       padding: EdgeInsets.all(clearSpace.toDouble()),
-      child: logo,
+      child: SizedBox(
+        width: resolvedSize,
+        height: resolvedSize,
+        child: Center(child: logo),
+      ),
     );
   }
 }

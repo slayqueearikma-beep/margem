@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
-import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/margem_background.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
@@ -92,14 +91,6 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen> {
                       ),
                       child: Column(
                         children: [
-                          AppBrandHeader(
-                            tier: AppLogoTier.header,
-                            includeTopSpacing: index == 0,
-                            topSpacing: index == 0
-                                ? AppLogoLayout.topFromSafeArea(context)
-                                : AppSpacing.lg,
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
                           OnboardingIllustration(
                             backgroundColor: slide.backgroundColor,
                             icon: slide.icon,

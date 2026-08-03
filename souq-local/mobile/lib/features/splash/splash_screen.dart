@@ -116,19 +116,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: MargemBackground(
-        child: SafeArea(
-          child: Center(
-            child: FadeTransition(
-              opacity: _fade,
-              child: ScaleTransition(
-                scale: _scale,
-                child: const AppBrandLogo(
-                  tier: AppLogoTier.splash,
-                  includeClearSpace: true,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Center(
+              child: FadeTransition(
+                opacity: _fade,
+                child: ScaleTransition(
+                  scale: _scale,
+                  child: const AppBrandLogo(
+                    tier: AppLogoTier.splash,
+                    includeClearSpace: false,
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

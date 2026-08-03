@@ -144,7 +144,7 @@ class AppScreenHeader extends StatelessWidget {
           AppBrandHeader(
             tier: AppLogoTier.header,
             includeTopSpacing: false,
-            logoToTitleGap: AppSpacing.lg,
+            logoToTitleGap: AppSpacing.logoToTitle,
           ),
         ],
         Text(
