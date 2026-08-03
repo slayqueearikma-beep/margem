@@ -226,13 +226,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                child: AppBrandLogo.forContext(
-                  AppBrandContext.primaryBranding,
-                  size: 100,
-                  showTagline: true,
+              Center(
+                child: AppBrandLogo(
+                  variant: AppBrandLogoVariant.icon,
+                  iconSize: AppBrandSizes.authHeader,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),

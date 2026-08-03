@@ -7,11 +7,12 @@ class AppColors {
   // ── Beige / warm neutrals (60% — primary surfaces) ──────────────────────
   static const beige = Color(0xFFF6D7B8);
   static const beigeLight = Color(0xFFFAF3EC);
-  static const cream = Color(0xFFFFF9F3);
+  static const cream = Color(0xFFF8F1E9);
+  static const creamSoft = Color(0xFFFFF9F3);
   static const ultraLight = Color(0xFFFAF8FF);
 
   // Aliases used across the codebase
-  static const peach = beige;
+  static const peach = Color(0xFFF6D7B6);
   static const peachDark = Color(0xFFE8C49A);
   static const peachLight = beigeLight;
   static const peachMuted = beigeLight;

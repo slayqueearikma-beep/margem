@@ -97,13 +97,15 @@ class _LanguageSelectionScreenState
                     if (!widget.fromSettings)
                       const SizedBox(height: AppSpacing.md),
                     Center(
-                      child: AppBrandLogo.forContext(
-                        widget.fromSettings
-                            ? AppBrandContext.compactBranding
-                            : AppBrandContext.settingsBranding,
-                        size: widget.fromSettings ? 48 : 96,
-                        showTagline: !widget.fromSettings,
-                      ),
+                      child: widget.fromSettings
+                          ? AppBrandLogo.forContext(
+                              AppBrandContext.compactBranding,
+                              size: AppBrandSizes.compact,
+                            )
+                          : AppBrandLogo(
+                              variant: AppBrandLogoVariant.icon,
+                              iconSize: AppBrandSizes.settingsBranding,
+                            ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Text(

@@ -124,10 +124,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             opacity: _fade,
             child: ScaleTransition(
               scale: _scale,
-              child: AppBrandLogo.forContext(
-                AppBrandContext.primaryBranding,
-                size: AppBrandSizes.splash,
-              ),
+              child: AppBrandLogo(
+              variant: AppBrandLogoVariant.icon,
+              iconSize: AppBrandSizes.splash,
+            ),
             ),
           ),
         ),

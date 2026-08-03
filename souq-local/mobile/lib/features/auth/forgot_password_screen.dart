@@ -105,10 +105,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
           children: [
             Center(
-                child: AppBrandLogo.forContext(
-                  AppBrandContext.compactBranding,
-                  size: 56,
-                )),
+              child: AppBrandLogo(
+                variant: AppBrandLogoVariant.icon,
+                iconSize: AppBrandSizes.authHeader,
+              ),
+            ),
             const SizedBox(height: AppSpacing.lg),
             Text(
               resetMode ? l10n.resetPassword : l10n.forgotPassword,

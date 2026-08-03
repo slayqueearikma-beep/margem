@@ -115,9 +115,9 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             children: [
               const SizedBox(height: AppSpacing.lg),
               Center(
-                child: AppBrandLogo.forContext(
-                  AppBrandContext.compactBranding,
-                  size: 56,
+                child: AppBrandLogo(
+                  variant: AppBrandLogoVariant.icon,
+                  iconSize: AppBrandSizes.authHeader,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),

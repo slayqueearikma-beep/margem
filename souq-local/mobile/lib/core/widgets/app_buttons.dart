@@ -142,9 +142,9 @@ class AppScreenHeader extends StatelessWidget {
       children: [
         if (showLogo) ...[
           Center(
-            child: AppBrandLogo.forContext(
-              AppBrandContext.primaryBranding,
-              size: 64,
+            child: AppBrandLogo(
+              variant: AppBrandLogoVariant.icon,
+              iconSize: AppBrandSizes.onboardingHeader,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),

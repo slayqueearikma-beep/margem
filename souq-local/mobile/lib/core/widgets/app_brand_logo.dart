@@ -7,14 +7,17 @@ import 'margem_m_logo.dart';
 class AppBrandSizes {
   AppBrandSizes._();
 
-  /// Splash, welcome hero, authentication welcome.
-  static const double splash = 120;
+  /// Native splash — large centered icon only.
+  static const double splash = 128;
 
-  /// Primary branding screens (onboarding welcome, login hero).
-  static const double primaryBranding = 112;
+  /// Login, register, forgot-password hero.
+  static const double authHeader = 72;
 
-  /// Settings, about, language picker.
-  static const double settingsBranding = 96;
+  /// Onboarding welcome & account-type headers.
+  static const double onboardingHeader = 64;
+
+  /// Settings, language picker.
+  static const double settingsBranding = 56;
 
   /// Large empty states.
   static const double emptyState = 88;
@@ -30,24 +33,34 @@ class AppBrandSizes {
 
   /// Minimum clear-space padding around the logo (each side).
   static const double clearSpace = 8;
+
+  /// Clear space for hero / splash placements.
+  static const double clearSpaceHero = 16;
+
+  static double clearSpaceFor(AppBrandContext context) {
+    return switch (context) {
+      AppBrandContext.primaryBranding => clearSpaceHero,
+      _ => clearSpace,
+    };
+  }
 }
 
-/// Where the logo appears — drives full lockup vs icon-only per brand rules.
+/// Where the logo appears — drives icon vs lockup per brand rules.
 enum AppBrandContext {
-  /// Splash, onboarding hero, login/sign-up welcome.
+  /// Splash — icon only, large.
   primaryBranding,
 
-  /// Language picker, about, marketing with room to breathe.
+  /// Language picker, about.
   settingsBranding,
 
-  /// Large empty states with no competing title.
+  /// Large empty states.
   emptyState,
 
-  /// Top bars, drawers, tabs, cards, loading spinners.
+  /// Top bars, drawers, tabs, cards.
   compactBranding,
 }
 
-/// MarGem brand logo — vector M mark or raster lockup.
+/// MarGem brand logo — crisp vector mark with optional raster fallback.
 class AppBrandLogo extends StatelessWidget {
   const AppBrandLogo({
     super.key,
@@ -56,20 +69,22 @@ class AppBrandLogo extends StatelessWidget {
     this.width,
     this.height,
     this.iconSize = 40,
-    this.showTagline = false,
+    this.showWordmark = false,
+    this.preferVector = true,
   }) : assert(
           brandContext != null || variant != null,
           'Provide either brandContext or variant',
         );
 
-  /// Picks full lockup or icon from [AppBrandContext] UX rules.
+  /// Picks icon size & variant from [AppBrandContext] UX rules.
   factory AppBrandLogo.forContext(
     AppBrandContext brandContext, {
     Key? key,
     double? size,
     double? width,
     double? height,
-    bool showTagline = false,
+    bool showWordmark = false,
+    bool preferVector = true,
   }) {
     return AppBrandLogo(
       key: key,
@@ -77,7 +92,8 @@ class AppBrandLogo extends StatelessWidget {
       iconSize: size ?? _defaultSizeFor(brandContext),
       width: width,
       height: height,
-      showTagline: showTagline,
+      showWordmark: showWordmark,
+      preferVector: preferVector,
     );
   }
 
@@ -86,14 +102,16 @@ class AppBrandLogo extends StatelessWidget {
   final double? width;
   final double? height;
   final double iconSize;
-  final bool showTagline;
+  final bool showWordmark;
+  final bool preferVector;
 
   static const _iconAsset = 'assets/images/margem_logo.png';
+  static const _iconAsset2x = 'assets/images/margem_logo@2x.png';
   static const _fullAsset = 'assets/images/margem_logo_full.png';
 
   static double _defaultSizeFor(AppBrandContext context) {
     return switch (context) {
-      AppBrandContext.primaryBranding => AppBrandSizes.primaryBranding,
+      AppBrandContext.primaryBranding => AppBrandSizes.splash,
       AppBrandContext.settingsBranding => AppBrandSizes.settingsBranding,
       AppBrandContext.emptyState => AppBrandSizes.emptyState,
       AppBrandContext.compactBranding => AppBrandSizes.compact,
@@ -105,10 +123,17 @@ class AppBrandLogo extends StatelessWidget {
     return switch (brandContext!) {
       AppBrandContext.primaryBranding ||
       AppBrandContext.settingsBranding ||
-      AppBrandContext.emptyState =>
-        AppBrandLogoVariant.full,
-      AppBrandContext.compactBranding => AppBrandLogoVariant.icon,
+      AppBrandContext.emptyState ||
+      AppBrandContext.compactBranding =>
+        AppBrandLogoVariant.icon,
     };
+  }
+
+  double get _clearSpace {
+    if (brandContext != null) {
+      return AppBrandSizes.clearSpaceFor(brandContext!);
+    }
+    return AppBrandSizes.clearSpace;
   }
 
   @override
@@ -121,16 +146,23 @@ class AppBrandLogo extends StatelessWidget {
             width: width,
             height: height,
             iconSize: iconSize,
-            showTagline: showTagline,
+            showWordmark: showWordmark,
+            preferVector: preferVector,
           ),
-        AppBrandLogoVariant.icon => _LogoMark(size: iconSize),
-        AppBrandLogoVariant.lockup => _HorizontalLockup(iconSize: iconSize),
+        AppBrandLogoVariant.icon => _LogoMark(
+            size: iconSize,
+            preferVector: preferVector,
+          ),
+        AppBrandLogoVariant.lockup => _HorizontalLockup(
+            iconSize: iconSize,
+            preferVector: preferVector,
+          ),
         AppBrandLogoVariant.wordmark => _Wordmark(height: iconSize * 0.55),
       },
     );
 
     return Padding(
-      padding: const EdgeInsets.all(AppBrandSizes.clearSpace),
+      padding: EdgeInsets.all(_clearSpace),
       child: logo,
     );
   }
@@ -141,16 +173,25 @@ class _FullLockup extends StatelessWidget {
     required this.width,
     required this.height,
     required this.iconSize,
-    required this.showTagline,
+    required this.showWordmark,
+    required this.preferVector,
   });
 
   final double? width;
   final double? height;
   final double iconSize;
-  final bool showTagline;
+  final bool showWordmark;
+  final bool preferVector;
 
   @override
   Widget build(BuildContext context) {
+    if (preferVector) {
+      return MargemMLogo(
+        size: iconSize,
+        showWordmark: true,
+        wordmarkSize: iconSize * 0.22,
+      );
+    }
     return _LogoImage(
       asset: AppBrandLogo._fullAsset,
       width: width ?? iconSize * 1.15,
@@ -165,16 +206,20 @@ class _FullLockup extends StatelessWidget {
 }
 
 class _HorizontalLockup extends StatelessWidget {
-  const _HorizontalLockup({required this.iconSize});
+  const _HorizontalLockup({
+    required this.iconSize,
+    required this.preferVector,
+  });
 
   final double iconSize;
+  final bool preferVector;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _LogoMark(size: iconSize),
+        _LogoMark(size: iconSize, preferVector: preferVector),
         SizedBox(width: iconSize * 0.2),
         _Wordmark(height: iconSize * 0.55),
       ],
@@ -183,12 +228,19 @@ class _HorizontalLockup extends StatelessWidget {
 }
 
 class _LogoMark extends StatelessWidget {
-  const _LogoMark({required this.size});
+  const _LogoMark({
+    required this.size,
+    this.preferVector = true,
+  });
 
   final double size;
+  final bool preferVector;
 
   @override
   Widget build(BuildContext context) {
+    if (preferVector) {
+      return MargemMLogo(size: size);
+    }
     return _LogoImage(
       asset: AppBrandLogo._iconAsset,
       width: size,
@@ -213,12 +265,18 @@ class _LogoImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  final dpr = MediaQuery.devicePixelRatioOf(context);
+  final assetPath = dpr >= 2.5
+      ? AppBrandLogo._iconAsset2x
+      : asset;
+
     return Image.asset(
-      asset,
+      assetPath,
       width: width,
       height: height,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,
+      gaplessPlayback: true,
       errorBuilder: (_, __, ___) => fallback,
     );
   }
@@ -241,24 +299,24 @@ class AppLogoPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (showFullLogo || size >= 100) {
-      return AppBrandLogo.forContext(
-        AppBrandContext.primaryBranding,
-        size: size,
-        showTagline: true,
+    if (showFullLogo) {
+      return AppBrandLogo(
+        variant: AppBrandLogoVariant.full,
+        iconSize: size,
+        showWordmark: true,
       );
     }
 
-    return AppBrandLogo.forContext(
-      AppBrandContext.compactBranding,
-      size: size,
+    return AppBrandLogo(
+      variant: AppBrandLogoVariant.icon,
+      iconSize: size,
     );
   }
 }
 
 /// Compact nav/header mark — icon only.
 class AppLogoHeader extends StatelessWidget {
-  const AppLogoHeader({super.key, this.size = 36});
+  const AppLogoHeader({super.key, this.size = AppBrandSizes.compact});
 
   final double size;
 
@@ -290,7 +348,10 @@ class _Wordmark extends StatelessWidget {
         ),
         children: [
           TextSpan(text: 'Mar', style: TextStyle(color: marColor)),
-          const TextSpan(text: 'Gem', style: TextStyle(color: AppColors.lavender)),
+          const TextSpan(
+            text: 'Gem',
+            style: TextStyle(color: AppColors.lavender),
+          ),
         ],
       ),
     );
