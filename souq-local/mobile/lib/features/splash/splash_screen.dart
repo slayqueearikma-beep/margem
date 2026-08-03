@@ -25,16 +25,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 420),
     );
-    _scale = Tween<double>(begin: 0.85, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _scale = Tween<double>(begin: 0.95, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _fade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0, 0.6, curve: Curves.easeOut),
-      ),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
     _controller.forward();
     _navigateNext();
@@ -119,15 +116,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: MargemBackground(
-        child: Center(
-          child: FadeTransition(
-            opacity: _fade,
-            child: ScaleTransition(
-              scale: _scale,
-              child: AppBrandLogo(
-              variant: AppBrandLogoVariant.icon,
-              iconSize: AppBrandSizes.splash,
-            ),
+        child: SafeArea(
+          child: Center(
+            child: FadeTransition(
+              opacity: _fade,
+              child: ScaleTransition(
+                scale: _scale,
+                child: const AppBrandLogo(
+                  tier: AppLogoTier.splash,
+                  includeClearSpace: true,
+                ),
+              ),
             ),
           ),
         ),

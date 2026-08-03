@@ -113,29 +113,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: AppSpacing.lg),
-              Center(
-                child: AppBrandLogo(
-                  variant: AppBrandLogoVariant.icon,
-                  iconSize: AppBrandSizes.authHeader,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                l10n.verifyEmailTitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.verifyEmailSubtitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+              AppBrandHeader(
+                tier: AppLogoTier.header,
+                includeTopSpacing: true,
+                subtitle: l10n.verifyEmailSubtitle,
               ),
               const SizedBox(height: AppSpacing.xl),
               if (_verified)

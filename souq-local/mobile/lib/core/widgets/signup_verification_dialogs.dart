@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'app_brand_logo.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -88,8 +89,10 @@ class _ChannelPickerDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const Icon(Icons.verified_user_outlined,
-                size: 40, color: AppColors.primary),
+            const AppBrandLogo(
+              tier: AppLogoTier.header,
+              includeClearSpace: false,
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               l10n.signupOtpChannelTitle,
@@ -351,7 +354,10 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
                 ),
               ],
             ),
-            const Icon(Icons.sms_outlined, size: 40, color: AppColors.primary),
+            const AppBrandLogo(
+              tier: AppLogoTier.header,
+              includeClearSpace: false,
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               l10n.signupOtpCodeTitle,

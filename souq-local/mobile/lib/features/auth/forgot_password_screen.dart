@@ -104,29 +104,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
           children: [
-            Center(
-              child: AppBrandLogo(
-                variant: AppBrandLogoVariant.icon,
-                iconSize: AppBrandSizes.authHeader,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              resetMode ? l10n.resetPassword : l10n.forgotPassword,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              resetMode
+            AppBrandHeader(
+              tier: AppLogoTier.header,
+              includeTopSpacing: true,
+              subtitle: resetMode
                   ? l10n.resetPasswordSubtitle
                   : l10n.forgotPasswordSubtitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: AppSpacing.xl),
             if (!resetMode) ...[

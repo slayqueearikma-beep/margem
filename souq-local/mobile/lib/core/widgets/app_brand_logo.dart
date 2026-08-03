@@ -1,40 +1,75 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
 import 'margem_m_logo.dart';
 
-/// Official MarGem logo sizes — use everywhere for consistent proportions.
+/// Visual hierarchy for the official MarGem mark.
+enum AppLogoTier {
+  /// Splash — primary focal point, largest.
+  splash,
+
+  /// Language, login, register, forgot password, OTP, onboarding headers.
+  header,
+
+  /// Drawers, app bars, compact inline placements.
+  compact,
+}
+
+/// Responsive logo sizing and spacing — no hardcoded per-screen magic numbers.
+class AppLogoLayout {
+  AppLogoLayout._();
+
+  static double sizeFor(BuildContext context, AppLogoTier tier) {
+    final width = MediaQuery.sizeOf(context).width;
+    final isTablet = width >= 600;
+    final isLargePhone = width >= 400;
+    final isSmallPhone = width < 360;
+
+    return switch (tier) {
+      AppLogoTier.splash => switch ((isTablet, isLargePhone, isSmallPhone)) {
+          (true, _, _) => 150.0,
+          (_, _, true) => 142.0,
+          (_, true, _) => 172.0,
+          _ => 164.0,
+        },
+      AppLogoTier.header => switch ((isTablet, isLargePhone, isSmallPhone)) {
+          (true, _, _) => 128.0,
+          (_, _, true) => 78.0,
+          (_, true, _) => 96.0,
+          _ => 88.0,
+        },
+      AppLogoTier.compact => switch ((isTablet, isLargePhone, isSmallPhone)) {
+          (true, _, _) => 40.0,
+          (_, _, true) => 28.0,
+          (_, true, _) => 36.0,
+          _ => 32.0,
+        },
+    };
+  }
+
+  /// Top inset from safe area to logo (60–80 px on typical phones).
+  static double topFromSafeArea(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+    if (height < 640) return AppSpacing.logoTopFromSafeAreaMin;
+    if (height > 820) return AppSpacing.logoTopFromSafeAreaMax;
+    return 68.0;
+  }
+}
+
+/// @deprecated Use [AppLogoLayout.sizeFor] with [AppLogoTier].
 class AppBrandSizes {
   AppBrandSizes._();
 
-  /// Native splash — large centered icon only.
-  static const double splash = 128;
-
-  /// Login, register, forgot-password hero.
-  static const double authHeader = 72;
-
-  /// Onboarding welcome & account-type headers.
-  static const double onboardingHeader = 64;
-
-  /// Settings, language picker.
-  static const double settingsBranding = 56;
-
-  /// Large empty states.
+  static const double splash = 164;
+  static const double authHeader = 88;
+  static const double onboardingHeader = 88;
+  static const double settingsBranding = 88;
   static const double emptyState = 88;
-
-  /// Drawer header mark.
   static const double drawerHeader = 36;
-
-  /// Top app bars, compact headers, navigation.
   static const double compact = 32;
-
-  /// Tight inline placements.
   static const double compactSmall = 28;
-
-  /// Minimum clear-space padding around the logo (each side).
   static const double clearSpace = 8;
-
-  /// Clear space for hero / splash placements.
   static const double clearSpaceHero = 16;
 
   static double clearSpaceFor(AppBrandContext context) {
@@ -45,38 +80,99 @@ class AppBrandSizes {
   }
 }
 
-/// Where the logo appears — drives icon vs lockup per brand rules.
+/// Where the logo appears — drives compact placements in navigation chrome.
 enum AppBrandContext {
-  /// Splash — icon only, large.
   primaryBranding,
-
-  /// Language picker, about.
   settingsBranding,
-
-  /// Large empty states.
   emptyState,
-
-  /// Top bars, drawers, tabs, cards.
   compactBranding,
 }
 
-/// MarGem brand logo — crisp vector mark with optional raster fallback.
+/// Reusable header block: centered logo + optional title/subtitle with
+/// consistent spacing across language, auth, and onboarding screens.
+class AppBrandHeader extends StatelessWidget {
+  const AppBrandHeader({
+    super.key,
+    this.tier = AppLogoTier.header,
+    this.title,
+    this.subtitle,
+    this.topSpacing,
+    this.logoToTitleGap,
+    this.includeTopSpacing = true,
+    this.titleStyle,
+    this.subtitleStyle,
+  });
+
+  final AppLogoTier tier;
+  final String? title;
+  final String? subtitle;
+  final double? topSpacing;
+  final double? logoToTitleGap;
+  final bool includeTopSpacing;
+  final TextStyle? titleStyle;
+  final TextStyle? subtitleStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final gap = logoToTitleGap ?? AppSpacing.logoToTitle;
+    final top = topSpacing ??
+        (includeTopSpacing ? AppLogoLayout.topFromSafeArea(context) : 0.0);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (top > 0) SizedBox(height: top),
+        Center(
+          child: AppBrandLogo(tier: tier, includeClearSpace: false),
+        ),
+        if (title != null) ...[
+          SizedBox(height: gap),
+          Text(
+            title!,
+            textAlign: TextAlign.center,
+            style: titleStyle ??
+                theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                ),
+          ),
+        ],
+        if (subtitle != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            subtitle!,
+            textAlign: TextAlign.center,
+            style: subtitleStyle ??
+                theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.45,
+                ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Official MarGem logo — single vector mark, aspect ratio preserved.
 class AppBrandLogo extends StatelessWidget {
   const AppBrandLogo({
     super.key,
     this.brandContext,
     this.variant,
+    this.tier,
     this.width,
     this.height,
     this.iconSize = 40,
     this.showWordmark = false,
     this.preferVector = true,
+    this.includeClearSpace = true,
   }) : assert(
-          brandContext != null || variant != null,
-          'Provide either brandContext or variant',
+          tier != null || brandContext != null || variant != null,
+          'Provide tier, brandContext, or variant',
         );
 
-  /// Picks icon size & variant from [AppBrandContext] UX rules.
   factory AppBrandLogo.forContext(
     AppBrandContext brandContext, {
     Key? key,
@@ -85,6 +181,7 @@ class AppBrandLogo extends StatelessWidget {
     double? height,
     bool showWordmark = false,
     bool preferVector = true,
+    bool includeClearSpace = true,
   }) {
     return AppBrandLogo(
       key: key,
@@ -94,16 +191,19 @@ class AppBrandLogo extends StatelessWidget {
       height: height,
       showWordmark: showWordmark,
       preferVector: preferVector,
+      includeClearSpace: includeClearSpace,
     );
   }
 
   final AppBrandContext? brandContext;
   final AppBrandLogoVariant? variant;
+  final AppLogoTier? tier;
   final double? width;
   final double? height;
   final double iconSize;
   final bool showWordmark;
   final bool preferVector;
+  final bool includeClearSpace;
 
   static const _iconAsset = 'assets/images/margem_logo.png';
   static const _iconAsset2x = 'assets/images/margem_logo@2x.png';
@@ -120,24 +220,37 @@ class AppBrandLogo extends StatelessWidget {
 
   AppBrandLogoVariant get _resolvedVariant {
     if (variant != null) return variant!;
-    return switch (brandContext!) {
-      AppBrandContext.primaryBranding ||
-      AppBrandContext.settingsBranding ||
-      AppBrandContext.emptyState ||
-      AppBrandContext.compactBranding =>
-        AppBrandLogoVariant.icon,
+    return AppBrandLogoVariant.icon;
+  }
+
+  AppLogoTier? get _resolvedTier {
+    if (tier != null) return tier;
+    return switch (brandContext) {
+      AppBrandContext.primaryBranding => AppLogoTier.splash,
+      AppBrandContext.settingsBranding => AppLogoTier.header,
+      AppBrandContext.emptyState => AppLogoTier.header,
+      AppBrandContext.compactBranding => AppLogoTier.compact,
+      null => null,
     };
   }
 
-  double get _clearSpace {
-    if (brandContext != null) {
-      return AppBrandSizes.clearSpaceFor(brandContext!);
-    }
-    return AppBrandSizes.clearSpace;
+  double _clearSpaceForTier(AppLogoTier resolvedTier) {
+    if (!includeClearSpace) return 0;
+    return resolvedTier == AppLogoTier.splash
+        ? AppBrandSizes.clearSpaceHero
+        : AppBrandSizes.clearSpace;
   }
 
   @override
   Widget build(BuildContext context) {
+    final resolvedTier = _resolvedTier;
+    final resolvedSize = resolvedTier != null
+        ? AppLogoLayout.sizeFor(context, resolvedTier)
+        : iconSize;
+    final clearSpace = resolvedTier != null
+        ? _clearSpaceForTier(resolvedTier)
+        : (includeClearSpace ? AppBrandSizes.clearSpace : 0);
+
     final resolved = _resolvedVariant;
     final logo = Semantics(
       label: 'MarGem logo',
@@ -145,24 +258,26 @@ class AppBrandLogo extends StatelessWidget {
         AppBrandLogoVariant.full => _FullLockup(
             width: width,
             height: height,
-            iconSize: iconSize,
+            iconSize: resolvedSize,
             showWordmark: showWordmark,
             preferVector: preferVector,
           ),
         AppBrandLogoVariant.icon => _LogoMark(
-            size: iconSize,
+            size: resolvedSize,
             preferVector: preferVector,
           ),
         AppBrandLogoVariant.lockup => _HorizontalLockup(
-            iconSize: iconSize,
+            iconSize: resolvedSize,
             preferVector: preferVector,
           ),
-        AppBrandLogoVariant.wordmark => _Wordmark(height: iconSize * 0.55),
+        AppBrandLogoVariant.wordmark => _Wordmark(height: resolvedSize * 0.55),
       },
     );
 
+    if (clearSpace <= 0) return logo;
+
     return Padding(
-      padding: EdgeInsets.all(_clearSpace),
+      padding: EdgeInsets.all(clearSpace.toDouble()),
       child: logo,
     );
   }
@@ -265,10 +380,9 @@ class _LogoImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  final dpr = MediaQuery.devicePixelRatioOf(context);
-  final assetPath = dpr >= 2.5
-      ? AppBrandLogo._iconAsset2x
-      : asset;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final assetPath =
+        dpr >= 2.5 ? AppBrandLogo._iconAsset2x : asset;
 
     return Image.asset(
       assetPath,
@@ -316,15 +430,13 @@ class AppLogoPlaceholder extends StatelessWidget {
 
 /// Compact nav/header mark — icon only.
 class AppLogoHeader extends StatelessWidget {
-  const AppLogoHeader({super.key, this.size = AppBrandSizes.compact});
-
-  final double size;
+  const AppLogoHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AppBrandLogo.forContext(
-      AppBrandContext.compactBranding,
-      size: size,
+    return const AppBrandLogo(
+      tier: AppLogoTier.compact,
+      includeClearSpace: false,
     );
   }
 }

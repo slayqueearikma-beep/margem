@@ -22,4 +22,13 @@ class AppSpacing {
   static const iconSm = 20.0;
   static const iconMd = 24.0;
   static const iconLg = 32.0;
+
+  /// Logo → title gap on language, auth, and onboarding headers.
+  static const logoToTitle = 36.0;
+
+  /// Minimum top inset from safe area to logo on header screens.
+  static const logoTopFromSafeAreaMin = 60.0;
+
+  /// Maximum top inset from safe area to logo on header screens.
+  static const logoTopFromSafeAreaMax = 80.0;
 }

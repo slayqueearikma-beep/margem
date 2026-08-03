@@ -7,8 +7,8 @@ import '../../core/services/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/directional_ui.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
-import '../../core/widgets/app_logo_placeholder.dart';
 import '../../core/widgets/margem_background.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -95,36 +95,42 @@ class _LanguageSelectionScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (!widget.fromSettings)
-                      const SizedBox(height: AppSpacing.md),
-                    Center(
-                      child: widget.fromSettings
-                          ? AppBrandLogo.forContext(
-                              AppBrandContext.compactBranding,
-                              size: AppBrandSizes.compact,
-                            )
-                          : AppBrandLogo(
-                              variant: AppBrandLogoVariant.icon,
-                              iconSize: AppBrandSizes.settingsBranding,
-                            ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      l10n.selectLanguage,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      l10n.selectLanguageSubtitle,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary, height: 1.4),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
+                    if (widget.fromSettings)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.md),
+                          child: const AppBrandLogo(
+                            tier: AppLogoTier.compact,
+                            includeClearSpace: false,
+                          ),
+                        ),
+                      )
+                    else
+                      AppBrandHeader(
+                        tier: AppLogoTier.header,
+                        title: l10n.selectLanguage,
+                        subtitle: l10n.selectLanguageSubtitle,
+                      ),
+                    if (widget.fromSettings) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        l10n.selectLanguage,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        l10n.selectLanguageSubtitle,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary, height: 1.4),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                    ] else
+                      const SizedBox(height: AppSpacing.xl),
                     ..._options(l10n).map((option) => _LanguageCard(
                           flag: option.flag,
                           label: option.label,

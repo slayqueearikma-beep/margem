@@ -141,13 +141,11 @@ class AppScreenHeader extends StatelessWidget {
       crossAxisAlignment: alignment,
       children: [
         if (showLogo) ...[
-          Center(
-            child: AppBrandLogo(
-              variant: AppBrandLogoVariant.icon,
-              iconSize: AppBrandSizes.onboardingHeader,
-            ),
+          AppBrandHeader(
+            tier: AppLogoTier.header,
+            includeTopSpacing: false,
+            logoToTitleGap: AppSpacing.lg,
           ),
-          const SizedBox(height: AppSpacing.lg),
         ],
         Text(
           title,

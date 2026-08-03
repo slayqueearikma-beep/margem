@@ -220,35 +220,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             AppSpacing.screenHorizontal,
-            AppSpacing.md,
+            0,
             AppSpacing.screenHorizontal,
             AppSpacing.lg + bottomInset,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: AppBrandLogo(
-                  variant: AppBrandLogoVariant.icon,
-                  iconSize: AppBrandSizes.authHeader,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Text(
-                l10n.welcomeBack,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              AppBrandHeader(
+                tier: AppLogoTier.header,
+                title: l10n.welcomeBack,
+                subtitle: l10n.loginSubtitle,
+                includeTopSpacing: true,
+                titleStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.3,
-                    ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.loginSubtitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.4,
                     ),
               ),
               const SizedBox(height: AppSpacing.xl),

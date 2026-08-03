@@ -35,7 +35,7 @@ class BuyerShellHeader extends StatelessWidget {
           const Spacer(),
           AppBrandLogo.forContext(
             AppBrandContext.compactBranding,
-            size: AppBrandSizes.compact,
+            includeClearSpace: false,
           ),
           const Spacer(),
           _HeaderIconButton(
