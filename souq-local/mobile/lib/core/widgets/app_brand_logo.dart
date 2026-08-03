@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import 'margem_m_logo.dart';
 
 /// Visual hierarchy for the official MarGem mark.
 enum AppLogoTier {
@@ -124,13 +123,9 @@ class AppBrandHeader extends StatelessWidget {
       children: [
         if (top > 0) SizedBox(height: top),
         Center(
-          child: SizedBox(
-            width: AppLogoLayout.sizeFor(context, tier),
-            height: AppLogoLayout.sizeFor(context, tier),
-            child: AppBrandLogo(
-              tier: tier,
-              includeClearSpace: false,
-            ),
+          child: AppBrandLogo(
+            tier: tier,
+            includeClearSpace: false,
           ),
         ),
         if (title != null) ...[
@@ -162,7 +157,7 @@ class AppBrandHeader extends StatelessWidget {
   }
 }
 
-/// Official MarGem logo — single vector mark, aspect ratio preserved.
+/// Official MarGem logo — always renders [assets/images/margem_logo.png].
 class AppBrandLogo extends StatelessWidget {
   const AppBrandLogo({
     super.key,
@@ -173,7 +168,6 @@ class AppBrandLogo extends StatelessWidget {
     this.height,
     this.iconSize = 40,
     this.showWordmark = false,
-    this.preferVector = true,
     this.includeClearSpace = true,
   }) : assert(
           tier != null || brandContext != null || variant != null,
@@ -187,7 +181,6 @@ class AppBrandLogo extends StatelessWidget {
     double? width,
     double? height,
     bool showWordmark = false,
-    bool preferVector = true,
     bool includeClearSpace = true,
   }) {
     return AppBrandLogo(
@@ -197,7 +190,6 @@ class AppBrandLogo extends StatelessWidget {
       width: width,
       height: height,
       showWordmark: showWordmark,
-      preferVector: preferVector,
       includeClearSpace: includeClearSpace,
     );
   }
@@ -209,12 +201,18 @@ class AppBrandLogo extends StatelessWidget {
   final double? height;
   final double iconSize;
   final bool showWordmark;
-  final bool preferVector;
   final bool includeClearSpace;
 
-  static const _iconAsset = 'assets/images/margem_logo.png';
+  static const _iconAsset1x = 'assets/images/margem_logo.png';
   static const _iconAsset2x = 'assets/images/margem_logo@2x.png';
+  static const _iconAsset3x = 'assets/images/margem_logo@3x.png';
   static const _fullAsset = 'assets/images/margem_logo_full.png';
+
+  static String _iconAssetForDpr(double dpr) {
+    if (dpr >= 3) return _iconAsset3x;
+    if (dpr >= 2) return _iconAsset2x;
+    return _iconAsset1x;
+  }
 
   static double _defaultSizeFor(AppBrandContext context) {
     return switch (context) {
@@ -267,35 +265,24 @@ class AppBrandLogo extends StatelessWidget {
             height: height,
             iconSize: resolvedSize,
             showWordmark: showWordmark,
-            preferVector: preferVector,
           ),
-        AppBrandLogoVariant.icon => _LogoMark(
-            size: resolvedSize,
-            preferVector: preferVector,
-          ),
-        AppBrandLogoVariant.lockup => _HorizontalLockup(
-            iconSize: resolvedSize,
-            preferVector: preferVector,
-          ),
+        AppBrandLogoVariant.icon => _LogoMark(size: resolvedSize),
+        AppBrandLogoVariant.lockup => _HorizontalLockup(iconSize: resolvedSize),
         AppBrandLogoVariant.wordmark => _Wordmark(height: resolvedSize * 0.55),
       },
     );
 
-    if (clearSpace <= 0) {
-      return SizedBox(
-        width: resolvedSize,
-        height: resolvedSize,
-        child: Center(child: logo),
-      );
-    }
+    final box = SizedBox(
+      width: resolvedSize,
+      height: resolvedSize,
+      child: Center(child: logo),
+    );
+
+    if (clearSpace <= 0) return box;
 
     return Padding(
       padding: EdgeInsets.all(clearSpace.toDouble()),
-      child: SizedBox(
-        width: resolvedSize,
-        height: resolvedSize,
-        child: Center(child: logo),
-      ),
+      child: box,
     );
   }
 }
@@ -306,52 +293,45 @@ class _FullLockup extends StatelessWidget {
     required this.height,
     required this.iconSize,
     required this.showWordmark,
-    required this.preferVector,
   });
 
   final double? width;
   final double? height;
   final double iconSize;
   final bool showWordmark;
-  final bool preferVector;
 
   @override
   Widget build(BuildContext context) {
-    if (preferVector) {
-      return MargemMLogo(
-        size: iconSize,
-        showWordmark: true,
-        wordmarkSize: iconSize * 0.22,
+    if (showWordmark) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _LogoMark(size: iconSize),
+          SizedBox(height: iconSize * 0.1),
+          _Wordmark(height: iconSize * 0.22),
+        ],
       );
     }
+
     return _LogoImage(
       asset: AppBrandLogo._fullAsset,
       width: width ?? iconSize * 1.15,
       height: height,
-      fallback: MargemMLogo(
-        size: iconSize,
-        showWordmark: true,
-        wordmarkSize: iconSize * 0.22,
-      ),
     );
   }
 }
 
 class _HorizontalLockup extends StatelessWidget {
-  const _HorizontalLockup({
-    required this.iconSize,
-    required this.preferVector,
-  });
+  const _HorizontalLockup({required this.iconSize});
 
   final double iconSize;
-  final bool preferVector;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _LogoMark(size: iconSize, preferVector: preferVector),
+        _LogoMark(size: iconSize),
         SizedBox(width: iconSize * 0.2),
         _Wordmark(height: iconSize * 0.55),
       ],
@@ -360,24 +340,16 @@ class _HorizontalLockup extends StatelessWidget {
 }
 
 class _LogoMark extends StatelessWidget {
-  const _LogoMark({
-    required this.size,
-    this.preferVector = true,
-  });
+  const _LogoMark({required this.size});
 
   final double size;
-  final bool preferVector;
 
   @override
   Widget build(BuildContext context) {
-    if (preferVector) {
-      return MargemMLogo(size: size);
-    }
     return _LogoImage(
-      asset: AppBrandLogo._iconAsset,
+      asset: AppBrandLogo._iconAsset1x,
       width: size,
       height: size,
-      fallback: MargemMLogo(size: size),
     );
   }
 }
@@ -387,28 +359,28 @@ class _LogoImage extends StatelessWidget {
     required this.asset,
     this.width,
     this.height,
-    required this.fallback,
   });
 
   final String asset;
   final double? width;
   final double? height;
-  final Widget fallback;
 
   @override
   Widget build(BuildContext context) {
     final dpr = MediaQuery.devicePixelRatioOf(context);
+    final isIconAsset = asset == AppBrandLogo._iconAsset1x;
     final assetPath =
-        dpr >= 2.5 ? AppBrandLogo._iconAsset2x : asset;
+        isIconAsset ? AppBrandLogo._iconAssetForDpr(dpr) : asset;
 
     return Image.asset(
       assetPath,
       width: width,
       height: height,
       fit: BoxFit.contain,
+      alignment: Alignment.center,
       filterQuality: FilterQuality.high,
       gaplessPlayback: true,
-      errorBuilder: (_, __, ___) => fallback,
+      excludeFromSemantics: true,
     );
   }
 }
