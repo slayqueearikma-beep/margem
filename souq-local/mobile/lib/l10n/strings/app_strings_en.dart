@@ -243,6 +243,19 @@ class AppStringsEn extends AppStrings {
   String goodMorning(String name) =>
       name.isEmpty ? 'Good morning' : 'Good morning, $name';
   @override
+  String buyerHello(String name) =>
+      name.isEmpty ? 'Hello 👋' : 'Hello, $name 👋';
+  @override
+  String get buyerHomeSubtitle => 'What are you looking for today?';
+  @override
+  String get promoBannerTitle => 'Find the best around you';
+  @override
+  String get promoBannerSubtitle => 'Trusted sellers, great deals';
+  @override
+  String get exploreNow => 'Explore now';
+  @override
+  String get popularCategories => 'Popular categories';
+  @override
   String get searchHint => 'Search shops, products, services…';
   @override
   String get categories => 'Categories';

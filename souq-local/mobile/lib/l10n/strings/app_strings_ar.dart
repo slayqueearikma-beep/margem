@@ -242,6 +242,19 @@ class AppStringsAr extends AppStringsEn {
   String goodMorning(String name) =>
       name.isEmpty ? 'صباح الخير' : 'صباح الخير، $name';
   @override
+  String buyerHello(String name) =>
+      name.isEmpty ? 'مرحباً 👋' : 'مرحباً، $name 👋';
+  @override
+  String get buyerHomeSubtitle => 'ماذا تبحث عنه اليوم؟';
+  @override
+  String get promoBannerTitle => 'اعثر على الأفضل من حولك';
+  @override
+  String get promoBannerSubtitle => 'بائعون موثوقون وعروض رائعة';
+  @override
+  String get exploreNow => 'استكشف الآن';
+  @override
+  String get popularCategories => 'الفئات الشائعة';
+  @override
   String get searchHint => 'ابحث عن متاجر، منتجات، خدمات…';
   @override
   String get categories => 'الفئات';

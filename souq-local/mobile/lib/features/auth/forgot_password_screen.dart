@@ -4,6 +4,7 @@ import '../../core/validation/form_validators.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -95,9 +96,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final l10n = context.l10n;
     final resetMode = widget.resetMode;
 
-    return Scaffold(
-      appBar: AppBar(
-          title: Text(resetMode ? l10n.resetPassword : l10n.forgotPassword)),
+    return BuyerScreenScaffold(
+      appBar: BuyerAppBar(
+        title: resetMode ? l10n.resetPassword : l10n.forgotPassword,
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),

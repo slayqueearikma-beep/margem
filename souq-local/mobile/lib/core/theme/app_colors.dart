@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Brand accents
-  static const lavender = Color(0xFF9B8AFB);
+  // Brand accents — Customer Home mockup palette
+  static const lavender = Color(0xFF9A87F6);
   static const lavenderDark = Color(0xFF7C6AE8);
   static const lavenderLight = Color(0xFFB8ACFC);
   static const lavenderMuted = Color(0xFFF3F0FF);
   static const lavenderSurface = Color(0xFFF8F6FF);
 
-  static const peach = Color(0xFFFFA07A);
-  static const peachDark = Color(0xFFFF8A5C);
-  static const peachLight = Color(0xFFFFB896);
-  static const peachMuted = Color(0xFFFFF4EE);
-  static const peachSurface = Color(0xFFFFFAF7);
+  static const peach = Color(0xFFF6D7B4);
+  static const peachDark = Color(0xFFE8C49A);
+  static const peachLight = Color(0xFFFBE8D0);
+  static const peachMuted = Color(0xFFFFF6EC);
+  static const peachSurface = Color(0xFFFFFAF5);
 
   /// Primary brand color — lavender (customer-facing default).
   static const primary = lavender;

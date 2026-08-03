@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/geo_utils.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
@@ -28,6 +29,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Timer? _timer;
   Future<MarketplaceSearchPage>? _future;
   final _focusNode = FocusNode();
+  final _searchController = TextEditingController();
   var _mode = 'sellers';
 
   @override
@@ -40,6 +42,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void dispose() {
     _timer?.cancel();
     _focusNode.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -99,83 +102,80 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          BuyerScreenTitle(
+            title: l10n.search,
+            subtitle: city,
+          ),
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+            ),
+            child: Row(
               children: [
-                Text(
-                  l10n.search,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                const Icon(
+                  Icons.near_me_outlined,
+                  size: 14,
+                  color: AppColors.lavender,
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const SizedBox(width: 4),
                 Text(
-                  city,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  l10n.searchSortedByNearest,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
                       ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.near_me_outlined,
-                      size: 14,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      l10n.searchSortedByNearest,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                TextField(
-                  focusNode: _focusNode,
-                  autofocus: widget.autofocusSearch,
-                  decoration: InputDecoration(
-                    hintText: l10n.businessKeyword,
-                    prefixIcon: const Icon(Icons.search),
-                  ),
-                  onChanged: _onQueryChanged,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(
-                      value: 'sellers',
-                      label: Text(l10n.seller),
-                      icon: const Icon(Icons.storefront_outlined),
-                    ),
-                    ButtonSegment(
-                      value: 'products',
-                      label: Text(l10n.products),
-                      icon: const Icon(Icons.inventory_2_outlined),
-                    ),
-                  ],
-                  selected: {_mode},
-                  onSelectionChanged: (values) {
-                    setState(() {
-                      _mode = values.first;
-                      _future = _load();
-                    });
-                  },
                 ),
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.md),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+            ),
+            child: BuyerSearchBar(
+              hint: l10n.businessKeyword,
+              controller: _searchController,
+              focusNode: _focusNode,
+              autofocus: widget.autofocusSearch,
+              onChanged: _onQueryChanged,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+            ),
+            child: BuyerSegmentedToggle<String>(
+              selected: _mode,
+              onChanged: (value) {
+                setState(() {
+                  _mode = value;
+                  _future = _load();
+                });
+              },
+              segments: [
+                BuyerSegment(
+                  value: 'sellers',
+                  label: l10n.seller,
+                  icon: Icons.storefront_outlined,
+                ),
+                BuyerSegment(
+                  value: 'products',
+                  label: l10n.products,
+                  icon: Icons.inventory_2_outlined,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           Expanded(
             child: FutureBuilder<MarketplaceSearchPage>(
               future: _future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.lavender),
+                  );
                 }
                 if (snapshot.hasError) {
                   return AsyncErrorView.fromError(
@@ -189,11 +189,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ? (page?.products.length ?? 0)
                     : (page?.sellers.length ?? 0);
                 if (count == 0) {
-                  return Center(child: Text(l10n.noBusinessesFound));
+                  return BuyerEmptyState(
+                    icon: Icons.search_off_rounded,
+                    title: l10n.noBusinessesFound,
+                  );
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screenHorizontal,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenHorizontal,
+                    0,
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.xl,
                   ),
                   itemCount: count,
                   separatorBuilder: (_, __) =>
@@ -207,38 +213,40 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         product.sellerCity,
                         if (distance.isNotEmpty) distance,
                       ].join(' · ');
-                      return ListTile(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        tileColor: Theme.of(context).cardTheme.color,
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: SizedBox(
-                            width: 52,
-                            height: 52,
-                            child: NetworkImageView(
-                              url: product.imageUrl,
-                              placeholderIcon: Icons.inventory_2_outlined,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          product.name,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        subtitle: Text(subtitle),
-                        trailing: Text(
-                          product.priceMad == null
-                              ? '—'
-                              : '${product.priceMad!.toStringAsFixed(0)} MAD',
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
+                      return BuyerSurfaceCard(
                         onTap: () => context.push(
                           '/product/${product.sellerId}/${product.id}',
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: 4,
+                          ),
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              width: 52,
+                              height: 52,
+                              child: NetworkImageView(
+                                url: product.imageUrl,
+                                placeholderIcon: Icons.inventory_2_outlined,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            product.name,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          subtitle: Text(subtitle),
+                          trailing: Text(
+                            product.priceMad == null
+                                ? '—'
+                                : '${product.priceMad!.toStringAsFixed(0)} MAD',
+                            style: const TextStyle(
+                              color: AppColors.lavender,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
                       );
                     }
@@ -249,31 +257,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       '${seller.averageRating} ★',
                       if (distance.isNotEmpty) distance,
                     ].join(' · ');
-                    return ListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      tileColor: Theme.of(context).cardTheme.color,
-                      leading: ClipOval(
-                        child: SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: NetworkImageView(
-                            url: seller.coverImageUrl,
-                            placeholderIcon: Icons.storefront_rounded,
+                    return BuyerSurfaceCard(
+                      onTap: () => context.push('/seller/${seller.id}'),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: 4,
+                        ),
+                        leading: ClipOval(
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: NetworkImageView(
+                              url: seller.coverImageUrl,
+                              placeholderIcon: Icons.storefront_rounded,
+                            ),
                           ),
                         ),
+                        title: Text(
+                          seller.businessName,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text(subtitle),
+                        trailing: const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.textTertiary,
+                        ),
                       ),
-                      title: Text(
-                        seller.businessName,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(subtitle),
-                      trailing: const Icon(
-                        Icons.chevron_right_rounded,
-                        color: AppColors.textSecondary,
-                      ),
-                      onTap: () => context.push('/seller/${seller.id}'),
                     );
                   },
                 );

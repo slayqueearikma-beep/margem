@@ -114,6 +114,12 @@ abstract class AppStrings {
   String get noMessagesYet;
   String get typeMessage;
   String goodMorning(String name);
+  String buyerHello(String name);
+  String get buyerHomeSubtitle;
+  String get promoBannerTitle;
+  String get promoBannerSubtitle;
+  String get exploreNow;
+  String get popularCategories;
   String get searchHint;
   String get categories;
   String get exploreOnMap;

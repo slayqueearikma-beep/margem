@@ -8,6 +8,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -105,7 +106,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final canResend = session != null && !session.isGuest;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.verifyEmailTitle)),
+      appBar: BuyerAppBar(title: l10n.verifyEmailTitle),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
