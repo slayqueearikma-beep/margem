@@ -1016,6 +1016,58 @@ class AppStringsEn extends AppStrings {
   String get verification => 'Verification';
   @override
   String get markAllRead => 'Mark all read';
+  @override
+  String get communityChatTitle => 'City Community';
+  @override
+  String get communitySearchHint => 'Search channels...';
+  @override
+  String get communityFilterAll => 'All';
+  @override
+  String get communityFilterVerified => 'Verified';
+  @override
+  String get communityFilterTrusted => 'Trusted';
+  @override
+  String get communityNoChannels => 'No channels found';
+  @override
+  String get communityNoChannelsSubtitle => 'Try a different filter or search term.';
+  @override
+  String get communityNewMessage => 'New message';
+  @override
+  String get communityDiscoverTitle => 'Discover communities';
+  @override
+  String get communityMembers => 'members';
+  @override
+  String get communityOnline => 'online';
+  @override
+  String communityCitySubtitle(String city) =>
+      'Connect with locals, discover recommendations, and join the conversation in $city.';
+  @override
+  String get communityGuestHint =>
+      'Sign in to post messages and join your city community.';
+  @override
+  String get communityEmptyChannel => 'Start the conversation';
+  @override
+  String get communityEmptyChannelSubtitle =>
+      'Be the first to share something with your city.';
+  @override
+  String get communityReplyingTo => 'Replying to';
+  @override
+  String communityTyping(String name) => '$name is typing...';
+  @override
+  String get communityReply => 'Reply';
+  @override
+  String get communityCopy => 'Copy message';
+  @override
+  String get communityReport => 'Report message';
+  @override
+  String get communityReported => 'Report submitted. Thank you.';
+  @override
+  String get communityCopied => 'Message copied';
+  @override
+  String get communityHomeCardTitle => 'City Community';
+  @override
+  String get communityHomeCardSubtitle =>
+      'Chat with locals, get recommendations, and discover what\'s happening nearby.';
 
   @override
   String categoryLabel(String key) {

@@ -480,6 +480,32 @@ abstract class AppStrings {
   String get verification;
   String get markAllRead;
 
+  // Community chat
+  String get communityChatTitle;
+  String get communitySearchHint;
+  String get communityFilterAll;
+  String get communityFilterVerified;
+  String get communityFilterTrusted;
+  String get communityNoChannels;
+  String get communityNoChannelsSubtitle;
+  String get communityNewMessage;
+  String get communityDiscoverTitle;
+  String get communityMembers;
+  String get communityOnline;
+  String communityCitySubtitle(String city);
+  String get communityGuestHint;
+  String get communityEmptyChannel;
+  String get communityEmptyChannelSubtitle;
+  String get communityReplyingTo;
+  String communityTyping(String name);
+  String get communityReply;
+  String get communityCopy;
+  String get communityReport;
+  String get communityReported;
+  String get communityCopied;
+  String get communityHomeCardTitle;
+  String get communityHomeCardSubtitle;
+
   static AppStrings forLocale(String languageCode) {
     switch (languageCode) {
       case 'fr':

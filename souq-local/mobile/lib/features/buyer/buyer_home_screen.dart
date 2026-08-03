@@ -294,6 +294,23 @@ class BuyerHomeScreen extends ConsumerWidget {
                 AppSpacing.sm,
               ),
               child: _ExploreMapCard(
+                title: l10n.communityHomeCardTitle,
+                subtitle: l10n.communityHomeCardSubtitle,
+                icon: Icons.groups_rounded,
+                accentColor: AppColors.lavender,
+                onTap: () => context.push('/community'),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screenHorizontal,
+                AppSpacing.sm,
+                AppSpacing.screenHorizontal,
+                AppSpacing.sm,
+              ),
+              child: _ExploreMapCard(
                 title: l10n.exploreOnMap,
                 subtitle: l10n.exploreOnMapSubtitle(city),
                 onTap: () => context.push('/map'),
@@ -759,11 +776,17 @@ class _ExploreMapCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.icon = Icons.location_on_rounded,
+    this.accentColor = AppColors.lavender,
+    this.showMiniMap = true,
   });
 
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final IconData icon;
+  final Color accentColor;
+  final bool showMiniMap;
 
   @override
   Widget build(BuildContext context) {
@@ -778,16 +801,17 @@ class _ExploreMapCard extends StatelessWidget {
           height: 92,
           child: Stack(
             children: [
-              Positioned(
-                right: -8,
-                top: -8,
-                bottom: -8,
-                width: 140,
-                child: Opacity(
-                  opacity: 0.35,
-                  child: CustomPaint(painter: _MiniMapPainter()),
+              if (showMiniMap)
+                Positioned(
+                  right: -8,
+                  top: -8,
+                  bottom: -8,
+                  width: 140,
+                  child: Opacity(
+                    opacity: 0.35,
+                    child: CustomPaint(painter: _MiniMapPainter()),
+                  ),
                 ),
-              ),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -800,9 +824,9 @@ class _ExploreMapCard extends StatelessWidget {
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.location_on_rounded,
-                        color: AppColors.primary,
+                      child: Icon(
+                        icon,
+                        color: accentColor,
                       ),
                     ),
                     const SizedBox(width: 12),

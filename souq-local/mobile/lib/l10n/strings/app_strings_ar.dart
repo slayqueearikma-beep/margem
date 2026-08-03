@@ -1011,6 +1011,58 @@ class AppStringsAr extends AppStringsEn {
   String get verification => 'التحقق';
   @override
   String get markAllRead => 'تعيين الكل كمقروء';
+  @override
+  String get communityChatTitle => 'مجتمع المدينة';
+  @override
+  String get communitySearchHint => 'البحث في القنوات...';
+  @override
+  String get communityFilterAll => 'الكل';
+  @override
+  String get communityFilterVerified => 'موثّق';
+  @override
+  String get communityFilterTrusted => 'موثوق';
+  @override
+  String get communityNoChannels => 'لم يتم العثور على قنوات';
+  @override
+  String get communityNoChannelsSubtitle => 'جرّب فلتراً أو كلمة بحث أخرى.';
+  @override
+  String get communityNewMessage => 'رسالة جديدة';
+  @override
+  String get communityDiscoverTitle => 'اكتشف المجتمعات';
+  @override
+  String get communityMembers => 'أعضاء';
+  @override
+  String get communityOnline => 'متصل';
+  @override
+  String communityCitySubtitle(String city) =>
+      'تواصل مع السكان، اكتشف التوصيات، وانضم إلى النقاش في $city.';
+  @override
+  String get communityGuestHint =>
+      'سجّل الدخول للنشر والانضمام إلى مجتمع مدينتك.';
+  @override
+  String get communityEmptyChannel => 'ابدأ المحادثة';
+  @override
+  String get communityEmptyChannelSubtitle =>
+      'كن أول من يشارك شيئاً مع مدينتك.';
+  @override
+  String get communityReplyingTo => 'الرد على';
+  @override
+  String communityTyping(String name) => '$name يكتب...';
+  @override
+  String get communityReply => 'رد';
+  @override
+  String get communityCopy => 'نسخ الرسالة';
+  @override
+  String get communityReport => 'الإبلاغ عن الرسالة';
+  @override
+  String get communityReported => 'تم إرسال البلاغ. شكراً لك.';
+  @override
+  String get communityCopied => 'تم نسخ الرسالة';
+  @override
+  String get communityHomeCardTitle => 'مجتمع المدينة';
+  @override
+  String get communityHomeCardSubtitle =>
+      'تحدث مع السكان، احصل على توصيات، واكتشف ما يحدث بالقرب منك.';
 
   @override
   String categoryLabel(String key) {

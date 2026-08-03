@@ -1,4 +1,4 @@
-/// MarGem design system — single export for tokens and shared components.
+// MarGem design system — single export for tokens and shared components.
 export 'theme/app_colors.dart';
 export 'theme/app_decorations.dart';
 export 'theme/app_shadows.dart';

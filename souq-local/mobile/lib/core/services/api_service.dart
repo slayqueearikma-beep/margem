@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
+import '../models/community_models.dart';
 import '../models/models.dart';
 import 'secure_http_client.dart';
 
@@ -732,6 +733,146 @@ class ApiService {
       auth: true,
     );
     return ChatMessageModel.fromJson(data);
+  }
+
+  // ——— City community chat ———
+
+  Future<List<CommunityCityModel>> fetchCommunityCities({bool auth = false}) async {
+    final data = await getJsonList('/community/cities', auth: auth);
+    return data
+        .map((item) =>
+            CommunityCityModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CommunityDiscoverModel> fetchCommunityDiscover({bool auth = false}) async {
+    final data = await getJson('/community/discover', auth: auth);
+    return CommunityDiscoverModel.fromJson(data);
+  }
+
+  Future<CommunityCityModel> fetchCommunityCity(String slug, {bool auth = false}) async {
+    final data = await getJson('/community/cities/$slug', auth: auth);
+    return CommunityCityModel.fromJson(data);
+  }
+
+  Future<CommunityCityModel> joinCommunityCity(
+    String slug, {
+    bool isHomeCity = false,
+  }) async {
+    final data = await postJson(
+      '/community/cities/$slug/join',
+      {'is_home_city': isHomeCity},
+      auth: true,
+    );
+    return CommunityCityModel.fromJson(data);
+  }
+
+  Future<List<CommunityChannelModel>> fetchCommunityChannels(
+    String citySlug, {
+    bool auth = false,
+  }) async {
+    final data =
+        await getJsonList('/community/cities/$citySlug/channels', auth: auth);
+    return data
+        .map((item) =>
+            CommunityChannelModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<CommunityMessageModel>> fetchCommunityMessages(
+    String channelId, {
+    String? beforeId,
+    String? query,
+    bool verifiedOnly = false,
+    bool trustedOnly = false,
+  }) async {
+    final queryParams = <String, String>{
+      if (beforeId != null) 'before_id': beforeId,
+      if (query != null && query.isNotEmpty) 'q': query,
+      if (verifiedOnly) 'verified_only': 'true',
+      if (trustedOnly) 'trusted_only': 'true',
+    };
+    final data = await getJsonList(
+      '/community/channels/$channelId/messages${queryParams.isEmpty ? '' : '?${Uri(queryParameters: queryParams).query}'}',
+      auth: true,
+    );
+    return data
+        .map((item) =>
+            CommunityMessageModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CommunityMessageModel> postCommunityMessage({
+    required String channelId,
+    required String body,
+    String? replyToId,
+    List<Map<String, dynamic>> attachments = const [],
+  }) async {
+    final data = await postJson(
+      '/community/channels/$channelId/messages',
+      {
+        'body': body,
+        if (replyToId != null) 'reply_to_id': replyToId,
+        if (attachments.isNotEmpty) 'attachments': attachments,
+      },
+      auth: true,
+    );
+    return CommunityMessageModel.fromJson(data);
+  }
+
+  Future<CommunityMessageModel> editCommunityMessage(
+    String messageId,
+    String body,
+  ) async {
+    final data = await patchJson(
+      '/community/messages/$messageId',
+      {'body': body},
+      auth: true,
+    );
+    return CommunityMessageModel.fromJson(data);
+  }
+
+  Future<void> deleteCommunityMessage(String messageId) {
+    return deletePath('/community/messages/$messageId', auth: true);
+  }
+
+  Future<List<CommunityReactionModel>> reactCommunityMessage(
+    String messageId,
+    String emoji,
+  ) async {
+    final response = await _request(
+      () => _post(
+        _uri('/community/messages/$messageId/reactions'),
+        headers: _jsonHeaders(auth: true),
+        body: jsonEncode({'emoji': emoji}),
+      ),
+      auth: true,
+    );
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => CommunityReactionModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> reportCommunityMessage(
+    String messageId, {
+    required String reason,
+    String details = '',
+  }) {
+    return postVoid(
+      '/community/messages/$messageId/report',
+      {'reason': reason, 'details': details},
+      auth: true,
+    );
+  }
+
+  Future<void> blockCommunityUser(String userId) {
+    return postVoid('/community/users/block', {'user_id': userId}, auth: true);
+  }
+
+  Future<void> muteCommunityUser(String userId) {
+    return postVoid('/community/users/mute', {'user_id': userId}, auth: true);
   }
 
   Future<List<SubscriptionPlanModel>> fetchSubscriptionPlans() async {

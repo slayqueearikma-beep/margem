@@ -1035,6 +1035,59 @@ class AppStringsFr extends AppStringsEn {
   String get verification => 'Vérification';
   @override
   String get markAllRead => 'Tout marquer lu';
+  @override
+  String get communityChatTitle => 'Communauté locale';
+  @override
+  String get communitySearchHint => 'Rechercher des salons...';
+  @override
+  String get communityFilterAll => 'Tous';
+  @override
+  String get communityFilterVerified => 'Vérifiés';
+  @override
+  String get communityFilterTrusted => 'De confiance';
+  @override
+  String get communityNoChannels => 'Aucun salon trouvé';
+  @override
+  String get communityNoChannelsSubtitle =>
+      'Essayez un autre filtre ou terme de recherche.';
+  @override
+  String get communityNewMessage => 'Nouveau message';
+  @override
+  String get communityDiscoverTitle => 'Découvrir les communautés';
+  @override
+  String get communityMembers => 'membres';
+  @override
+  String get communityOnline => 'en ligne';
+  @override
+  String communityCitySubtitle(String city) =>
+      'Échangez avec les habitants, découvrez des recommandations et rejoignez la conversation à $city.';
+  @override
+  String get communityGuestHint =>
+      'Connectez-vous pour publier et rejoindre votre communauté locale.';
+  @override
+  String get communityEmptyChannel => 'Lancez la conversation';
+  @override
+  String get communityEmptyChannelSubtitle =>
+      'Soyez le premier à partager quelque chose avec votre ville.';
+  @override
+  String get communityReplyingTo => 'Réponse à';
+  @override
+  String communityTyping(String name) => '$name est en train d\'écrire...';
+  @override
+  String get communityReply => 'Répondre';
+  @override
+  String get communityCopy => 'Copier le message';
+  @override
+  String get communityReport => 'Signaler le message';
+  @override
+  String get communityReported => 'Signalement envoyé. Merci.';
+  @override
+  String get communityCopied => 'Message copié';
+  @override
+  String get communityHomeCardTitle => 'Communauté locale';
+  @override
+  String get communityHomeCardSubtitle =>
+      'Discutez avec les habitants, obtenez des recommandations et découvrez ce qui se passe près de chez vous.';
 
   @override
   String dayLabel(String key) {
