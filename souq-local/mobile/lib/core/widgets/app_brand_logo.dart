@@ -208,10 +208,14 @@ class AppBrandLogo extends StatelessWidget {
   static const _iconAsset3x = 'assets/images/margem_logo@3x.png';
   static const _fullAsset = 'assets/images/margem_logo_full.png';
 
-  static String _iconAssetForDpr(double dpr) {
-    if (dpr >= 3) return _iconAsset3x;
-    if (dpr >= 2) return _iconAsset2x;
-    return _iconAsset1x;
+  static List<String> _iconAssetCandidatesForDpr(double dpr) {
+    if (dpr >= 3) {
+      return [_iconAsset3x, _iconAsset2x, _iconAsset1x];
+    }
+    if (dpr >= 2) {
+      return [_iconAsset2x, _iconAsset1x];
+    }
+    return [_iconAsset1x];
   }
 
   static double _defaultSizeFor(AppBrandContext context) {
@@ -346,8 +350,10 @@ class _LogoMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dpr = MediaQuery.devicePixelRatioOf(context);
     return _LogoImage(
       asset: AppBrandLogo._iconAsset1x,
+      assetCandidates: AppBrandLogo._iconAssetCandidatesForDpr(dpr),
       width: size,
       height: size,
     );
@@ -359,19 +365,42 @@ class _LogoImage extends StatelessWidget {
     required this.asset,
     this.width,
     this.height,
+    this.assetCandidates = const [],
   });
 
   final String asset;
   final double? width;
   final double? height;
+  final List<String> assetCandidates;
 
   @override
   Widget build(BuildContext context) {
-    final dpr = MediaQuery.devicePixelRatioOf(context);
-    final isIconAsset = asset == AppBrandLogo._iconAsset1x;
-    final assetPath =
-        isIconAsset ? AppBrandLogo._iconAssetForDpr(dpr) : asset;
+    final candidates = assetCandidates.isEmpty ? [asset] : assetCandidates;
 
+    return _LogoAssetImage(
+      assetPath: candidates.first,
+      fallbackPaths: candidates.skip(1).toList(),
+      width: width,
+      height: height,
+    );
+  }
+}
+
+class _LogoAssetImage extends StatelessWidget {
+  const _LogoAssetImage({
+    required this.assetPath,
+    required this.fallbackPaths,
+    this.width,
+    this.height,
+  });
+
+  final String assetPath;
+  final List<String> fallbackPaths;
+  final double? width;
+  final double? height;
+
+  @override
+  Widget build(BuildContext context) {
     return Image.asset(
       assetPath,
       width: width,
@@ -381,6 +410,14 @@ class _LogoImage extends StatelessWidget {
       filterQuality: FilterQuality.high,
       gaplessPlayback: true,
       excludeFromSemantics: true,
+      errorBuilder: fallbackPaths.isEmpty
+          ? null
+          : (_, __, ___) => _LogoAssetImage(
+                assetPath: fallbackPaths.first,
+                fallbackPaths: fallbackPaths.skip(1).toList(),
+                width: width,
+                height: height,
+              ),
     );
   }
 }

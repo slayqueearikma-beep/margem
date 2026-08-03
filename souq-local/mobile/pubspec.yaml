@@ -39,8 +39,4 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/images/margem_logo.png
-    - assets/images/margem_logo@2x.png
-    - assets/images/margem_logo@3x.png
-    - assets/images/margem_logo_full.png
     - assets/images/onboarding/
