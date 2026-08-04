@@ -9,11 +9,11 @@ import 'network_image_view.dart';
 class OnboardingIllustration extends StatelessWidget {
   const OnboardingIllustration({
     super.key,
-    required this.backgroundColor,
+    this.backgroundColor = AppColors.cream,
     required this.icon,
     this.secondaryIcon,
     this.imageAsset,
-    this.imageFit = BoxFit.cover,
+    this.imageFit = BoxFit.contain,
   });
 
   final Color backgroundColor;
@@ -24,26 +24,21 @@ class OnboardingIllustration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppSpacing.illustrationRadius),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: imageAsset != null
-          ? Padding(
-              padding: EdgeInsets.all(imageFit == BoxFit.contain ? 32 : 0),
-              child: Image.asset(
+    return ColoredBox(
+      color: backgroundColor,
+      child: SizedBox(
+        height: 300,
+        width: double.infinity,
+        child: imageAsset != null
+            ? Image.asset(
                 imageAsset!,
                 fit: imageFit,
-                width: double.infinity,
-                height: double.infinity,
+                alignment: Alignment.center,
+                filterQuality: FilterQuality.high,
                 errorBuilder: (_, __, ___) => _iconFallback(),
-              ),
-            )
-          : _iconFallback(),
+              )
+            : _iconFallback(),
+      ),
     );
   }
 

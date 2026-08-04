@@ -77,7 +77,7 @@ class _OnboardingWelcomeScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cream,
       body: OnboardingBackdrop(
         showSkyline: false,
         showAccentBlob: true,
@@ -138,6 +138,7 @@ class _OnboardingWelcomeScreenState
                                 slide.imageAsset,
                                 fit: BoxFit.contain,
                                 alignment: Alignment.center,
+                                filterQuality: FilterQuality.high,
                               ),
                             ),
                           ),
