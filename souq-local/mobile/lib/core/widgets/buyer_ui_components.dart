@@ -24,66 +24,87 @@ class BuyerShellHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const sideSlotWidth = 88.0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
         children: [
-          _HeaderIconButton(
-            icon: Icons.menu_rounded,
-            onTap: onMenu,
-          ),
-          const Spacer(),
-          AppBrandLogo.forContext(
-            AppBrandContext.compactBranding,
-            includeClearSpace: false,
-          ),
-          const Spacer(),
-          _HeaderIconButton(
-            icon: Icons.notifications_none_rounded,
-            onTap: onNotifications,
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              GestureDetector(
-                onTap: onProfile,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.borderLight, width: 2),
-                    boxShadow: AppShadows.soft(blur: 12, y: 2),
-                  ),
-                  child: const CircleAvatar(
-                    backgroundColor: AppColors.beigeLight,
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: AppColors.lavender,
-                      size: 22,
-                    ),
-                  ),
-                ),
+          SizedBox(
+            width: sideSlotWidth,
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: _HeaderIconButton(
+                icon: Icons.menu_rounded,
+                onTap: onMenu,
               ),
-              if (showPremiumBadge)
-                PositionedDirectional(
-                  end: -2,
-                  bottom: -2,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.workspace_premium_rounded,
-                      size: 14,
-                      color: AppColors.goldenCrown,
-                    ),
-                  ),
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: AppBrandLogo.forContext(
+                AppBrandContext.compactBranding,
+                includeClearSpace: false,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: sideSlotWidth,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _HeaderIconButton(
+                  icon: Icons.notifications_none_rounded,
+                  onTap: onNotifications,
                 ),
-            ],
+                const SizedBox(width: AppSpacing.xs),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    GestureDetector(
+                      onTap: onProfile,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.borderLight,
+                            width: 2,
+                          ),
+                          boxShadow: AppShadows.soft(blur: 12, y: 2),
+                        ),
+                        child: const CircleAvatar(
+                          backgroundColor: AppColors.beigeLight,
+                          child: Icon(
+                            Icons.person_rounded,
+                            color: AppColors.lavender,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (showPremiumBadge)
+                      PositionedDirectional(
+                        end: -2,
+                        bottom: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.workspace_premium_rounded,
+                            size: 14,
+                            color: AppColors.goldenCrown,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
