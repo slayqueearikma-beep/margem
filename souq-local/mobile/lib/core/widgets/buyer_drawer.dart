@@ -32,7 +32,7 @@ class BuyerDrawer extends ConsumerWidget {
     }
 
     return Drawer(
-      backgroundColor: AppColors.beigeLight,
+      backgroundColor: AppColors.drawerBackground(context),
       shape: const RoundedRectangleBorder(),
       child: SafeArea(
         child: Column(
@@ -55,9 +55,12 @@ class BuyerDrawer extends ConsumerWidget {
                         height: 52,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.cream,
-                          border: Border.all(color: AppColors.borderLight, width: 2),
-                          boxShadow: AppShadows.soft(blur: 10, y: 2),
+                          color: AppColors.drawerTile(context),
+                          border: Border.all(
+                            color: AppColors.outlineSubtle(context),
+                            width: 2,
+                          ),
+                          boxShadow: AppShadows.softFor(context, blur: 10, y: 2),
                         ),
                         child: Icon(
                           isGuest
@@ -76,10 +79,10 @@ class BuyerDrawer extends ConsumerWidget {
                               displayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 17,
-                                color: AppColors.navy,
+                                color: AppColors.onSurface(context),
                               ),
                             ),
                             Text(
@@ -88,8 +91,8 @@ class BuyerDrawer extends ConsumerWidget {
                                   : (session.email),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
+                              style: TextStyle(
+                                color: AppColors.onSurfaceVariant(context),
                                 fontSize: 12,
                               ),
                             ),
@@ -101,7 +104,7 @@ class BuyerDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            const Divider(height: 1, color: AppColors.border),
+            Divider(height: 1, color: AppColors.outline(context)),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(
@@ -152,8 +155,6 @@ class BuyerDrawer extends ConsumerWidget {
                       onPressed: () =>
                           closeAnd(() => context.push('/onboarding/account-type')),
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.lavender,
-                        foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(999),
@@ -199,7 +200,7 @@ class _DrawerTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Material(
-        color: AppColors.cream,
+        color: AppColors.drawerTile(context),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -213,24 +214,25 @@ class _DrawerTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
-                      color: AppColors.navy,
+                      color: AppColors.onSurface(context),
                     ),
                   ),
                 ),
                 if (badge != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.lavender,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
                       badge!,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),

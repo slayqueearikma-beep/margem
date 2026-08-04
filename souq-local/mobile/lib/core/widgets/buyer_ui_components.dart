@@ -53,11 +53,14 @@ class BuyerShellHeader extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.borderLight, width: 2),
-                    boxShadow: AppShadows.soft(blur: 12, y: 2),
+                    border: Border.all(
+                      color: AppColors.outlineSubtle(context),
+                      width: 2,
+                    ),
+                    boxShadow: AppShadows.softFor(context, blur: 12, y: 2),
                   ),
-                  child: const CircleAvatar(
-                    backgroundColor: AppColors.beigeLight,
+                  child: CircleAvatar(
+                    backgroundColor: AppColors.iconCircle(context),
                     child: Icon(
                       Icons.person_rounded,
                       color: AppColors.lavender,
@@ -72,8 +75,8 @@ class BuyerShellHeader extends StatelessWidget {
                   bottom: -2,
                   child: Container(
                     padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: AppColors.badgeBorder(context),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -107,7 +110,7 @@ class _HeaderIconButton extends StatelessWidget {
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(icon, size: 24, color: AppColors.navy),
+          child: Icon(icon, size: 24, color: AppColors.onSurface(context)),
         ),
       ),
     );
@@ -183,7 +186,7 @@ class BuyerGreetingBlock extends StatelessWidget {
         Text(
           subtitle,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary,
+                color: AppColors.onSurfaceVariant(context),
                 height: 1.35,
               ),
         ),
@@ -219,10 +222,10 @@ class BuyerSearchBar extends StatelessWidget {
     final field = Container(
       height: 52,
       decoration: BoxDecoration(
-        color: AppColors.cream,
+        color: AppColors.searchBar(context),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: AppShadows.soft(blur: 16, y: 3),
+        border: Border.all(color: AppColors.outlineSubtle(context)),
+        boxShadow: AppShadows.softFor(context, blur: 16, y: 3),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
@@ -259,7 +262,7 @@ class BuyerSearchBar extends StatelessWidget {
           ),
           if (onFilter != null)
             Material(
-              color: AppColors.beigeLight,
+              color: AppColors.filterChip(context),
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 onTap: onFilter,

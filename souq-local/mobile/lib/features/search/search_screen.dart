@@ -13,7 +13,7 @@ import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
-import '../buyer/buyer_home_screen.dart';
+import '../../core/providers/city_providers.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key, this.autofocusSearch = false});

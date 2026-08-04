@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
+import '../models/city_model.dart';
 import '../models/community_models.dart';
 import '../models/models.dart';
 import 'secure_http_client.dart';
@@ -398,6 +399,20 @@ class ApiService {
       if (cat.slug == slug) return cat.id;
     }
     return null;
+  }
+
+  Future<List<CityModel>> fetchCities({String? query}) async {
+    final params = <String, String>{'country': 'MA'};
+    if (query != null && query.trim().isNotEmpty) {
+      params['q'] = query.trim();
+    }
+    final response = await _get(_uri('/geography/cities', params));
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final items = data['items'] as List<dynamic>? ?? const [];
+    return items
+        .map((e) => CityModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<SellerModel>> fetchSellers({

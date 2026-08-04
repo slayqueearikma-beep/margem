@@ -62,6 +62,30 @@ async def ensure_default_cities(session: AsyncSession) -> None:
     await session.commit()
 
 
+async def ensure_all_city_communities(session: AsyncSession) -> None:
+    """Create default channels for geography cities missing community setup."""
+    result = await session.execute(select(City).where(City.is_active.is_(True)))
+    cities = list(result.scalars().all())
+    for city in cities:
+        channel_count = await session.scalar(
+            select(func.count())
+            .select_from(CommunityChannel)
+            .where(CommunityChannel.city_id == city.id)
+        )
+        if channel_count == 0:
+            for category, channel_name, channel_desc in DEFAULT_CHANNEL_SPECS:
+                session.add(
+                    CommunityChannel(
+                        id=uuid4(),
+                        city_id=city.id,
+                        category=category,
+                        name=channel_name,
+                        description=channel_desc,
+                    )
+                )
+    await session.commit()
+
+
 async def create_city_with_channels(
     session: AsyncSession,
     *,
