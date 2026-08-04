@@ -14,7 +14,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
-import '../buyer/buyer_home_screen.dart';
+import '../../core/providers/city_providers.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -59,6 +59,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(buyerCityProvider);
+    ref.listen(buyerCityProvider, (previous, next) {
+      if (previous != next) _reload(next);
+    });
 
     if (!AppConfig.hasGoogleMapsApiKey) {
       return Scaffold(

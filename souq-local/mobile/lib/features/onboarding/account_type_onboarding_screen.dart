@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/config/app_config.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
@@ -110,7 +110,9 @@ class _AccountTypeOnboardingScreenState
     final storage = ref.read(appStorageProvider);
     if (storage == null) return;
     await storage.completeOnboarding();
-    await storage.saveGuestSession(city: AppConfig.launchCity);
+    await storage.saveGuestSession(
+      city: storage.getSelectedCity() ?? ref.read(buyerCityProvider),
+    );
     ref.read(userSessionProvider.notifier).state = storage.getSession();
     if (mounted) context.go('/buyer/home');
   }

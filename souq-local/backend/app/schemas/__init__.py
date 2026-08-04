@@ -303,16 +303,10 @@ class SellerCreate(BaseModel):
 
     @field_validator("city")
     @classmethod
-    def launch_city_only(cls, value: str) -> str:
-        from app.config import settings
+    def validate_supported_city(cls, value: str) -> str:
+        from app.services.geography import resolve_city_name
 
-        cleaned = value.strip()
-        for city in settings.default_cities:
-            if city.casefold() == cleaned.casefold():
-                return city
-        raise ValueError(
-            f"MarGem currently supports {', '.join(settings.default_cities)} only"
-        )
+        return resolve_city_name(value)
 
 
 class SellerUpdate(BaseModel):
@@ -339,18 +333,12 @@ class SellerUpdate(BaseModel):
 
     @field_validator("city")
     @classmethod
-    def launch_city_only(cls, value: str | None) -> str | None:
+    def validate_supported_city_optional(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        from app.config import settings
+        from app.services.geography import resolve_city_name
 
-        cleaned = value.strip()
-        for city in settings.default_cities:
-            if city.casefold() == cleaned.casefold():
-                return city
-        raise ValueError(
-            f"MarGem currently supports {', '.join(settings.default_cities)} only"
-        )
+        return resolve_city_name(value)
 
 
 class SellerSummary(BaseModel):

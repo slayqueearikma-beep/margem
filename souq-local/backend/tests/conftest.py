@@ -48,7 +48,25 @@ async def prepare_database():
             await conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS orderstatus CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS paymentstatus CASCADE"))
-        await conn.run_sync(Base.metadata.drop_all)
+        # Legacy tables from other branches/migrations may reference core tables.
+        await conn.execute(
+            text(
+                """
+                DO $$ DECLARE r RECORD;
+                BEGIN
+                    FOR r IN (
+                        SELECT tablename
+                        FROM pg_tables
+                        WHERE schemaname = 'public'
+                    ) LOOP
+                        EXECUTE 'DROP TABLE IF EXISTS '
+                            || quote_ident(r.tablename)
+                            || ' CASCADE';
+                    END LOOP;
+                END $$;
+                """
+            )
+        )
         await conn.run_sync(Base.metadata.create_all)
 
     async with database.SessionLocal() as session:
@@ -74,7 +92,51 @@ async def prepare_database():
                 ),
             ]
         )
+        from app.models.geography import City, Country
+        from app.services.geography import ensure_geography_seeded
+
+        morocco = Country(
+            id=uuid4(),
+            code="MA",
+            name_en="Morocco",
+            name_ar="المغرب",
+            name_fr="Maroc",
+            is_active=True,
+        )
+        session.add(morocco)
+        await session.flush()
+        session.add_all(
+            [
+                City(
+                    id=uuid4(),
+                    country_id=morocco.id,
+                    slug="casablanca",
+                    name_en="Casablanca",
+                    name_fr="Casablanca",
+                    name_ar="الدار البيضاء",
+                    region="Casablanca-Settat",
+                    latitude=33.5731,
+                    longitude=-7.5898,
+                    is_active=True,
+                    sort_order=1,
+                ),
+                City(
+                    id=uuid4(),
+                    country_id=morocco.id,
+                    slug="rabat",
+                    name_en="Rabat",
+                    name_fr="Rabat",
+                    name_ar="الرباط",
+                    region="Rabat-Salé-Kénitra",
+                    latitude=34.0209,
+                    longitude=-6.8416,
+                    is_active=True,
+                    sort_order=2,
+                ),
+            ]
+        )
         await session.commit()
+        await ensure_geography_seeded(session)
 
     yield
     async with database.engine.begin() as conn:
@@ -102,6 +164,8 @@ async def prepare_database():
             "warning_zones",
             "users",
             "categories",
+            "cities",
+            "countries",
         ):
             await conn.execute(text(f"DELETE FROM {table}"))
     await database.engine.dispose()

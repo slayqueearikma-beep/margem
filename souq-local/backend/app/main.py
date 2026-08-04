@@ -21,8 +21,9 @@ from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.models import SubscriptionPlan
-from app.routers import auth, catalog, discovery, search, seller_ops, sellers, uploads
+from app.routers import auth, catalog, discovery, geography, search, seller_ops, sellers, uploads
 from app.services.local_storage import media_root
+from app.services.geography import ensure_geography_seeded
 from app.telemetry import configure_telemetry
 
 configure_logging(json_logs=settings.app_env in {"production", "prod"})
@@ -69,6 +70,9 @@ async def lifespan(app: FastAPI):
                 ]
             )
             await session.commit()
+    async with database.SessionLocal() as session:
+        await ensure_geography_seeded(session)
+
     yield
     await database.engine.dispose()
 
@@ -111,6 +115,7 @@ _proxy_trusted = (
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=_proxy_trusted)
 
 app.include_router(auth.router)
+app.include_router(geography.router)
 app.include_router(catalog.router)
 app.include_router(sellers.router)
 app.include_router(uploads.router)

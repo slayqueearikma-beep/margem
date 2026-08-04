@@ -9,12 +9,15 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/auth_models.dart';
+import '../../core/models/city_model.dart';
 import '../../core/models/models.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/upload_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -35,6 +38,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   final _phoneController = TextEditingController();
 
   LatLng _location = CityCoordinates.casablanca;
+  CityModel? _selectedCity;
   bool _isActive = true;
   bool _loading = false;
   bool _hydrated = false;
@@ -86,6 +90,21 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     _coverUrl = seller.coverImageUrl;
     _logoUrl = seller.logoImageUrl;
     _isActive = isActive;
+    final cities = ref.read(citiesProvider).valueOrNull;
+    if (cities != null) {
+      _selectedCity =
+          findCityByName(cities, seller.city) ??
+          findCityByName(cities, AppConfig.launchCity);
+    } else {
+      ref.read(citiesProvider.future).then((loaded) {
+        if (!mounted) return;
+        setState(() {
+          _selectedCity ??=
+              findCityByName(loaded, seller.city) ??
+              findCityByName(loaded, AppConfig.launchCity);
+        });
+      });
+    }
     final hours = seller.openingHours;
     if (!hours.isEmpty) {
       hours.days.forEach((key, value) {
@@ -140,7 +159,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
             businessName: _businessNameController.text.trim(),
             description: _descriptionController.text.trim(),
             address: _addressController.text.trim(),
-            city: AppConfig.launchCity,
+            city: _selectedCity?.nameEn ?? AppConfig.launchCity,
             latitude: _location.latitude,
             longitude: _location.longitude,
             phone: _phoneController.text.trim(),
@@ -207,9 +226,12 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
                 decoration: InputDecoration(labelText: l10n.businessDescription),
               ),
               const SizedBox(height: AppSpacing.md),
-              InputDecorator(
-                decoration: InputDecoration(labelText: l10n.reviewCity),
-                child: const Text(AppConfig.launchCity),
+              CityPickerField(
+                selected: _selectedCity,
+                onSelected: (city) => setState(() {
+                  _selectedCity = city;
+                  _location = LatLng(city.latitude, city.longitude);
+                }),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(
