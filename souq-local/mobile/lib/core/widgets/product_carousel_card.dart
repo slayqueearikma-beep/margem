@@ -36,7 +36,7 @@ class ProductCarouselCard extends StatelessWidget {
     final cardWidth = width ?? ((screenW - 48) / 3).clamp(118.0, 168.0);
 
     final card = Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: AppColors.cardSurface(context),
       elevation: 0,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       clipBehavior: Clip.antiAlias,
@@ -52,7 +52,7 @@ class ProductCarouselCard extends StatelessWidget {
                 ? null
                 : [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
+                      color: AppColors.navy.withValues(alpha: 0.06),
                       blurRadius: 14,
                       offset: const Offset(0, 6),
                     ),
@@ -75,7 +75,8 @@ class ProductCarouselCard extends StatelessWidget {
                         top: 8,
                         right: 8,
                         child: Material(
-                          color: Colors.white.withValues(alpha: 0.92),
+                          color: AppColors.favoriteButton(context)
+                              .withValues(alpha: 0.92),
                           shape: const CircleBorder(),
                           child: InkWell(
                             customBorder: const CircleBorder(),
@@ -121,11 +122,12 @@ class ProductCarouselCard extends StatelessWidget {
                       product.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        height: 1.25,
-                      ),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      height: 1.25,
+                      color: AppColors.onSurface(context),
+                    ),
                     ),
                     const SizedBox(height: 6),
                     Text(

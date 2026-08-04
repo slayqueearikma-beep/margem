@@ -20,7 +20,7 @@ class AppDecorations {
     return BoxDecoration(
       color: isDark
           ? AppColors.darkCard.withValues(alpha: 0.75)
-          : Colors.white.withValues(alpha: 0.82),
+          : AppColors.cream.withValues(alpha: 0.82),
       borderRadius: BorderRadius.circular(radius),
       border: showBorder
           ? Border.all(
@@ -43,7 +43,7 @@ class AppDecorations {
     return BoxDecoration(
       color: selected
           ? accent.withValues(alpha: isDark ? 0.18 : 0.08)
-          : (isDark ? AppColors.darkCard : Colors.white),
+          : (isDark ? AppColors.darkCard : AppColors.cream),
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(
         color: selected
@@ -74,7 +74,7 @@ class AppDecorations {
         filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: fill ?? Colors.white.withValues(alpha: 0.65),
+            color: fill ?? AppColors.cream.withValues(alpha: 0.65),
             borderRadius: BorderRadius.circular(radius),
           ),
           child: child,

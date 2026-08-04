@@ -309,7 +309,7 @@ class _CityBanner extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: AppColors.outlineSubtle(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,7 +373,7 @@ class _StatChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
+        color: AppColors.cardSurface(context).withValues(alpha: 0.75),
         borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
       ),
       child: Row(

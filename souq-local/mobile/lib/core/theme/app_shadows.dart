@@ -6,15 +6,32 @@ import 'app_colors.dart';
 class AppShadows {
   AppShadows._();
 
-  static List<BoxShadow> soft({Color? color, double blur = 24, double y = 8}) {
+  static List<BoxShadow> soft({
+    Color? color,
+    double blur = 24,
+    double y = 8,
+    bool? isDark,
+  }) {
+    final dark = isDark ?? false;
     return [
       BoxShadow(
-        color: (color ?? AppColors.navy).withValues(alpha: 0.06),
+        color: (color ?? (dark ? AppColors.darkBackground : AppColors.navy))
+            .withValues(alpha: dark ? 0.4 : 0.06),
         blurRadius: blur,
         offset: Offset(0, y),
         spreadRadius: -4,
       ),
     ];
+  }
+
+  static List<BoxShadow> softFor(
+    BuildContext context, {
+    Color? color,
+    double blur = 24,
+    double y = 8,
+  }) {
+    final dark = AppColors.isDark(context);
+    return soft(color: color, blur: blur, y: y, isDark: dark);
   }
 
   static List<BoxShadow> card({bool isDark = false}) => [

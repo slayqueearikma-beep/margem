@@ -187,7 +187,10 @@ class _ConversationTile extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.success,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: AppColors.scaffold(context),
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
@@ -240,8 +243,8 @@ class _ConversationTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: conversation.hasUnread
-                                ? AppColors.navy
-                                : AppColors.textSecondary,
+                                ? AppColors.onSurface(context)
+                                : AppColors.onSurfaceVariant(context),
                             fontWeight: conversation.hasUnread
                                 ? FontWeight.w600
                                 : FontWeight.w400,
@@ -263,8 +266,8 @@ class _ConversationTile extends StatelessWidget {
                             conversation.unreadCount > 99
                                 ? '99+'
                                 : '${conversation.unreadCount}',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),
@@ -415,7 +418,9 @@ class _ConversationThreadScreenState
                         decoration: BoxDecoration(
                           color: mine
                               ? AppColors.primary.withValues(alpha: 0.12)
-                              : AppColors.cardSelected,
+                              : (AppColors.isDark(context)
+                                  ? AppColors.darkCard
+                                  : AppColors.cardSelected),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(

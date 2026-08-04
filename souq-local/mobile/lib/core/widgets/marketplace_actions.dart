@@ -31,13 +31,14 @@ class MarketPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
     final child = FilledButton(
       onPressed: loading ? null : onPressed,
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: onPrimary,
         disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.35),
-        disabledForegroundColor: Colors.white70,
+        disabledForegroundColor: onPrimary.withValues(alpha: 0.7),
         minimumSize: const Size(0, MarketButtonMetrics.height),
         padding: const EdgeInsets.symmetric(
           horizontal: MarketButtonMetrics.horizontalPadding,
@@ -52,10 +53,13 @@ class MarketPrimaryButton extends StatelessWidget {
         ),
       ),
       child: loading
-          ? const SizedBox(
+          ? SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: onPrimary,
+              ),
             )
           : Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -96,7 +100,7 @@ class MarketSecondaryButton extends StatelessWidget {
     final child = OutlinedButton(
       onPressed: loading ? null : onPressed,
       style: OutlinedButton.styleFrom(
-        foregroundColor: isDark ? Colors.white : AppColors.textPrimary,
+        foregroundColor: AppColors.onSurface(context),
         disabledForegroundColor: AppColors.textTertiary,
         minimumSize: const Size(0, MarketButtonMetrics.height),
         padding: const EdgeInsets.symmetric(
@@ -162,16 +166,16 @@ class MarketSectionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: AppColors.cardSurface(context),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: AppColors.outline(context),
         ),
         boxShadow: isDark
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: AppColors.navy.withValues(alpha: 0.04),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),

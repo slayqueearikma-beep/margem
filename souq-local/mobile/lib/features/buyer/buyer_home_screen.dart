@@ -264,8 +264,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                             ),
                             icon: _categoryIcon(cat.icon),
                             tint: i.isEven
-                                ? AppColors.beigeLight
-                                : AppColors.cream,
+                                ? AppColors.mutedSurface(context)
+                                : AppColors.cardSurface(context),
                             onTap: () {
                               ref
                                   .read(buyerCategorySlugProvider.notifier)
@@ -305,10 +305,6 @@ class BuyerHomeScreen extends ConsumerWidget {
                     subtitle: l10n.exploreOnMapSubtitle(city),
                     ctaLabel: l10n.exploreNow,
                     onTap: () => context.push('/map'),
-                    gradientColors: const [
-                      Color(0xFFFAF3EC),
-                      Color(0xFFFFF9F3),
-                    ],
                   ),
                   BuyerPromoBanner(
                     title: l10n.communityHomeCardTitle,
@@ -410,8 +406,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                               ),
                               icon: _categoryIcon(cat.icon),
                               tint: i.isEven
-                                  ? AppColors.beigeLight
-                                  : AppColors.cream,
+                                  ? AppColors.mutedSurface(context)
+                                  : AppColors.cardSurface(context),
                               onTap: () {
                                 ref
                                     .read(buyerCategorySlugProvider.notifier)
@@ -554,7 +550,7 @@ class _GuestModeBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.beigeLight,
+      color: AppColors.mutedSurface(context),
       borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
       child: InkWell(
         onTap: onLogin,
@@ -563,7 +559,7 @@ class _GuestModeBanner extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-            boxShadow: AppShadows.soft(color: AppColors.beige, blur: 16, y: 4),
+            boxShadow: AppShadows.softFor(context, blur: 16, y: 4),
           ),
           child: Row(
             children: [
@@ -571,7 +567,7 @@ class _GuestModeBanner extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardSurface(context),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
@@ -587,9 +583,10 @@ class _GuestModeBanner extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 14,
+                        color: AppColors.onSurface(context),
                       ),
                     ),
                     Text(
@@ -614,8 +611,8 @@ class _GuestModeBanner extends StatelessWidget {
                 ),
                 child: Text(
                   loginLabel,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -676,7 +673,7 @@ class _ProfileHeader extends StatelessWidget {
                   fontSize: 34,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.5,
-                  color: isDark ? Colors.white : AppColors.primary,
+                  color: isDark ? AppColors.onSurface(context) : AppColors.primary,
                 ),
               ),
             ),

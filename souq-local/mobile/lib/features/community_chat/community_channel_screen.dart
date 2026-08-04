@@ -320,7 +320,7 @@ class _MessageBubble extends StatelessWidget {
     final l10n = context.l10n;
     final bubbleColor = isMine
         ? AppColors.lavender.withValues(alpha: 0.18)
-        : Colors.white.withValues(alpha: 0.9);
+        : AppColors.cardSurface(context).withValues(alpha: 0.95);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -344,7 +344,7 @@ class _MessageBubble extends StatelessWidget {
                   border: Border.all(
                     color: isMine
                         ? AppColors.lavender.withValues(alpha: 0.3)
-                        : AppColors.borderLight,
+                        : AppColors.outlineSubtle(context),
                   ),
                 ),
                 child: Column(

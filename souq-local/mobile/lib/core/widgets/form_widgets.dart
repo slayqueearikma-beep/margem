@@ -54,9 +54,7 @@ class SelectionCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.white,
+                    color: AppColors.iconCircle(context),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: AppShadows.iconCircle(accentColor),
                   ),

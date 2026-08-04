@@ -155,14 +155,13 @@ class FeaturedBusinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: AppColors.cardSurface(context),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.borderLight,
+          color: AppColors.outlineSubtle(context),
         ),
       ),
       shadowColor: Colors.transparent,
@@ -188,7 +187,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                       top: 8,
                       right: 8,
                       child: Material(
-                        color: Colors.white,
+                        color: AppColors.favoriteButton(context),
                         shape: const CircleBorder(),
                         child: InkWell(
                           customBorder: const CircleBorder(),
@@ -535,7 +534,10 @@ class DashboardMenuTile extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 child: Text(
                   badge!,
-                  style: const TextStyle(fontSize: 10, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
               )
             : Icon(
