@@ -61,13 +61,38 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Future<MarketplaceSearchPage> _load() async {
     final city = ref.read(buyerCityProvider);
     final origin = await ref.read(buyerSearchLocationProvider.future);
-    return apiServiceProvider.searchMarketplace(
+    final page = await apiServiceProvider.searchMarketplace(
       query: _debounced,
       mode: _mode,
       city: city,
       lat: origin.latitude,
       lng: origin.longitude,
-      sort: 'distance',
+      sort: 'relevance',
+    );
+    return _sortByNearest(page);
+  }
+
+  MarketplaceSearchPage _sortByNearest(MarketplaceSearchPage page) {
+    int compareDistance(double? a, double? b) {
+      if (a == null && b == null) return 0;
+      if (a == null) return 1;
+      if (b == null) return -1;
+      return a.compareTo(b);
+    }
+
+    final sellers = [...page.sellers]
+      ..sort((a, b) => compareDistance(a.distanceKm, b.distanceKm));
+    final products = [...page.products]
+      ..sort((a, b) => compareDistance(a.distanceKm, b.distanceKm));
+
+    return MarketplaceSearchPage(
+      sellers: sellers,
+      products: products,
+      totalSellers: page.totalSellers,
+      totalProducts: page.totalProducts,
+      limit: page.limit,
+      offset: page.offset,
+      hasMore: page.hasMore,
     );
   }
 
