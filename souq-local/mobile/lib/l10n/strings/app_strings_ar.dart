@@ -67,6 +67,16 @@ class AppStringsAr extends AppStringsEn {
   String get trustedReviewsSubtitle =>
       'اقرأ تقييمات المشترين الحقيقيين واكتشف أكثر المحلات موثوقية في مدينتك.';
   @override
+  String get connectTitle => 'تواصل بثقة';
+  @override
+  String get connectSubtitle =>
+      'تعرّف على بائعين موثوقين، واقرأ تقييمات حقيقية، وابنِ الثقة في مجتمعك.';
+  @override
+  String get growTitle => 'نمِّ نشاطك التجاري';
+  @override
+  String get growSubtitle =>
+      'أدرج متجرك، واصل إلى المزيد من العملاء، وتتبّع نجاحك على MarGem.';
+  @override
   String get chooseAccountType => 'مرحباً بك في MarGem';
   @override
   String get chooseAccountTypeSubtitle =>

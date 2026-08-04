@@ -67,6 +67,16 @@ class AppStringsEn extends AppStrings {
   String get trustedReviewsSubtitle =>
       'Read ratings from real buyers and discover the most trusted businesses in your city.';
   @override
+  String get connectTitle => 'Connect with Confidence';
+  @override
+  String get connectSubtitle =>
+      'Meet verified sellers, read real reviews, and build trust in your community.';
+  @override
+  String get growTitle => 'Grow Your Business';
+  @override
+  String get growSubtitle =>
+      'List your shop, reach more customers, and track your success on MarGem.';
+  @override
   String get chooseAccountType => 'Welcome to MarGem';
   @override
   String get chooseAccountTypeSubtitle =>

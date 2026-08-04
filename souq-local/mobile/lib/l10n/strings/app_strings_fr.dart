@@ -68,6 +68,16 @@ class AppStringsFr extends AppStringsEn {
   String get trustedReviewsSubtitle =>
       'Consultez les notes des acheteurs et découvrez les commerces les plus fiables de votre ville.';
   @override
+  String get connectTitle => 'Connectez-vous en toute confiance';
+  @override
+  String get connectSubtitle =>
+      'Rencontrez des vendeurs vérifiés, lisez des avis authentiques et renforcez la confiance dans votre communauté.';
+  @override
+  String get growTitle => 'Développez votre activité';
+  @override
+  String get growSubtitle =>
+      'Référencez votre boutique, touchez plus de clients et suivez votre succès sur MarGem.';
+  @override
   String get chooseAccountType => 'Bienvenue sur MarGem';
   @override
   String get chooseAccountTypeSubtitle =>

@@ -34,6 +34,10 @@ abstract class AppStrings {
   String get exploreMapSubtitle;
   String get trustedReviewsTitle;
   String get trustedReviewsSubtitle;
+  String get connectTitle;
+  String get connectSubtitle;
+  String get growTitle;
+  String get growSubtitle;
   String get chooseAccountType;
   String get chooseAccountTypeSubtitle;
   String get accountTypeSectionLabel;

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/widgets/app_brand_logo.dart';
-import '../../core/widgets/margem_background.dart';
+import '../../core/widgets/onboarding_backdrop.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -54,12 +54,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ref.read(authSessionProvider.notifier).state = restored;
     }
 
-    if (!storage.isLanguageSelected) {
-      if (!mounted) return;
-      context.go('/language');
-      return;
-    }
-
     final session = storage.getSession();
     if (session != null) {
       if (session.isGuest) {
@@ -96,14 +90,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
 
-    if (storage.isOnboardingComplete) {
+    if (!storage.isOnboardingComplete) {
       if (!mounted) return;
-      context.go('/login');
+      context.go('/onboarding');
       return;
     }
 
     if (!mounted) return;
-    context.go('/onboarding');
+    context.go('/login');
   }
 
   @override
@@ -115,22 +109,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: MargemBackground(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Center(
-              child: FadeTransition(
-                opacity: _fade,
-                child: ScaleTransition(
-                  scale: _scale,
-                  child: const AppBrandLogo(
-                    tier: AppLogoTier.splash,
-                    includeClearSpace: false,
-                  ),
-                ),
+      body: OnboardingBackdrop(
+        child: Center(
+          child: FadeTransition(
+            opacity: _fade,
+            child: ScaleTransition(
+              scale: _scale,
+              child: const AppBrandLogo(
+                tier: AppLogoTier.splash,
+                includeClearSpace: false,
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
