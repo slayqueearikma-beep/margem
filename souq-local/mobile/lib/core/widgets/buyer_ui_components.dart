@@ -892,7 +892,7 @@ class BuyerAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.scaffold(context),
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -908,7 +908,7 @@ class BuyerAppBar extends StatelessWidget implements PreferredSizeWidget {
         preferredSize: const Size.fromHeight(1),
         child: Container(
           height: 1,
-          color: AppColors.borderLight,
+          color: AppColors.outlineSubtle(context),
         ),
       ),
     );
@@ -1235,12 +1235,13 @@ class BuyerBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cream,
+        color: AppColors.navBar(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -1268,7 +1269,7 @@ class BuyerBottomNavBar extends StatelessWidget {
                             selected ? item.selectedIcon : item.icon,
                             color: selected
                                 ? AppColors.lavender
-                                : AppColors.textTertiary,
+                                : AppColors.onSurfaceVariant(context),
                             size: 24,
                           ),
                           if ((badges[i] ?? 0) > 0)
@@ -1315,7 +1316,7 @@ class BuyerBottomNavBar extends StatelessWidget {
                               selected ? FontWeight.w700 : FontWeight.w500,
                           color: selected
                               ? AppColors.lavender
-                              : AppColors.textTertiary,
+                              : AppColors.onSurfaceVariant(context),
                         ),
                       ),
                     ],
@@ -1342,7 +1343,7 @@ class BuyerNavItem {
   final String label;
 }
 
-/// White scaffold background for all customer screens.
+/// Customer shell scaffold — follows [MaterialApp] theme (light and dark).
 class BuyerScreenScaffold extends StatelessWidget {
   const BuyerScreenScaffold({
     super.key,
@@ -1359,10 +1360,11 @@ class BuyerScreenScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.cream,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: appBar,
         drawer: drawer,
         body: body,
