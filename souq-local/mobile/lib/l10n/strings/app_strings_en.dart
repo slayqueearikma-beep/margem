@@ -8,6 +8,8 @@ class AppStringsEn extends AppStrings {
   @override
   String get splashTagline => 'Discover. Connect. Grow Locally.';
   @override
+  String get alreadyHaveAccount => 'Already have an account?';
+  @override
   String get selectLanguage => 'Choose your language';
   @override
   String get selectLanguageSubtitle =>
@@ -54,10 +56,10 @@ class AppStringsEn extends AppStrings {
   @override
   String get language => 'Language';
   @override
-  String get discoverTitle => 'Discover Local Businesses';
+  String get discoverTitle => 'Discover Local Businesses & Services';
   @override
   String get discoverSubtitle =>
-      'Find trusted shops, products, and services across Morocco — all in one place.';
+      'Find trusted sellers, unique products and amazing services around you.';
   @override
   String get exploreMapTitle => 'Explore on the Map';
   @override
@@ -72,12 +74,12 @@ class AppStringsEn extends AppStrings {
   String get connectTitle => 'Connect with Confidence';
   @override
   String get connectSubtitle =>
-      'Meet verified sellers, read real reviews, and build trust in your community.';
+      'Verified profiles, reviews and secure communication you can trust.';
   @override
   String get growTitle => 'Grow Your Business';
   @override
   String get growSubtitle =>
-      'List your shop, reach more customers, and track your success on MarGem.';
+      'List your products or services, reach more customers and grow your brand.';
   @override
   String get chooseAccountType => 'Welcome to MarGem';
   @override

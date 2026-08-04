@@ -8,6 +8,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get splashTagline => 'اكتشف. تواصل. انمُ محلياً.';
   @override
+  String get alreadyHaveAccount => 'لديك حساب بالفعل؟';
+  @override
   String get selectLanguage => 'اختر لغتك';
   @override
   String get selectLanguageSubtitle =>
@@ -54,10 +56,10 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get language => 'اللغة';
   @override
-  String get discoverTitle => 'اكتشف المحلات المحلية';
+  String get discoverTitle => 'اكتشف المحلات والخدمات المحلية';
   @override
   String get discoverSubtitle =>
-      'اعثر على متاجر ومنتجات وخدمات موثوقة في جميع أنحاء المغرب — في مكان واحد.';
+      'اعثر على بائعين موثوقين ومنتجات فريدة وخدمات رائعة من حولك.';
   @override
   String get exploreMapTitle => 'استكشف على الخريطة';
   @override
@@ -72,12 +74,10 @@ class AppStringsAr extends AppStringsEn {
   String get connectTitle => 'تواصل بثقة';
   @override
   String get connectSubtitle =>
-      'تعرّف على بائعين موثوقين، واقرأ تقييمات حقيقية، وابنِ الثقة في مجتمعك.';
-  @override
-  String get growTitle => 'نمِّ نشاطك التجاري';
+      'ملفات موثقة وتقييمات وتواصل آمن يمكنك الوثوق به.';
   @override
   String get growSubtitle =>
-      'أدرج متجرك، واصل إلى المزيد من العملاء، وتتبّع نجاحك على MarGem.';
+      'أدرج منتجاتك أو خدماتك، واصل إلى المزيد من العملاء ونمِّ علامتك التجارية.';
   @override
   String get chooseAccountType => 'مرحباً بك في MarGem';
   @override

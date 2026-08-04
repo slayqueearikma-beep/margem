@@ -7,6 +7,7 @@ abstract class AppStrings {
   String get appName;
   String get appTagline;
   String get splashTagline;
+  String get alreadyHaveAccount;
   String get selectLanguage;
   String get selectLanguageSubtitle;
   String get english;

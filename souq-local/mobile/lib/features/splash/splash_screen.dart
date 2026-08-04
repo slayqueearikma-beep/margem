@@ -128,18 +128,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     tier: AppLogoTier.splash,
                     includeClearSpace: false,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: 20),
                   Text(
                     l10n.appName,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    style: theme.textTheme.headlineLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: AppColors.lavender,
-                          letterSpacing: -0.4,
-                          height: 1.1,
+                          letterSpacing: -0.5,
+                          height: 1.05,
+                        ) ??
+                        const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.lavender,
                         ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.screenHorizontal,

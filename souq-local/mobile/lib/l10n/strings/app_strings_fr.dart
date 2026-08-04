@@ -9,6 +9,8 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get splashTagline => 'Découvrez. Connectez. Grandissez localement.';
   @override
+  String get alreadyHaveAccount => 'Vous avez déjà un compte ?';
+  @override
   String get selectLanguage => 'Choisissez votre langue';
   @override
   String get selectLanguageSubtitle =>
@@ -55,10 +57,10 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get language => 'Langue';
   @override
-  String get discoverTitle => 'Découvrez les commerces locaux';
+  String get discoverTitle => 'Découvrez commerces et services locaux';
   @override
   String get discoverSubtitle =>
-      'Trouvez des boutiques, produits et services de confiance partout au Maroc — en un seul endroit.';
+      'Trouvez des vendeurs de confiance, des produits uniques et des services près de chez vous.';
   @override
   String get exploreMapTitle => 'Explorez sur la carte';
   @override
@@ -73,12 +75,10 @@ class AppStringsFr extends AppStringsEn {
   String get connectTitle => 'Connectez-vous en toute confiance';
   @override
   String get connectSubtitle =>
-      'Rencontrez des vendeurs vérifiés, lisez des avis authentiques et renforcez la confiance dans votre communauté.';
-  @override
-  String get growTitle => 'Développez votre activité';
+      'Profils vérifiés, avis et communication sécurisée en toute confiance.';
   @override
   String get growSubtitle =>
-      'Référencez votre boutique, touchez plus de clients et suivez votre succès sur MarGem.';
+      'Référencez vos produits ou services, touchez plus de clients et développez votre marque.';
   @override
   String get chooseAccountType => 'Bienvenue sur MarGem';
   @override

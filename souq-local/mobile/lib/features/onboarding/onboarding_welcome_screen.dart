@@ -38,6 +38,7 @@ class _OnboardingWelcomeScreenState
           title: l10n.growTitle,
           subtitle: l10n.growSubtitle,
           imageAsset: 'assets/images/onboarding/onboarding_04_grow.png',
+          showLeadingIcon: true,
         ),
       ];
 
@@ -73,10 +74,13 @@ class _OnboardingWelcomeScreenState
     final slides = _slides(l10n);
     final isLastPage = _currentPage == slides.length - 1;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       body: OnboardingBackdrop(
+        showSkyline: false,
+        showAccentBlob: true,
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -94,7 +98,7 @@ class _OnboardingWelcomeScreenState
                           child: TextButton(
                             onPressed: _completeOnboardingAndGoLogin,
                             style: TextButton.styleFrom(
-                              foregroundColor: AppColors.textSecondary,
+                              foregroundColor: AppColors.lavender,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 4,
@@ -105,7 +109,7 @@ class _OnboardingWelcomeScreenState
                             child: Text(
                               l10n.skip,
                               style: const TextStyle(
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 16,
                               ),
                             ),
@@ -127,8 +131,9 @@ class _OnboardingWelcomeScreenState
                       child: Column(
                         children: [
                           Expanded(
+                            flex: 5,
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                              padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
                               child: Image.asset(
                                 slide.imageAsset,
                                 fit: BoxFit.contain,
@@ -136,31 +141,45 @@ class _OnboardingWelcomeScreenState
                               ),
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.lg),
+                          if (slide.showLeadingIcon) ...[
+                            Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.lavender.withValues(alpha: 0.45),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.shopping_bag_outlined,
+                                color: AppColors.lavender,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                          ],
                           Text(
                             slide.title,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.navy,
-                                  height: 1.2,
-                                ),
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.navy,
+                              height: 1.15,
+                              letterSpacing: -0.3,
+                            ),
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
                             slide.subtitle,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                  color: AppColors.textSecondary,
-                                  height: 1.45,
-                                ),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: AppColors.textSecondary,
+                              height: 1.45,
+                            ),
                           ),
+                          const Spacer(flex: 1),
                         ],
                       ),
                     );
@@ -175,13 +194,39 @@ class _OnboardingWelcomeScreenState
                 ),
                 child: PrimaryButton(
                   label: isLastPage ? l10n.getStarted : l10n.next,
+                  trailingIcon: isLastPage
+                      ? null
+                      : Icons.arrow_forward_rounded,
                   onPressed: () => _next(slides.length),
                 ),
               ),
               if (isLastPage)
-                LinkTextButton(
-                  label: l10n.logIn,
-                  onPressed: _completeOnboardingAndGoLogin,
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        l10n.alreadyHaveAccount,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _completeOnboardingAndGoLogin,
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.lavender,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          minimumSize: const Size(44, 36),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          l10n.logIn,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
+                  ),
                 )
               else
                 const SizedBox(height: AppSpacing.lg),
@@ -199,9 +244,11 @@ class _SlideData {
     required this.title,
     required this.subtitle,
     required this.imageAsset,
+    this.showLeadingIcon = false,
   });
 
   final String title;
   final String subtitle;
   final String imageAsset;
+  final bool showLeadingIcon;
 }

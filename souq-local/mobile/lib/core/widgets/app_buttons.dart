@@ -12,6 +12,7 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.icon,
+    this.trailingIcon,
     this.accentColor,
   });
 
@@ -19,6 +20,7 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final IconData? icon;
+  final IconData? trailingIcon;
   final Color? accentColor;
 
   @override
@@ -57,6 +59,10 @@ class PrimaryButton extends StatelessWidget {
                       const SizedBox(width: 8),
                     ],
                     Text(label),
+                    if (trailingIcon != null) ...[
+                      const SizedBox(width: 8),
+                      Icon(trailingIcon, size: 20),
+                    ],
                   ],
                 ),
         ),
