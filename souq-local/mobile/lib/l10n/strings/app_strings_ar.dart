@@ -6,6 +6,8 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get appTagline => 'اكتشف كنوز المغرب المخفية';
   @override
+  String get splashTagline => 'اكتشف. تواصل. انمُ محلياً.';
+  @override
   String get selectLanguage => 'اختر لغتك';
   @override
   String get selectLanguageSubtitle =>

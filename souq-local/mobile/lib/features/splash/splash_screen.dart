@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/onboarding_backdrop.dart';
+import '../../l10n/app_localizations.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -108,16 +111,51 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
+      backgroundColor: AppColors.cream,
       body: OnboardingBackdrop(
-        child: Center(
+        child: SafeArea(
           child: FadeTransition(
             opacity: _fade,
             child: ScaleTransition(
               scale: _scale,
-              child: const AppBrandLogo(
-                tier: AppLogoTier.splash,
-                includeClearSpace: false,
+              child: Column(
+                children: [
+                  const Spacer(flex: 3),
+                  const AppBrandLogo(
+                    tier: AppLogoTier.splash,
+                    includeClearSpace: false,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    l10n.appName,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.lavender,
+                          letterSpacing: -0.4,
+                          height: 1.1,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.screenHorizontal,
+                    ),
+                    child: Text(
+                      l10n.splashTagline,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.navy,
+                            fontWeight: FontWeight.w500,
+                            height: 1.35,
+                          ),
+                    ),
+                  ),
+                  const Spacer(flex: 4),
+                ],
               ),
             ),
           ),

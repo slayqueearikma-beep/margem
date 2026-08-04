@@ -161,7 +161,8 @@ def main() -> None:
     (values_dir / "colors.xml").write_text(
         """<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#F8F1E9</color>
+    <color name="splash_background">#F8F1E9</color>
 </resources>
 """,
         encoding="utf-8",
@@ -169,7 +170,7 @@ def main() -> None:
 
     splash_dir = res / "drawable"
     splash_dir.mkdir(parents=True, exist_ok=True)
-    _fit_lockup(full.convert("RGBA"), 400).save(splash_dir / "splash_logo.png", optimize=True)
+    _square_icon(icon, 400).save(splash_dir / "splash_logo.png", optimize=True)
 
     brand = ROOT / "brand"
     brand.mkdir(parents=True, exist_ok=True)

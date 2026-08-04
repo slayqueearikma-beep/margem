@@ -6,6 +6,8 @@ class AppStringsEn extends AppStrings {
   @override
   String get appTagline => 'Discover Morocco\'s Hidden Gems';
   @override
+  String get splashTagline => 'Discover. Connect. Grow Locally.';
+  @override
   String get selectLanguage => 'Choose your language';
   @override
   String get selectLanguageSubtitle =>
