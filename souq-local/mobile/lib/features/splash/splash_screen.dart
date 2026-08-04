@@ -112,6 +112,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -152,9 +153,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     child: Text(
                       l10n.splashTagline,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppColors.navy,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                            color: AppColors.navy.withValues(alpha: 0.85),
                             fontWeight: FontWeight.w500,
+                            fontSize: 16,
                             height: 1.35,
                           ),
                     ),
