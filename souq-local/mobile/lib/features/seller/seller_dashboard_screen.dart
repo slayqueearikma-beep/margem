@@ -76,7 +76,8 @@ class SellerDashboardScreen extends ConsumerWidget {
                                         context.push('/seller/profile'),
                                     child: CircleAvatar(
                                       radius: 22,
-                                      backgroundColor: AppColors.cardSelected,
+                                      backgroundColor:
+                                          AppColors.mutedSurface(context),
                                       child: ClipOval(
                                         child: SizedBox(
                                           width: 44,

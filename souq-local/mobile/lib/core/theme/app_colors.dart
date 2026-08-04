@@ -38,4 +38,25 @@ class AppColors {
   static const illustrationOrange = Color(0xFFFF8A50);
   static const illustrationGreen = Color(0xFF6BCB77);
   static const illustrationBlue = Color(0xFF4D96FF);
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color cardSurface(BuildContext context) =>
+      isDark(context) ? darkCard : surfaceLight;
+
+  static Color mutedSurface(BuildContext context) =>
+      isDark(context) ? darkCard : surfaceMuted;
+
+  static Color selectedSurface(BuildContext context) =>
+      isDark(context) ? darkCard : cardSelected;
+
+  static Color onSurfaceVariant(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurfaceVariant;
+
+  static Color outline(BuildContext context) =>
+      isDark(context) ? darkBorder : border;
+
+  static Color splashBackgroundFor(BuildContext context) =>
+      isDark(context) ? darkBackground : splashBackground;
 }

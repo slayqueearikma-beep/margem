@@ -492,7 +492,7 @@ class _HomeTopBar extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: AppColors.onSurfaceVariant(context),
                     ),
               ),
               if (onCityTap == null)
@@ -544,7 +544,9 @@ class _HomeTopBar extends StatelessWidget {
           customBorder: const CircleBorder(),
           child: CircleAvatar(
             radius: 16,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+            backgroundColor: AppColors.isDark(context)
+                ? AppColors.darkCard
+                : AppColors.primary.withValues(alpha: 0.12),
             child: Icon(
               isGuest ? Icons.person_outline_rounded : Icons.person_rounded,
               size: 18,
@@ -585,16 +587,16 @@ class _HomeSearchField extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.search_rounded,
-                  color: AppColors.textSecondary, size: 22),
+              Icon(Icons.search_rounded,
+                  color: AppColors.onSurfaceVariant(context), size: 22),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   hint,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: AppColors.onSurfaceVariant(context),
                     fontSize: 14,
                   ),
                 ),
@@ -623,7 +625,7 @@ class _GuestModeBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.cardSelected,
+      color: AppColors.mutedSurface(context),
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       child: InkWell(
         onTap: onLogin,
@@ -641,17 +643,18 @@ class _GuestModeBanner extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     Text(
                       subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: AppColors.onSurfaceVariant(context),
                         fontSize: 11,
                         height: 1.25,
                       ),
@@ -754,7 +757,7 @@ class _ExploreMapCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: isDark ? AppColors.darkCard : AppColors.cardSelected,
+      color: isDark ? AppColors.darkCard : AppColors.selectedSurface(context),
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       child: InkWell(
         onTap: onTap,
@@ -781,8 +784,8 @@ class _ExploreMapCard extends StatelessWidget {
                     Container(
                       width: 44,
                       height: 44,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -798,9 +801,10 @@ class _ExploreMapCard extends StatelessWidget {
                         children: [
                           Text(
                             title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -808,8 +812,8 @@ class _ExploreMapCard extends StatelessWidget {
                             subtitle,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
+                            style: TextStyle(
+                              color: AppColors.onSurfaceVariant(context),
                               fontSize: 12,
                             ),
                           ),
@@ -942,7 +946,7 @@ class _ProfileHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: AppColors.onSurfaceVariant(context),
                   fontWeight: FontWeight.w400,
                   height: 1.3,
                 ),
@@ -954,7 +958,7 @@ class _ProfileHeader extends StatelessWidget {
             membershipLabel!,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.textTertiary,
+                  color: AppColors.onSurfaceVariant(context),
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.1,
                 ),

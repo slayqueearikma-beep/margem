@@ -38,15 +38,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _navigateNext() async {
-    await Future<void>.delayed(const Duration(milliseconds: 2200));
-    if (!mounted) return;
-
     final storage = ref.read(appStorageProvider);
     if (storage == null) {
       await ref.read(sharedPreferencesProvider.future);
       if (!mounted) return;
       return _navigateNext();
     }
+
+    final session = storage.getSession();
+    final isReturningUser =
+        session != null || storage.isOnboardingComplete;
+    if (!isReturningUser) {
+      await Future<void>.delayed(const Duration(milliseconds: 2200));
+    }
+    if (!mounted) return;
 
     await ref.read(authServiceProvider).loadStoredToken();
     var restored = await ref.read(authServiceProvider).restoreAuthSession();
@@ -60,7 +65,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
 
-    final session = storage.getSession();
     if (session != null) {
       if (session.isGuest) {
         ref.read(userSessionProvider.notifier).state = session;
@@ -118,7 +122,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.splashBackground,
+      backgroundColor: AppColors.splashBackgroundFor(context),
       body: Center(
         child: FadeTransition(
           opacity: _fade,
