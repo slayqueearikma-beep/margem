@@ -92,4 +92,92 @@ class AppColors {
 
   static Color roleSurface(bool isProvider) =>
       isProvider ? cream : ultraLight;
+
+  // ── Theme-aware resolvers (use instead of hard-coded light tokens) ─────
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color scaffold(BuildContext context) =>
+      Theme.of(context).scaffoldBackgroundColor;
+
+  static Color surface(BuildContext context) =>
+      isDark(context) ? darkSurface : surfaceLight;
+
+  static Color mutedSurface(BuildContext context) =>
+      isDark(context) ? darkCard : beigeLight;
+
+  static Color cardSurface(BuildContext context) =>
+      isDark(context) ? darkCard : cream;
+
+  static Color elevatedCard(BuildContext context) =>
+      Theme.of(context).colorScheme.surfaceContainerHighest;
+
+  static Color onSurface(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurface;
+
+  static Color onSurfaceVariant(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurfaceVariant;
+
+  static Color outline(BuildContext context) =>
+      Theme.of(context).colorScheme.outline;
+
+  static Color outlineSubtle(BuildContext context) =>
+      isDark(context) ? darkBorder : borderLight;
+
+  static Color drawerBackground(BuildContext context) =>
+      isDark(context) ? darkSurface : beigeLight;
+
+  static Color drawerTile(BuildContext context) =>
+      isDark(context) ? darkCard : cream;
+
+  static Color navBar(BuildContext context) =>
+      isDark(context) ? darkSurface : cream;
+
+  static Color searchBar(BuildContext context) =>
+      isDark(context) ? darkCard : cream;
+
+  static Color segmentedTrack(BuildContext context) =>
+      isDark(context) ? darkCard : beigeLight;
+
+  static Color segmentedThumb(BuildContext context) =>
+      isDark(context) ? darkSurface : cream;
+
+  static Color iconCircle(BuildContext context) =>
+      isDark(context) ? darkCard : beigeLight;
+
+  static Color promoGradientStart(BuildContext context) =>
+      isDark(context) ? darkCard : beigeLight;
+
+  static Color promoGradientEnd(BuildContext context) =>
+      isDark(context) ? darkSurface : creamSoft;
+
+  static Color badgeBorder(BuildContext context) =>
+      isDark(context) ? darkSurface : cream;
+
+  static Color accentMuted(BuildContext context) =>
+      isDark(context) ? lavender.withValues(alpha: 0.12) : lavenderMuted;
+
+  static Color imagePlaceholderSurface(BuildContext context) =>
+      isDark(context) ? darkCard : primary.withValues(alpha: 0.08);
+
+  static Color favoriteButton(BuildContext context) =>
+      isDark(context) ? darkCard : cream;
+
+  static Color filterChip(BuildContext context) =>
+      isDark(context) ? darkSurface : beigeLight;
+
+  static Color destructiveIconBg(BuildContext context) =>
+      isDark(context) ? danger.withValues(alpha: 0.15) : dangerMuted;
+
+  static Color emptyStateCircle(BuildContext context) =>
+      isDark(context) ? darkCard : beigeLight;
+
+  static Color imagePlaceholder(BuildContext context) =>
+      isDark(context) ? darkCard : beigeLight;
+
+  static List<Color> promoBannerGradient(BuildContext context) => [
+        promoGradientStart(context),
+        promoGradientEnd(context),
+      ];
 }

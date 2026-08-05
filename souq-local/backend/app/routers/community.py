@@ -479,8 +479,17 @@ async def _ws_user_from_token(token: str, session: AsyncSession) -> User | None:
     decoded = decode_access_token(token)
     if decoded is None:
         return None
-    user_id, _ = decoded
-    return await session.get(User, user_id)
+    user_id, token_version = decoded
+    user = await session.get(User, user_id)
+    if user is None:
+        return None
+    if getattr(user, "token_version", 0) != token_version:
+        return None
+    from app.models import UserStatus
+
+    if getattr(user, "status", None) in {UserStatus.SUSPENDED, UserStatus.DELETED}:
+        return None
+    return user
 
 
 @router.websocket("/ws")
@@ -498,6 +507,18 @@ async def community_websocket(
             await websocket.close(code=4401)
             return
         channel = await get_channel(session, channel_id)
+        if channel is None:
+            await websocket.close(code=4404)
+            return
+        from app.services.community_moderation import require_city_membership
+
+        try:
+            await require_city_membership(
+                session, city_id=channel.city_id, user_id=user.id
+            )
+        except HTTPException:
+            await websocket.close(code=4403)
+            return
         slug = city_slug or (channel.city.slug if channel.city else "")
 
     await community_ws_manager.connect(

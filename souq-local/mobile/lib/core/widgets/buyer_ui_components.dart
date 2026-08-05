@@ -22,70 +22,96 @@ class BuyerShellHeader extends StatelessWidget {
   final VoidCallback onProfile;
   final bool showPremiumBadge;
 
+  static const double _sideSlotWidth = 88;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-      child: Row(
-        children: [
-          _HeaderIconButton(
-            icon: Icons.menu_rounded,
-            onTap: onMenu,
-          ),
-          const Spacer(),
-          AppBrandLogo.forContext(
-            AppBrandContext.compactBranding,
-            includeClearSpace: false,
-          ),
-          const Spacer(),
-          _HeaderIconButton(
-            icon: Icons.notifications_none_rounded,
-            onTap: onNotifications,
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              GestureDetector(
-                onTap: onProfile,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.borderLight, width: 2),
-                    boxShadow: AppShadows.soft(blur: 12, y: 2),
-                  ),
-                  child: const CircleAvatar(
-                    backgroundColor: AppColors.beigeLight,
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: AppColors.lavender,
-                      size: 22,
-                    ),
-                  ),
+      child: SizedBox(
+        height: 40,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: SizedBox(
+                width: _sideSlotWidth,
+                child: _HeaderIconButton(
+                  icon: Icons.menu_rounded,
+                  onTap: onMenu,
                 ),
               ),
-              if (showPremiumBadge)
-                PositionedDirectional(
-                  end: -2,
-                  bottom: -2,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+            ),
+            Center(
+              child: AppBrandLogo.forContext(
+                AppBrandContext.compactBranding,
+                includeClearSpace: false,
+              ),
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: SizedBox(
+                width: _sideSlotWidth,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    _HeaderIconButton(
+                      icon: Icons.notifications_none_rounded,
+                      onTap: onNotifications,
                     ),
-                    child: const Icon(
-                      Icons.workspace_premium_rounded,
-                      size: 14,
-                      color: AppColors.goldenCrown,
+                    const SizedBox(width: AppSpacing.xs),
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        GestureDetector(
+                          onTap: onProfile,
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.outlineSubtle(context),
+                                width: 2,
+                              ),
+                              boxShadow: AppShadows.softFor(context, blur: 12, y: 2),
+                            ),
+                            child: CircleAvatar(
+                              backgroundColor: AppColors.iconCircle(context),
+                              child: const Icon(
+                                Icons.person_rounded,
+                                color: AppColors.lavender,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (showPremiumBadge)
+                          PositionedDirectional(
+                            end: -2,
+                            bottom: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                color: AppColors.badgeBorder(context),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.workspace_premium_rounded,
+                                size: 14,
+                                color: AppColors.goldenCrown,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
+                  ],
                 ),
-            ],
-          ),
-        ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -107,7 +133,7 @@ class _HeaderIconButton extends StatelessWidget {
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(icon, size: 24, color: AppColors.navy),
+          child: Icon(icon, size: 24, color: AppColors.onSurface(context)),
         ),
       ),
     );
@@ -183,7 +209,7 @@ class BuyerGreetingBlock extends StatelessWidget {
         Text(
           subtitle,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary,
+                color: AppColors.onSurfaceVariant(context),
                 height: 1.35,
               ),
         ),
@@ -215,20 +241,21 @@ class BuyerSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isInteractive = controller != null || onChanged != null;
+    final hintColor = AppColors.onSurfaceVariant(context);
 
     final field = Container(
       height: 52,
       decoration: BoxDecoration(
-        color: AppColors.cream,
+        color: AppColors.searchBar(context),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: AppShadows.soft(blur: 16, y: 3),
+        border: Border.all(color: AppColors.outlineSubtle(context)),
+        boxShadow: AppShadows.softFor(context, blur: 16, y: 3),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
         children: [
           const SizedBox(width: 8),
-          const Icon(Icons.search_rounded, color: AppColors.textTertiary, size: 22),
+          Icon(Icons.search_rounded, color: hintColor, size: 22),
           const SizedBox(width: 8),
           Expanded(
             child: isInteractive
@@ -243,23 +270,23 @@ class BuyerSearchBar extends StatelessWidget {
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
-                      hintStyle: const TextStyle(
-                        color: AppColors.textTertiary,
+                      hintStyle: TextStyle(
+                        color: hintColor,
                         fontSize: 15,
                       ),
                     ),
                   )
                 : Text(
                     hint,
-                    style: const TextStyle(
-                      color: AppColors.textTertiary,
+                    style: TextStyle(
+                      color: hintColor,
                       fontSize: 15,
                     ),
                   ),
           ),
           if (onFilter != null)
             Material(
-              color: AppColors.beigeLight,
+              color: AppColors.filterChip(context),
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 onTap: onFilter,
@@ -296,13 +323,13 @@ class BuyerQuickCategoryTile extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
-    this.tint = AppColors.beigeLight,
+    this.tint,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-  final Color tint;
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
@@ -319,9 +346,9 @@ class BuyerQuickCategoryTile extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: tint,
+                  color: tint ?? AppColors.mutedSurface(context),
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: AppShadows.soft(blur: 12, y: 3),
+                  boxShadow: AppShadows.softFor(context, blur: 12, y: 3),
                 ),
                 child: Icon(icon, color: AppColors.lavender, size: 28),
               ),
@@ -352,14 +379,14 @@ class BuyerPromoBanner extends StatelessWidget {
     required this.subtitle,
     required this.ctaLabel,
     required this.onTap,
-    this.gradientColors = const [Color(0xFFFAF3EC), Color(0xFFFFF9F3)],
+    this.gradientColors,
   });
 
   final String title;
   final String subtitle;
   final String ctaLabel;
   final VoidCallback onTap;
-  final List<Color> gradientColors;
+  final List<Color>? gradientColors;
 
   @override
   Widget build(BuildContext context) {
@@ -369,10 +396,10 @@ class BuyerPromoBanner extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
-          colors: gradientColors,
+          colors: gradientColors ?? AppColors.promoBannerGradient(context),
         ),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-        boxShadow: AppShadows.soft(color: AppColors.beige, blur: 20, y: 4),
+        boxShadow: AppShadows.softFor(context, blur: 20, y: 4),
       ),
       child: Material(
         color: Colors.transparent,
@@ -402,7 +429,7 @@ class BuyerPromoBanner extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: AppColors.onSurfaceVariant(context),
                             ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
@@ -417,8 +444,8 @@ class BuyerPromoBanner extends StatelessWidget {
                         ),
                         child: Text(
                           ctaLabel,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
                             fontWeight: FontWeight.w700,
                             fontSize: 13,
                           ),
@@ -494,7 +521,9 @@ class _BuyerPromoCarouselState extends State<BuyerPromoCarousel> {
               width: active ? 20 : 6,
               height: 6,
               decoration: BoxDecoration(
-                color: active ? AppColors.lavender : AppColors.border,
+                color: active
+                    ? AppColors.lavender
+                    : AppColors.outline(context),
                 borderRadius: BorderRadius.circular(3),
               ),
             );
@@ -586,10 +615,11 @@ class BuyerNearYouCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     return SizedBox(
       width: 200,
       child: Material(
-        color: AppColors.cream,
+        color: AppColors.cardSurface(context),
         elevation: 0,
         shadowColor: Colors.transparent,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
@@ -599,7 +629,7 @@ class BuyerNearYouCard extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-              boxShadow: AppShadows.card(),
+              boxShadow: AppShadows.card(isDark: isDark),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -611,8 +641,9 @@ class BuyerNearYouCard extends StatelessWidget {
                     children: [
                       imageUrl.isNotEmpty
                           ? Image.network(imageUrl, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _imagePlaceholder())
-                          : _imagePlaceholder(),
+                              errorBuilder: (_, __, ___) =>
+                                  _imagePlaceholder(context))
+                          : _imagePlaceholder(context),
                       PositionedDirectional(
                         start: 8,
                         bottom: 8,
@@ -639,7 +670,7 @@ class BuyerNearYouCard extends StatelessWidget {
                         top: 8,
                         end: 8,
                         child: Material(
-                          color: Colors.white,
+                          color: AppColors.favoriteButton(context),
                           shape: const CircleBorder(),
                           elevation: 1,
                           child: InkWell(
@@ -670,9 +701,10 @@ class BuyerNearYouCard extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
+                          color: AppColors.onSurface(context),
                         ),
                       ),
                       if (subtitle.isNotEmpty) ...[
@@ -681,8 +713,8 @@ class BuyerNearYouCard extends StatelessWidget {
                           subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: AppColors.onSurfaceVariant(context),
                             fontSize: 12,
                           ),
                         ),
@@ -691,9 +723,10 @@ class BuyerNearYouCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           priceLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 14,
+                            color: AppColors.onSurface(context),
                           ),
                         ),
                       ],
@@ -722,7 +755,7 @@ class BuyerNearYouCard extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 10,
-                            backgroundColor: AppColors.beigeLight,
+                            backgroundColor: AppColors.iconCircle(context),
                             backgroundImage: sellerAvatarUrl.isNotEmpty
                                 ? NetworkImage(sellerAvatarUrl)
                                 : null,
@@ -736,9 +769,10 @@ class BuyerNearYouCard extends StatelessWidget {
                           const SizedBox(width: 2),
                           Text(
                             rating.toStringAsFixed(1),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
+                              color: AppColors.onSurface(context),
                             ),
                           ),
                         ],
@@ -754,9 +788,9 @@ class BuyerNearYouCard extends StatelessWidget {
     );
   }
 
-  Widget _imagePlaceholder() {
+  Widget _imagePlaceholder(BuildContext context) {
     return Container(
-      color: AppColors.beigeLight,
+      color: AppColors.imagePlaceholder(context),
       child: const Center(
         child: Icon(Icons.storefront_rounded, color: AppColors.lavender, size: 40),
       ),
@@ -770,13 +804,13 @@ class BuyerPopularCategoryCard extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
-    this.tint = AppColors.beigeLight,
+    this.tint,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-  final Color tint;
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
@@ -788,9 +822,9 @@ class BuyerPopularCategoryCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           decoration: BoxDecoration(
-            color: tint,
+            color: tint ?? AppColors.mutedSurface(context),
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            boxShadow: AppShadows.soft(blur: 14, y: 3),
+            boxShadow: AppShadows.softFor(context, blur: 14, y: 3),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -802,9 +836,10 @@ class BuyerPopularCategoryCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
+                  color: AppColors.onSurface(context),
                 ),
               ),
             ],
@@ -856,7 +891,7 @@ class BuyerScreenTitle extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.onSurfaceVariant(context),
                         ),
                   ),
                 ],
@@ -889,7 +924,7 @@ class BuyerAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.scaffold(context),
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -905,7 +940,7 @@ class BuyerAppBar extends StatelessWidget implements PreferredSizeWidget {
         preferredSize: const Size.fromHeight(1),
         child: Container(
           height: 1,
-          color: AppColors.borderLight,
+          color: AppColors.outlineSubtle(context),
         ),
       ),
     );
@@ -933,7 +968,7 @@ class BuyerSurfaceCard extends StatelessWidget {
     );
 
     return Material(
-      color: Colors.white,
+      color: AppColors.cardSurface(context),
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -942,7 +977,7 @@ class BuyerSurfaceCard extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            boxShadow: AppShadows.soft(blur: 16, y: 4),
+            boxShadow: AppShadows.softFor(context, blur: 16, y: 4),
           ),
           child: content,
         ),
@@ -974,9 +1009,10 @@ class BuyerMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = destructive ? AppColors.danger : AppColors.navy;
+    final color =
+        destructive ? AppColors.danger : AppColors.onSurface(context);
     return Material(
-      color: Colors.white,
+      color: AppColors.cardSurface(context),
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       child: InkWell(
         onTap: onTap,
@@ -988,7 +1024,7 @@ class BuyerMenuTile extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            boxShadow: AppShadows.soft(blur: 12, y: 2),
+            boxShadow: AppShadows.softFor(context, blur: 12, y: 2),
           ),
           child: Row(
             children: [
@@ -997,8 +1033,8 @@ class BuyerMenuTile extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: destructive
-                      ? AppColors.dangerMuted
-                      : AppColors.beigeLight,
+                      ? AppColors.destructiveIconBg(context)
+                      : AppColors.iconCircle(context),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1024,8 +1060,8 @@ class BuyerMenuTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: AppColors.onSurfaceVariant(context),
                           fontSize: 12,
                         ),
                       ),
@@ -1038,7 +1074,7 @@ class BuyerMenuTile extends StatelessWidget {
               else if (onTap != null)
                 Icon(
                   DirectionalUi.forwardChevron(context),
-                  color: AppColors.textTertiary,
+                  color: AppColors.onSurfaceVariant(context),
                   size: 20,
                 ),
             ],
@@ -1078,9 +1114,9 @@ class BuyerEmptyState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.beigeLight,
+                color: AppColors.emptyStateCircle(context),
                 shape: BoxShape.circle,
-                boxShadow: AppShadows.soft(color: AppColors.beige, blur: 20),
+                boxShadow: AppShadows.softFor(context, blur: 20),
               ),
               child: Icon(icon, size: 32, color: AppColors.lavender),
             ),
@@ -1097,8 +1133,8 @@ class BuyerEmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: AppColors.onSurfaceVariant(context),
                   height: 1.4,
                 ),
               ),
@@ -1143,7 +1179,7 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.beigeLight,
+        color: AppColors.segmentedTrack(context),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -1154,9 +1190,13 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                color: active ? AppColors.cream : Colors.transparent,
+                color: active
+                    ? AppColors.segmentedThumb(context)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
-                boxShadow: active ? AppShadows.soft(blur: 8, y: 2) : null,
+                boxShadow: active
+                    ? AppShadows.softFor(context, blur: 8, y: 2)
+                    : null,
               ),
               child: Material(
                 color: Colors.transparent,
@@ -1173,7 +1213,7 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
                           size: 16,
                           color: active
                               ? AppColors.lavender
-                              : AppColors.textTertiary,
+                              : AppColors.onSurfaceVariant(context),
                         ),
                         const SizedBox(width: 6),
                         Flexible(
@@ -1187,7 +1227,7 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
                               fontSize: 13,
                               color: active
                                   ? AppColors.lavender
-                                  : AppColors.textTertiary,
+                                  : AppColors.onSurfaceVariant(context),
                             ),
                           ),
                         ),
@@ -1232,12 +1272,13 @@ class BuyerBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cream,
+        color: AppColors.navBar(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -1265,7 +1306,7 @@ class BuyerBottomNavBar extends StatelessWidget {
                             selected ? item.selectedIcon : item.icon,
                             color: selected
                                 ? AppColors.lavender
-                                : AppColors.textTertiary,
+                                : AppColors.onSurfaceVariant(context),
                             size: 24,
                           ),
                           if ((badges[i] ?? 0) > 0)
@@ -1312,7 +1353,7 @@ class BuyerBottomNavBar extends StatelessWidget {
                               selected ? FontWeight.w700 : FontWeight.w500,
                           color: selected
                               ? AppColors.lavender
-                              : AppColors.textTertiary,
+                              : AppColors.onSurfaceVariant(context),
                         ),
                       ),
                     ],
@@ -1339,7 +1380,7 @@ class BuyerNavItem {
   final String label;
 }
 
-/// White scaffold background for all customer screens.
+/// Customer shell scaffold — follows [MaterialApp] theme (light and dark).
 class BuyerScreenScaffold extends StatelessWidget {
   const BuyerScreenScaffold({
     super.key,
@@ -1356,10 +1397,11 @@ class BuyerScreenScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.cream,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: appBar,
         drawer: drawer,
         body: body,

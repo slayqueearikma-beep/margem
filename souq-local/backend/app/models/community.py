@@ -80,8 +80,18 @@ class City(Base):
     __tablename__ = "cities"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    country_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("countries.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     slug: Mapped[str] = mapped_column(String(80), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(120))
+    name_en: Mapped[str] = mapped_column(String(120), default="", index=True)
+    name_ar: Mapped[str] = mapped_column(String(120), default="")
+    name_fr: Mapped[str] = mapped_column(String(120), default="")
+    region: Mapped[str] = mapped_column(String(120), default="")
+    latitude: Mapped[float] = mapped_column(Float, default=0.0)
+    longitude: Mapped[float] = mapped_column(Float, default=0.0)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     description: Mapped[str] = mapped_column(Text, default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     member_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -94,6 +104,7 @@ class City(Base):
     memberships: Mapped[list["CommunityMembership"]] = relationship(
         back_populates="city", cascade="all, delete-orphan"
     )
+    country: Mapped["Country | None"] = relationship(back_populates="cities")
 
 
 class CommunityChannel(Base):

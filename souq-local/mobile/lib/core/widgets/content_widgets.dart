@@ -9,14 +9,14 @@ import 'network_image_view.dart';
 class OnboardingIllustration extends StatelessWidget {
   const OnboardingIllustration({
     super.key,
-    this.backgroundColor = AppColors.cream,
+    this.backgroundColor,
     required this.icon,
     this.secondaryIcon,
     this.imageAsset,
     this.imageFit = BoxFit.contain,
   });
 
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final IconData icon;
   final IconData? secondaryIcon;
   final String? imageAsset;
@@ -25,7 +25,7 @@ class OnboardingIllustration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: backgroundColor,
+      color: backgroundColor ?? AppColors.scaffold(context),
       child: SizedBox(
         height: 300,
         width: double.infinity,
@@ -150,14 +150,13 @@ class FeaturedBusinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: AppColors.cardSurface(context),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.borderLight,
+          color: AppColors.outlineSubtle(context),
         ),
       ),
       shadowColor: Colors.transparent,
@@ -183,7 +182,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                       top: 8,
                       right: 8,
                       child: Material(
-                        color: Colors.white,
+                        color: AppColors.favoriteButton(context),
                         shape: const CircleBorder(),
                         child: InkWell(
                           customBorder: const CircleBorder(),
@@ -223,8 +222,8 @@ class FeaturedBusinessCard extends StatelessWidget {
                       category,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: AppColors.onSurfaceVariant(context),
                         fontSize: 12,
                       ),
                     ),
@@ -310,8 +309,12 @@ class SellerCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           businessName,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -331,8 +334,9 @@ class SellerCard extends StatelessWidget {
                       description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 13),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.onSurfaceVariant(context),
+                          ),
                     ),
                   ],
                   const SizedBox(height: 8),
@@ -345,8 +349,9 @@ class SellerCard extends StatelessWidget {
                           style: const TextStyle(fontSize: 13)),
                       const Spacer(),
                       Text(city,
-                          style: const TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13)),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.onSurfaceVariant(context),
+                              )),
                     ],
                   ),
                 ],

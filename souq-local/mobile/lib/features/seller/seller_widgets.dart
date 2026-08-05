@@ -243,7 +243,7 @@ class SellerStepIndicator extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: active
                             ? AppColors.primary
-                            : AppColors.border,
+                            : AppColors.outline(context),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),

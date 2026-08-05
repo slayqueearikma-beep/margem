@@ -100,8 +100,8 @@ class AccountTypeCard extends StatelessWidget {
                     height: 72,
                     decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.white,
+                          ? AppColors.iconCircle(context)
+                          : AppColors.cardSurface(context),
                       shape: BoxShape.circle,
                       boxShadow: AppShadows.iconCircle(accentColor),
                     ),
@@ -189,7 +189,7 @@ class AppSecondaryActionRow extends StatelessWidget {
             ),
             color: isDark
                 ? AppColors.darkCard.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.6),
+                : AppColors.cardSurface(context).withValues(alpha: 0.6),
           ),
           child: Row(
             children: [
@@ -239,7 +239,7 @@ class AppSecurityFooter extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.lavenderMuted,
+            color: AppColors.accentMuted(context),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -473,7 +473,7 @@ class AppEmptyState extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.lavenderMuted,
+              color: AppColors.accentMuted(context),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 32, color: AppColors.lavender),

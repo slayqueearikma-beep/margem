@@ -15,7 +15,7 @@ import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
-import '../buyer/buyer_home_screen.dart';
+import '../../core/providers/city_providers.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
