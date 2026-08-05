@@ -1,0 +1,62 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+\input{preamble.tex}
+
+\title{%
+  \textbf{MABRID}\\[0.6em]
+  \large Design, Governance, Security, and Business Strategy\\
+  for a Trusted Digital Marketplace
+}
+\author{%
+  Academic Project Report\\[0.4em]
+  \textit{Master's Programme in Information Systems, Cybersecurity, and Management}
+}
+\date{August 2026}
+
+\begin{document}
+
+\pagenumbering{roman}
+\input{frontmatter/titlepage}
+\cleardoublepage
+\input{frontmatter/acknowledgements}
+\cleardoublepage
+\input{frontmatter/abstract}
+\cleardoublepage
+\input{frontmatter/executive-summary}
+\cleardoublepage
+\tableofcontents
+\cleardoublepage
+\listoffigures
+\cleardoublepage
+\listoftables
+\cleardoublepage
+\input{frontmatter/abbreviations}
+\cleardoublepage
+\printglossary[type=\acronymtype,title=List of Abbreviations]
+\cleardoublepage
+\printglossary[title=Glossary]
+
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\include{chapters/ch01-business-vision}
+\include{chapters/ch02-governance}
+\include{chapters/ch03-security}
+\include{chapters/ch04-cloud}
+\include{chapters/ch05-legal}
+\include{chapters/ch06-roadmap}
+\include{chapters/ch07-marketing}
+\include{chapters/conclusion}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{References}
+\printbibliography[heading=none,title={References}]
+
+\appendix
+\include{appendices/appendix-a}
+\include{appendices/appendix-b}
+\include{appendices/appendix-c}
+
+\end{document}

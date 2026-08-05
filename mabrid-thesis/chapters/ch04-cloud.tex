@@ -1,0 +1,147 @@
+\chapter{Cloud Governance and Infrastructure Strategy}
+\label{ch:cloud}
+
+\section{Introduction}
+
+Cloud computing enables marketplace platforms to scale elastically, deploy globally, and innovate rapidly---yet unconstrained cloud adoption introduces cost overruns, configuration drift, and governance failures. This chapter articulates MABRID's cloud strategy on Microsoft Azure, emphasising governance, infrastructure management discipline, disaster recovery, service selection, and cost optimisation.
+
+\section{Cloud Adoption Strategy}
+
+\subsection{Drivers for Cloud}
+
+Strategic drivers include speed to market, operational elasticity during marketing campaigns, geographic distribution for latency-sensitive users, and access to managed security services \parencite{mell2009cloud,nist800145}.
+
+\subsection{Cloud Benefits for MABRID}
+
+\begin{itemize}
+  \item Rapid provisioning of environments for city launches and seasonal peaks.
+  \item Managed database, storage, and monitoring reducing undifferentiated heavy lifting.
+  \item Integration with enterprise identity and security tooling (Azure AD, Sentinel).
+  \item Pay-as-you-grow economics aligned with startup cash constraints.
+\end{itemize}
+
+\subsection{Cloud Limitations and Mitigations}
+
+Limitations include vendor concentration, data residency considerations, and potential egress costs. Mitigations: multi-region backup, contractual data location clauses, architecture reviews for portability of critical workloads, and FinOps discipline.
+
+\section{Azure Governance}
+
+\subsection{Management Group Hierarchy}
+
+Azure management groups organise subscriptions: root $\rightarrow$ production $\rightarrow$ non-production $\rightarrow$ sandbox. Policies inherit downward, ensuring consistent guardrails \parencite{microsoftCloudAdoption}.
+
+\subsection{Role-Based Access Control in Azure}
+
+Azure \gls{rbac} assigns least-privilege roles at subscription, resource group, and resource scope. Privileged Identity Management provides just-in-time elevation for administrative tasks.
+
+\subsection{Cost Governance}
+
+FinOps practices \parencite{finopsfoundation} include:
+\begin{itemize}
+  \item Mandatory resource tagging (environment, cost centre, owner).
+  \item Budget alerts and anomaly detection via Azure Cost Management.
+  \item Reserved instances or savings plans for predictable baseline workloads.
+  \item Regular rightsizing reviews and elimination of orphaned resources.
+\end{itemize}
+
+\figureplaceholder{H}{figures/ch04-azure-landing-zone.pdf}{0.9}{Azure landing zone conceptual architecture for MABRID}
+
+\section{Infrastructure as Code and Version Control}
+
+\subsection{Principles}
+
+Infrastructure definitions are stored in version control with peer review, automated validation, and auditable change history \parencite{hashicorpTerraform}. This reduces configuration drift and supports reproducible disaster recovery environments.
+
+\subsection{State Management}
+
+Remote state storage with encryption and locking prevents concurrent modification conflicts. State access is restricted to deployment pipelines and break-glass administrators.
+
+\subsection{Modular Design}
+
+Reusable modules encapsulate networking, compute, storage, and monitoring patterns. Modules enforce tagging and security baselines by construction.
+
+\section{Disaster Recovery}
+
+\subsection{Objectives}
+
+Recovery Time Objective (RTO) and Recovery Point Objective (RPO) are defined per tier:
+\begin{itemize}
+  \item \textbf{Tier 1 (critical):} RTO $<$ 4 hours, RPO $<$ 15 minutes.
+  \item \textbf{Tier 2 (important):} RTO $<$ 24 hours, RPO $<$ 1 hour.
+  \item \textbf{Tier 3 (non-critical):} RTO $<$ 72 hours, RPO $<$ 24 hours.
+\end{itemize}
+
+\subsection{Azure Recovery Services}
+
+Azure Backup and Site Recovery support automated backup policies and failover orchestration \parencite{microsoftASR}. DR drills validate runbooks annually.
+
+\section{Azure Services Selection}
+
+Table~\ref{tab:azure-services} maps business needs to Azure services at a strategic level.
+
+\begin{table}[H]
+  \centering
+  \caption{Azure service mapping for MABRID (strategic view)}
+  \label{tab:azure-services}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Capability} & \textbf{Azure service (representative)} \\
+    \midrule
+    Virtual networking & Azure Virtual Network, NSGs, Azure Firewall \\
+    Compute & Azure App Service, Azure Kubernetes Service (as scale requires) \\
+    Data & Azure Database for PostgreSQL, Azure Cache for Redis \\
+    Object storage & Azure Blob Storage (media assets) \\
+    Secrets & Azure Key Vault \\
+    Monitoring & Azure Monitor, Log Analytics, Application Insights \\
+    Security & Microsoft Defender for Cloud, Sentinel \\
+    Cost & Azure Cost Management + Billing \\
+    DR & Azure Backup, Azure Site Recovery \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Private Networking and Data Residency}
+
+Production databases and storage accounts use private endpoints. Deployment regions are selected considering latency to Moroccan users and data residency commitments communicated in the privacy policy.
+
+\section{Cost Optimisation}
+
+\subsection{Workload Profiling}
+
+Non-production environments scale down outside business hours. Autoscaling rules match capacity to diurnal traffic patterns in Moroccan time zones.
+
+\subsection{Storage Tiering}
+
+Infrequently accessed media migrates to cool or archive tiers per lifecycle policies, reducing storage spend without losing recoverability.
+
+\subsection{Unit Economics Linkage}
+
+Cloud unit cost per active user and per listing informs pricing decisions and investor reporting. CFO and engineering leadership review cloud spend weekly during growth phases.
+
+\begin{figure}[H]
+  \centering
+  \begin{ganttchart}[
+    hgrid,
+    vgrid,
+    x unit=0.45cm,
+    y unit title=0.6cm,
+    y unit chart=0.5cm,
+    title height=1,
+    bar height=0.5,
+    bar label font=\small
+  ]{1}{24}
+    \gantttitle{Cloud maturity roadmap (months)}{24} \\
+    \gantttitlelist{1,...,24}{1} \\
+    \ganttbar{MVP single region}{1}{6} \\
+    \ganttbar{FinOps tagging \& budgets}{4}{8} \\
+    \ganttbar{Multi-AZ resilience}{7}{12} \\
+    \ganttbar{DR region standby}{12}{18} \\
+    \ganttbar{Enterprise landing zone}{16}{24}
+  \end{ganttchart}
+  \caption{Illustrative cloud maturity Gantt timeline}
+  \label{fig:cloud-gantt}
+\end{figure}
+
+\section{Chapter Conclusion}
+
+Cloud governance ensures that Azure adoption serves MABRID's business goals without sacrificing security or fiscal discipline. Landing zone architecture, infrastructure-as-code, RBAC, cost management, and tested disaster recovery collectively support national scaling while maintaining the operational resilience expected of a trusted marketplace platform.
