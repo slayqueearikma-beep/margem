@@ -164,7 +164,7 @@ class MapUnavailablePlaceholder extends StatelessWidget {
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium
-                    ?.copyWith(color: AppColors.textSecondary),
+                    ?.copyWith(color: AppColors.onSurfaceVariant(context)),
               ),
               if (markerCount > 0) ...[
                 const SizedBox(height: AppSpacing.md),
@@ -212,7 +212,7 @@ class StoreLocationPickerTile extends StatelessWidget {
           Text(
             label!,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: AppColors.onSurfaceVariant(context),
                 ),
           ),
         if (label != null) const SizedBox(height: AppSpacing.sm),
@@ -262,8 +262,8 @@ class StoreLocationPickerTile extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             hint!,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
+                            style: TextStyle(
+                              color: AppColors.onSurfaceVariant(context),
                               fontSize: 13,
                             ),
                           ),

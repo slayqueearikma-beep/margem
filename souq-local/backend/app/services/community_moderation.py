@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import User
 from app.models.community import (
     CommunityCityBan,
+    CommunityMembership,
     CommunityMessage,
     CommunityMessageStatus,
     CommunityModerationLog,
@@ -115,6 +116,26 @@ async def ensure_not_banned(session: AsyncSession, *, city_id: UUID, user_id: UU
         await session.delete(ban)
         return
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Banned from this city community")
+
+
+async def require_city_membership(
+    session: AsyncSession,
+    *,
+    city_id: UUID,
+    user_id: UUID,
+) -> CommunityMembership:
+    membership = await session.scalar(
+        select(CommunityMembership).where(
+            CommunityMembership.city_id == city_id,
+            CommunityMembership.user_id == user_id,
+        )
+    )
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Join this city community before participating",
+        )
+    return membership
 
 
 async def is_blocked(session: AsyncSession, viewer_id: UUID, author_id: UUID) -> bool:

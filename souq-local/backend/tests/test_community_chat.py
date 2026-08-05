@@ -124,6 +124,30 @@ async def test_admin_create_and_delete_city(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_non_member_cannot_post_or_read_messages(client: AsyncClient):
+    user = await _register(client)
+    cities = (await client.get("/community/cities")).json()
+    slug = next(c["slug"] for c in cities if c["slug"] == "casablanca")
+    channels = (
+        await client.get(f"/community/cities/{slug}/channels", headers=user["headers"])
+    ).json()
+    channel_id = channels[0]["id"]
+
+    history = await client.get(
+        f"/community/channels/{channel_id}/messages",
+        headers=user["headers"],
+    )
+    assert history.status_code == 403
+
+    post = await client.post(
+        f"/community/channels/{channel_id}/messages",
+        headers=user["headers"],
+        json={"body": "Should not post without joining"},
+    )
+    assert post.status_code == 403
+
+
+@pytest.mark.asyncio
 async def test_reaction_and_report(client: AsyncClient):
     user = await _register(client)
     cities = (await client.get("/community/cities")).json()

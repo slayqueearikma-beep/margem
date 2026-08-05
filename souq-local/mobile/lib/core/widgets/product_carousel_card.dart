@@ -91,7 +91,7 @@ class ProductCarouselCard extends StatelessWidget {
                                   size: 18,
                                   color: isFavorite
                                       ? AppColors.danger
-                                      : AppColors.textSecondary,
+                                      : AppColors.onSurfaceVariant(context),
                                 ),
                               ),
                             ),
@@ -153,9 +153,9 @@ class ProductCarouselCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             rating!.toStringAsFixed(1),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textSecondary,
+                              color: AppColors.onSurfaceVariant(context),
                               fontWeight: FontWeight.w600,
                             ),
                           ),

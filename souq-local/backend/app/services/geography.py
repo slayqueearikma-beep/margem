@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models.community import City
 from app.models.geography import Country
+from app.services.text_search import escape_ilike
 
 MOROCCO_ID = uuid.UUID("00000000-0000-4000-8000-000000000001")
 
@@ -159,7 +160,7 @@ async def list_cities(
     if active_only:
         stmt = stmt.where(City.is_active.is_(True), Country.is_active.is_(True))
     if query:
-        q = f"%{query.strip()}%"
+        q = f"%{escape_ilike(query.strip())}%"
         stmt = stmt.where(
             or_(
                 City.name_en.ilike(q),

@@ -78,9 +78,7 @@ class SelectionCard extends StatelessWidget {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: isDark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.textSecondary,
+                          color: AppColors.onSurfaceVariant(context),
                           height: 1.35,
                         ),
                       ),
@@ -103,9 +101,7 @@ class SelectionCard extends StatelessWidget {
                                     point,
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: isDark
-                                          ? AppColors.darkTextSecondary
-                                          : AppColors.textSecondary,
+                                      color: AppColors.onSurfaceVariant(context),
                                     ),
                                   ),
                                 ),
@@ -180,7 +176,7 @@ class AppTextField extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+                color: AppColors.onSurfaceVariant(context),
               ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -228,7 +224,7 @@ class ImageUploadTile extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+                color: AppColors.onSurfaceVariant(context),
               ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -268,14 +264,14 @@ class ImageUploadTile extends StatelessWidget {
       children: [
         Icon(
           Icons.add_photo_alternate_outlined,
-          color: AppColors.textSecondary.withValues(alpha: 0.7),
+          color: AppColors.onSurfaceVariant(context).withValues(alpha: 0.7),
           size: 32,
         ),
         const SizedBox(height: 8),
         Text(
           context.l10n.tapToUpload,
           style: TextStyle(
-            color: AppColors.textSecondary.withValues(alpha: 0.9),
+            color: AppColors.onSurfaceVariant(context).withValues(alpha: 0.9),
             fontSize: 13,
           ),
         ),
