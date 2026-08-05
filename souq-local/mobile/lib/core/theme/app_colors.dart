@@ -155,6 +155,12 @@ class AppColors {
   static Color badgeBorder(BuildContext context) =>
       isDark(context) ? darkSurface : cream;
 
+  static Color accentMuted(BuildContext context) =>
+      isDark(context) ? lavender.withValues(alpha: 0.12) : lavenderMuted;
+
+  static Color imagePlaceholderSurface(BuildContext context) =>
+      isDark(context) ? darkCard : primary.withValues(alpha: 0.08);
+
   static Color favoriteButton(BuildContext context) =>
       isDark(context) ? darkCard : cream;
 
@@ -165,6 +171,9 @@ class AppColors {
       isDark(context) ? danger.withValues(alpha: 0.15) : dangerMuted;
 
   static Color emptyStateCircle(BuildContext context) =>
+      isDark(context) ? darkCard : beigeLight;
+
+  static Color imagePlaceholder(BuildContext context) =>
       isDark(context) ? darkCard : beigeLight;
 
   static List<Color> promoBannerGradient(BuildContext context) => [
