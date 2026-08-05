@@ -237,7 +237,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                   children: [
                                     CircleAvatar(
                                       radius: 24,
-                                      backgroundColor: AppColors.cardSelected,
+                                      backgroundColor: AppColors.mutedSurface(context),
                                       child: ClipOval(
                                         child: SizedBox(
                                           width: 48,

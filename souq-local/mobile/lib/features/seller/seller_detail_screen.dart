@@ -654,7 +654,7 @@ class _MetaPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
+        color: AppColors.mutedSurface(context),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -793,7 +793,7 @@ class _ReviewsPreview extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.surfaceMuted,
+          color: AppColors.mutedSurface(context),
           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         ),
         child: Column(
@@ -889,7 +889,7 @@ class _ReviewsPreview extends StatelessWidget {
                               child: LinearProgressIndicator(
                                 value: count / maxCount,
                                 minHeight: 7,
-                                backgroundColor: AppColors.surfaceMuted,
+                                backgroundColor: AppColors.mutedSurface(context),
                                 color: AppColors.star,
                               ),
                             ),

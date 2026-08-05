@@ -108,11 +108,11 @@ class _CityAutocompleteField extends StatelessWidget {
             fillColor: AppColors.mutedSurface(context),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: AppColors.outline(context)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: AppColors.outline(context)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -169,6 +169,7 @@ Future<CityModel?> showCityPickerSheet(
   return showModalBottomSheet<CityModel>(
     context: context,
     isScrollControlled: true,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     builder: (ctx) {
       var filtered = sorted;
       return StatefulBuilder(
@@ -190,8 +191,11 @@ Future<CityModel?> showCityPickerSheet(
                     decoration: InputDecoration(
                       hintText: context.l10n.city,
                       prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: AppColors.mutedSurface(context),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: AppColors.outline(context)),
                       ),
                     ),
                     onChanged: (value) {

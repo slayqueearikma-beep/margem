@@ -326,7 +326,7 @@ class _CityBanner extends StatelessWidget {
                 ? city.description
                 : l10n.communityCitySubtitle(city.name),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: AppColors.onSurfaceVariant(context),
                 ),
           ),
           const SizedBox(height: AppSpacing.md),

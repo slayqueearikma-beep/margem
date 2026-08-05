@@ -153,7 +153,7 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
               Text(
                 widget.citySlug,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: AppColors.onSurfaceVariant(context),
                     ),
               ),
           ],
@@ -231,7 +231,7 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
                   child: Text(
                     l10n.communityTyping(typing.first),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.onSurfaceVariant(context),
                           fontStyle: FontStyle.italic,
                         ),
                   ),

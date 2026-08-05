@@ -125,7 +125,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           l10n.premiumSubtitle,
-                          style: const TextStyle(color: AppColors.textSecondary),
+                          style: TextStyle(color: AppColors.onSurfaceVariant(context)),
                         ),
                         if (active != null) ...[
                           const SizedBox(height: AppSpacing.md),
@@ -229,7 +229,7 @@ class _PlanCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               Text(
                 plan.description,
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: AppColors.onSurfaceVariant(context)),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(

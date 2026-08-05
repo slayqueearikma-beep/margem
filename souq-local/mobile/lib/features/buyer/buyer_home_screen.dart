@@ -717,7 +717,7 @@ class _ProfileHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: AppColors.onSurfaceVariant(context),
                   fontWeight: FontWeight.w400,
                   height: 1.3,
                 ),

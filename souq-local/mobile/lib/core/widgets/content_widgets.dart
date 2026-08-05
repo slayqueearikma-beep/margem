@@ -309,8 +309,12 @@ class SellerCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           businessName,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -330,8 +334,9 @@ class SellerCard extends StatelessWidget {
                       description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 13),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.onSurfaceVariant(context),
+                          ),
                     ),
                   ],
                   const SizedBox(height: 8),
@@ -344,8 +349,9 @@ class SellerCard extends StatelessWidget {
                           style: const TextStyle(fontSize: 13)),
                       const Spacer(),
                       Text(city,
-                          style: const TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13)),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.onSurfaceVariant(context),
+                              )),
                     ],
                   ),
                 ],

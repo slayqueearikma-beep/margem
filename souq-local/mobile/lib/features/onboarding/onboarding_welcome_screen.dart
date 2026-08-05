@@ -176,7 +176,7 @@ class _OnboardingWelcomeScreenState
                             slide.subtitle,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: AppColors.onSurfaceVariant(context),
                               height: 1.45,
                             ),
                           ),
@@ -210,7 +210,7 @@ class _OnboardingWelcomeScreenState
                       Text(
                         l10n.alreadyHaveAccount,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.onSurfaceVariant(context),
                         ),
                       ),
                       TextButton(

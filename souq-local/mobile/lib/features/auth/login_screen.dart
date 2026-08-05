@@ -276,7 +276,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: TextButton(
                   onPressed: () => context.push('/forgot-password'),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
+                    foregroundColor: AppColors.onSurfaceVariant(context),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                   ),
                   child: Text(l10n.forgotPassword),
@@ -314,8 +314,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onPressed: _continueAsGuest,
                 child: Text(
                   l10n.guestContinue,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: AppColors.onSurfaceVariant(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
