@@ -105,7 +105,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.lavenderMuted,
+                            color: AppColors.accentMuted(context),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(

@@ -30,13 +30,12 @@ class ProductCarouselCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenW = MediaQuery.sizeOf(context).width;
     // ~3 cards visible with gutters (marketplace carousel standard).
     final cardWidth = width ?? ((screenW - 48) / 3).clamp(118.0, 168.0);
 
     final card = Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: AppColors.cardSurface(context),
       elevation: 0,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       clipBehavior: Clip.antiAlias,
@@ -46,9 +45,9 @@ class ProductCarouselCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
             border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.border,
+              color: AppColors.outlineSubtle(context),
             ),
-            boxShadow: isDark
+            boxShadow: AppColors.isDark(context)
                 ? null
                 : [
                     BoxShadow(
@@ -75,7 +74,7 @@ class ProductCarouselCard extends StatelessWidget {
                         top: 8,
                         right: 8,
                         child: Material(
-                          color: Colors.white.withValues(alpha: 0.92),
+                          color: AppColors.favoriteButton(context),
                           shape: const CircleBorder(),
                           child: InkWell(
                             customBorder: const CircleBorder(),

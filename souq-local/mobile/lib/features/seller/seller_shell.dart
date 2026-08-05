@@ -175,7 +175,8 @@ class _SellerNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.textSecondary;
+    final color =
+        selected ? AppColors.primary : AppColors.onSurfaceVariant(context);
 
     return Expanded(
       child: InkWell(

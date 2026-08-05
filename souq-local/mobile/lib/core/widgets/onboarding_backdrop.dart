@@ -23,8 +23,8 @@ class OnboardingBackdrop extends StatelessWidget {
     final skylineHeight = width * 0.34;
 
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColors.cream,
+      decoration: BoxDecoration(
+        color: AppColors.scaffold(context),
       ),
       child: Stack(
         fit: StackFit.expand,

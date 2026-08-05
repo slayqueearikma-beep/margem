@@ -646,7 +646,6 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final initial = displayName.isNotEmpty
         ? displayName.substring(0, 1).toUpperCase()
         : '?';
@@ -662,22 +661,20 @@ class _ProfileHeader extends StatelessWidget {
               height: 88,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isDark
-                    ? AppColors.darkCard
-                    : AppColors.primary.withValues(alpha: 0.08),
+                color: AppColors.iconCircle(context),
                 border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.border,
+                  color: AppColors.outlineSubtle(context),
                   width: 1,
                 ),
               ),
               alignment: Alignment.center,
               child: Text(
                 initial,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 34,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.5,
-                  color: isDark ? Colors.white : AppColors.primary,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -742,7 +739,7 @@ class _ProfileHeader extends StatelessWidget {
         Divider(
           height: 1,
           thickness: 1,
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: AppColors.outlineSubtle(context),
         ),
       ],
     );

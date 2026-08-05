@@ -169,7 +169,7 @@ class _ConversationTile extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: AppColors.lavenderMuted,
+                  backgroundColor: AppColors.accentMuted(context),
                   child: Text(
                     initial,
                     style: const TextStyle(
@@ -187,7 +187,10 @@ class _ConversationTile extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.success,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: AppColors.badgeBorder(context),
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
@@ -240,8 +243,8 @@ class _ConversationTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: conversation.hasUnread
-                                ? AppColors.navy
-                                : AppColors.textSecondary,
+                                ? AppColors.onSurface(context)
+                                : AppColors.onSurfaceVariant(context),
                             fontWeight: conversation.hasUnread
                                 ? FontWeight.w600
                                 : FontWeight.w400,

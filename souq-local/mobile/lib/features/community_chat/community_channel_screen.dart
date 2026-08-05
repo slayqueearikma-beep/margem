@@ -243,7 +243,7 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
                   horizontal: AppSpacing.lg,
                   vertical: AppSpacing.xs,
                 ),
-                color: AppColors.lavenderMuted,
+                color: AppColors.accentMuted(context),
                 child: Row(
                   children: [
                     Expanded(
@@ -320,7 +320,7 @@ class _MessageBubble extends StatelessWidget {
     final l10n = context.l10n;
     final bubbleColor = isMine
         ? AppColors.lavender.withValues(alpha: 0.18)
-        : Colors.white.withValues(alpha: 0.9);
+        : AppColors.cardSurface(context).withValues(alpha: 0.9);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -344,7 +344,7 @@ class _MessageBubble extends StatelessWidget {
                   border: Border.all(
                     color: isMine
                         ? AppColors.lavender.withValues(alpha: 0.3)
-                        : AppColors.borderLight,
+                        : AppColors.outlineSubtle(context),
                   ),
                 ),
                 child: Column(
@@ -497,7 +497,7 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       radius: 18,
-      backgroundColor: AppColors.lavenderMuted,
+      backgroundColor: AppColors.accentMuted(context),
       child: sender.avatarUrl.isNotEmpty
           ? ClipOval(
               child: SizedBox(
@@ -532,7 +532,7 @@ class _TrustBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.lavenderMuted,
+        color: AppColors.accentMuted(context),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

@@ -16,11 +16,11 @@ class AppDecorations {
     double radius = AppSpacing.cardRadius,
     bool showBorder = true,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = AppColors.isDark(context);
     return BoxDecoration(
       color: isDark
           ? AppColors.darkCard.withValues(alpha: 0.75)
-          : Colors.white.withValues(alpha: 0.82),
+          : AppColors.cardSurface(context).withValues(alpha: 0.82),
       borderRadius: BorderRadius.circular(radius),
       border: showBorder
           ? Border.all(
@@ -43,7 +43,7 @@ class AppDecorations {
     return BoxDecoration(
       color: selected
           ? accent.withValues(alpha: isDark ? 0.18 : 0.08)
-          : (isDark ? AppColors.darkCard : Colors.white),
+          : AppColors.cardSurface(context),
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(
         color: selected
@@ -63,6 +63,7 @@ class AppDecorations {
   }
 
   static Widget frosted({
+    required BuildContext context,
     required Widget child,
     double sigma = 12,
     double radius = AppSpacing.cardRadius,
@@ -74,7 +75,7 @@ class AppDecorations {
         filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: fill ?? Colors.white.withValues(alpha: 0.65),
+            color: fill ?? AppColors.cardSurface(context).withValues(alpha: 0.65),
             borderRadius: BorderRadius.circular(radius),
           ),
           child: child,
