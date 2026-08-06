@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
-/// Soft neutral gradient blob background used across MarGem screens.
+/// Neutral background used across MarGem screens.
 class MargemBackground extends StatelessWidget {
   const MargemBackground({
     super.key,
     required this.child,
-    this.showBlobs = true,
+    this.showBlobs = false,
     this.padding,
   });
 
@@ -17,14 +17,10 @@ class MargemBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
-    final accent = AppColors.accent(brightness);
+    final colors = context.colors;
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.scaffold(brightness),
-      ),
+      decoration: BoxDecoration(color: colors.background),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -34,15 +30,10 @@ class MargemBackground extends StatelessWidget {
               left: -60,
               child: _GradientBlob(
                 size: 280,
-                colors: isDark
-                    ? [
-                        AppColors.surfaceMuted.withValues(alpha: 0.12),
-                        AppColors.surfaceMuted.withValues(alpha: 0.02),
-                      ]
-                    : [
-                        AppColors.border.withValues(alpha: 0.35),
-                        AppColors.border.withValues(alpha: 0.05),
-                      ],
+                colors: [
+                  colors.surfaceVariant.withValues(alpha: 0.35),
+                  colors.background.withValues(alpha: 0),
+                ],
               ),
             ),
             Positioned(
@@ -50,15 +41,10 @@ class MargemBackground extends StatelessWidget {
               right: -80,
               child: _GradientBlob(
                 size: 320,
-                colors: isDark
-                    ? [
-                        accent.withValues(alpha: 0.10),
-                        accent.withValues(alpha: 0.02),
-                      ]
-                    : [
-                        accent.withValues(alpha: 0.12),
-                        accent.withValues(alpha: 0.03),
-                      ],
+                colors: [
+                  colors.surfaceVariant.withValues(alpha: 0.25),
+                  colors.background.withValues(alpha: 0),
+                ],
               ),
             ),
           ],

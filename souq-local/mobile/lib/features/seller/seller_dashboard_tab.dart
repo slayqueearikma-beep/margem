@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
@@ -47,7 +47,7 @@ class SellerDashboardTab extends ConsumerWidget {
             await ref.read(sellerAccountProvider.future);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               AppSpacing.screenHorizontal,
               AppSpacing.md,
               AppSpacing.screenHorizontal,
@@ -65,14 +65,14 @@ class SellerDashboardTab extends ConsumerWidget {
                       fontWeight: FontWeight.w800,
                     ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
                 l10n.manageStoreSubtitle,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               SellerHeroMetricCard(
                 title: l10n.profileViews,
                 value: '$profileViews',
@@ -80,11 +80,11 @@ class SellerDashboardTab extends ConsumerWidget {
                 positive: profileViews > 0,
                 child: SellerMiniSparkline(values: sparkline),
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+                physics: NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
                 childAspectRatio: 1.35,
@@ -120,14 +120,14 @@ class SellerDashboardTab extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppSpacing.lg),
               SellerSectionHeader(
                 title: l10n.upcomingBookings,
                 actionLabel: l10n.viewAll,
                 onAction: () =>
                     ref.read(sellerTabIndexProvider.notifier).state = 2,
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               if (inquiryCount == 0)
                 _EmptyInquiryCard(message: l10n.noInquiriesYet)
               else
@@ -135,9 +135,9 @@ class SellerDashboardTab extends ConsumerWidget {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.12),
-                      child: const Icon(Icons.chat_bubble_outline,
-                          color: AppColors.primary),
+                          context.colors.primary.withValues(alpha: 0.12),
+                      child: Icon(Icons.chat_bubble_outline,
+                          color: context.colors.primary),
                     ),
                     title: Text(l10n.inquiries),
                     subtitle: Text(l10n.inquiriesSub),
@@ -171,7 +171,7 @@ class SellerDashboardTab extends ConsumerWidget {
                         width: 220,
                         child: Card(
                           child: Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: EdgeInsets.all(12),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -179,15 +179,15 @@ class SellerDashboardTab extends ConsumerWidget {
                                   service.name,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                const Spacer(),
+                                Spacer(),
                                 Text(
                                   service.displayPrice(l10n),
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
+                                  style: TextStyle(
+                                    color: context.colors.primary,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),

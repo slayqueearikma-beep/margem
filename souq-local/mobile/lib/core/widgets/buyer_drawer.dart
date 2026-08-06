@@ -6,12 +6,11 @@ import '../../features/buyer/buyer_home_screen.dart';
 import '../../features/messages/messages_inbox_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../services/app_storage.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import 'app_brand_logo.dart';
 
-/// Customer navigation drawer — slides from the left with warm beige surfaces.
+/// Customer navigation drawer — neutral surfaces, theme-aware.
 class BuyerDrawer extends ConsumerWidget {
   const BuyerDrawer({super.key});
 
@@ -32,14 +31,14 @@ class BuyerDrawer extends ConsumerWidget {
     }
 
     return Drawer(
-      backgroundColor: AppColors.beigeLight,
-      shape: const RoundedRectangleBorder(),
+      backgroundColor: context.colors.surfaceVariant,
+      shape: RoundedRectangleBorder(),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -47,7 +46,7 @@ class BuyerDrawer extends ConsumerWidget {
                     AppBrandContext.compactBranding,
                     size: AppBrandSizes.drawerHeader,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(height: AppSpacing.lg),
                   Row(
                     children: [
                       Container(
@@ -55,19 +54,18 @@ class BuyerDrawer extends ConsumerWidget {
                         height: 52,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.cream,
-                          border: Border.all(color: AppColors.borderLight, width: 2),
-                          boxShadow: AppShadows.soft(blur: 10, y: 2),
+                          color: context.colors.surface,
+                          border: Border.all(color: context.colors.border, width: 1),
                         ),
                         child: Icon(
                           isGuest
                               ? Icons.person_outline_rounded
                               : Icons.person_rounded,
-                          color: AppColors.lavender,
+                          color: context.colors.primary,
                           size: 26,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,10 +74,10 @@ class BuyerDrawer extends ConsumerWidget {
                               displayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 17,
-                                color: AppColors.navy,
+                                color: context.colors.textPrimary,
                               ),
                             ),
                             Text(
@@ -88,8 +86,8 @@ class BuyerDrawer extends ConsumerWidget {
                                   : (session.email),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
+                              style: TextStyle(
+                                color: context.colors.textSecondary,
                                 fontSize: 12,
                               ),
                             ),
@@ -101,7 +99,7 @@ class BuyerDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            const Divider(height: 1, color: AppColors.border),
+            Divider(height: 1, color: context.colors.border),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(
@@ -146,15 +144,15 @@ class BuyerDrawer extends ConsumerWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: EdgeInsets.all(AppSpacing.md),
               child: isGuest
                   ? FilledButton(
                       onPressed: () =>
                           closeAnd(() => context.push('/onboarding/account-type')),
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.lavender,
+                        backgroundColor: context.colors.primary,
                         foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(48),
+                        minimumSize: Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(999),
                         ),
@@ -164,8 +162,8 @@ class BuyerDrawer extends ConsumerWidget {
                   : OutlinedButton(
                       onPressed: () => closeAnd(() => context.push('/profile')),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.lavender,
-                        side: const BorderSide(color: AppColors.lavender),
+                        foregroundColor: context.colors.primary,
+                        side: BorderSide(color: context.colors.primary),
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(999),
@@ -197,34 +195,34 @@ class _DrawerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: EdgeInsets.only(bottom: AppSpacing.xs),
       child: Material(
-        color: AppColors.cream,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                Icon(icon, color: AppColors.lavender, size: 22),
-                const SizedBox(width: 14),
+                Icon(icon, color: context.colors.primary, size: 22),
+                SizedBox(width: 14),
                 Expanded(
                   child: Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
-                      color: AppColors.navy,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                 ),
                 if (badge != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.lavender,
+                      color: context.colors.primary,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(

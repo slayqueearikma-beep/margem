@@ -1,35 +1,24 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
 import 'app_shadows.dart';
 import 'app_spacing.dart';
+import 'theme_context.dart';
 
-/// Reusable decoration builders for glassmorphism and surfaces.
+/// Reusable decoration builders for surfaces.
 class AppDecorations {
   AppDecorations._();
 
-  static BoxDecoration glassCard({
+  static BoxDecoration surfaceCard({
     required BuildContext context,
-    Color? tint,
     double radius = AppSpacing.cardRadius,
     bool showBorder = true,
+    Color? color,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = context.colors;
     return BoxDecoration(
-      color: isDark
-          ? AppColors.darkCard.withValues(alpha: 0.75)
-          : Colors.white.withValues(alpha: 0.82),
+      color: color ?? colors.surface,
       borderRadius: BorderRadius.circular(radius),
-      border: showBorder
-          ? Border.all(
-              color: isDark
-                  ? AppColors.darkBorder.withValues(alpha: 0.6)
-                  : AppColors.border.withValues(alpha: 0.8),
-            )
-          : null,
-      boxShadow: AppShadows.card(isDark: isDark),
+      border: showBorder ? Border.all(color: colors.border) : null,
     );
   }
 
@@ -39,47 +28,63 @@ class AppDecorations {
     bool selected = false,
     double radius = AppSpacing.cardRadiusLg,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = context.colors;
     return BoxDecoration(
-      color: selected
-          ? accent.withValues(alpha: isDark ? 0.18 : 0.08)
-          : (isDark ? AppColors.darkCard : Colors.white),
+      color: selected ? colors.primaryMuted : colors.surface,
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(
-        color: selected
-            ? accent.withValues(alpha: 0.55)
-            : (isDark ? AppColors.darkBorder : AppColors.borderLight),
+        color: selected ? accent : colors.border,
         width: selected ? 1.5 : 1,
       ),
-      boxShadow: selected ? AppShadows.soft(color: accent, blur: 20, y: 6) : AppShadows.card(isDark: isDark),
     );
   }
 
-  static BoxDecoration pillButton(Color accent, {bool isDark = false}) {
-    return BoxDecoration(
-      color: accent.withValues(alpha: isDark ? 0.22 : 0.14),
-      borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
-    );
-  }
-
-  static Widget frosted({
-    required Widget child,
-    double sigma = 12,
-    double radius = AppSpacing.cardRadius,
-    Color? fill,
+  static BoxDecoration pill({
+    required BuildContext context,
+    Color? background,
+    Color? border,
   }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: fill ?? Colors.white.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(radius),
-          ),
-          child: child,
-        ),
-      ),
+    final colors = context.colors;
+    return BoxDecoration(
+      color: background ?? colors.surfaceVariant,
+      borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
+      border: Border.all(color: border ?? colors.border),
+    );
+  }
+
+  static BoxDecoration searchField(BuildContext context) {
+    final colors = context.colors;
+    return BoxDecoration(
+      color: colors.surfaceVariant,
+      borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
+      border: Border.all(color: colors.border),
+    );
+  }
+
+  static BoxDecoration selectedChip(BuildContext context) {
+    final colors = context.colors;
+    return BoxDecoration(
+      color: colors.primaryMuted,
+      borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
+      border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
+    );
+  }
+
+  static BoxDecoration unselectedChip(BuildContext context) {
+    final colors = context.colors;
+    return BoxDecoration(
+      color: colors.surfaceVariant,
+      borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
+      border: Border.all(color: colors.border),
+    );
+  }
+
+  static BoxDecoration iconContainer(BuildContext context) {
+    final colors = context.colors;
+    return BoxDecoration(
+      color: colors.surfaceVariant,
+      borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+      border: Border.all(color: colors.border),
     );
   }
 }

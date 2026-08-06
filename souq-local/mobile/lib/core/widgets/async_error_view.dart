@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
 import '../services/api_service.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import '../../l10n/app_localizations.dart';
 
 /// User-friendly error state for failed API loads (no dev instructions in production).
@@ -30,8 +30,8 @@ class AsyncErrorView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(
+          physics: BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.screenHorizontal,
             vertical: AppSpacing.lg,
           ),
@@ -46,7 +46,7 @@ class AsyncErrorView extends StatelessWidget {
                     size: 48,
                     color: theme.colorScheme.error,
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  SizedBox(height: AppSpacing.md),
                   Text(
                     context.l10n.somethingWentWrong,
                     textAlign: TextAlign.center,
@@ -54,14 +54,14 @@ class AsyncErrorView extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  SizedBox(height: AppSpacing.sm),
                   Text(
                     message.isEmpty
                         ? context.l10n.somethingWentWrong
                         : message,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       height: 1.4,
                     ),
                   ),

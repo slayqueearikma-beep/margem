@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/app_storage.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/onboarding_backdrop.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
@@ -77,7 +77,7 @@ class _OnboardingWelcomeScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: context.colors.surface,
       body: OnboardingBackdrop(
         showSkyline: false,
         showAccentBlob: true,
@@ -88,17 +88,17 @@ class _OnboardingWelcomeScreenState
               SizedBox(
                 height: 48,
                 child: isLastPage
-                    ? const SizedBox.shrink()
+                    ? SizedBox.shrink()
                     : Align(
                         alignment: AlignmentDirectional.centerEnd,
                         child: Padding(
-                          padding: const EdgeInsetsDirectional.only(
+                          padding: EdgeInsetsDirectional.only(
                             end: AppSpacing.screenHorizontal,
                           ),
                           child: TextButton(
                             onPressed: _completeOnboardingAndGoLogin,
                             style: TextButton.styleFrom(
-                              foregroundColor: AppColors.lavender,
+                              foregroundColor: context.colors.primary,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 4,
@@ -125,7 +125,7 @@ class _OnboardingWelcomeScreenState
                   itemBuilder: (_, index) {
                     final slide = slides[index];
                     return Padding(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: AppSpacing.screenHorizontal,
                       ),
                       child: Column(
@@ -133,7 +133,7 @@ class _OnboardingWelcomeScreenState
                           Expanded(
                             flex: 5,
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
+                              padding: EdgeInsets.fromLTRB(4, 0, 4, 0),
                               child: Image.asset(
                                 slide.imageAsset,
                                 fit: BoxFit.contain,
@@ -149,34 +149,34 @@ class _OnboardingWelcomeScreenState
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppColors.lavender.withValues(alpha: 0.45),
+                                  color: context.colors.primary.withValues(alpha: 0.45),
                                   width: 1.5,
                                 ),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.shopping_bag_outlined,
-                                color: AppColors.lavender,
+                                color: context.colors.primary,
                                 size: 24,
                               ),
                             ),
-                            const SizedBox(height: AppSpacing.md),
+                            SizedBox(height: AppSpacing.md),
                           ],
                           Text(
                             slide.title,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: AppColors.navy,
+                              color: context.colors.textPrimary,
                               height: 1.15,
                               letterSpacing: -0.3,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.sm),
+                          SizedBox(height: AppSpacing.sm),
                           Text(
                             slide.subtitle,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                               height: 1.45,
                             ),
                           ),
@@ -188,9 +188,9 @@ class _OnboardingWelcomeScreenState
                 ),
               ),
               PageDots(count: slides.length, currentIndex: _currentPage),
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppSpacing.lg),
               Padding(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenHorizontal,
                 ),
                 child: PrimaryButton(
@@ -203,20 +203,20 @@ class _OnboardingWelcomeScreenState
               ),
               if (isLastPage)
                 Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  padding: EdgeInsets.only(top: AppSpacing.sm),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         l10n.alreadyHaveAccount,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                       ),
                       TextButton(
                         onPressed: _completeOnboardingAndGoLogin,
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.lavender,
+                          foregroundColor: context.colors.primary,
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           minimumSize: const Size(44, 36),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,

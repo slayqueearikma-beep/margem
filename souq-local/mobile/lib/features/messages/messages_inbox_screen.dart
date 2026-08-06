@@ -6,8 +6,8 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../l10n/app_localizations.dart';
@@ -58,7 +58,7 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
         children: [
           BuyerScreenTitle(title: l10n.navMessages),
           Padding(
-            padding: const EdgeInsets.symmetric(
+            padding: EdgeInsets.symmetric(
               horizontal: AppSpacing.screenHorizontal,
             ),
             child: BuyerSearchBar(
@@ -68,7 +68,7 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
                   setState(() => _query = value.trim().toLowerCase()),
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           Expanded(
             child: isGuest
                 ? BuyerEmptyState(
@@ -79,9 +79,9 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
                     onAction: () => context.push('/login'),
                   )
                 : conversationsAsync.when(
-                    loading: () => const Center(
+                    loading: () => Center(
                       child: CircularProgressIndicator(
-                        color: AppColors.lavender,
+                        color: context.colors.primary,
                       ),
                     ),
                     error: (e, _) => AsyncErrorView.fromError(
@@ -107,7 +107,7 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
                         );
                       }
                       return RefreshIndicator(
-                        color: AppColors.lavender,
+                        color: context.colors.primary,
                         onRefresh: () async =>
                             ref.invalidate(conversationsProvider),
                         child: ListView.separated(
@@ -159,7 +159,7 @@ class _ConversationTile extends StatelessWidget {
     return BuyerSurfaceCard(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.sm,
         ),
@@ -169,11 +169,11 @@ class _ConversationTile extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: AppColors.lavenderMuted,
+                  backgroundColor: context.colors.primaryMuted,
                   child: Text(
                     initial,
-                    style: const TextStyle(
-                      color: AppColors.lavender,
+                    style: TextStyle(
+                      color: context.colors.primary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -185,7 +185,7 @@ class _ConversationTile extends StatelessWidget {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: AppColors.success,
+                      color: context.colors.success,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
@@ -193,7 +193,7 @@ class _ConversationTile extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(width: AppSpacing.md),
+            SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,8 +219,8 @@ class _ConversationTile extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           color: conversation.hasUnread
-                              ? AppColors.lavender
-                              : AppColors.textSecondary,
+                              ? context.colors.primary
+                              : context.colors.textSecondary,
                           fontWeight: conversation.hasUnread
                               ? FontWeight.w700
                               : FontWeight.w400,
@@ -228,7 +228,7 @@ class _ConversationTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Row(
                     children: [
                       Expanded(
@@ -240,8 +240,8 @@ class _ConversationTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: conversation.hasUnread
-                                ? AppColors.navy
-                                : AppColors.textSecondary,
+                                ? context.colors.textPrimary
+                                : context.colors.textSecondary,
                             fontWeight: conversation.hasUnread
                                 ? FontWeight.w600
                                 : FontWeight.w400,
@@ -249,14 +249,14 @@ class _ConversationTile extends StatelessWidget {
                         ),
                       ),
                       if (conversation.hasUnread) ...[
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 7,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.lavender,
+                            color: context.colors.primary,
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
@@ -404,8 +404,8 @@ class _ConversationThreadScreenState
                       alignment:
                           mine ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
+                        margin: EdgeInsets.only(bottom: 8),
+                        padding: EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 10,
                         ),
@@ -414,8 +414,8 @@ class _ConversationThreadScreenState
                         ),
                         decoration: BoxDecoration(
                           color: mine
-                              ? AppColors.primary.withValues(alpha: 0.12)
-                              : AppColors.cardSelected,
+                              ? context.colors.primary.withValues(alpha: 0.12)
+                              : context.colors.surfaceVariant,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(

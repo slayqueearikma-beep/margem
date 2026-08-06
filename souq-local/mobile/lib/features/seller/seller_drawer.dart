@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/app_back_handler.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
@@ -25,14 +25,14 @@ class SellerDrawer extends ConsumerWidget {
     final profile = account?.profile;
 
     return Drawer(
-      backgroundColor: AppColors.beigeLight,
-      shape: const RoundedRectangleBorder(),
+      backgroundColor: context.colors.surfaceVariant,
+      shape: RoundedRectangleBorder(),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -40,13 +40,13 @@ class SellerDrawer extends ConsumerWidget {
                     AppBrandContext.compactBranding,
                     size: AppBrandSizes.drawerHeader,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   if (profile != null)
                     Row(
                       children: [
                         CircleAvatar(
                           radius: 28,
-                          backgroundColor: AppColors.cream,
+                          backgroundColor: context.colors.surface,
                           child: ClipOval(
                             child: SizedBox(
                               width: 56,
@@ -60,7 +60,7 @@ class SellerDrawer extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,8 +69,8 @@ class SellerDrawer extends ConsumerWidget {
                                 profile.businessName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: AppColors.navy,
+                                style: TextStyle(
+                                  color: context.colors.textPrimary,
                                   fontWeight: FontWeight.w800,
                                   fontSize: 16,
                                 ),
@@ -78,8 +78,8 @@ class SellerDrawer extends ConsumerWidget {
                               if (stats != null)
                                 Text(
                                   l10n.reviewsCount(stats.reviewCount),
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
+                                  style: TextStyle(
+                                    color: context.colors.textSecondary,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -91,10 +91,10 @@ class SellerDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            const Divider(color: AppColors.border, height: 1),
+            Divider(color: context.colors.border, height: 1),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.symmetric(vertical: 8),
                 children: [
                   _DrawerItem(
                     icon: Icons.dashboard_outlined,
@@ -159,11 +159,11 @@ class SellerDrawer extends ConsumerWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: FilledButton.tonal(
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: AppColors.primary,
+                  foregroundColor: context.colors.primary,
                   minimumSize: const Size.fromHeight(48),
                 ),
                 onPressed: () async {
@@ -215,25 +215,25 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.lavender),
+      leading: Icon(icon, color: context.colors.primary),
       title: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.navy,
+        style: TextStyle(
+          color: context.colors.textPrimary,
           fontWeight: FontWeight.w600,
         ),
       ),
       trailing: comingSoon
           ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.lavenderMuted,
+                color: context.colors.primaryMuted,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 context.l10n.comingSoon,
-                style: const TextStyle(
-                  color: AppColors.lavender,
+                style: TextStyle(
+                  color: context.colors.primary,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
@@ -242,7 +242,7 @@ class _DrawerItem extends StatelessWidget {
           : badge != null
               ? CircleAvatar(
                   radius: 12,
-                  backgroundColor: AppColors.danger,
+                  backgroundColor: context.colors.error,
                   child: Text(
                     badge!,
                     style: const TextStyle(color: Colors.white, fontSize: 11),

@@ -6,8 +6,8 @@ import '../../core/models/community_models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/community_websocket_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/design_system_components.dart';
 import '../../core/widgets/margem_background.dart';
@@ -153,7 +153,7 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
               Text(
                 widget.citySlug,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
               ),
           ],
@@ -215,7 +215,7 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
                   );
                 },
                 loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                    Center(child: CircularProgressIndicator()),
                 error: (e, _) => AsyncErrorView.fromError(
                   e,
                   onRetry: () =>
@@ -225,13 +225,13 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
             ),
             if (typing.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     l10n.communityTyping(typing.first),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                           fontStyle: FontStyle.italic,
                         ),
                   ),
@@ -239,11 +239,11 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
               ),
             if (_replyTo != null)
               Container(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: AppSpacing.lg,
                   vertical: AppSpacing.xs,
                 ),
-                color: AppColors.lavenderMuted,
+                color: context.colors.primaryMuted,
                 child: Row(
                   children: [
                     Expanded(
@@ -319,11 +319,11 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final bubbleColor = isMine
-        ? AppColors.lavender.withValues(alpha: 0.18)
+        ? context.colors.primary.withValues(alpha: 0.18)
         : Colors.white.withValues(alpha: 0.9);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment:
@@ -331,20 +331,20 @@ class _MessageBubble extends StatelessWidget {
         children: [
           if (!isMine) ...[
             _Avatar(sender: message.sender),
-            const SizedBox(width: AppSpacing.sm),
+            SizedBox(width: AppSpacing.sm),
           ],
           Flexible(
             child: GestureDetector(
               onLongPress: () => _showActions(context),
               child: Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: bubbleColor,
                   borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
                   border: Border.all(
                     color: isMine
-                        ? AppColors.lavender.withValues(alpha: 0.3)
-                        : AppColors.borderLight,
+                        ? context.colors.primary.withValues(alpha: 0.3)
+                        : context.colors.divider,
                   ),
                 ),
                 child: Column(
@@ -355,29 +355,29 @@ class _MessageBubble extends StatelessWidget {
                         children: [
                           Text(
                             message.sender.displayName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 13,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: 6),
                           _TrustBadge(score: message.sender.trustScore),
                           if (message.sender.isVerified)
                             Padding(
-                              padding: const EdgeInsetsDirectional.only(start: 4),
+                              padding: EdgeInsetsDirectional.only(start: 4),
                               child: Icon(
                                 Icons.verified_rounded,
                                 size: 14,
-                                color: AppColors.lavender,
+                                color: context.colors.primary,
                               ),
                             ),
                           if (message.sender.isPremium)
                             Padding(
-                              padding: const EdgeInsetsDirectional.only(start: 4),
+                              padding: EdgeInsetsDirectional.only(start: 4),
                               child: Icon(
                                 Icons.workspace_premium_rounded,
                                 size: 14,
-                                color: AppColors.peach,
+                                color: context.colors.secondary,
                               ),
                             ),
                         ],
@@ -497,7 +497,7 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       radius: 18,
-      backgroundColor: AppColors.lavenderMuted,
+      backgroundColor: context.colors.primaryMuted,
       child: sender.avatarUrl.isNotEmpty
           ? ClipOval(
               child: SizedBox(
@@ -513,9 +513,9 @@ class _Avatar extends StatelessWidget {
               sender.displayName.isNotEmpty
                   ? sender.displayName[0].toUpperCase()
                   : '?',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: AppColors.lavender,
+                color: context.colors.primary,
               ),
             ),
     );
@@ -530,9 +530,9 @@ class _TrustBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.lavenderMuted,
+        color: context.colors.primaryMuted,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

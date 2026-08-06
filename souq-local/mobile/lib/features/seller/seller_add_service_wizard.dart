@@ -9,8 +9,8 @@ import '../../core/models/auth_models.dart';
 import '../../core/models/service_pricing.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/upload_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -332,28 +332,28 @@ class _StepPricing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+      padding: EdgeInsets.all(AppSpacing.screenHorizontal),
       children: [
         ServicePricingFields(
           key: pricingKey,
           l10n: l10n,
           initialModel: ServicePricingModel.fixedPrice,
         ),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: AppSpacing.lg),
         Text(
           l10n.customersWillSee,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Card(
           child: ListTile(
             title: Text(previewName),
             trailing: Text(
               previewPrice,
-              style: const TextStyle(
-                color: AppColors.primary,
+              style: TextStyle(
+                color: context.colors.primary,
                 fontWeight: FontWeight.w800,
               ),
             ),

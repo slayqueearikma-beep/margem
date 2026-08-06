@@ -15,9 +15,9 @@ import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/location_service.dart';
 import '../../core/services/theme_mode_provider.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
@@ -264,8 +264,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                             ),
                             icon: _categoryIcon(cat.icon),
                             tint: i.isEven
-                                ? AppColors.beigeLight
-                                : AppColors.cream,
+                                ? context.colors.surfaceVariant
+                                : context.colors.surface,
                             onTap: () {
                               ref
                                   .read(buyerCategorySlugProvider.notifier)
@@ -305,10 +305,6 @@ class BuyerHomeScreen extends ConsumerWidget {
                     subtitle: l10n.exploreOnMapSubtitle(city),
                     ctaLabel: l10n.exploreNow,
                     onTap: () => context.push('/map'),
-                    gradientColors: const [
-                      Color(0xFFFAF3EC),
-                      Color(0xFFFFF9F3),
-                    ],
                   ),
                   BuyerPromoBanner(
                     title: l10n.communityHomeCardTitle,
@@ -410,8 +406,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                               ),
                               icon: _categoryIcon(cat.icon),
                               tint: i.isEven
-                                  ? AppColors.beigeLight
-                                  : AppColors.cream,
+                                  ? context.colors.surfaceVariant
+                                  : context.colors.surface,
                               onTap: () {
                                 ref
                                     .read(buyerCategorySlugProvider.notifier)
@@ -554,16 +550,16 @@ class _GuestModeBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.beigeLight,
+      color: context.colors.surfaceVariant,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
       child: InkWell(
         onTap: onLogin,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-            boxShadow: AppShadows.soft(color: AppColors.beige, blur: 16, y: 4),
+            boxShadow: AppShadows.soft(context, blur: 16, y: 4),
           ),
           child: Row(
             children: [
@@ -574,20 +570,20 @@ class _GuestModeBanner extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.person_add_alt_1_rounded,
-                  color: AppColors.lavender,
+                  color: context.colors.primary,
                   size: 22,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 14,
                       ),
@@ -596,8 +592,8 @@ class _GuestModeBanner extends StatelessWidget {
                       subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
                         fontSize: 12,
                         height: 1.25,
                       ),
@@ -605,11 +601,11 @@ class _GuestModeBanner extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.lavender,
+                  color: context.colors.primary,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
@@ -652,7 +648,7 @@ class _ProfileHeader extends StatelessWidget {
 
     return Column(
       children: [
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: AppSpacing.lg),
         Stack(
           clipBehavior: Clip.none,
           children: [
@@ -662,10 +658,10 @@ class _ProfileHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isDark
-                    ? AppColors.darkCard
-                    : AppColors.primary.withValues(alpha: 0.08),
+                    ? context.colors.surface
+                    : context.colors.primary.withValues(alpha: 0.08),
                 border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.border,
+                  color: context.colors.border,
                   width: 1,
                 ),
               ),
@@ -676,7 +672,7 @@ class _ProfileHeader extends StatelessWidget {
                   fontSize: 34,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.5,
-                  color: isDark ? Colors.white : AppColors.primary,
+                  color: isDark ? Colors.white : context.colors.primary,
                 ),
               ),
             ),
@@ -688,7 +684,7 @@ class _ProfileHeader extends StatelessWidget {
                   width: 14,
                   height: 14,
                   decoration: BoxDecoration(
-                    color: AppColors.success,
+                    color: context.colors.success,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: Theme.of(context).scaffoldBackgroundColor,
@@ -699,7 +695,7 @@ class _ProfileHeader extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: AppSpacing.md + 4),
+        SizedBox(height: AppSpacing.md + 4),
         Text(
           displayName,
           textAlign: TextAlign.center,
@@ -712,36 +708,36 @@ class _ProfileHeader extends StatelessWidget {
               ),
         ),
         if (subtitle.isNotEmpty) ...[
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             subtitle,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   fontWeight: FontWeight.w400,
                   height: 1.3,
                 ),
           ),
         ],
         if (membershipLabel != null && membershipLabel!.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.sm + 2),
+          SizedBox(height: AppSpacing.sm + 2),
           Text(
             membershipLabel!,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.1,
                 ),
           ),
         ],
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: AppSpacing.lg),
         Divider(
           height: 1,
           thickness: 1,
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: context.colors.border,
         ),
       ],
     );
@@ -835,7 +831,7 @@ class BuyerProfileScreen extends ConsumerWidget {
               ),
             ],
             if (!isGuest && !hasSellerProfile) ...[
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               BuyerMenuTile(
                 icon: Icons.add_business_outlined,
                 title: l10n.becomeSeller,
@@ -843,14 +839,14 @@ class BuyerProfileScreen extends ConsumerWidget {
                 onTap: () => context.push('/onboarding/become-seller'),
               ),
             ],
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm),
             BuyerMenuTile(
               icon: Icons.dark_mode_outlined,
               title: l10n.darkMode,
               trailing: Theme(
                 data: Theme.of(context).copyWith(
                   colorScheme: Theme.of(context).colorScheme.copyWith(
-                    primary: AppColors.lavender,
+                    primary: context.colors.primary,
                   ),
                 ),
                 child: Switch(
@@ -862,7 +858,7 @@ class BuyerProfileScreen extends ConsumerWidget {
               ),
             ),
             if (!isGuest) ...[
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               BuyerMenuTile(
                 icon: Icons.delete_forever_outlined,
                 title: l10n.deleteAccount,
@@ -870,29 +866,29 @@ class BuyerProfileScreen extends ConsumerWidget {
                 onTap: () => _confirmDeleteAccount(context, ref),
               ),
             ],
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppSpacing.xl),
             if (isGuest) ...[
               FilledButton(
                 onPressed: () => context.push('/onboarding/account-type'),
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.lavender,
-                  minimumSize: const Size.fromHeight(52),
+                  backgroundColor: context.colors.primary,
+                  minimumSize: Size.fromHeight(52),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
                 child: Text(l10n.createAccount),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               OutlinedButton(
                 onPressed: () => context.push('/login'),
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
+                  minimumSize: Size.fromHeight(52),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  side: const BorderSide(color: AppColors.lavender),
-                  foregroundColor: AppColors.lavender,
+                  side: BorderSide(color: context.colors.primary),
+                  foregroundColor: context.colors.primary,
                 ),
                 child: Text(l10n.logIn),
               ),
@@ -908,12 +904,12 @@ class BuyerProfileScreen extends ConsumerWidget {
                   if (context.mounted) context.go('/login');
                 },
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
+                  minimumSize: Size.fromHeight(52),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  side: const BorderSide(color: AppColors.danger),
-                  foregroundColor: AppColors.danger,
+                  side: BorderSide(color: context.colors.error),
+                  foregroundColor: context.colors.error,
                 ),
                 child: Text(l10n.logOut),
               ),

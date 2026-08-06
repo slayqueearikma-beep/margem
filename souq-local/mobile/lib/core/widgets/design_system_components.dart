@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
 import '../theme/app_decorations.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import '../utils/directional_ui.dart';
 import '../theme/app_typography.dart';
 
@@ -21,11 +21,11 @@ class AppSectionLabel extends StatelessWidget {
           width: 3,
           height: 14,
           decoration: BoxDecoration(
-            color: AppColors.lavender,
+            color: context.colors.primary,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             label.toUpperCase(),
@@ -35,8 +35,8 @@ class AppSectionLabel extends StatelessWidget {
         Expanded(
           child: Container(
             height: 1,
-            margin: const EdgeInsets.only(left: AppSpacing.sm),
-            color: AppColors.border.withValues(alpha: 0.7),
+            margin: EdgeInsets.only(left: AppSpacing.sm),
+            color: context.colors.border.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -71,10 +71,10 @@ class AccountTypeCard extends StatelessWidget {
 
     return AnimatedScale(
       scale: selected ? 1.0 : 0.98,
-      duration: const Duration(milliseconds: 200),
+      duration: Duration(milliseconds: 200),
       curve: Curves.easeOutCubic,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
+        duration: Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
         decoration: AppDecorations.roleCard(
           context: context,
@@ -87,7 +87,7 @@ class AccountTypeCard extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 AppSpacing.lg,
                 AppSpacing.lg,
                 AppSpacing.lg,
@@ -103,25 +103,23 @@ class AccountTypeCard extends StatelessWidget {
                           ? Colors.white.withValues(alpha: 0.08)
                           : Colors.white,
                       shape: BoxShape.circle,
-                      boxShadow: AppShadows.iconCircle(accentColor),
+                      boxShadow: AppShadows.card(context),
                     ),
                     child: Icon(icon, color: accentColor, size: 30),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  SizedBox(height: AppSpacing.md),
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isDark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                           height: 1.4,
                         ),
                   ),
@@ -132,9 +130,9 @@ class AccountTypeCard extends StatelessWidget {
                       horizontal: AppSpacing.lg,
                       vertical: AppSpacing.sm + 2,
                     ),
-                    decoration: AppDecorations.pillButton(
-                      accentColor,
-                      isDark: isDark,
+                    decoration: AppDecorations.pill(
+                      context: context,
+                      background: accentColor.withValues(alpha: isDark ? 0.22 : 0.14),
                     ),
                     child: Text(
                       ctaLabel,
@@ -178,17 +176,17 @@ class AppSecondaryActionRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
         child: Container(
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
             border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.border,
+              color: context.colors.border,
             ),
             color: isDark
-                ? AppColors.darkCard.withValues(alpha: 0.5)
+                ? context.colors.surface.withValues(alpha: 0.5)
                 : Colors.white.withValues(alpha: 0.6),
           ),
           child: Row(
@@ -196,9 +194,9 @@ class AppSecondaryActionRow extends StatelessWidget {
               Icon(
                 icon,
                 size: AppSpacing.iconSm,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
-              const SizedBox(width: AppSpacing.sm),
+              SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   label,
@@ -209,7 +207,7 @@ class AppSecondaryActionRow extends StatelessWidget {
               ),
               Icon(
                 DirectionalUi.forwardChevron(context),
-                color: isDark ? AppColors.darkTextSecondary : AppColors.textTertiary,
+                color: isDark ? context.colors.textSecondary : context.colors.textTertiary,
               ),
             ],
           ),
@@ -239,16 +237,16 @@ class AppSecurityFooter extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.lavenderMuted,
+            color: context.colors.primaryMuted,
             shape: BoxShape.circle,
           ),
-          child: const Icon(
+          child: Icon(
             Icons.lock_outline_rounded,
             size: 16,
-            color: AppColors.lavender,
+            color: context.colors.primary,
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,14 +254,14 @@ class AppSecurityFooter extends StatelessWidget {
               Text(
                 line1,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       height: 1.35,
                     ),
               ),
               Text(
                 line2,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textTertiary,
+                      color: context.colors.textTertiary,
                       height: 1.35,
                     ),
               ),
@@ -294,7 +292,7 @@ class AppChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = accentColor ?? AppColors.lavender;
+    final accent = accentColor ?? context.colors.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
@@ -303,25 +301,25 @@ class AppChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          duration: Duration(milliseconds: 180),
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: selected
                 ? accent.withValues(alpha: isDark ? 0.25 : 0.14)
-                : (isDark ? AppColors.darkCard : AppColors.surfaceMuted),
+                : (context.colors.surfaceVariant),
             borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
             border: Border.all(
               color: selected
                   ? accent.withValues(alpha: 0.5)
-                  : (isDark ? AppColors.darkBorder : AppColors.border),
+                  : (context.colors.border),
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 16, color: selected ? accent : AppColors.textSecondary),
-                const SizedBox(width: 6),
+                Icon(icon, size: 16, color: selected ? accent : context.colors.textSecondary),
+                SizedBox(width: 6),
               ],
               Text(
                 label,
@@ -330,7 +328,7 @@ class AppChip extends StatelessWidget {
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                   color: selected
                       ? accent
-                      : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
+                      : (context.colors.textSecondary),
                 ),
               ),
             ],
@@ -358,7 +356,7 @@ class AppBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = color ?? AppColors.lavender;
+    final bg = color ?? context.colors.primary;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: small ? 8 : 10,
@@ -419,7 +417,7 @@ class _AppSkeletonState extends State<AppSkeleton>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = isDark ? AppColors.darkBorder : AppColors.border;
+    final base = context.colors.border;
 
     return AnimatedBuilder(
       animation: _controller,
@@ -465,7 +463,7 @@ class AppEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: EdgeInsets.all(AppSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -473,12 +471,12 @@ class AppEmptyState extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.lavenderMuted,
+              color: context.colors.primaryMuted,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 32, color: AppColors.lavender),
+            child: Icon(icon, size: 32, color: context.colors.primary),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.lg),
           Text(
             title,
             textAlign: TextAlign.center,
@@ -487,12 +485,12 @@ class AppEmptyState extends StatelessWidget {
                 ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm),
             Text(
               subtitle!,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     height: 1.4,
                   ),
             ),

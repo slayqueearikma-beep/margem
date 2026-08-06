@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import '../utils/directional_ui.dart';
 import 'app_brand_logo.dart';
 
@@ -25,24 +25,24 @@ class BuyerShellHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
         children: [
           _HeaderIconButton(
             icon: Icons.menu_rounded,
             onTap: onMenu,
           ),
-          const Spacer(),
+          Spacer(),
           AppBrandLogo.forContext(
             AppBrandContext.compactBranding,
             includeClearSpace: false,
           ),
-          const Spacer(),
+          Spacer(),
           _HeaderIconButton(
             icon: Icons.notifications_none_rounded,
             onTap: onNotifications,
           ),
-          const SizedBox(width: AppSpacing.xs),
+          SizedBox(width: AppSpacing.xs),
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -53,14 +53,14 @@ class BuyerShellHeader extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.borderLight, width: 2),
-                    boxShadow: AppShadows.soft(blur: 12, y: 2),
+                    border: Border.all(color: context.colors.divider, width: 2),
+                    boxShadow: AppShadows.soft(context, blur: 12, y: 2),
                   ),
-                  child: const CircleAvatar(
-                    backgroundColor: AppColors.beigeLight,
+                  child: CircleAvatar(
+                    backgroundColor: context.colors.surfaceVariant,
                     child: Icon(
                       Icons.person_rounded,
-                      color: AppColors.lavender,
+                      color: context.colors.primary,
                       size: 22,
                     ),
                   ),
@@ -71,15 +71,15 @@ class BuyerShellHeader extends StatelessWidget {
                   end: -2,
                   bottom: -2,
                   child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
+                    padding: EdgeInsets.all(3),
+                    decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.workspace_premium_rounded,
                       size: 14,
-                      color: AppColors.goldenCrown,
+                      color: context.colors.highlight,
                     ),
                   ),
                 ),
@@ -107,7 +107,7 @@ class _HeaderIconButton extends StatelessWidget {
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(icon, size: 24, color: AppColors.navy),
+          child: Icon(icon, size: 24, color: context.colors.textPrimary),
         ),
       ),
     );
@@ -129,18 +129,18 @@ class BuyerLocationRow extends StatelessWidget {
     final child = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.location_on_rounded, size: 18, color: AppColors.lavender),
-        const SizedBox(width: 4),
+        Icon(Icons.location_on_rounded, size: 18, color: context.colors.primary),
+        SizedBox(width: 4),
         Text(
           city,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.lavender,
+                color: context.colors.primary,
               ),
         ),
         if (onTap != null)
-          const Icon(Icons.keyboard_arrow_down_rounded,
-              size: 20, color: AppColors.lavender),
+          Icon(Icons.keyboard_arrow_down_rounded,
+              size: 20, color: context.colors.primary),
       ],
     );
 
@@ -179,11 +179,11 @@ class BuyerGreetingBlock extends StatelessWidget {
                 height: 1.15,
               ),
         ),
-        const SizedBox(height: AppSpacing.xs),
+        SizedBox(height: AppSpacing.xs),
         Text(
           subtitle,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
                 height: 1.35,
               ),
         ),
@@ -219,17 +219,17 @@ class BuyerSearchBar extends StatelessWidget {
     final field = Container(
       height: 52,
       decoration: BoxDecoration(
-        color: AppColors.cream,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: AppShadows.soft(blur: 16, y: 3),
+        border: Border.all(color: context.colors.divider),
+        boxShadow: AppShadows.soft(context, blur: 16, y: 3),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: EdgeInsets.symmetric(horizontal: 6),
       child: Row(
         children: [
-          const SizedBox(width: 8),
-          const Icon(Icons.search_rounded, color: AppColors.textTertiary, size: 22),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
+          Icon(Icons.search_rounded, color: context.colors.textTertiary, size: 22),
+          SizedBox(width: 8),
           Expanded(
             child: isInteractive
                 ? TextField(
@@ -243,31 +243,31 @@ class BuyerSearchBar extends StatelessWidget {
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
-                      hintStyle: const TextStyle(
-                        color: AppColors.textTertiary,
+                      hintStyle: TextStyle(
+                        color: context.colors.textTertiary,
                         fontSize: 15,
                       ),
                     ),
                   )
                 : Text(
                     hint,
-                    style: const TextStyle(
-                      color: AppColors.textTertiary,
+                    style: TextStyle(
+                      color: context.colors.textTertiary,
                       fontSize: 15,
                     ),
                   ),
           ),
           if (onFilter != null)
             Material(
-              color: AppColors.beigeLight,
+              color: context.colors.surfaceVariant,
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 onTap: onFilter,
                 borderRadius: BorderRadius.circular(20),
-                child: const SizedBox(
+                child: SizedBox(
                   width: 40,
                   height: 40,
-                  child: Icon(Icons.tune_rounded, color: AppColors.lavender, size: 20),
+                  child: Icon(Icons.tune_rounded, color: context.colors.primary, size: 20),
                 ),
               ),
             ),
@@ -291,21 +291,22 @@ class BuyerSearchBar extends StatelessWidget {
 }
 
 class BuyerQuickCategoryTile extends StatelessWidget {
-  const BuyerQuickCategoryTile({
+  BuyerQuickCategoryTile({
     super.key,
     required this.label,
     required this.icon,
     required this.onTap,
-    this.tint = AppColors.beigeLight,
+    this.tint,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-  final Color tint;
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
+    final tileTint = tint ?? context.colors.surfaceVariant;
     return SizedBox(
       width: 72,
       child: Material(
@@ -319,11 +320,11 @@ class BuyerQuickCategoryTile extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: tint,
+                  color: tileTint,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: AppShadows.soft(blur: 12, y: 3),
+                  border: Border.all(color: context.colors.border),
                 ),
-                child: Icon(icon, color: AppColors.lavender, size: 28),
+                child: Icon(icon, color: context.colors.primary, size: 28),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
@@ -352,27 +353,22 @@ class BuyerPromoBanner extends StatelessWidget {
     required this.subtitle,
     required this.ctaLabel,
     required this.onTap,
-    this.gradientColors = const [Color(0xFFFAF3EC), Color(0xFFFFF9F3)],
   });
 
   final String title;
   final String subtitle;
   final String ctaLabel;
   final VoidCallback onTap;
-  final List<Color> gradientColors;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       constraints: const BoxConstraints(minHeight: 152),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: gradientColors,
-        ),
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-        boxShadow: AppShadows.soft(color: AppColors.beige, blur: 20, y: 4),
+        border: Border.all(color: colors.border),
       ),
       child: Material(
         color: Colors.transparent,
@@ -380,7 +376,7 @@ class BuyerPromoBanner extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.all(AppSpacing.lg),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -396,29 +392,29 @@ class BuyerPromoBanner extends StatelessWidget {
                               height: 1.2,
                             ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         subtitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                             ),
                       ),
-                      const SizedBox(height: AppSpacing.sm),
+                      SizedBox(height: AppSpacing.sm),
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.lavender,
+                          color: colors.primary,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
                           ctaLabel,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: colors.onPrimary,
                             fontWeight: FontWeight.w700,
                             fontSize: 13,
                           ),
@@ -427,16 +423,16 @@ class BuyerPromoBanner extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Icon(
                   Icons.chair_outlined,
                   size: 48,
-                  color: AppColors.lavender.withValues(alpha: 0.25),
+                  color: context.colors.primary.withValues(alpha: 0.25),
                 ),
                 Icon(
                   Icons.shopping_bag_outlined,
                   size: 36,
-                  color: AppColors.beige.withValues(alpha: 0.9),
+                  color: context.colors.border.withValues(alpha: 0.9),
                 ),
               ],
             ),
@@ -489,12 +485,12 @@ class _BuyerPromoCarouselState extends State<BuyerPromoCarousel> {
           children: List.generate(widget.slides.length, (i) {
             final active = i == _index;
             return AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              margin: const EdgeInsets.symmetric(horizontal: 3),
+              duration: Duration(milliseconds: 220),
+              margin: EdgeInsets.symmetric(horizontal: 3),
               width: active ? 20 : 6,
               height: 6,
               decoration: BoxDecoration(
-                color: active ? AppColors.lavender : AppColors.border,
+                color: active ? context.colors.primary : context.colors.border,
                 borderRadius: BorderRadius.circular(3),
               ),
             );
@@ -520,7 +516,7 @@ class BuyerSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
         children: [
           Text(
@@ -529,12 +525,12 @@ class BuyerSectionHeader extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
           ),
-          const Spacer(),
+          Spacer(),
           if (actionLabel != null && onAction != null)
             TextButton(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.lavender,
+                foregroundColor: context.colors.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 minimumSize: const Size(44, 36),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -589,7 +585,7 @@ class BuyerNearYouCard extends StatelessWidget {
     return SizedBox(
       width: 200,
       child: Material(
-        color: AppColors.cream,
+        color: context.colors.surface,
         elevation: 0,
         shadowColor: Colors.transparent,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
@@ -599,7 +595,7 @@ class BuyerNearYouCard extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-              boxShadow: AppShadows.card(),
+              boxShadow: AppShadows.card(context),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -611,23 +607,23 @@ class BuyerNearYouCard extends StatelessWidget {
                     children: [
                       imageUrl.isNotEmpty
                           ? Image.network(imageUrl, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _imagePlaceholder())
-                          : _imagePlaceholder(),
+                              errorBuilder: (_, __, ___) => _imagePlaceholder(context))
+                          : _imagePlaceholder(context),
                       PositionedDirectional(
                         start: 8,
                         bottom: 8,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.lavender,
+                            color: context.colors.primary,
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             distanceLabel,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -640,19 +636,19 @@ class BuyerNearYouCard extends StatelessWidget {
                         end: 8,
                         child: Material(
                           color: Colors.white,
-                          shape: const CircleBorder(),
+                          shape: CircleBorder(),
                           elevation: 1,
                           child: InkWell(
-                            customBorder: const CircleBorder(),
+                            customBorder: CircleBorder(),
                             onTap: onFavorite,
                             child: Padding(
-                              padding: const EdgeInsets.all(6),
+                              padding: EdgeInsets.all(6),
                               child: Icon(
                                 isFavorite
                                     ? Icons.favorite_rounded
                                     : Icons.favorite_border_rounded,
                                 size: 18,
-                                color: AppColors.lavender,
+                                color: context.colors.primary,
                               ),
                             ),
                           ),
@@ -662,7 +658,7 @@ class BuyerNearYouCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                  padding: EdgeInsets.fromLTRB(12, 10, 12, 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -670,46 +666,46 @@ class BuyerNearYouCard extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
                         ),
                       ),
                       if (subtitle.isNotEmpty) ...[
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
                           subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: context.colors.textSecondary,
                             fontSize: 12,
                           ),
                         ),
                       ],
                       if (priceLabel.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           priceLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 14,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Row(
                         children: [
-                          const Icon(Icons.location_on_outlined,
-                              size: 12, color: AppColors.lavender),
-                          const SizedBox(width: 2),
+                          Icon(Icons.location_on_outlined,
+                              size: 12, color: context.colors.primary),
+                          SizedBox(width: 2),
                           Expanded(
                             child: Text(
                               locationLabel,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.lavender,
+                              style: TextStyle(
+                                color: context.colors.primary,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -717,22 +713,22 @@ class BuyerNearYouCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Row(
                         children: [
                           CircleAvatar(
                             radius: 10,
-                            backgroundColor: AppColors.beigeLight,
+                            backgroundColor: context.colors.surfaceVariant,
                             backgroundImage: sellerAvatarUrl.isNotEmpty
                                 ? NetworkImage(sellerAvatarUrl)
                                 : null,
                             child: sellerAvatarUrl.isEmpty
-                                ? const Icon(Icons.store, size: 10)
+                                ? Icon(Icons.store, size: 10)
                                 : null,
                           ),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.star_rounded,
-                              size: 14, color: AppColors.star),
+                          SizedBox(width: 6),
+                          Icon(Icons.star_rounded,
+                              size: 14, color: context.colors.star),
                           const SizedBox(width: 2),
                           Text(
                             rating.toStringAsFixed(1),
@@ -754,48 +750,53 @@ class BuyerNearYouCard extends StatelessWidget {
     );
   }
 
-  Widget _imagePlaceholder() {
+  Widget _imagePlaceholder(BuildContext context) {
     return Container(
-      color: AppColors.beigeLight,
-      child: const Center(
-        child: Icon(Icons.storefront_rounded, color: AppColors.lavender, size: 40),
+      color: context.colors.surfaceVariant,
+      child: Center(
+        child: Icon(
+          Icons.storefront_rounded,
+          color: context.colors.textSecondary,
+          size: 40,
+        ),
       ),
     );
   }
 }
 
 class BuyerPopularCategoryCard extends StatelessWidget {
-  const BuyerPopularCategoryCard({
+  BuyerPopularCategoryCard({
     super.key,
     required this.label,
     required this.icon,
     required this.onTap,
-    this.tint = AppColors.beigeLight,
+    this.tint,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-  final Color tint;
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
+    final tileTint = tint ?? context.colors.surfaceVariant;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
           decoration: BoxDecoration(
-            color: tint,
+            color: tileTint,
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            boxShadow: AppShadows.soft(blur: 14, y: 3),
+            border: Border.all(color: context.colors.border),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 32, color: AppColors.lavender),
+              Icon(icon, size: 32, color: context.colors.primary),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 label,
@@ -831,7 +832,7 @@ class BuyerScreenTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.screenHorizontal,
         AppSpacing.md,
         AppSpacing.screenHorizontal,
@@ -852,11 +853,11 @@ class BuyerScreenTitle extends StatelessWidget {
                       ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     subtitle!,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                   ),
                 ],
@@ -889,7 +890,7 @@ class BuyerAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.cream,
+      backgroundColor: context.colors.surface,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -902,10 +903,10 @@ class BuyerAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: actions,
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
+        preferredSize: Size.fromHeight(1),
         child: Container(
           height: 1,
-          color: AppColors.borderLight,
+          color: context.colors.divider,
         ),
       ),
     );
@@ -942,7 +943,7 @@ class BuyerSurfaceCard extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            boxShadow: AppShadows.soft(blur: 16, y: 4),
+            boxShadow: AppShadows.soft(context, blur: 16, y: 4),
           ),
           child: content,
         ),
@@ -953,14 +954,14 @@ class BuyerSurfaceCard extends StatelessWidget {
 
 /// Settings / profile menu row matching the mockup rhythm.
 class BuyerMenuTile extends StatelessWidget {
-  const BuyerMenuTile({
+  BuyerMenuTile({
     super.key,
     required this.icon,
     required this.title,
     this.subtitle,
     this.trailing,
     this.onTap,
-    this.iconColor = AppColors.lavender,
+    this.iconColor,
     this.destructive = false,
   });
 
@@ -969,26 +970,27 @@ class BuyerMenuTile extends StatelessWidget {
   final String? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
-  final Color iconColor;
+  final Color? iconColor;
   final bool destructive;
 
   @override
   Widget build(BuildContext context) {
-    final color = destructive ? AppColors.danger : AppColors.navy;
+    final color = destructive ? context.colors.error : context.colors.textPrimary;
+    final leadingColor = iconColor ?? context.colors.textSecondary;
     return Material(
-      color: Colors.white,
+      color: context.colors.surface,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         child: Container(
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            boxShadow: AppShadows.soft(blur: 12, y: 2),
+            boxShadow: AppShadows.soft(context, blur: 12, y: 2),
           ),
           child: Row(
             children: [
@@ -997,17 +999,17 @@ class BuyerMenuTile extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: destructive
-                      ? AppColors.dangerMuted
-                      : AppColors.beigeLight,
+                      ? context.colors.errorMuted
+                      : context.colors.surfaceVariant,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   icon,
-                  color: destructive ? AppColors.danger : iconColor,
+                  color: destructive ? context.colors.error : leadingColor,
                   size: 20,
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
+              SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1021,11 +1023,11 @@ class BuyerMenuTile extends StatelessWidget {
                       ),
                     ),
                     if (subtitle != null) ...[
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: context.colors.textSecondary,
                           fontSize: 12,
                         ),
                       ),
@@ -1038,7 +1040,7 @@ class BuyerMenuTile extends StatelessWidget {
               else if (onTap != null)
                 Icon(
                   DirectionalUi.forwardChevron(context),
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                   size: 20,
                 ),
             ],
@@ -1070,7 +1072,7 @@ class BuyerEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1078,13 +1080,13 @@ class BuyerEmptyState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.beigeLight,
+                color: context.colors.surfaceVariant,
                 shape: BoxShape.circle,
-                boxShadow: AppShadows.soft(color: AppColors.beige, blur: 20),
+                boxShadow: AppShadows.soft(context, blur: 20),
               ),
-              child: Icon(icon, size: 32, color: AppColors.lavender),
+              child: Icon(icon, size: 32, color: context.colors.primary),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            SizedBox(height: AppSpacing.lg),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -1093,22 +1095,22 @@ class BuyerEmptyState extends StatelessWidget {
                   ),
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: context.colors.textSecondary,
                   height: 1.4,
                 ),
               ),
             ],
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppSpacing.lg),
               FilledButton(
                 onPressed: onAction,
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.lavender,
+                  backgroundColor: context.colors.primary,
                   foregroundColor: Colors.white,
                   minimumSize: const Size(160, 48),
                   shape: RoundedRectangleBorder(
@@ -1141,9 +1143,9 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.beigeLight,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -1151,12 +1153,12 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
           final active = segment.value == selected;
           return Expanded(
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                color: active ? AppColors.cream : Colors.transparent,
+                color: active ? context.colors.surface : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
-                boxShadow: active ? AppShadows.soft(blur: 8, y: 2) : null,
+                boxShadow: active ? AppShadows.soft(context, blur: 8, y: 2) : null,
               ),
               child: Material(
                 color: Colors.transparent,
@@ -1164,7 +1166,7 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
                   onTap: () => onChanged(segment.value),
                   borderRadius: BorderRadius.circular(999),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: EdgeInsets.symmetric(vertical: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1172,10 +1174,10 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
                           segment.icon,
                           size: 16,
                           color: active
-                              ? AppColors.lavender
-                              : AppColors.textTertiary,
+                              ? context.colors.primary
+                              : context.colors.textTertiary,
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Flexible(
                           child: Text(
                             segment.label,
@@ -1186,8 +1188,8 @@ class BuyerSegmentedToggle<T> extends StatelessWidget {
                                   active ? FontWeight.w700 : FontWeight.w500,
                               fontSize: 13,
                               color: active
-                                  ? AppColors.lavender
-                                  : AppColors.textTertiary,
+                                  ? context.colors.primary
+                                  : context.colors.textTertiary,
                             ),
                           ),
                         ),
@@ -1234,7 +1236,7 @@ class BuyerBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cream,
+        color: context.colors.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -1264,8 +1266,8 @@ class BuyerBottomNavBar extends StatelessWidget {
                           Icon(
                             selected ? item.selectedIcon : item.icon,
                             color: selected
-                                ? AppColors.lavender
-                                : AppColors.textTertiary,
+                                ? context.colors.primary
+                                : context.colors.textTertiary,
                             size: 24,
                           ),
                           if ((badges[i] ?? 0) > 0)
@@ -1273,25 +1275,25 @@ class BuyerBottomNavBar extends StatelessWidget {
                               end: -10,
                               top: -4,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                   horizontal: 5,
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.danger,
+                                  color: context.colors.error,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: Colors.white,
                                     width: 1.5,
                                   ),
                                 ),
-                                constraints: const BoxConstraints(
+                                constraints: BoxConstraints(
                                   minWidth: 16,
                                   minHeight: 16,
                                 ),
                                 child: Text(
                                   (badges[i]! > 99) ? '99+' : '${badges[i]}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 9,
                                     fontWeight: FontWeight.w700,
@@ -1303,7 +1305,7 @@ class BuyerBottomNavBar extends StatelessWidget {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         item.label,
                         style: TextStyle(
@@ -1311,8 +1313,8 @@ class BuyerBottomNavBar extends StatelessWidget {
                           fontWeight:
                               selected ? FontWeight.w700 : FontWeight.w500,
                           color: selected
-                              ? AppColors.lavender
-                              : AppColors.textTertiary,
+                              ? context.colors.primary
+                              : context.colors.textTertiary,
                         ),
                       ),
                     ],
@@ -1359,7 +1361,7 @@ class BuyerScreenScaffold extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.cream,
+        backgroundColor: context.colors.surface,
         appBar: appBar,
         drawer: drawer,
         body: body,

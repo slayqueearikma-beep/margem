@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 
-import '../theme/app_colors.dart';
 import '../theme/app_decorations.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 
 class SelectionCard extends StatelessWidget {
-  const SelectionCard({
+  SelectionCard({
     super.key,
     required this.title,
     required this.subtitle,
@@ -16,7 +16,7 @@ class SelectionCard extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.bulletPoints = const [],
-    this.accentColor = AppColors.lavender,
+    this.accentColor,
   });
 
   final String title;
@@ -25,18 +25,19 @@ class SelectionCard extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final List<String> bulletPoints;
-  final Color accentColor;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
+    final accent = accentColor ?? context.colors.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
+      duration: Duration(milliseconds: 220),
       curve: Curves.easeOutCubic,
       decoration: AppDecorations.roleCard(
         context: context,
-        accent: accentColor,
+        accent: accent,
         selected: selected,
         radius: AppSpacing.cardRadius,
       ),
@@ -46,7 +47,7 @@ class SelectionCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.all(AppSpacing.lg),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -58,54 +59,50 @@ class SelectionCard extends StatelessWidget {
                         ? Colors.white.withValues(alpha: 0.08)
                         : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: AppShadows.iconCircle(accentColor),
+                    boxShadow: AppShadows.card(context),
                   ),
-                  child: Icon(icon, color: accentColor, size: 26),
+                  child: Icon(icon, color: accent, size: 26),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: isDark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                           height: 1.35,
                         ),
                       ),
                       if (bulletPoints.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(height: AppSpacing.md),
                         ...bulletPoints.map(
                           (point) => Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
+                            padding: EdgeInsets.only(bottom: 6),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Icon(
                                   Icons.check_circle_rounded,
                                   size: 16,
-                                  color: accentColor,
+                                  color: accent,
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     point,
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: isDark
-                                          ? AppColors.darkTextSecondary
-                                          : AppColors.textSecondary,
+                                      color: context.colors.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -117,20 +114,20 @@ class SelectionCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: Duration(milliseconds: 200),
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: selected
-                          ? accentColor
-                          : (isDark ? AppColors.darkBorder : AppColors.border),
+                          ? accent
+                          : (context.colors.border),
                       width: 2,
                     ),
-                    color: selected ? accentColor : Colors.transparent,
+                    color: selected ? accent : Colors.transparent,
                   ),
                   child: selected
                       ? const Icon(Icons.check, size: 14, color: Colors.white)
@@ -180,7 +177,7 @@ class AppTextField extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -228,10 +225,10 @@ class ImageUploadTile extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppSpacing.sm),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -242,7 +239,7 @@ class ImageUploadTile extends StatelessWidget {
               color: Theme.of(context).inputDecorationTheme.fillColor,
               borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.border,
+                color: context.colors.border,
               ),
             ),
             child: imagePath != null
@@ -268,14 +265,14 @@ class ImageUploadTile extends StatelessWidget {
       children: [
         Icon(
           Icons.add_photo_alternate_outlined,
-          color: AppColors.textSecondary.withValues(alpha: 0.7),
+          color: context.colors.textSecondary.withValues(alpha: 0.7),
           size: 32,
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           context.l10n.tapToUpload,
           style: TextStyle(
-            color: AppColors.textSecondary.withValues(alpha: 0.9),
+            color: context.colors.textSecondary.withValues(alpha: 0.9),
             fontSize: 13,
           ),
         ),
