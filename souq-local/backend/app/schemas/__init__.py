@@ -28,17 +28,38 @@ def _validate_media_urls(urls: list[str]) -> list[str]:
 
 
 class AccountType(str, Enum):
-    BUYER = "buyer"
-    SELLER = "seller"
+    CUSTOMER = "customer"
+    PROVIDER = "provider"
+
+
+class PricingType(str, Enum):
+    FIXED = "fixed"
+    OFFER = "offer"
+
+
+def _normalize_account_type(value) -> AccountType:
+    if isinstance(value, AccountType):
+        return value
+    raw = str(value).strip().lower()
+    if raw in {"buyer", "customer"}:
+        return AccountType.CUSTOMER
+    if raw in {"seller", "provider"}:
+        return AccountType.PROVIDER
+    return AccountType(raw)
 
 
 class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     # Optional — defaults to buyer. Sellers unlock storefront later on the same account.
-    account_type: AccountType = AccountType.BUYER
+    account_type: AccountType = AccountType.CUSTOMER
     display_name: str = Field(default="", max_length=120)
     signup_proof: str = Field(min_length=20, max_length=128)
+
+    @field_validator("account_type", mode="before")
+    @classmethod
+    def normalize_account_type(cls, value):
+        return _normalize_account_type(value)
 
     @field_validator("password")
     @classmethod
@@ -68,7 +89,7 @@ class SignupOtpSendResponse(BaseModel):
 class UserRegisterFirebase(BaseModel):
     firebase_uid: str
     email: EmailStr
-    account_type: AccountType = AccountType.BUYER
+    account_type: AccountType = AccountType.CUSTOMER
     display_name: str = ""
 
 
@@ -86,7 +107,7 @@ class UserOut(BaseModel):
     email_verified: bool = False
     is_premium: bool = False
     premium_until: datetime | None = None
-    role: str = "buyer"
+    role: str = "customer"
     status: str = "active"
     mfa_enabled: bool = False
     has_seller_profile: bool = False
@@ -105,7 +126,7 @@ class UserOut(BaseModel):
             email_verified=getattr(user, "email_verified_at", None) is not None,
             is_premium=bool(getattr(user, "is_premium", False)),
             premium_until=getattr(user, "premium_until", None),
-            role=getattr(user, "role", None).value if getattr(user, "role", None) else "buyer",
+            role=getattr(user, "role", None).value if getattr(user, "role", None) else "customer",
             status=getattr(user, "status", None).value if getattr(user, "status", None) else "active",
             mfa_enabled=bool(getattr(user, "mfa_enabled", False)),
             has_seller_profile=has_seller_profile,
@@ -180,17 +201,46 @@ class CategoryOut(BaseModel):
 class ProductCreate(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     description: str = ""
+    pricing_type: PricingType = PricingType.FIXED
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
-    price_negotiable: bool = False
     availability_note: str = Field(default="", max_length=160)
-    accepted_payment_methods: list[str] = Field(default_factory=list)
-    delivery_options: list[str] = Field(default_factory=list)
+    delivery_available: bool = False
+    pickup_only: bool = True
     image_url: str = ""
     media_urls: list[str] = Field(default_factory=list)
     video_url: str = Field(default="", max_length=512)
     category_slug: str = Field(default="", max_length=80)
     stock_quantity: int = Field(default=1, ge=0, le=1_000_000)
     is_featured: bool = False
+
+    @field_validator("pricing_type", mode="before")
+    @classmethod
+    def normalize_pricing_type(cls, value):
+        if value in {True, "true", "negotiable", "offer"}:
+            return PricingType.OFFER
+        if value in {False, "false", "fixed"}:
+            return PricingType.FIXED
+        return value
+
+    @field_validator("price_mad")
+    @classmethod
+    def validate_fixed_price(cls, value: float | None, info):
+        pricing_type = info.data.get("pricing_type", PricingType.FIXED)
+        if pricing_type == PricingType.OFFER:
+            return None
+        if value is None:
+            raise ValueError("Fixed price listings require a price in MAD")
+        return value
+
+    @field_validator("category_slug")
+    @classmethod
+    def validate_category_slug(cls, value: str) -> str:
+        from app.data.marketplace_categories import MARKETPLACE_CATEGORY_SLUGS
+
+        cleaned = value.strip()
+        if cleaned and cleaned not in MARKETPLACE_CATEGORY_SLUGS:
+            raise ValueError("Unknown category")
+        return cleaned
 
     @field_validator("image_url", "video_url")
     @classmethod
@@ -206,11 +256,11 @@ class ProductCreate(BaseModel):
 class ProductUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
     description: str | None = None
+    pricing_type: PricingType | None = None
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
-    price_negotiable: bool | None = None
     availability_note: str | None = Field(default=None, max_length=160)
-    accepted_payment_methods: list[str] | None = None
-    delivery_options: list[str] | None = None
+    delivery_available: bool | None = None
+    pickup_only: bool | None = None
     image_url: str | None = None
     media_urls: list[str] | None = None
     video_url: str | None = Field(default=None, max_length=512)
@@ -240,11 +290,12 @@ class ProductOut(BaseModel):
     id: UUID
     name: str
     description: str
+    pricing_type: PricingType = PricingType.FIXED
     price_mad: float | None
     price_negotiable: bool = False
     availability_note: str = ""
-    accepted_payment_methods: list = Field(default_factory=list)
-    delivery_options: list = Field(default_factory=list)
+    delivery_available: bool = False
+    pickup_only: bool = True
     image_url: str
     media_urls: list = Field(default_factory=list)
     video_url: str = ""
@@ -261,14 +312,34 @@ class ProductOut(BaseModel):
 class ServiceCreate(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     description: str = ""
+    pricing_type: PricingType = PricingType.FIXED
     pricing_model: PricingModel = PricingModel.FIXED_PRICE
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     price_min_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     price_max_mad: float | None = Field(default=None, ge=0, le=10_000_000)
-    price_negotiable: bool = False
+    category_slug: str = Field(default="", max_length=80)
     coverage_areas: list[str] = Field(default_factory=list)
     image_url: str = ""
     is_featured: bool = False
+
+    @field_validator("pricing_type", mode="before")
+    @classmethod
+    def normalize_pricing_type(cls, value):
+        if value in {True, "true", "negotiable", "offer"}:
+            return PricingType.OFFER
+        if value in {False, "false", "fixed"}:
+            return PricingType.FIXED
+        return value
+
+    @field_validator("category_slug")
+    @classmethod
+    def validate_category_slug(cls, value: str) -> str:
+        from app.data.marketplace_categories import MARKETPLACE_CATEGORY_SLUGS
+
+        cleaned = value.strip()
+        if cleaned and cleaned not in MARKETPLACE_CATEGORY_SLUGS:
+            raise ValueError("Unknown category")
+        return cleaned
 
     @field_validator("image_url")
     @classmethod
@@ -293,11 +364,12 @@ class ServiceCreate(BaseModel):
 class ServiceUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
     description: str | None = None
+    pricing_type: PricingType | None = None
     pricing_model: PricingModel | None = None
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     price_min_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     price_max_mad: float | None = Field(default=None, ge=0, le=10_000_000)
-    price_negotiable: bool | None = None
+    category_slug: str | None = Field(default=None, max_length=80)
     coverage_areas: list[str] | None = None
     image_url: str | None = None
     is_available: bool | None = None
@@ -315,11 +387,13 @@ class ServiceOut(BaseModel):
     id: UUID
     name: str
     description: str
+    pricing_type: PricingType = PricingType.FIXED
     pricing_model: PricingModel = PricingModel.FIXED_PRICE
     price_mad: float | None
     price_min_mad: float | None = None
     price_max_mad: float | None = None
     price_negotiable: bool = False
+    category_slug: str = ""
     coverage_areas: list = Field(default_factory=list)
     image_url: str
     is_available: bool

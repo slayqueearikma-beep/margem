@@ -142,6 +142,15 @@ abstract class AppStrings {
   String get pressBackAgainToExit;
   String get search;
   String get businessKeyword;
+  String get pricingOffer;
+  String get deliveryAvailable;
+  String get pickupOnly;
+  String get searchFilters;
+  String get minRating;
+  String get provider;
+  String get productCategory;
+  String get applyFilters;
+  String get clearFilters;
   String get noBusinessesFound;
   String get searchSortedByNearest;
   String warningZones(int count);
