@@ -49,6 +49,12 @@ Le fichier généré est **`main.pdf`** (environ 103--106 pages).
 
 Placer les images dans `figures/` (voir les noms dans les chapitres). Des emplacements gris s'affichent tant que les fichiers sont absents.
 
-## Personnalisation
+## Dépannage
 
-Modifier `frontmatter/titlepage.tex` pour le nom de l'auteur, l'encadrant et l'établissement.
+| Erreur | Solution |
+|--------|----------|
+| `Unknown option 'french' for package babel` | `sudo apt install texlive-lang-french` |
+| `Bibliography string 'andothers' untranslated` | Installer `texlive-lang-french`, puis `latexmk -C && latexmk -pdf main.tex` |
+| Références `undefined` après clean | Normal au 1er passage ; relancer `latexmk` (ou `latexmk -C` puis rebuild complet) |
+| `makeglossaries` manquant | `sudo apt install texlive-latex-extra` |
+| PDF incomplet (~96 p.) | Build interrompu ; relancer le cycle complet ci-dessus |
