@@ -20,7 +20,7 @@ async def client():
         yield ac
 
 
-async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
+async def _register(client: AsyncClient, account_type: str = "customer") -> dict:
     email = f"dual-{uuid4().hex[:8]}@example.com"
     res = await client.post(
         "/auth/register",
@@ -51,7 +51,7 @@ async def _verify_email(email: str) -> None:
 
 @pytest.mark.asyncio
 async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
-    buyer = await _register(client, "buyer")
+    buyer = await _register(client, "customer")
     assert buyer["user"]["has_seller_profile"] is False
 
     created = await client.post(
@@ -75,7 +75,7 @@ async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
     me = await client.get("/auth/me", headers=buyer["headers"])
     assert me.status_code == 200
     assert me.json()["has_seller_profile"] is True
-    assert me.json()["account_type"] == "seller"
+    assert me.json()["account_type"] == "provider"
 
     dashboard = await client.get("/sellers/me/dashboard", headers=buyer["headers"])
     assert dashboard.status_code == 200
@@ -84,8 +84,8 @@ async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_seller_can_review_another_business(client: AsyncClient):
-    seller_a = await _register(client, "seller")
-    seller_b = await _register(client, "seller")
+    seller_a = await _register(client, "provider")
+    seller_b = await _register(client, "provider")
     await _verify_email(seller_a["email"])
 
     store_a = await client.post(

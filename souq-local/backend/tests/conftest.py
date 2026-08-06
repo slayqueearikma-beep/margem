@@ -44,14 +44,32 @@ async def prepare_database():
             "wishlist_items",
             "buyer_addresses",
             "coupons",
+            "admin_login_logs",
+            "community_reactions",
+            "community_reports",
+            "community_messages",
+            "community_moderation_logs",
+            "community_memberships",
+            "community_city_bans",
+            "community_user_blocks",
+            "community_user_mutes",
+            "community_channels",
+            "mfa_recovery_codes",
+            "signup_verifications",
+            "cities",
+            "countries",
         ):
             await conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS orderstatus CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS paymentstatus CASCADE"))
+        await conn.execute(text("DROP TYPE IF EXISTS pricingtype CASCADE"))
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     async with database.SessionLocal() as session:
+        from app.data.marketplace_categories import MARKETPLACE_CATEGORIES
+        from app.models import Category
+
         session.add_all(
             [
                 SubscriptionPlan(
@@ -72,6 +90,19 @@ async def prepare_database():
                     billing_period_days=30,
                     features=["Featured placement", "Analytics", "Premium badge"],
                 ),
+            ]
+        )
+        session.add_all(
+            [
+                Category(
+                    id=uuid4(),
+                    slug=cat.slug,
+                    name_en=cat.name_en,
+                    name_fr=cat.name_fr,
+                    name_ar=cat.name_ar,
+                    icon=cat.icon,
+                )
+                for cat in MARKETPLACE_CATEGORIES
             ]
         )
         await session.commit()

@@ -13,7 +13,7 @@ async def _register(client: AsyncClient, email: str) -> dict:
         json={
             "email": email,
             "password": "SecurePass1",
-            "account_type": "seller",
+            "account_type": "provider",
             "display_name": "Uploader",
         },
     )

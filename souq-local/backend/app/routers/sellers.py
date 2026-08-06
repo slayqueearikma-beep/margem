@@ -312,8 +312,8 @@ async def create_seller(
     )
     session.add(seller)
     # Dual-mode: keep one identity; mark account as seller-capable.
-    user.account_type = AccountType.SELLER
-    user.role = UserRole.SELLER
+    user.account_type = AccountType.PROVIDER
+    user.role = UserRole.PROVIDER
     await session.commit()
     return await _load_seller_detail(session, seller.id)
 
@@ -391,14 +391,22 @@ async def add_product(
     await _owned_seller(seller_id, user, session)
 
     image_url = _validate_owner_media(payload.image_url, user.id)
-    product_data = payload.model_dump()
+    product_data = payload.model_dump(exclude={"pricing_type", "price_mad"})
     product_data["image_url"] = image_url
     product_data["media_urls"] = _validate_owner_media_list(list(payload.media_urls or []), user.id)
     product_data["video_url"] = _validate_owner_media(payload.video_url or "", user.id)
     if payload.is_featured and not user.is_premium:
-        # Featured placement is a premium visibility perk.
         product_data["is_featured"] = False
     product = Product(seller_id=seller_id, **product_data)
+    from app.models import PricingType
+    from app.services.marketplace_pricing import apply_pricing_to_product, normalize_pricing_fields
+
+    pricing_type, price_mad, price_negotiable = normalize_pricing_fields(
+        pricing_type=payload.pricing_type,
+        price_mad=payload.price_mad,
+    )
+    apply_pricing_to_product(product, pricing_type=pricing_type, price_mad=price_mad)
+    product.price_negotiable = price_negotiable
     session.add(product)
     await session.commit()
     await session.refresh(product)
@@ -415,9 +423,17 @@ async def add_service(
     await _owned_seller(seller_id, user, session)
 
     image_url = _validate_owner_media(payload.image_url, user.id)
-    service_data = payload.model_dump()
+    service_data = payload.model_dump(exclude={"pricing_type", "price_mad"})
     service_data["image_url"] = image_url
     service = Service(seller_id=seller_id, **service_data)
+    from app.services.marketplace_pricing import apply_pricing_to_service, normalize_pricing_fields
+
+    pricing_type, price_mad, price_negotiable = normalize_pricing_fields(
+        pricing_type=payload.pricing_type,
+        price_mad=payload.price_mad,
+    )
+    apply_pricing_to_service(service, pricing_type=pricing_type, price_mad=price_mad)
+    service.price_negotiable = price_negotiable
     session.add(service)
     await session.commit()
     await session.refresh(service)
@@ -488,11 +504,12 @@ async def duplicate_product(
         seller_id=seller_id,
         name=f"{product.name} (copy)",
         description=product.description,
+        pricing_type=product.pricing_type,
         price_mad=product.price_mad,
         price_negotiable=product.price_negotiable,
         availability_note=product.availability_note,
-        accepted_payment_methods=list(product.accepted_payment_methods or []),
-        delivery_options=list(product.delivery_options or []),
+        delivery_available=product.delivery_available,
+        pickup_only=product.pickup_only,
         image_url=product.image_url,
         media_urls=list(product.media_urls or []),
         video_url=product.video_url,

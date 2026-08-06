@@ -169,7 +169,7 @@ async def require_seller(user: User = Depends(get_current_user), session: AsyncS
     if await user_has_seller_profile(session, user.id):
         return user
     # Legacy: seller accounts mid-onboarding before profile creation still pass.
-    if user.account_type == AccountType.SELLER:
+    if user.account_type == AccountType.PROVIDER:
         return user
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Seller storefront required")
 

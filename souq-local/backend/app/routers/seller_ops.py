@@ -547,7 +547,7 @@ async def subscribe(
     user.is_premium = True
     user.premium_until = subscription.current_period_end
 
-    if user.account_type.value == "seller" or plan.code.startswith("seller"):
+    if user.account_type.value == "provider" or plan.code.startswith("seller"):
         seller = (
             await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
         ).scalar_one_or_none()
@@ -678,7 +678,7 @@ async def admin_grant_premium(
     session.add(subscription)
     target.is_premium = True
     target.premium_until = subscription.current_period_end
-    if target.account_type.value == "seller" or plan.code.startswith("seller"):
+    if target.account_type.value == "provider" or plan.code.startswith("seller"):
         seller = (
             await session.execute(select(SellerProfile).where(SellerProfile.user_id == target.id))
         ).scalar_one_or_none()

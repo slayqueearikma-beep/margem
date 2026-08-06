@@ -58,7 +58,7 @@ async def _verify_email(email: str) -> None:
 async def test_seller_cannot_self_review():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-self@example.com", "seller")
+        seller = await _register(client, "seller-self@example.com", "provider")
         headers = {"Authorization": f"Bearer {seller['access_token']}"}
         store = await _create_store(client, headers, "Self Shop")
         seller_id = store["id"]
@@ -89,8 +89,8 @@ async def test_seller_cannot_self_review():
 async def test_buyer_requires_completed_interaction_before_review():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-gate@example.com", "seller")
-        buyer = await _register(client, "buyer-gate@example.com", "buyer")
+        seller = await _register(client, "seller-gate@example.com", "provider")
+        buyer = await _register(client, "buyer-gate@example.com", "customer")
         seller_headers = {"Authorization": f"Bearer {seller['access_token']}"}
         buyer_headers = {"Authorization": f"Bearer {buyer['access_token']}"}
         store = await _create_store(client, seller_headers, "Public Shop")
@@ -122,8 +122,8 @@ async def test_buyer_requires_completed_interaction_before_review():
 async def test_buyer_can_review_after_verified_storefront_message():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-ok@example.com", "seller")
-        buyer = await _register(client, "buyer-ok@example.com", "buyer")
+        seller = await _register(client, "seller-ok@example.com", "provider")
+        buyer = await _register(client, "buyer-ok@example.com", "customer")
         seller_headers = {"Authorization": f"Bearer {seller['access_token']}"}
         buyer_headers = {"Authorization": f"Bearer {buyer['access_token']}"}
         store = await _create_store(client, seller_headers, "Public Shop")
@@ -183,8 +183,8 @@ async def test_buyer_can_review_after_verified_storefront_message():
 async def test_contact_event_cannot_unlock_review_eligibility():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-contact-only@example.com", "seller")
-        buyer = await _register(client, "buyer-contact-only@example.com", "buyer")
+        seller = await _register(client, "seller-contact-only@example.com", "provider")
+        buyer = await _register(client, "buyer-contact-only@example.com", "customer")
         seller_headers = {"Authorization": f"Bearer {seller['access_token']}"}
         buyer_headers = {"Authorization": f"Bearer {buyer['access_token']}"}
         store = await _create_store(client, seller_headers, "Contact-only Shop")
@@ -209,8 +209,8 @@ async def test_contact_event_cannot_unlock_review_eligibility():
 async def test_review_rejects_incomplete_categories():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-val@example.com", "seller")
-        buyer = await _register(client, "buyer-val@example.com", "buyer")
+        seller = await _register(client, "seller-val@example.com", "provider")
+        buyer = await _register(client, "buyer-val@example.com", "customer")
         seller_headers = {"Authorization": f"Bearer {seller['access_token']}"}
         buyer_headers = {"Authorization": f"Bearer {buyer['access_token']}"}
         store = await _create_store(client, seller_headers, "Validated Shop")

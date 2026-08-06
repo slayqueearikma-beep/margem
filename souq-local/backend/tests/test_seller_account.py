@@ -50,7 +50,7 @@ async def _create_seller(client: AsyncClient, token: str, name: str = "My Shop")
 async def test_get_my_seller_and_dashboard():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-me@example.com", "seller")
+        seller = await _register(client, "seller-me@example.com", "provider")
         token = seller["access_token"]
         created = await _create_seller(client, token)
 
@@ -73,7 +73,7 @@ async def test_get_my_seller_and_dashboard():
 async def test_product_crud_and_profile_views():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-crud@example.com", "seller")
+        seller = await _register(client, "seller-crud@example.com", "provider")
         token = seller["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
         created = await _create_seller(client, token, name="CRUD Shop")
@@ -122,15 +122,15 @@ async def test_product_crud_and_profile_views():
 async def test_seller_cannot_access_other_seller_products():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        a = await _register(client, "seller-a@example.com", "seller")
-        b = await _register(client, "seller-b@example.com", "seller")
+        a = await _register(client, "seller-a@example.com", "provider")
+        b = await _register(client, "seller-b@example.com", "provider")
         a_shop = await _create_seller(client, a["access_token"], name="A Shop")
         await _create_seller(client, b["access_token"], name="B Shop")
 
         product = await client.post(
             f"/sellers/{a_shop['id']}/products",
             headers={"Authorization": f"Bearer {a['access_token']}"},
-            json={"name": "Item", "description": "", "image_url": ""},
+            json={"name": "Item", "description": "", "pricing_type": "offer", "image_url": ""},
         )
         assert product.status_code == 201
         product_id = product.json()["id"]
@@ -147,7 +147,7 @@ async def test_seller_cannot_access_other_seller_products():
 async def test_update_seller_profile_hours():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-hours@example.com", "seller")
+        seller = await _register(client, "seller-hours@example.com", "provider")
         token = seller["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
         created = await _create_seller(client, token)
@@ -173,7 +173,7 @@ async def test_update_seller_profile_hours():
 async def test_change_password():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "seller-pw@example.com", "seller")
+        seller = await _register(client, "seller-pw@example.com", "provider")
         token = seller["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
 
