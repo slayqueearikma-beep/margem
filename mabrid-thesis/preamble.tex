@@ -1,7 +1,8 @@
-% MABRID Academic Report — Preamble
+% MABRID — Rapport académique (français)
 \usepackage[a4paper,left=2.5cm,right=2.5cm,top=2.8cm,bottom=2.8cm,headheight=15pt]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage[french]{babel}
 \usepackage{lmodern}
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \usepackage{setspace}
@@ -21,7 +22,6 @@
 
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows.meta,positioning,fit,backgrounds,calc,matrix,shadows}
-% pgfgantt is optional; Chapter 4 falls back to TikZ timeline if unavailable
 \newif\ifmabridhaspgfgantt
 \IfFileExists{pgfgantt.sty}{%
   \usepackage{pgfgantt}%
@@ -42,9 +42,9 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small\textit{MABRID: Governance, Security \& Strategy}}
+\fancyhead[L]{\small\textit{MABRID : Gouvernance, Sécurité et Stratégie}}
 \fancyhead[R]{\small\thepage}
-\fancyfoot[C]{\small MABRID Confidential — Academic Report}
+\fancyfoot[C]{\small MABRID — Rapport académique confidentiel}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.2pt}
 \fancypagestyle{plain}{
@@ -76,7 +76,8 @@
   sorting=nyt,
   maxbibnames=6,
   giveninits=true,
-  uniquename=init
+  uniquename=init,
+  language=french
 ]{biblatex}
 \addbibresource{references.bib}
 
@@ -84,7 +85,6 @@
 \makeglossaries
 \input{glossary-entries.tex}
 
-% #1 = float placement (e.g. H), #2 = image path, #3 = width factor, #4 = caption
 \newcommand{\figureplaceholder}[4]{%
   \begin{figure}[#1]
     \centering
@@ -94,7 +94,7 @@
       \fcolorbox{mabridblue!40}{mabridblue!5}{%
         \parbox{#3\textwidth}{%
           \centering\vspace{2.2cm}
-          \textbf{Figure Placeholder}\\[0.4em]
+          \textbf{Emplacement figure}\\[0.4em]
           \textit{#4}\\[0.3em]
           \small\texttt{#2}
           \vspace{2.2cm}%

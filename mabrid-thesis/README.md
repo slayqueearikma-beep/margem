@@ -1,12 +1,13 @@
-# MABRID Academic Report — Build Instructions
+# MABRID — Rapport académique (français)
 
-## Requirements
+## Prérequis
 
-- LaTeX distribution (TeX Live 2023+ recommended)
-- `biber` for bibliography
-- `latexmk` (optional, recommended)
+- Distribution LaTeX (TeX Live 2023+ recommandé)
+- `biber` pour la bibliographie
+- `latexmk` (recommandé)
+- `texlive-lang-french` pour le support français (babel)
 
-### Debian / Ubuntu (recommended one-liner)
+### Debian / Ubuntu
 
 ```bash
 sudo apt update
@@ -18,66 +19,36 @@ sudo apt install -y \
   texlive-latex-extra \
   texlive-bibtex-extra \
   texlive-pictures \
-  texlive-fonts-recommended
+  texlive-fonts-recommended \
+  texlive-lang-french
 ```
 
-`texlive-latex-extra` provides `microtype`, `titlesec`, `enumitem`, `glossaries`, and `pgfgantt`. The project still builds **without** `microtype` and `pgfgantt` (fallbacks are included).
-
-### Minimal install
-
-If you only install `texlive-latex-base`, you will hit more missing-package errors. Use the full package list above for a smooth build.
-
-## Compile
+## Compilation
 
 ```bash
 cd mabrid-thesis
-latexmk -pdf -interaction=nonstopmode main.tex
-```
-
-`latexmk` reads `.latexmkrc` and automatically runs **biber** and **makeglossaries**.
-
-Or manually:
-
-```bash
-pdflatex main.tex
-biber main
-makeglossaries main
-pdflatex main.tex
-pdflatex main.tex
-```
-
-Clean rebuild:
-
-```bash
 latexmk -C
 latexmk -pdf -interaction=nonstopmode main.tex
 ```
 
+Le fichier généré est **`main.pdf`** (environ 103--106 pages).
+
+## Structure du rapport
+
+| Chapitre | Contenu |
+|----------|---------|
+| 1 | Vision commerciale MABRID |
+| 2 | Entrepreneuriat et stratégie de lancement (~15 p.) |
+| 3 | Gouvernance d'entreprise |
+| 4 | Architecture de sécurité entreprise |
+| 5 | Sécurisation technique de l'application MarGem (~15 p.) |
+| 6--9 | Cloud, juridique, feuille de route, marketing |
+| 10 | Conclusion |
+
 ## Figures
 
-Place your images in `figures/` using filenames referenced in chapters, for example:
+Placer les images dans `figures/` (voir les noms dans les chapitres). Des emplacements gris s'affichent tant que les fichiers sont absents.
 
-- `figures/mabrid-logo.pdf`
-- `figures/ch01-platform-ecosystem.pdf`
-- `figures/ch03-network-segmentation.pdf`
-- `figures/ch07-brand-guidelines.pdf`
+## Personnalisation
 
-Until files exist, the report renders grey placeholder boxes with captions.
-
-## Customisation
-
-Edit `frontmatter/titlepage.tex` for author, supervisor, and institution names.
-
-## Page count
-
-Target length is 100–120 pages with `oneside` A4 and `onehalfspacing`. Actual page count depends on figure density and institution formatting requirements.
-
-## Troubleshooting
-
-| Error | Fix |
-|-------|-----|
-| `microtype.sty not found` | Install `texlive-latex-extra`, or ignore (optional package) |
-| `biblatex.sty not found` | `sudo apt install texlive-bibtex-extra biber` |
-| `makeglossaries` / `function name 'makeglossaries' does not exists` | Install `texlive-latex-extra`; `.latexmkrc` defines the required Perl hook |
-| Empty bibliography | Run `biber main` between `pdflatex` passes |
-| Undefined citations | Run full `latexmk` cycle twice after `biber` |
+Modifier `frontmatter/titlepage.tex` pour le nom de l'auteur, l'encadrant et l'établissement.
