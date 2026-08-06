@@ -40,7 +40,7 @@ async def _resolve_user_from_credentials(
     # MarGem JWT (email/password accounts)
     decoded = decode_access_token(token)
     if decoded is not None:
-        user_id, token_version = decoded
+        user_id, token_version, session_id = decoded
         result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user is None:
@@ -51,6 +51,14 @@ async def _resolve_user_from_credentials(
             if required:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
             return None
+        if session_id is not None:
+            from app.models import RefreshToken
+
+            refresh_row = await session.get(RefreshToken, session_id)
+            if refresh_row is None or refresh_row.user_id != user.id or refresh_row.revoked:
+                if required:
+                    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
+                return None
         return user
 
     # Invalid/expired local JWTs must not fall through to Firebase and surface 503
@@ -75,6 +83,27 @@ async def _resolve_user_from_credentials(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not registered")
         return None
     return user
+
+
+async def resolve_user_from_access_token(token: str, session: AsyncSession) -> User | None:
+    """Validate a bearer JWT and return the user, or None when invalid/revoked."""
+    decoded = decode_access_token(token)
+    if decoded is None:
+        return None
+    user_id, token_version, session_id = decoded
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        return None
+    if getattr(user, "token_version", 0) != token_version:
+        return None
+    if session_id is not None:
+        from app.models import RefreshToken
+
+        refresh_row = await session.get(RefreshToken, session_id)
+        if refresh_row is None or refresh_row.user_id != user.id or refresh_row.revoked:
+            return None
+    return await _enforce_account_state(user, session)
 
 
 async def _enforce_account_state(user: User, session: AsyncSession) -> User:

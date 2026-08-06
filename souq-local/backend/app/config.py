@@ -100,6 +100,10 @@ class Settings(BaseSettings):
         "Casablanca",
     ]
 
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_currency: str = "mad"
+
     @field_validator("storage_backend", mode="before")
     @classmethod
     def normalize_storage_backend(cls, value: Any) -> str:

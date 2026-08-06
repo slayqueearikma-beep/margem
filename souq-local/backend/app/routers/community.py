@@ -54,7 +54,6 @@ from app.services.community_chat import (
 )
 from app.services.community_moderation import create_report, log_moderation
 from app.services.community_websocket import community_ws_manager
-from app.services.security import decode_access_token
 
 router = APIRouter(prefix="/community", tags=["community"])
 
@@ -180,6 +179,7 @@ async def get_city(
     user: User | None = Depends(get_current_user_optional),
     session: AsyncSession = Depends(get_db),
 ) -> CityOut:
+    await ensure_default_cities(session)
     city = await get_city_by_slug(session, slug)
     is_member, is_home = await _membership_flags(session, user, city)
     return _city_out(
@@ -197,6 +197,7 @@ async def join_city_endpoint(
     user: User = Depends(require_verified_email),
     session: AsyncSession = Depends(get_db),
 ) -> CityOut:
+    await ensure_default_cities(session)
     city = await get_city_by_slug(session, slug)
     await join_city(session, user=user, city=city, is_home_city=payload.is_home_city)
     await session.commit()
@@ -209,6 +210,7 @@ async def list_city_channels(
     user: User | None = Depends(get_current_user_optional),
     session: AsyncSession = Depends(get_db),
 ) -> list[CommunityChannelOut]:
+    await ensure_default_cities(session)
     city = await get_city_by_slug(session, slug)
     channels = list(
         (
@@ -476,11 +478,9 @@ async def list_reports(
 
 
 async def _ws_user_from_token(token: str, session: AsyncSession) -> User | None:
-    decoded = decode_access_token(token)
-    if decoded is None:
-        return None
-    user_id, _ = decoded
-    return await session.get(User, user_id)
+    from app.auth import resolve_user_from_access_token
+
+    return await resolve_user_from_access_token(token, session)
 
 
 @router.websocket("/ws")

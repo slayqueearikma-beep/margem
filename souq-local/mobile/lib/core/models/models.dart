@@ -973,6 +973,47 @@ class SubscriptionModel {
   }
 }
 
+class BillingStatusModel {
+  const BillingStatusModel({
+    required this.selfServeEnabled,
+    this.provider,
+  });
+
+  final bool selfServeEnabled;
+  final String? provider;
+
+  factory BillingStatusModel.fromJson(Map<String, dynamic> json) {
+    return BillingStatusModel(
+      selfServeEnabled: json['self_serve_enabled'] as bool? ?? false,
+      provider: json['provider'] as String?,
+    );
+  }
+}
+
+class BillingCheckoutResult {
+  const BillingCheckoutResult({
+    this.checkoutUrl,
+    this.activated = false,
+    this.subscription,
+  });
+
+  final String? checkoutUrl;
+  final bool activated;
+  final SubscriptionModel? subscription;
+
+  factory BillingCheckoutResult.fromJson(Map<String, dynamic> json) {
+    return BillingCheckoutResult(
+      checkoutUrl: json['checkout_url'] as String?,
+      activated: json['activated'] as bool? ?? false,
+      subscription: json['subscription'] is Map<String, dynamic>
+          ? SubscriptionModel.fromJson(
+              json['subscription'] as Map<String, dynamic>,
+            )
+          : null,
+    );
+  }
+}
+
 class ConversationModel {
   const ConversationModel({
     required this.id,

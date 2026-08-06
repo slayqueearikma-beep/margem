@@ -295,6 +295,24 @@ class AppStringsEn extends AppStrings {
   @override
   String get tryAgain => 'Try again';
   @override
+  String get contentNotFound =>
+      'We could not find what you were looking for.';
+  @override
+  String get requestCouldNotBeProcessed =>
+      'We could not complete that request. Please try again.';
+  @override
+  String get tooManyRequests =>
+      'Too many requests. Please wait a moment and try again.';
+  @override
+  String get searchEmptySubtitle =>
+      'Try another keyword, switch category, or clear your filters.';
+  @override
+  String get premiumCheckoutOpened =>
+      'Complete payment in your browser, then return to MarGem.';
+  @override
+  String get premiumCheckoutFailed =>
+      'Could not open checkout. Please try again or contact support.';
+  @override
   String get verifyEmailToContinue => 'Verify your email before continuing.';
   @override
   String get pressBackAgainToExit => 'Press back again to exit';
@@ -1086,7 +1104,10 @@ class AppStringsEn extends AppStrings {
   String get mapDemoModeTitle => 'Demo map mode';
   @override
   String get mapApiKeyHint =>
-      'Add GOOGLE_MAPS_API_KEY to android/local.properties';
+      'Map is temporarily unavailable. Please try again later.';
+  @override
+  String get mapUnavailable =>
+      'Map is temporarily unavailable. Please try again later.';
   @override
   String mapLocationsInArea(int count) =>
       count == 1 ? '1 location in this area' : '$count locations in this area';

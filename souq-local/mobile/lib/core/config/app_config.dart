@@ -1,4 +1,6 @@
 /// App configuration — update for your environment.
+import 'package:flutter/foundation.dart';
+
 class AppConfig {
   /// Production API URL. Set at build time:
   /// `flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000`
@@ -64,15 +66,18 @@ class AppConfig {
     defaultValue: '',
   );
 
-  static bool get hasGoogleMapsApiKey =>
-      mapsEnabled &&
-      googleMapsApiKey.isNotEmpty &&
-      googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY';
+  static bool get hasGoogleMapsApiKey {
+    if (googleMapsApiKey.isNotEmpty &&
+        googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY') {
+      return mapsEnabled;
+    }
+    return mapsEnabled && !kIsWeb;
+  }
 
-  /// Maps are opt-in. Pass --dart-define=ENABLE_MAPS=true with a valid key.
+  /// Maps are enabled by default on native when the manifest supplies a key.
   static const bool mapsEnabled = bool.fromEnvironment(
     'ENABLE_MAPS',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   static const bool isProduction = bool.fromEnvironment(

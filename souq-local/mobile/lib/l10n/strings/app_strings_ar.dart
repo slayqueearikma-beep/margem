@@ -291,6 +291,23 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get tryAgain => 'حاول مرة أخرى';
   @override
+  String get contentNotFound => 'تعذر العثور على المحتوى المطلوب.';
+  @override
+  String get requestCouldNotBeProcessed =>
+      'تعذر إتمام الطلب. يرجى المحاولة مرة أخرى.';
+  @override
+  String get tooManyRequests =>
+      'طلبات كثيرة جداً. انتظر قليلاً ثم حاول مرة أخرى.';
+  @override
+  String get searchEmptySubtitle =>
+      'جرّب كلمة أخرى أو فئة مختلفة أو أزل عوامل التصفية.';
+  @override
+  String get premiumCheckoutOpened =>
+      'أكمل الدفع في المتصفح ثم عد إلى MarGem.';
+  @override
+  String get premiumCheckoutFailed =>
+      'تعذر فتح صفحة الدفع. حاول مرة أخرى أو تواصل مع الدعم.';
+  @override
   String get verifyEmailToContinue => 'تحقق من بريدك الإلكتروني قبل المتابعة.';
   @override
   String get pressBackAgainToExit => 'اضغط مرة أخرى للخروج';
@@ -1082,7 +1099,10 @@ class AppStringsAr extends AppStringsEn {
   String get mapDemoModeTitle => 'وضع الخريطة التجريبي';
   @override
   String get mapApiKeyHint =>
-      'أضف GOOGLE_MAPS_API_KEY إلى android/local.properties';
+      'الخريطة غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.';
+  @override
+  String get mapUnavailable =>
+      'الخريطة غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.';
   @override
   String mapLocationsInArea(int count) => count == 1
       ? 'موقع واحد في هذه المنطقة'

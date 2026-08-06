@@ -37,7 +37,7 @@ class SignupOtpSendResult {
   }
 }
 
-typedef TokenRefreshCallback = Future<bool> Function();
+typedef TokenRefreshCallback = Future<bool?> Function();
 typedef SessionExpiredCallback = Future<void> Function();
 
 class ApiService {
@@ -238,9 +238,9 @@ class ApiService {
       _refreshInProgress = true;
       try {
         final refreshed = await onTokenRefresh!();
-        if (refreshed) {
+        if (refreshed == true) {
           response = await _send(send);
-        } else if (onSessionExpired != null) {
+        } else if (refreshed == false && onSessionExpired != null) {
           await onSessionExpired!();
         }
       } finally {
@@ -251,18 +251,43 @@ class ApiService {
   }
 
   Future<http.Response> _send(Future<http.Response> Function() request) async {
-    try {
-      return await request().timeout(_requestTimeout);
-    } on TimeoutException {
-      throw ApiException(_connectionErrorMessage);
-    } on SocketException {
-      throw ApiException(_connectionErrorMessage);
-    } on http.ClientException {
-      throw ApiException(_connectionErrorMessage);
-    } on ApiException {
-      rethrow;
-    } on Object {
-      throw ApiException(_connectionErrorMessage);
+    const maxAttempts = 3;
+    var attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        final response = await request().timeout(_requestTimeout);
+        if (attempt < maxAttempts &&
+            (response.statusCode == 502 ||
+                response.statusCode == 503 ||
+                response.statusCode == 504)) {
+          await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+          continue;
+        }
+        return response;
+      } on TimeoutException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on SocketException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on http.ClientException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on ApiException {
+        rethrow;
+      } on Object {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      }
     }
   }
 
@@ -423,6 +448,100 @@ class ApiService {
   }
 
   Future<MarketplaceSearchPage> searchMarketplace({
+    required String query,
+    required String mode,
+    String? category,
+    double? minPrice,
+    double? maxPrice,
+    double? minRating,
+    bool? deliveryAvailable,
+    bool? pickupOnly,
+    String sort = 'relevance',
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    try {
+      return await _searchMarketplaceRequest(
+        query: query,
+        mode: _normalizeSearchMode(mode),
+        category: category,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        minRating: minRating,
+        deliveryAvailable: deliveryAvailable,
+        pickupOnly: pickupOnly,
+        sort: sort,
+        offset: offset,
+        limit: limit,
+      );
+    } on ApiException catch (error) {
+      if (error.statusCode == 422 && mode != 'all') {
+        final fallbackMode = _legacySearchMode(mode);
+        if (fallbackMode != mode) {
+          final page = await _searchMarketplaceRequest(
+            query: query,
+            mode: fallbackMode,
+            category: category,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            minRating: minRating,
+            deliveryAvailable: deliveryAvailable,
+            pickupOnly: pickupOnly,
+            sort: sort,
+            offset: offset,
+            limit: limit,
+          );
+          return _filterSearchPage(page, mode);
+        }
+      }
+      rethrow;
+    }
+  }
+
+  String _normalizeSearchMode(String mode) {
+    return switch (mode) {
+      'providers' => 'sellers',
+      _ => mode,
+    };
+  }
+
+  String _legacySearchMode(String mode) {
+    return switch (mode) {
+      'providers' => 'sellers',
+      'services' => 'all',
+      _ => 'all',
+    };
+  }
+
+  MarketplaceSearchPage _filterSearchPage(MarketplaceSearchPage page, String mode) {
+    return switch (mode) {
+      'services' => MarketplaceSearchPage(
+          products: const [],
+          services: page.services,
+          sellers: const [],
+          totalProducts: 0,
+          totalServices: page.services.length,
+          totalSellers: 0,
+          limit: page.limit,
+          offset: page.offset,
+          hasMore: page.hasMore,
+        ),
+      'providers' => MarketplaceSearchPage(
+          products: const [],
+          services: const [],
+          sellers: page.sellers,
+          totalProducts: 0,
+          totalServices: 0,
+          totalSellers: page.sellers.length,
+          limit: page.limit,
+          offset: page.offset,
+          hasMore: page.hasMore,
+        ),
+      _ => page,
+    };
+  }
+
+  Future<MarketplaceSearchPage> _searchMarketplaceRequest({
     required String query,
     required String mode,
     String? category,
@@ -904,6 +1023,23 @@ class ApiService {
     return SubscriptionModel.fromJson(data);
   }
 
+  Future<BillingStatusModel> fetchBillingStatus() async {
+    final data = await getJson('/subscriptions/billing/status', auth: false);
+    return BillingStatusModel.fromJson(data);
+  }
+
+  Future<BillingCheckoutResult> checkoutSubscription(String planCode) async {
+    final data = await postJson(
+      '/subscriptions/checkout/$planCode',
+      {
+        'success_url': 'margem://premium/success',
+        'cancel_url': 'margem://premium/cancel',
+      },
+      auth: true,
+    );
+    return BillingCheckoutResult.fromJson(data);
+  }
+
   Future<void> requestPasswordReset(String email) {
     return postVoid('/auth/password-reset/request', {'email': email},
         auth: false);
@@ -959,6 +1095,10 @@ class ApiService {
                 if (item is Map<String, dynamic>) {
                   final msg = item['msg']?.toString();
                   if (msg == null || msg.isEmpty) return null;
+                  if (msg.contains('should match pattern') ||
+                      msg.contains('validation error')) {
+                    return null;
+                  }
                   final loc = item['loc'];
                   if (loc is List && loc.isNotEmpty) {
                     return '${loc.last}: $msg';
@@ -970,6 +1110,7 @@ class ApiService {
               .whereType<String>()
               .toList();
           if (messages.isNotEmpty) return messages.join('\n');
+          return 'Request could not be processed.';
         }
       }
     } on Object {

@@ -17,6 +17,13 @@ import '../../core/widgets/product_carousel_card.dart';
 import '../../l10n/app_localizations.dart';
 import '../wishlist/wishlist_screen.dart';
 
+bool _isStoreOwner(UserSession? session, String sellerId) {
+  final ownedSellerId = session?.sellerId;
+  return ownedSellerId != null &&
+      ownedSellerId.isNotEmpty &&
+      ownedSellerId == sellerId;
+}
+
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({
     super.key,
@@ -43,14 +50,33 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _future = apiServiceProvider.fetchSeller(widget.sellerId);
     final session = ref.read(userSessionProvider);
+    final asOwner = _isStoreOwner(session, widget.sellerId);
+    _future = apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
+    if (session == null || session.isGuest) {
+      final storage = ref.read(appStorageProvider);
+      _isFavorite = storage
+              ?.getGuestFavoriteItems()
+              .any((item) => item.productId == widget.productId) ??
+          false;
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _syncFavoriteState());
+    }
     if (session != null && !session.isGuest) {
       apiServiceProvider
           .trackRecentlyViewed(
               sellerId: widget.sellerId, productId: widget.productId)
           .catchError((_) {});
     }
+  }
+
+  Future<void> _syncFavoriteState() async {
+    try {
+      final favorites = await ref.read(favoritesProvider.future);
+      final found =
+          favorites.any((favorite) => favorite.productId == widget.productId);
+      if (mounted) setState(() => _isFavorite = found);
+    } catch (_) {}
   }
 
   @override
@@ -469,6 +495,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   Future<void> _openChat(SellerModel seller) async {
     final l10n = context.l10n;
+    final session = ref.read(userSessionProvider);
+    if (_isStoreOwner(session, seller.id)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.cannotMessageOwnStore)),
+      );
+      return;
+    }
     setState(() => _contacting = true);
     try {
       await apiServiceProvider.createContactEvent(

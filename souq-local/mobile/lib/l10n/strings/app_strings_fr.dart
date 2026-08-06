@@ -299,6 +299,23 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get tryAgain => 'Réessayer';
   @override
+  String get contentNotFound => 'Contenu introuvable.';
+  @override
+  String get requestCouldNotBeProcessed =>
+      'Impossible de traiter cette demande. Réessayez.';
+  @override
+  String get tooManyRequests =>
+      'Trop de requêtes. Patientez un instant puis réessayez.';
+  @override
+  String get searchEmptySubtitle =>
+      'Essayez un autre mot-clé, une autre catégorie ou réinitialisez les filtres.';
+  @override
+  String get premiumCheckoutOpened =>
+      'Finalisez le paiement dans votre navigateur, puis revenez sur MarGem.';
+  @override
+  String get premiumCheckoutFailed =>
+      'Impossible d\'ouvrir le paiement. Réessayez ou contactez le support.';
+  @override
   String get verifyEmailToContinue =>
       'Vérifiez votre adresse e-mail avant de continuer.';
   @override
@@ -1103,7 +1120,10 @@ class AppStringsFr extends AppStringsEn {
   String get mapDemoModeTitle => 'Mode carte démo';
   @override
   String get mapApiKeyHint =>
-      'Ajoutez GOOGLE_MAPS_API_KEY dans android/local.properties';
+      'La carte est temporairement indisponible. Réessayez plus tard.';
+  @override
+  String get mapUnavailable =>
+      'La carte est temporairement indisponible. Réessayez plus tard.';
   @override
   String mapLocationsInArea(int count) => count == 1
       ? '1 emplacement dans cette zone'

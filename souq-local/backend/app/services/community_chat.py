@@ -48,17 +48,43 @@ def slugify_city(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
 
 
+async def ensure_membership(
+    session: AsyncSession,
+    *,
+    city_id: UUID,
+    user_id: UUID,
+) -> CommunityMembership:
+    membership = await session.scalar(
+        select(CommunityMembership).where(
+            CommunityMembership.city_id == city_id,
+            CommunityMembership.user_id == user_id,
+        )
+    )
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Join this city community before participating",
+        )
+    return membership
+
+
 async def ensure_default_cities(session: AsyncSession) -> None:
+    from sqlalchemy.exc import IntegrityError
+
     for city_name in settings.default_cities:
         slug = slugify_city(city_name)
         existing = await session.scalar(select(City).where(City.slug == slug))
         if existing is None:
-            await create_city_with_channels(
-                session,
-                slug=slug,
-                name=city_name,
-                description=f"MarGem community for {city_name}",
-            )
+            try:
+                async with session.begin_nested():
+                    await create_city_with_channels(
+                        session,
+                        slug=slug,
+                        name=city_name,
+                        description=f"MarGem community for {city_name}",
+                    )
+            except IntegrityError:
+                continue
     await session.commit()
 
 
@@ -221,6 +247,7 @@ async def list_messages(
     q: str | None = None,
 ) -> list[CommunityMessageOut]:
     await ensure_not_banned(session, city_id=channel.city_id, user_id=viewer.id)
+    await ensure_membership(session, city_id=channel.city_id, user_id=viewer.id)
 
     stmt = (
         select(CommunityMessage)
@@ -289,6 +316,7 @@ async def send_message(
     payload: CommunityMessageCreate,
 ) -> CommunityMessage:
     await ensure_not_banned(session, city_id=channel.city_id, user_id=sender.id)
+    await ensure_membership(session, city_id=channel.city_id, user_id=sender.id)
 
     body = payload.body.strip()
     if not body and not payload.attachments:

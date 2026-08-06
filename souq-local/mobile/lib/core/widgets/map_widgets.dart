@@ -159,7 +159,7 @@ class MapUnavailablePlaceholder extends StatelessWidget {
               Text(
                 usingDemoData
                     ? l10n.demoBusinessesMapHint
-                    : l10n.mapApiKeyHint,
+                    : l10n.mapUnavailable,
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme
@@ -173,14 +173,6 @@ class MapUnavailablePlaceholder extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
               ],
-              SizedBox(height: AppSpacing.sm),
-              Text(
-                '${cityCenter.latitude.toStringAsFixed(4)}, ${cityCenter.longitude.toStringAsFixed(4)}',
-                style: TextStyle(
-                  color: context.colors.textTertiary,
-                  fontSize: 12,
-                ),
-              ),
             ],
           ),
         ),

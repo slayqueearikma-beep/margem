@@ -39,7 +39,7 @@ class AppTheme {
       extensions: [semantic],
       scaffoldBackgroundColor: semantic.background,
       textTheme: textTheme,
-      appBarTheme: AppBarTheme(
+      appBarTheme: AppBarThemeData(
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -63,7 +63,7 @@ class AppTheme {
         color: semantic.divider,
         thickness: 1,
       ),
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: InputDecorationThemeData(
         filled: true,
         fillColor: semantic.surfaceVariant,
         labelStyle: TextStyle(color: semantic.textSecondary),
@@ -149,7 +149,7 @@ class AppTheme {
           return IconThemeData(color: semantic.textSecondary, size: 24);
         }),
       ),
-      bottomAppBarTheme: BottomAppBarTheme(
+      bottomAppBarTheme: BottomAppBarThemeData(
         color: semantic.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
