@@ -201,6 +201,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     fontWeight: FontWeight.w800,
                                   ),
                             ),
+                            if (product.canPurchase && product.isPickupOnly) ...[
+                              const SizedBox(height: 8),
+                              MarketInfoChip(
+                                icon: Icons.storefront_outlined,
+                                label: 'Pickup only',
+                              ),
+                            ],
                             const SizedBox(height: 10),
                             Row(
                               children: [
@@ -401,8 +408,19 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ),
                     ],
                   ),
-                  child: Row(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (product.canPurchase) ...[
+                        MarketPrimaryButton(
+                          label: 'Buy now',
+                          icon: Icons.shopping_bag_rounded,
+                          onPressed: () => _buyNow(product),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      Row(
+                        children: [
                       Expanded(
                         child: MarketPrimaryButton(
                           label: l10n.contactSeller,
@@ -458,12 +476,27 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ),
                     ],
                   ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Future<void> _buyNow(ProductModel product) async {
+    final session = ref.read(userSessionProvider);
+    if (session == null || session.isGuest) {
+      if (mounted) await context.push('/login');
+      return;
+    }
+    if (!mounted) return;
+    await context.push(
+      '/product/${widget.sellerId}/${widget.productId}/checkout',
+      extra: product,
     );
   }
 

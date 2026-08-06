@@ -57,6 +57,26 @@ class VerificationStatus(str, enum.Enum):
     REJECTED = "rejected"
 
 
+class ProductDeliveryMode(str, enum.Enum):
+    PROVIDER_DELIVERY = "provider_delivery"
+    PICKUP_ONLY = "pickup_only"
+
+
+class PurchaseOrderStatus(str, enum.Enum):
+    PREPARING = "preparing"
+    READY = "ready"
+    DELIVERED = "delivered"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class PurchasePaymentStatus(str, enum.Enum):
+    PENDING = "pending"
+    PAID = "paid"
+    FAILED = "failed"
+    REFUNDED = "refunded"
+
+
 def _enum(enum_cls: type[enum.Enum], name: str) -> Enum:
     return Enum(
         enum_cls,
@@ -73,6 +93,9 @@ user_status_enum = _enum(UserStatus, "userstatus")
 user_role_enum = _enum(UserRole, "userrole")
 subscription_status_enum = _enum(SubscriptionStatus, "subscriptionstatus")
 verification_status_enum = _enum(VerificationStatus, "verificationstatus")
+product_delivery_mode_enum = _enum(ProductDeliveryMode, "productdeliverymode")
+purchase_order_status_enum = _enum(PurchaseOrderStatus, "purchaseorderstatus")
+purchase_payment_status_enum = _enum(PurchasePaymentStatus, "purchasepaymentstatus")
 
 
 class User(Base):
@@ -99,6 +122,9 @@ class User(Base):
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     favorites: Mapped[list["Favorite"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     notifications: Mapped[list["Notification"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    purchase_orders: Mapped[list["PurchaseOrder"]] = relationship(
+        back_populates="buyer", foreign_keys="PurchaseOrder.buyer_id"
+    )
 
 
 class RefreshToken(Base):
@@ -214,6 +240,7 @@ class SellerProfile(Base):
     products: Mapped[list["Product"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
     services: Mapped[list["Service"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
     reviews: Mapped[list["Review"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
+    purchase_orders: Mapped[list["PurchaseOrder"]] = relationship(back_populates="seller")
 
 
 class Product(Base):
@@ -237,9 +264,20 @@ class Product(Base):
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
     is_paused: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_purchasable: Mapped[bool] = mapped_column(Boolean, default=False)
+    delivery_mode: Mapped[ProductDeliveryMode] = mapped_column(
+        product_delivery_mode_enum, default=ProductDeliveryMode.PICKUP_ONLY
+    )
+    delivery_fee_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
+    delivery_eta: Mapped[str] = mapped_column(String(120), default="")
+    free_delivery_threshold_mad: Mapped[float | None] = mapped_column(
+        Numeric(12, 2, asdecimal=False), nullable=True
+    )
+    tax_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    seller: Mapped[SellerProfile] = relationship(back_populates="products")
+    seller: Mapped["SellerProfile"] = relationship(back_populates="products")
+    purchase_orders: Mapped[list["PurchaseOrder"]] = relationship(back_populates="product")
 
 
 class Service(Base):
@@ -433,6 +471,45 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
+
+
+class PurchaseOrder(Base):
+    __tablename__ = "purchase_orders"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    order_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    buyer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id"), index=True)
+    product_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("products.id"), index=True)
+    product_name: Mapped[str] = mapped_column(String(160))
+    quantity: Mapped[int] = mapped_column(Integer)
+    unit_price_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False))
+    subtotal_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False))
+    delivery_fee_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False), default=0)
+    tax_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False), default=0)
+    total_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False))
+    delivery_method: Mapped[str] = mapped_column(String(32))
+    buyer_name: Mapped[str] = mapped_column(String(120), default="")
+    buyer_phone: Mapped[str] = mapped_column(String(32), default="")
+    buyer_address: Mapped[str] = mapped_column(Text, default="")
+    payment_status: Mapped[PurchasePaymentStatus] = mapped_column(
+        purchase_payment_status_enum, default=PurchasePaymentStatus.PENDING
+    )
+    order_status: Mapped[PurchaseOrderStatus] = mapped_column(
+        purchase_order_status_enum, default=PurchaseOrderStatus.PREPARING
+    )
+    stripe_checkout_session_id: Mapped[str] = mapped_column(String(255), default="", index=True)
+    stripe_payment_intent_id: Mapped[str] = mapped_column(String(255), default="")
+    receipt_number: Mapped[str] = mapped_column(String(40), default="")
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    buyer: Mapped[User] = relationship(back_populates="purchase_orders", foreign_keys=[buyer_id])
+    seller: Mapped["SellerProfile"] = relationship(back_populates="purchase_orders")
+    product: Mapped["Product"] = relationship(back_populates="purchase_orders")
 
 
 class Notification(Base):

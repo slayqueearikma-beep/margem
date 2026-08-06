@@ -178,18 +178,40 @@ class ProductCreatePayload {
     required this.description,
     this.priceMad,
     this.imageUrl = '',
+    this.isPurchasable = false,
+    this.deliveryMode = 'pickup_only',
+    this.deliveryFeeMad,
+    this.deliveryEta = '',
+    this.freeDeliveryThresholdMad,
+    this.taxEnabled = false,
+    this.stockQuantity = 1,
   });
 
   final String name;
   final String description;
   final double? priceMad;
   final String imageUrl;
+  final bool isPurchasable;
+  final String deliveryMode;
+  final double? deliveryFeeMad;
+  final String deliveryEta;
+  final double? freeDeliveryThresholdMad;
+  final bool taxEnabled;
+  final int stockQuantity;
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'description': description,
         if (priceMad != null) 'price_mad': priceMad,
         'image_url': imageUrl,
+        'is_purchasable': isPurchasable,
+        'delivery_mode': deliveryMode,
+        if (deliveryFeeMad != null) 'delivery_fee_mad': deliveryFeeMad,
+        'delivery_eta': deliveryEta,
+        if (freeDeliveryThresholdMad != null)
+          'free_delivery_threshold_mad': freeDeliveryThresholdMad,
+        'tax_enabled': taxEnabled,
+        'stock_quantity': stockQuantity,
       };
 }
 
@@ -201,6 +223,13 @@ class ProductUpdatePayload {
     this.imageUrl,
     this.isAvailable,
     this.clearPrice = false,
+    this.isPurchasable,
+    this.deliveryMode,
+    this.deliveryFeeMad,
+    this.deliveryEta,
+    this.freeDeliveryThresholdMad,
+    this.taxEnabled,
+    this.stockQuantity,
   });
 
   final String? name;
@@ -209,6 +238,13 @@ class ProductUpdatePayload {
   final String? imageUrl;
   final bool? isAvailable;
   final bool clearPrice;
+  final bool? isPurchasable;
+  final String? deliveryMode;
+  final double? deliveryFeeMad;
+  final String? deliveryEta;
+  final double? freeDeliveryThresholdMad;
+  final bool? taxEnabled;
+  final int? stockQuantity;
 
   Map<String, dynamic> toJson() {
     return {
@@ -218,6 +254,14 @@ class ProductUpdatePayload {
       if (!clearPrice && priceMad != null) 'price_mad': priceMad,
       if (imageUrl != null) 'image_url': imageUrl,
       if (isAvailable != null) 'is_available': isAvailable,
+      if (isPurchasable != null) 'is_purchasable': isPurchasable,
+      if (deliveryMode != null) 'delivery_mode': deliveryMode,
+      if (deliveryFeeMad != null) 'delivery_fee_mad': deliveryFeeMad,
+      if (deliveryEta != null) 'delivery_eta': deliveryEta,
+      if (freeDeliveryThresholdMad != null)
+        'free_delivery_threshold_mad': freeDeliveryThresholdMad,
+      if (taxEnabled != null) 'tax_enabled': taxEnabled,
+      if (stockQuantity != null) 'stock_quantity': stockQuantity,
     };
   }
 }

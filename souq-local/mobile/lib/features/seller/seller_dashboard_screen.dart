@@ -351,6 +351,12 @@ class SellerDashboardScreen extends ConsumerWidget {
                             onTap: () => context.push('/seller/products'),
                           ),
                           DashboardMenuTile(
+                            title: 'Orders',
+                            subtitle: 'Incoming purchases and fulfillment',
+                            icon: Icons.receipt_long_outlined,
+                            onTap: () => context.push('/seller/orders'),
+                          ),
+                          DashboardMenuTile(
                             title: l10n.reviews,
                             subtitle: l10n.reviewsSub,
                             icon: Icons.rate_review_outlined,

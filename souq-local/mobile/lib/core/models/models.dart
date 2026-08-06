@@ -322,6 +322,12 @@ class ProductModel {
     this.stockQuantity = 1,
     this.isFeatured = false,
     this.isPaused = false,
+    this.isPurchasable = false,
+    this.deliveryMode = 'pickup_only',
+    this.deliveryFeeMad,
+    this.deliveryEta = '',
+    this.freeDeliveryThresholdMad,
+    this.taxEnabled = false,
   });
 
   final String id;
@@ -340,6 +346,16 @@ class ProductModel {
   final int stockQuantity;
   final bool isFeatured;
   final bool isPaused;
+  final bool isPurchasable;
+  final String deliveryMode;
+  final double? deliveryFeeMad;
+  final String deliveryEta;
+  final double? freeDeliveryThresholdMad;
+  final bool taxEnabled;
+
+  bool get isPickupOnly => deliveryMode == 'pickup_only';
+  bool get canPurchase =>
+      isPurchasable && isAvailable && !isPaused && priceMad != null && priceMad! > 0 && stockQuantity > 0;
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
@@ -366,6 +382,12 @@ class ProductModel {
       stockQuantity: json['stock_quantity'] as int? ?? 1,
       isFeatured: json['is_featured'] as bool? ?? false,
       isPaused: json['is_paused'] as bool? ?? false,
+      isPurchasable: json['is_purchasable'] as bool? ?? false,
+      deliveryMode: json['delivery_mode'] as String? ?? 'pickup_only',
+      deliveryFeeMad: (json['delivery_fee_mad'] as num?)?.toDouble(),
+      deliveryEta: json['delivery_eta'] as String? ?? '',
+      freeDeliveryThresholdMad: (json['free_delivery_threshold_mad'] as num?)?.toDouble(),
+      taxEnabled: json['tax_enabled'] as bool? ?? false,
     );
   }
 }

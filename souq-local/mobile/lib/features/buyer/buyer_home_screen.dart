@@ -1006,6 +1006,11 @@ class BuyerProfileScreen extends ConsumerWidget {
               onTap: () => context.push('/favorites'),
             ),
             ListTile(
+              leading: const Icon(Icons.shopping_bag_outlined),
+              title: const Text('My purchases'),
+              onTap: () => context.push('/purchases'),
+            ),
+            ListTile(
               leading: const Icon(Icons.workspace_premium_outlined),
               title: Text(l10n.premium),
               onTap: () => context.push('/premium'),

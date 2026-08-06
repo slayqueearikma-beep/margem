@@ -142,9 +142,16 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   bool _available = true;
+  bool _isPurchasable = false;
+  bool _providerDelivery = false;
+  bool _taxEnabled = false;
   bool _loading = false;
   bool _initialized = false;
   String _imageUrl = '';
+  final _deliveryFeeController = TextEditingController();
+  final _freeDeliveryThresholdController = TextEditingController();
+  final _deliveryEtaController = TextEditingController();
+  final _stockController = TextEditingController(text: '1');
   XFile? _pickedImage;
   ProductModel? _existing;
 
@@ -153,6 +160,10 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
     _nameController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
+    _deliveryFeeController.dispose();
+    _freeDeliveryThresholdController.dispose();
+    _deliveryEtaController.dispose();
+    _stockController.dispose();
     super.dispose();
   }
 
@@ -167,6 +178,20 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
       );
     }
     _available = product.isAvailable;
+    _isPurchasable = product.isPurchasable;
+    _providerDelivery = product.deliveryMode == 'provider_delivery';
+    _taxEnabled = product.taxEnabled;
+    _deliveryEtaController.text = product.deliveryEta;
+    if (product.deliveryFeeMad != null) {
+      _deliveryFeeController.text = product.deliveryFeeMad!.toStringAsFixed(
+        product.deliveryFeeMad! % 1 == 0 ? 0 : 2,
+      );
+    }
+    if (product.freeDeliveryThresholdMad != null) {
+      _freeDeliveryThresholdController.text =
+          product.freeDeliveryThresholdMad!.toStringAsFixed(0);
+    }
+    _stockController.text = '${product.stockQuantity}';
     _imageUrl = product.imageUrl;
     _initialized = true;
   }
@@ -201,6 +226,16 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
         if (priceText.isNotEmpty && price == null) {
           throw ApiException('Enter a valid price');
         }
+        if (_isPurchasable && (price == null || price <= 0)) {
+          throw ApiException('Purchasable products require a price');
+        }
+
+        final deliveryFeeText = _deliveryFeeController.text.trim();
+        final deliveryFee =
+            deliveryFeeText.isEmpty ? null : double.tryParse(deliveryFeeText);
+        final thresholdText = _freeDeliveryThresholdController.text.trim();
+        final threshold = thresholdText.isEmpty ? null : double.tryParse(thresholdText);
+        final stock = int.tryParse(_stockController.text.trim()) ?? 1;
 
         if (widget.isEditing) {
           await apiServiceProvider.updateProduct(
@@ -213,6 +248,13 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
               clearPrice: priceText.isEmpty,
               imageUrl: imageUrl,
               isAvailable: _available,
+              isPurchasable: _isPurchasable,
+              deliveryMode: _providerDelivery ? 'provider_delivery' : 'pickup_only',
+              deliveryFeeMad: deliveryFee,
+              deliveryEta: _deliveryEtaController.text.trim(),
+              freeDeliveryThresholdMad: threshold,
+              taxEnabled: _taxEnabled,
+              stockQuantity: stock,
             ),
           );
         } else {
@@ -223,6 +265,13 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
               description: _descriptionController.text.trim(),
               priceMad: price,
               imageUrl: imageUrl,
+              isPurchasable: _isPurchasable,
+              deliveryMode: _providerDelivery ? 'provider_delivery' : 'pickup_only',
+              deliveryFeeMad: deliveryFee,
+              deliveryEta: _deliveryEtaController.text.trim(),
+              freeDeliveryThresholdMad: threshold,
+              taxEnabled: _taxEnabled,
+              stockQuantity: stock,
             ),
           );
         }
@@ -367,6 +416,58 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(labelText: l10n.priceOptional),
           ),
+          const SizedBox(height: AppSpacing.md),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Available for purchase'),
+            value: _isPurchasable,
+            onChanged: _loading ? null : (value) => setState(() => _isPurchasable = value),
+          ),
+          if (_isPurchasable) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text('Delivery', style: Theme.of(context).textTheme.titleSmall),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Provider offers delivery'),
+              subtitle: const Text('Turn off for pickup only'),
+              value: _providerDelivery,
+              onChanged: _loading ? null : (value) => setState(() => _providerDelivery = value),
+            ),
+            if (_providerDelivery) ...[
+              TextField(
+                controller: _deliveryFeeController,
+                enabled: !_loading,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(labelText: 'Delivery fee (MAD)'),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: _deliveryEtaController,
+                enabled: !_loading,
+                decoration: const InputDecoration(labelText: 'Estimated delivery time'),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: _freeDeliveryThresholdController,
+                enabled: !_loading,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(labelText: 'Free delivery threshold (optional)'),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: _stockController,
+              enabled: !_loading,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Stock quantity'),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Apply tax'),
+              value: _taxEnabled,
+              onChanged: _loading ? null : (value) => setState(() => _taxEnabled = value),
+            ),
+          ],
           if (widget.isEditing) ...[
             const SizedBox(height: AppSpacing.md),
             SwitchListTile(
