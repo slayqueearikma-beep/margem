@@ -78,6 +78,6 @@ Target length is 100–120 pages with `oneside` A4 and `onehalfspacing`. Actual 
 |-------|-----|
 | `microtype.sty not found` | Install `texlive-latex-extra`, or ignore (optional package) |
 | `biblatex.sty not found` | `sudo apt install texlive-bibtex-extra biber` |
-| `glossaries.sty not found` | `sudo apt install texlive-latex-extra` |
+| `makeglossaries` / `function name 'makeglossaries' does not exists` | Install `texlive-latex-extra`; `.latexmkrc` defines the required Perl hook |
 | Empty bibliography | Run `biber main` between `pdflatex` passes |
 | Undefined citations | Run full `latexmk` cycle twice after `biber` |
