@@ -1,6 +1,13 @@
 import '../../l10n/strings/app_strings.dart';
 import 'service_pricing.dart';
 
+enum PricingType { fixed, offer }
+
+PricingType parsePricingType(String? value) {
+  if (value == 'offer') return PricingType.offer;
+  return PricingType.fixed;
+}
+
 class CategoryModel {
   const CategoryModel({
     required this.id,
@@ -120,7 +127,6 @@ class SellerModel {
     this.categories = const [],
     this.products = const [],
     this.services = const [],
-    this.distanceKm,
   });
 
   final String id;
@@ -162,7 +168,6 @@ class SellerModel {
   final List<CategoryModel> categories;
   final List<ProductModel> products;
   final List<ServiceModel> services;
-  final double? distanceKm;
 
   factory SellerModel.fromJson(Map<String, dynamic> json) {
     return SellerModel(
@@ -226,7 +231,6 @@ class SellerModel {
       services: (json['services'] as List<dynamic>? ?? [])
           .map((e) => ServiceModel.fromJson(e as Map<String, dynamic>))
           .toList(),
-      distanceKm: (json['distance_km'] as num?)?.toDouble(),
     );
   }
 }
@@ -315,6 +319,7 @@ class ProductModel {
     required this.id,
     required this.name,
     required this.description,
+    this.pricingType = PricingType.fixed,
     this.priceMad,
     this.imageUrl = '',
     this.isAvailable = true,
@@ -325,6 +330,8 @@ class ProductModel {
     this.mediaUrls = const [],
     this.videoUrl = '',
     this.categorySlug = '',
+    this.deliveryAvailable = false,
+    this.pickupOnly = true,
     this.stockQuantity = 1,
     this.isFeatured = false,
     this.isPaused = false,
@@ -333,6 +340,7 @@ class ProductModel {
   final String id;
   final String name;
   final String description;
+  final PricingType pricingType;
   final double? priceMad;
   final String imageUrl;
   final bool isAvailable;
@@ -343,15 +351,20 @@ class ProductModel {
   final List<String> mediaUrls;
   final String videoUrl;
   final String categorySlug;
+  final bool deliveryAvailable;
+  final bool pickupOnly;
   final int stockQuantity;
   final bool isFeatured;
   final bool isPaused;
+
+  bool get isOffer => pricingType == PricingType.offer;
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
+      pricingType: parsePricingType(json['pricing_type'] as String?),
       priceMad: (json['price_mad'] as num?)?.toDouble(),
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
@@ -369,6 +382,8 @@ class ProductModel {
           .toList(),
       videoUrl: json['video_url'] as String? ?? '',
       categorySlug: json['category_slug'] as String? ?? '',
+      deliveryAvailable: json['delivery_available'] as bool? ?? false,
+      pickupOnly: json['pickup_only'] as bool? ?? true,
       stockQuantity: json['stock_quantity'] as int? ?? 1,
       isFeatured: json['is_featured'] as bool? ?? false,
       isPaused: json['is_paused'] as bool? ?? false,
@@ -387,10 +402,13 @@ class SearchProductModel {
     required this.sellerRating,
     required this.name,
     required this.description,
+    this.pricingType = PricingType.fixed,
     required this.priceMad,
     required this.imageUrl,
     required this.isAvailable,
-    this.distanceKm,
+    this.categorySlug = '',
+    this.deliveryAvailable = false,
+    this.pickupOnly = true,
   });
 
   final String id;
@@ -402,10 +420,15 @@ class SearchProductModel {
   final double sellerRating;
   final String name;
   final String description;
+  final PricingType pricingType;
   final double? priceMad;
   final String imageUrl;
   final bool isAvailable;
-  final double? distanceKm;
+  final String categorySlug;
+  final bool deliveryAvailable;
+  final bool pickupOnly;
+
+  bool get isOffer => pricingType == PricingType.offer;
 
   factory SearchProductModel.fromJson(Map<String, dynamic> json) {
     return SearchProductModel(
@@ -418,10 +441,68 @@ class SearchProductModel {
       sellerRating: (json['seller_rating'] as num?)?.toDouble() ?? 0,
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      pricingType: parsePricingType(json['pricing_type'] as String?),
       priceMad: (json['price_mad'] as num?)?.toDouble(),
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
-      distanceKm: (json['distance_km'] as num?)?.toDouble(),
+      categorySlug: json['category_slug'] as String? ?? '',
+      deliveryAvailable: json['delivery_available'] as bool? ?? false,
+      pickupOnly: json['pickup_only'] as bool? ?? true,
+    );
+  }
+}
+
+class SearchServiceModel {
+  const SearchServiceModel({
+    required this.id,
+    required this.sellerId,
+    required this.sellerName,
+    required this.sellerCity,
+    required this.sellerVerified,
+    required this.sellerPremium,
+    required this.sellerRating,
+    required this.name,
+    required this.description,
+    this.pricingType = PricingType.fixed,
+    required this.priceMad,
+    required this.imageUrl,
+    required this.isAvailable,
+    this.categorySlug = '',
+  });
+
+  final String id;
+  final String sellerId;
+  final String sellerName;
+  final String sellerCity;
+  final bool sellerVerified;
+  final bool sellerPremium;
+  final double sellerRating;
+  final String name;
+  final String description;
+  final PricingType pricingType;
+  final double? priceMad;
+  final String imageUrl;
+  final bool isAvailable;
+  final String categorySlug;
+
+  bool get isOffer => pricingType == PricingType.offer;
+
+  factory SearchServiceModel.fromJson(Map<String, dynamic> json) {
+    return SearchServiceModel(
+      id: json['id'] as String,
+      sellerId: json['seller_id'] as String,
+      sellerName: json['seller_name'] as String? ?? '',
+      sellerCity: json['seller_city'] as String? ?? '',
+      sellerVerified: json['seller_verified'] as bool? ?? false,
+      sellerPremium: json['seller_premium'] as bool? ?? false,
+      sellerRating: (json['seller_rating'] as num?)?.toDouble() ?? 0,
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      pricingType: parsePricingType(json['pricing_type'] as String?),
+      priceMad: (json['price_mad'] as num?)?.toDouble(),
+      imageUrl: json['image_url'] as String? ?? '',
+      isAvailable: json['is_available'] as bool? ?? true,
+      categorySlug: json['category_slug'] as String? ?? '',
     );
   }
 }
@@ -430,8 +511,10 @@ class MarketplaceSearchPage {
   const MarketplaceSearchPage({
     required this.sellers,
     required this.products,
+    required this.services,
     required this.totalSellers,
     required this.totalProducts,
+    required this.totalServices,
     required this.limit,
     required this.offset,
     required this.hasMore,
@@ -439,8 +522,10 @@ class MarketplaceSearchPage {
 
   final List<SellerModel> sellers;
   final List<SearchProductModel> products;
+  final List<SearchServiceModel> services;
   final int totalSellers;
   final int totalProducts;
+  final int totalServices;
   final int limit;
   final int offset;
   final bool hasMore;
@@ -453,8 +538,12 @@ class MarketplaceSearchPage {
       products: (json['products'] as List<dynamic>? ?? [])
           .map((e) => SearchProductModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      services: (json['services'] as List<dynamic>? ?? [])
+          .map((e) => SearchServiceModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
       totalSellers: json['total_sellers'] as int? ?? 0,
       totalProducts: json['total_products'] as int? ?? 0,
+      totalServices: json['total_services'] as int? ?? 0,
       limit: json['limit'] as int? ?? 20,
       offset: json['offset'] as int? ?? 0,
       hasMore: json['has_more'] as bool? ?? false,
@@ -468,6 +557,7 @@ class ServiceModel {
     required this.name,
     required this.description,
     this.pricingModel = ServicePricingModel.fixedPrice,
+    this.pricingType = PricingType.fixed,
     this.priceMad,
     this.priceMinMad,
     this.priceMaxMad,
@@ -475,6 +565,7 @@ class ServiceModel {
     this.imageUrl = '',
     this.isAvailable = true,
     this.isFeatured = false,
+    this.categorySlug = '',
     this.coverageAreas = const [],
   });
 
@@ -482,6 +573,7 @@ class ServiceModel {
   final String name;
   final String description;
   final ServicePricingModel pricingModel;
+  final PricingType pricingType;
   final double? priceMad;
   final double? priceMinMad;
   final double? priceMaxMad;
@@ -489,7 +581,10 @@ class ServiceModel {
   final String imageUrl;
   final bool isAvailable;
   final bool isFeatured;
+  final String categorySlug;
   final List<String> coverageAreas;
+
+  bool get isOffer => pricingType == PricingType.offer;
 
   String displayPrice(AppStrings l10n) => formatServicePrice(
         l10n,
@@ -497,7 +592,7 @@ class ServiceModel {
         priceMad: priceMad,
         priceMinMad: priceMinMad,
         priceMaxMad: priceMaxMad,
-        priceNegotiable: priceNegotiable,
+        priceNegotiable: priceNegotiable || isOffer,
       );
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
@@ -506,6 +601,7 @@ class ServiceModel {
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
       pricingModel: ServicePricingModel.fromApi(json['pricing_model'] as String?),
+      pricingType: parsePricingType(json['pricing_type'] as String?),
       priceMad: (json['price_mad'] as num?)?.toDouble(),
       priceMinMad: (json['price_min_mad'] as num?)?.toDouble(),
       priceMaxMad: (json['price_max_mad'] as num?)?.toDouble(),
@@ -513,6 +609,7 @@ class ServiceModel {
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
       isFeatured: json['is_featured'] as bool? ?? false,
+      categorySlug: json['category_slug'] as String? ?? '',
       coverageAreas: (json['coverage_areas'] as List<dynamic>? ?? [])
           .map((item) => item.toString())
           .toList(),

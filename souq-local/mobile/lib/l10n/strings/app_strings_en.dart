@@ -303,6 +303,24 @@ class AppStringsEn extends AppStrings {
   @override
   String get businessKeyword => 'Business name or keyword';
   @override
+  String get pricingOffer => 'Offer';
+  @override
+  String get deliveryAvailable => 'Delivery available';
+  @override
+  String get pickupOnly => 'Pickup only';
+  @override
+  String get searchFilters => 'Filters';
+  @override
+  String get minRating => 'Min rating';
+  @override
+  String get provider => 'Providers';
+  @override
+  String get productCategory => 'Category';
+  @override
+  String get applyFilters => 'Apply';
+  @override
+  String get clearFilters => 'Clear';
+  @override
   String get noBusinessesFound => 'No businesses found';
   @override
   String get searchSortedByNearest => 'Showing nearest matches';

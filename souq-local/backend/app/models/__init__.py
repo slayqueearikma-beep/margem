@@ -25,8 +25,8 @@ class Base(DeclarativeBase):
 
 
 class AccountType(str, enum.Enum):
-    BUYER = "buyer"
-    SELLER = "seller"
+    CUSTOMER = "customer"
+    PROVIDER = "provider"
 
 
 class UserStatus(str, enum.Enum):
@@ -36,10 +36,15 @@ class UserStatus(str, enum.Enum):
 
 
 class UserRole(str, enum.Enum):
-    BUYER = "buyer"
-    SELLER = "seller"
+    CUSTOMER = "customer"
+    PROVIDER = "provider"
     ADMIN = "admin"
     SUPPORT = "support"
+
+
+class PricingType(str, enum.Enum):
+    FIXED = "fixed"
+    OFFER = "offer"
 
 
 class SubscriptionStatus(str, enum.Enum):
@@ -71,6 +76,7 @@ def _enum(enum_cls: type[enum.Enum], name: str) -> Enum:
 account_type_enum = _enum(AccountType, "accounttype")
 user_status_enum = _enum(UserStatus, "userstatus")
 user_role_enum = _enum(UserRole, "userrole")
+pricing_type_enum = _enum(PricingType, "pricingtype")
 subscription_status_enum = _enum(SubscriptionStatus, "subscriptionstatus")
 verification_status_enum = _enum(VerificationStatus, "verificationstatus")
 
@@ -87,7 +93,7 @@ class User(Base):
     phone: Mapped[str] = mapped_column(String(32), default="")
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[UserStatus] = mapped_column(user_status_enum, default=UserStatus.ACTIVE)
-    role: Mapped[UserRole] = mapped_column(user_role_enum, default=UserRole.BUYER)
+    role: Mapped[UserRole] = mapped_column(user_role_enum, default=UserRole.CUSTOMER)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     premium_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -254,10 +260,13 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String(160))
     description: Mapped[str] = mapped_column(Text, default="")
     price_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
+    pricing_type: Mapped[PricingType] = mapped_column(pricing_type_enum, default=PricingType.FIXED)
     price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
     availability_note: Mapped[str] = mapped_column(String(160), default="")
     accepted_payment_methods: Mapped[list] = mapped_column(JSONB, default=list)
     delivery_options: Mapped[list] = mapped_column(JSONB, default=list)
+    delivery_available: Mapped[bool] = mapped_column(Boolean, default=False)
+    pickup_only: Mapped[bool] = mapped_column(Boolean, default=True)
     image_url: Mapped[str] = mapped_column(String(512), default="")
     media_urls: Mapped[list] = mapped_column(JSONB, default=list)
     video_url: Mapped[str] = mapped_column(String(512), default="")
@@ -283,7 +292,9 @@ class Service(Base):
     price_min_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
     price_max_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
     pricing_model: Mapped[str] = mapped_column(String(32), default="fixed_price")
+    pricing_type: Mapped[PricingType] = mapped_column(pricing_type_enum, default=PricingType.FIXED)
     price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
+    category_slug: Mapped[str] = mapped_column(String(80), default="")
     coverage_areas: Mapped[list] = mapped_column(JSONB, default=list)
     image_url: Mapped[str] = mapped_column(String(512), default="")
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)

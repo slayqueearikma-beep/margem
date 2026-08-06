@@ -299,6 +299,24 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get businessKeyword => 'اسم المحل أو كلمة مفتاحية';
   @override
+  String get pricingOffer => 'عرض';
+  @override
+  String get deliveryAvailable => 'التوصيل متاح';
+  @override
+  String get pickupOnly => 'الاستلام من المتجر فقط';
+  @override
+  String get searchFilters => 'الفلاتر';
+  @override
+  String get minRating => 'أدنى تقييم';
+  @override
+  String get provider => 'المزوّدون';
+  @override
+  String get productCategory => 'الفئة';
+  @override
+  String get applyFilters => 'تطبيق';
+  @override
+  String get clearFilters => 'مسح';
+  @override
   String get noBusinessesFound => 'لم يتم العثور على محلات';
   @override
   String get searchSortedByNearest => 'عرض الأقرب أولاً';

@@ -308,6 +308,24 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get businessKeyword => 'Nom du commerce ou mot-clé';
   @override
+  String get pricingOffer => 'Offre';
+  @override
+  String get deliveryAvailable => 'Livraison disponible';
+  @override
+  String get pickupOnly => 'Retrait sur place uniquement';
+  @override
+  String get searchFilters => 'Filtres';
+  @override
+  String get minRating => 'Note minimale';
+  @override
+  String get provider => 'Prestataires';
+  @override
+  String get productCategory => 'Catégorie';
+  @override
+  String get applyFilters => 'Appliquer';
+  @override
+  String get clearFilters => 'Effacer';
+  @override
   String get noBusinessesFound => 'Aucun commerce trouvé';
   @override
   String get searchSortedByNearest => 'Résultats les plus proches';

@@ -23,9 +23,14 @@ class AuthUser {
     );
   }
 
-  bool get isBuyer => accountType == 'buyer' || !hasSellerProfile;
-  bool get isSeller => accountType == 'seller' || hasSellerProfile;
-  bool get canSell => hasSellerProfile || accountType == 'seller';
+  bool get isBuyer =>
+      accountType == 'customer' || accountType == 'buyer' || !hasSellerProfile;
+  bool get isSeller =>
+      accountType == 'provider' || accountType == 'seller' || hasSellerProfile;
+  bool get canSell =>
+      hasSellerProfile ||
+      accountType == 'provider' ||
+      accountType == 'seller';
 }
 
 class AuthSession {
@@ -176,19 +181,31 @@ class ProductCreatePayload {
   const ProductCreatePayload({
     required this.name,
     required this.description,
+    this.pricingType = 'fixed',
     this.priceMad,
+    this.categorySlug = '',
+    this.deliveryAvailable = false,
+    this.pickupOnly = true,
     this.imageUrl = '',
   });
 
   final String name;
   final String description;
+  final String pricingType;
   final double? priceMad;
+  final String categorySlug;
+  final bool deliveryAvailable;
+  final bool pickupOnly;
   final String imageUrl;
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'description': description,
-        if (priceMad != null) 'price_mad': priceMad,
+        'pricing_type': pricingType,
+        if (pricingType == 'fixed' && priceMad != null) 'price_mad': priceMad,
+        if (categorySlug.isNotEmpty) 'category_slug': categorySlug,
+        'delivery_available': deliveryAvailable,
+        'pickup_only': pickupOnly,
         'image_url': imageUrl,
       };
 }
@@ -299,14 +316,18 @@ class ServiceUpdatePayload {
   }
 }
 
-/// Maps seller onboarding UI labels to backend category slugs.
+/// Fundamental marketplace category slugs (API taxonomy).
 const sellerCategorySlugMap = <String, String>{
-  'Food': 'food',
-  'Clothing': 'clothing',
-  'Electronics': 'electronics',
-  'Beauty': 'beauty',
-  'Services': 'services',
-  'Home & Garden': 'home',
-  'Health': 'health',
-  'Sports': 'sports',
+  'clothing': 'clothing',
+  'shoes': 'shoes',
+  'perfumes': 'perfumes',
+  'beauty': 'beauty',
+  'electronics': 'electronics',
+  'food': 'food',
+  'home': 'home',
+  'jewelry': 'jewelry',
+  'accessories': 'accessories',
+  'sports': 'sports',
+  'health': 'health',
+  'kids': 'kids',
 };
