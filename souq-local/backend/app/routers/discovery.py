@@ -348,9 +348,20 @@ async def follow_seller(
     follow = existing.scalar_one_or_none()
     if follow is None:
         follow = SellerFollow(id=uuid4(), user_id=user.id, seller_id=seller_id)
-        session.add(follow)
-        await session.commit()
-        await session.refresh(follow)
+        try:
+            session.add(follow)
+            await session.commit()
+            await session.refresh(follow)
+        except IntegrityError:
+            await session.rollback()
+            follow = (
+                await session.execute(
+                    select(SellerFollow).where(
+                        SellerFollow.user_id == user.id,
+                        SellerFollow.seller_id == seller_id,
+                    )
+                )
+            ).scalar_one()
     return FollowOut(
         id=follow.id,
         seller_id=seller.id,

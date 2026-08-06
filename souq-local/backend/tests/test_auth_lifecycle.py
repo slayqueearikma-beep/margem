@@ -208,3 +208,17 @@ async def test_subscribe_premium_blocked_in_production(client: AsyncClient, monk
     res = await client.post("/subscriptions/subscribe/premium", headers=user["headers"])
     assert res.status_code == 400
     assert "checkout" in res.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_revoke_session_invalidates_access_token(client: AsyncClient):
+    user = await _register(client)
+    sessions = await client.get("/auth/sessions", headers=user["headers"])
+    assert sessions.status_code == 200, sessions.text
+    session_id = sessions.json()[0]["id"]
+
+    revoked = await client.delete(f"/auth/sessions/{session_id}", headers=user["headers"])
+    assert revoked.status_code == 204, revoked.text
+
+    me = await client.get("/auth/me", headers=user["headers"])
+    assert me.status_code == 401

@@ -201,7 +201,13 @@ async def change_subscription_plan(
 
     _configure_stripe()
     stripe_sub = stripe.Subscription.retrieve(active.stripe_subscription_id)
-    item_id = stripe_sub["items"]["data"][0]["id"]
+    items = stripe_sub.get("items", {}).get("data") or []
+    if not items:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Stripe subscription has no billable items",
+        )
+    item_id = items[0]["id"]
     updated = stripe.Subscription.modify(
         active.stripe_subscription_id,
         items=[{"id": item_id, "price": price_id}],

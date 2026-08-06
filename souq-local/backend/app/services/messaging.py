@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Conversation, Message, SellerProfile, User, UserStatus
@@ -117,8 +118,17 @@ async def get_or_create_conversation(
         participant_b_id=b,
         context_seller_id=context_seller_id,
     )
-    session.add(conversation)
-    await session.flush()
+    try:
+        async with session.begin_nested():
+            session.add(conversation)
+            await session.flush()
+    except IntegrityError:
+        existing = await find_conversation(session, user_a=initiator_id, user_b=peer_user_id)
+        if existing is None:
+            raise
+        if context_seller_id is not None and existing.context_seller_id is None:
+            existing.context_seller_id = context_seller_id
+        return existing, False
     return conversation, True
 
 

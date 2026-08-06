@@ -45,6 +45,20 @@ async def prepare_database():
             "wishlist_items",
             "buyer_addresses",
             "coupons",
+            # Orphan tables from unmerged branches / legacy schemas that FK to users.
+            "community_reactions",
+            "community_reports",
+            "community_messages",
+            "community_moderation_logs",
+            "community_memberships",
+            "community_city_bans",
+            "community_user_blocks",
+            "community_user_mutes",
+            "community_channels",
+            "mfa_recovery_codes",
+            "signup_verifications",
+            "cities",
+            "countries",
         ):
             await conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS orderstatus CASCADE"))
