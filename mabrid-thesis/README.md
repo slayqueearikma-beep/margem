@@ -34,11 +34,14 @@ cd mabrid-thesis
 latexmk -pdf -interaction=nonstopmode main.tex
 ```
 
+`latexmk` reads `.latexmkrc` and automatically runs **biber** and **makeglossaries**.
+
 Or manually:
 
 ```bash
 pdflatex main.tex
 biber main
+makeglossaries main
 pdflatex main.tex
 pdflatex main.tex
 ```

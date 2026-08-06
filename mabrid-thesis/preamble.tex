@@ -80,12 +80,12 @@
 ]{biblatex}
 \addbibresource{references.bib}
 
-\usepackage[acronym,toc,noidx]{glossaries}
-\makenoidxglossaries
+\usepackage[acronym,toc]{glossaries}
+\makeglossaries
 \input{glossary-entries.tex}
 
-% Figure placeholder — replace file when image is available
-\newcommand{\figureplaceholder}[4][H]{%
+% #1 = float placement (e.g. H), #2 = image path, #3 = width factor, #4 = caption
+\newcommand{\figureplaceholder}[4]{%
   \begin{figure}[#1]
     \centering
     \IfFileExists{#2}{%
