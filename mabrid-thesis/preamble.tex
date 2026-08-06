@@ -3,7 +3,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
-\usepackage{microtype}
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \usepackage{setspace}
 \onehalfspacing
 
@@ -21,7 +21,14 @@
 
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows.meta,positioning,fit,backgrounds,calc,matrix,shadows}
-\usepackage{pgfgantt}
+% pgfgantt is optional; Chapter 4 falls back to TikZ timeline if unavailable
+\newif\ifmabridhaspgfgantt
+\IfFileExists{pgfgantt.sty}{%
+  \usepackage{pgfgantt}%
+  \mabridhaspgfgantttrue
+}{%
+  \mabridhaspgfganttfalse
+}
 
 \usepackage{float}
 \usepackage{enumitem}
@@ -73,8 +80,8 @@
 ]{biblatex}
 \addbibresource{references.bib}
 
-\usepackage[acronym,toc]{glossaries}
-\makeglossaries
+\usepackage[acronym,toc,noidx]{glossaries}
+\makenoidxglossaries
 \input{glossary-entries.tex}
 
 % Figure placeholder — replace file when image is available

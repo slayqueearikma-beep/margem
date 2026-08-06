@@ -120,6 +120,7 @@ Cloud unit cost per active user and per listing informs pricing decisions and in
 
 \begin{figure}[H]
   \centering
+  \ifmabridhaspgfgantt
   \begin{ganttchart}[
     hgrid,
     vgrid,
@@ -138,6 +139,17 @@ Cloud unit cost per active user and per listing informs pricing decisions and in
     \ganttbar{DR region standby}{12}{18} \\
     \ganttbar{Enterprise landing zone}{16}{24}
   \end{ganttchart}
+  \else
+  \begin{tikzpicture}[x=0.42cm,y=0.75cm,font=\small]
+    \draw[->] (0,0) -- (25,0) node[right]{Months};
+    \foreach \m in {0,6,12,18,24} {\draw (\m,0.1) -- (\m,-0.1) node[below]{\m};}
+    \draw[fill=mabridblue!25,draw=mabridblue] (0,1) rectangle (6,1.6) node[midway]{MVP single region};
+    \draw[fill=mabridblue!35,draw=mabridblue] (3,2) rectangle (8,2.6) node[midway,font=\tiny]{FinOps};
+    \draw[fill=mabridblue!45,draw=mabridblue] (6,3) rectangle (12,3.6) node[midway,font=\tiny]{Multi-AZ};
+    \draw[fill=mabridblue!55,draw=mabridblue] (11,4) rectangle (18,4.6) node[midway,font=\tiny]{DR standby};
+    \draw[fill=mabridaccent!35,draw=mabridblue] (15,5) rectangle (24,5.6) node[midway,font=\tiny]{Enterprise LZ};
+  \end{tikzpicture}
+  \fi
   \caption{Illustrative cloud maturity Gantt timeline}
   \label{fig:cloud-gantt}
 \end{figure}
