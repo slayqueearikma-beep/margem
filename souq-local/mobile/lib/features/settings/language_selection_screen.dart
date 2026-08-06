@@ -134,7 +134,7 @@ class _LanguageSelectionScreenState
                               .textTheme
                               .bodyMedium
                               ?.copyWith(
-                                color: AppColors.textSecondary,
+                                color: AppColors.onSurfaceVariant(context),
                                 height: 1.4,
                               ),
                         ),

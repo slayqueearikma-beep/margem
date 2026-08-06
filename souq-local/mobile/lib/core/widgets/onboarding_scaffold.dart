@@ -30,7 +30,7 @@ class StepProgressBar extends StatelessWidget {
             ),
             height: 4,
             decoration: BoxDecoration(
-              color: isActive ? AppColors.lavender : AppColors.border,
+              color: isActive ? AppColors.lavender : AppColors.outlineSubtle(context),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -59,7 +59,7 @@ class PageDots extends StatelessWidget {
           width: isActive ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: isActive ? AppColors.lavender : AppColors.border,
+            color: isActive ? AppColors.lavender : AppColors.outlineSubtle(context),
             borderRadius: BorderRadius.circular(4),
           ),
         );
@@ -163,8 +163,6 @@ class _GlassIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -174,12 +172,10 @@ class _GlassIconButton extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.darkCard.withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.7),
+            color: AppColors.cardSurface(context).withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.borderLight,
+              color: AppColors.outlineSubtle(context),
             ),
             boxShadow: AppShadows.soft(blur: 12, y: 2),
           ),

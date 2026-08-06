@@ -62,7 +62,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ref.read(authSessionProvider.notifier).state = restored;
     }
 
-    final session = storage.getSession();
     if (session != null) {
       if (session.isGuest) {
         ref.read(userSessionProvider.notifier).state = session;
@@ -120,7 +119,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.scaffold(context),
       body: OnboardingBackdrop(
         child: SafeArea(
           child: FadeTransition(
@@ -159,7 +158,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       l10n.splashTagline,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppColors.navy.withValues(alpha: 0.85),
+                            color: AppColors.onSurface(context)
+                                .withValues(alpha: 0.85),
                             fontWeight: FontWeight.w500,
                             fontSize: 16,
                             height: 1.35,

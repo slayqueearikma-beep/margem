@@ -544,3 +544,4 @@ from app.models.community import (  # noqa: E402,F401
     CommunityUserMute,
     DEFAULT_CHANNEL_SPECS,
 )
+from app.models.geography import Country  # noqa: E402,F401

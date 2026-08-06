@@ -6,14 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/models.dart';
 import '../../core/navigation/app_back_handler.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/services/location_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
@@ -21,6 +20,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
+import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
@@ -28,21 +28,6 @@ import '../messages/messages_inbox_screen.dart';
 import '../premium/premium_screen.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
-
-final buyerCityProvider = StateProvider<String>((ref) {
-  // Casablanca-only launch — ignore any other saved city.
-  return AppConfig.launchCity;
-});
-
-/// Buyer origin for nearest-seller search (GPS, or city center fallback).
-final buyerSearchLocationProvider = FutureProvider.autoDispose<LatLng>((ref) async {
-  final position = await LocationService.getCurrentPosition();
-  if (position != null) {
-    return LatLng(position.latitude, position.longitude);
-  }
-  final city = ref.watch(buyerCityProvider);
-  return CityCoordinates.centerFor(city);
-});
 
 final buyerCategorySlugProvider = StateProvider<String?>((ref) => null);
 
@@ -142,6 +127,9 @@ class BuyerHomeScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final city = ref.watch(buyerCityProvider);
+    final cityModel = ref.watch(buyerCityModelProvider);
+    final locale = Localizations.localeOf(context).languageCode;
+    final cityLabel = cityModel?.localizedName(locale) ?? city;
     final sellersAsync = ref.watch(buyerSellersProvider);
     final categoriesAsync = ref.watch(buyerCategoriesProvider);
     final favoriteIds = ref.watch(buyerFavoriteSellerIdsProvider).valueOrNull ??
@@ -187,7 +175,19 @@ class BuyerHomeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.screenHorizontal,
                   ),
-                  child: BuyerLocationRow(city: city, onTap: null),
+                  child: BuyerLocationRow(
+                    city: cityLabel,
+                    onTap: () async {
+                      final picked = await showCityPickerSheet(
+                        context,
+                        ref,
+                        selected: cityModel,
+                      );
+                      if (picked != null) {
+                        await ref.read(buyerCityProvider.notifier).setCity(picked);
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Padding(
@@ -264,8 +264,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                             ),
                             icon: _categoryIcon(cat.icon),
                             tint: i.isEven
-                                ? AppColors.beigeLight
-                                : AppColors.cream,
+                                ? AppColors.filterChip(context)
+                                : AppColors.cardSurface(context),
                             onTap: () {
                               ref
                                   .read(buyerCategorySlugProvider.notifier)
@@ -410,8 +410,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                               ),
                               icon: _categoryIcon(cat.icon),
                               tint: i.isEven
-                                  ? AppColors.beigeLight
-                                  : AppColors.cream,
+                                  ? AppColors.filterChip(context)
+                                  : AppColors.cardSurface(context),
                               onTap: () {
                                 ref
                                     .read(buyerCategorySlugProvider.notifier)
@@ -554,7 +554,7 @@ class _GuestModeBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.beigeLight,
+      color: AppColors.promoGradientStart(context),
       borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
       child: InkWell(
         onTap: onLogin,
@@ -563,7 +563,7 @@ class _GuestModeBanner extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-            boxShadow: AppShadows.soft(color: AppColors.beige, blur: 16, y: 4),
+            boxShadow: AppShadows.softFor(context, color: AppColors.beige, blur: 16, y: 4),
           ),
           child: Row(
             children: [
@@ -571,7 +571,7 @@ class _GuestModeBanner extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardSurface(context),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
@@ -587,17 +587,18 @@ class _GuestModeBanner extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 14,
+                        color: AppColors.onSurface(context),
                       ),
                     ),
                     Text(
                       subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: AppColors.onSurfaceVariant(context),
                         fontSize: 12,
                         height: 1.25,
                       ),
@@ -645,7 +646,6 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final initial = displayName.isNotEmpty
         ? displayName.substring(0, 1).toUpperCase()
         : '?';
@@ -661,22 +661,20 @@ class _ProfileHeader extends StatelessWidget {
               height: 88,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isDark
-                    ? AppColors.darkCard
-                    : AppColors.primary.withValues(alpha: 0.08),
+                color: AppColors.iconCircle(context),
                 border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.border,
+                  color: AppColors.outlineSubtle(context),
                   width: 1,
                 ),
               ),
               alignment: Alignment.center,
               child: Text(
                 initial,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 34,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.5,
-                  color: isDark ? Colors.white : AppColors.primary,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -719,7 +717,7 @@ class _ProfileHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: AppColors.onSurfaceVariant(context),
                   fontWeight: FontWeight.w400,
                   height: 1.3,
                 ),
@@ -741,7 +739,7 @@ class _ProfileHeader extends StatelessWidget {
         Divider(
           height: 1,
           thickness: 1,
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: AppColors.outlineSubtle(context),
         ),
       ],
     );

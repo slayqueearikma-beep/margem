@@ -25,7 +25,7 @@ class SellerDrawer extends ConsumerWidget {
     final profile = account?.profile;
 
     return Drawer(
-      backgroundColor: AppColors.beigeLight,
+      backgroundColor: AppColors.drawerBackground(context),
       shape: const RoundedRectangleBorder(),
       child: SafeArea(
         child: Column(
@@ -46,7 +46,7 @@ class SellerDrawer extends ConsumerWidget {
                       children: [
                         CircleAvatar(
                           radius: 28,
-                          backgroundColor: AppColors.cream,
+                          backgroundColor: AppColors.drawerTile(context),
                           child: ClipOval(
                             child: SizedBox(
                               width: 56,
@@ -69,8 +69,8 @@ class SellerDrawer extends ConsumerWidget {
                                 profile.businessName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: AppColors.navy,
+                                style: TextStyle(
+                                  color: AppColors.onSurface(context),
                                   fontWeight: FontWeight.w800,
                                   fontSize: 16,
                                 ),
@@ -78,8 +78,8 @@ class SellerDrawer extends ConsumerWidget {
                               if (stats != null)
                                 Text(
                                   l10n.reviewsCount(stats.reviewCount),
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
+                                  style: TextStyle(
+                                    color: AppColors.onSurfaceVariant(context),
                                     fontSize: 13,
                                   ),
                                 ),
@@ -91,7 +91,7 @@ class SellerDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            const Divider(color: AppColors.border, height: 1),
+            Divider(color: AppColors.outline(context), height: 1),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -162,7 +162,7 @@ class SellerDrawer extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: FilledButton.tonal(
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.cardSurface(context),
                   foregroundColor: AppColors.primary,
                   minimumSize: const Size.fromHeight(48),
                 ),
@@ -218,8 +218,8 @@ class _DrawerItem extends StatelessWidget {
       leading: Icon(icon, color: AppColors.lavender),
       title: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.navy,
+        style: TextStyle(
+          color: AppColors.onSurface(context),
           fontWeight: FontWeight.w600,
         ),
       ),

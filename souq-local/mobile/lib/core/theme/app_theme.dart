@@ -38,7 +38,7 @@ class AppTheme {
       scaffoldBackgroundColor:
           isDark ? AppColors.darkBackground : AppColors.cream,
       textTheme: textTheme,
-      appBarTheme: AppBarThemeData(
+      appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -64,7 +64,7 @@ class AppTheme {
         color: isDark ? AppColors.darkBorder : AppColors.border,
         thickness: 1,
       ),
-      inputDecorationTheme: InputDecorationThemeData(
+      inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark ? AppColors.darkCard : AppColors.beigeLight,
         labelStyle: TextStyle(
@@ -168,7 +168,7 @@ class AppTheme {
           );
         }),
       ),
-      bottomAppBarTheme: BottomAppBarThemeData(
+      bottomAppBarTheme: BottomAppBarTheme(
         color: isDark ? AppColors.darkSurface : AppColors.cream,
         elevation: 0,
         surfaceTintColor: Colors.transparent,

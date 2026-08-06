@@ -77,7 +77,7 @@ class _OnboardingWelcomeScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: OnboardingBackdrop(
         showSkyline: false,
         showAccentBlob: true,
@@ -166,7 +166,7 @@ class _OnboardingWelcomeScreenState
                             textAlign: TextAlign.center,
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: AppColors.navy,
+                              color: AppColors.onSurface(context),
                               height: 1.15,
                               letterSpacing: -0.3,
                             ),
@@ -176,7 +176,7 @@ class _OnboardingWelcomeScreenState
                             slide.subtitle,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: AppColors.onSurfaceVariant(context),
                               height: 1.45,
                             ),
                           ),
@@ -210,7 +210,7 @@ class _OnboardingWelcomeScreenState
                       Text(
                         l10n.alreadyHaveAccount,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.onSurfaceVariant(context),
                         ),
                       ),
                       TextButton(

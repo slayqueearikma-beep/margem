@@ -23,9 +23,10 @@ from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.models import SubscriptionPlan
-from app.routers import auth, catalog, community, discovery, search, seller_ops, sellers, uploads
+from app.routers import auth, catalog, community, discovery, geography, search, seller_ops, sellers, uploads
 from app.services.local_storage import media_root
-from app.services.community_chat import ensure_default_cities
+from app.services.community_chat import ensure_all_city_communities, ensure_default_cities
+from app.services.geography import ensure_geography_seeded, seed_morocco_cities_if_empty
 from app.telemetry import configure_telemetry
 
 configure_logging(json_logs=settings.app_env in {"production", "prod"})
@@ -74,7 +75,10 @@ async def lifespan(app: FastAPI):
             await session.commit()
 
     async with database.SessionLocal() as session:
+        await seed_morocco_cities_if_empty(session)
+        await ensure_geography_seeded(session)
         await ensure_default_cities(session)
+        await ensure_all_city_communities(session)
 
     yield
     await database.engine.dispose()
@@ -126,6 +130,7 @@ app.include_router(discovery.router)
 app.include_router(search.router)
 app.include_router(seller_ops.router)
 app.include_router(community.router)
+app.include_router(geography.router)
 
 if settings.storage_backend == "local":
     app.mount(
