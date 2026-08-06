@@ -109,6 +109,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void _onQueryChanged(String value) {
     _timer?.cancel();
     _timer = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
       setState(() {
         _debounced = value.trim();
         _future = _load();

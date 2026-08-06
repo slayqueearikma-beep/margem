@@ -15,7 +15,8 @@ def normalize_pricing_fields(
     if resolved == PricingType.OFFER:
         return resolved, None, True
     if price_mad is None:
-        raise ValueError("Fixed price listings require a price in MAD")
+        # Legacy listings and minimal create payloads may omit price; treat as Offre.
+        return PricingType.OFFER, None, True
     if price_mad <= 0:
         raise ValueError("Price must be greater than zero")
     return resolved, float(price_mad), False

@@ -251,18 +251,43 @@ class ApiService {
   }
 
   Future<http.Response> _send(Future<http.Response> Function() request) async {
-    try {
-      return await request().timeout(_requestTimeout);
-    } on TimeoutException {
-      throw ApiException(_connectionErrorMessage);
-    } on SocketException {
-      throw ApiException(_connectionErrorMessage);
-    } on http.ClientException {
-      throw ApiException(_connectionErrorMessage);
-    } on ApiException {
-      rethrow;
-    } on Object {
-      throw ApiException(_connectionErrorMessage);
+    const maxAttempts = 3;
+    var attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        final response = await request().timeout(_requestTimeout);
+        if (attempt < maxAttempts &&
+            (response.statusCode == 502 ||
+                response.statusCode == 503 ||
+                response.statusCode == 504)) {
+          await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+          continue;
+        }
+        return response;
+      } on TimeoutException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on SocketException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on http.ClientException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on ApiException {
+        rethrow;
+      } on Object {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      }
     }
   }
 

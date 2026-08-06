@@ -158,7 +158,7 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
         ua = (request.headers.get("user-agent") or "")[:255]
         device = (request.headers.get("x-device-name") or ua[:80] or "Device")[:120]
 
-    refresh_token = await issue_refresh_token(session, user.id)
+    refresh_token, refresh_token_id = await issue_refresh_token(session, user.id)
     # Attach device metadata to newest refresh token
     result = await session.execute(
         select(RefreshToken)
@@ -177,7 +177,11 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
     has_store = await user_has_seller_profile(session, user.id)
     await session.commit()
     return TokenResponse(
-        access_token=create_access_token(user.id, token_version=getattr(user, "token_version", 0)),
+        access_token=create_access_token(
+            user.id,
+            token_version=getattr(user, "token_version", 0),
+            session_id=refresh_token_id,
+        ),
         refresh_token=refresh_token,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -324,7 +328,7 @@ async def refresh_tokens(
         log_security_event("refresh_failed", client=request.client.host if request.client else "unknown")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
 
-    user_id, new_refresh = rotated
+    user_id, new_refresh, session_id = rotated
     result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user is None:
@@ -343,7 +347,11 @@ async def refresh_tokens(
 
     has_store = await user_has_seller_profile(session, user.id)
     return TokenResponse(
-        access_token=create_access_token(user.id, token_version=getattr(user, "token_version", 0)),
+        access_token=create_access_token(
+            user.id,
+            token_version=getattr(user, "token_version", 0),
+            session_id=session_id,
+        ),
         refresh_token=new_refresh,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),

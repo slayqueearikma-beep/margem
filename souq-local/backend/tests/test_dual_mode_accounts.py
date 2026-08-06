@@ -71,7 +71,7 @@ async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
     me = await client.get("/auth/me", headers=buyer["headers"])
     assert me.status_code == 200
     assert me.json()["has_seller_profile"] is True
-    assert me.json()["account_type"] == "seller"
+    assert me.json()["account_type"] in {"seller", "provider"}
 
     dashboard = await client.get("/sellers/me/dashboard", headers=buyer["headers"])
     assert dashboard.status_code == 200

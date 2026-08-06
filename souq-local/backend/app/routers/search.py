@@ -17,6 +17,7 @@ from app.limiter import limiter
 from app.models import PricingType, Product, SellerProfile, Service, VerificationStatus
 from app.schemas import PricingType as PricingTypeSchema
 from app.schemas import SellerSummary
+from app.services.geo import haversine_km_sql
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -104,6 +105,13 @@ def _provider_filters(
     return stmt
 
 
+def _to_seller_summary(profile: SellerProfile, distance_km: float | None = None) -> SellerSummary:
+    summary = SellerSummary.model_validate(profile)
+    if distance_km is None:
+        return summary
+    return summary.model_copy(update={"distance_km": round(float(distance_km), 2)})
+
+
 @router.get("", response_model=SearchPage)
 @limiter.limit("60/minute")
 async def search(
@@ -117,9 +125,12 @@ async def search(
     delivery_available: bool | None = None,
     pickup_only: bool | None = None,
     available_only: bool = True,
+    lat: float | None = Query(default=None, ge=-90, le=90),
+    lng: float | None = Query(default=None, ge=-180, le=180),
+    radius_km: float | None = Query(default=None, ge=0.1, le=500),
     sort: str = Query(
         default="relevance",
-        pattern="^(relevance|newest|popular|rating|price_low|price_high)$",
+        pattern="^(relevance|newest|popular|rating|price_low|price_high|distance)$",
     ),
     limit: int = Query(default=20, ge=1, le=_MAX_PAGE_SIZE),
     offset: int = Query(default=0, ge=0),
@@ -130,10 +141,17 @@ async def search(
     if max_price is not None and min_price is not None and max_price < min_price:
         raise HTTPException(status_code=422, detail="max_price must be greater than min_price")
 
+    if (lat is None) ^ (lng is None):
+        raise HTTPException(status_code=422, detail="lat and lng must be provided together")
+    if sort == "distance" and (lat is None or lng is None):
+        raise HTTPException(status_code=422, detail="lat and lng are required when sort=distance")
+
+    has_origin = lat is not None and lng is not None
+
     if mode == "sellers":
         mode = "providers"
 
-    sellers: list[SellerProfile] = []
+    sellers: list[SellerSummary] = []
     products: list[ProductSearchOut] = []
     services: list[ServiceSearchOut] = []
     total_sellers = total_products = total_services = 0
@@ -145,26 +163,41 @@ async def search(
             category=category,
             min_rating=min_rating,
         )
+        distance_expr = None
+        if has_origin:
+            distance_expr = haversine_km_sql(
+                SellerProfile.latitude,
+                SellerProfile.longitude,
+                lat,
+                lng,
+            ).label("distance_km")
+            seller_stmt = seller_stmt.add_columns(distance_expr)
+            if radius_km is not None:
+                seller_stmt = seller_stmt.where(distance_expr <= radius_km)
+
         total_sellers = int(
             await session.scalar(select(func.count()).select_from(seller_stmt.subquery())) or 0
         )
-        seller_order = [
-            SellerProfile.is_premium.desc(),
-            SellerProfile.verification_status.desc(),
-            SellerProfile.average_rating.desc(),
-            SellerProfile.review_count.desc(),
-            SellerProfile.created_at.desc(),
-        ]
-        sellers = list(
-            (
-                await session.execute(
-                    seller_stmt.order_by(*seller_order).limit(limit).offset(offset)
-                )
-            )
-            .scalars()
-            .unique()
-            .all()
+        if sort == "distance" and distance_expr is not None:
+            seller_order = [distance_expr.asc(), SellerProfile.average_rating.desc()]
+        else:
+            seller_order = [
+                SellerProfile.is_premium.desc(),
+                SellerProfile.verification_status.desc(),
+                SellerProfile.average_rating.desc(),
+                SellerProfile.review_count.desc(),
+                SellerProfile.created_at.desc(),
+            ]
+        result = await session.execute(
+            seller_stmt.order_by(*seller_order).limit(limit).offset(offset)
         )
+        if has_origin:
+            for row in result.all():
+                profile = row[0]
+                distance_km = float(row[1]) if row[1] is not None else None
+                sellers.append(_to_seller_summary(profile, distance_km))
+        else:
+            sellers = [_to_seller_summary(profile) for profile in result.scalars().unique().all()]
 
     if mode in {"all", "products"}:
         product_stmt = select(Product, SellerProfile).join(
