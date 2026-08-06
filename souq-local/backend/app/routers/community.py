@@ -180,6 +180,7 @@ async def get_city(
     user: User | None = Depends(get_current_user_optional),
     session: AsyncSession = Depends(get_db),
 ) -> CityOut:
+    await ensure_default_cities(session)
     city = await get_city_by_slug(session, slug)
     is_member, is_home = await _membership_flags(session, user, city)
     return _city_out(
@@ -197,6 +198,7 @@ async def join_city_endpoint(
     user: User = Depends(require_verified_email),
     session: AsyncSession = Depends(get_db),
 ) -> CityOut:
+    await ensure_default_cities(session)
     city = await get_city_by_slug(session, slug)
     await join_city(session, user=user, city=city, is_home_city=payload.is_home_city)
     await session.commit()
@@ -209,6 +211,7 @@ async def list_city_channels(
     user: User | None = Depends(get_current_user_optional),
     session: AsyncSession = Depends(get_db),
 ) -> list[CommunityChannelOut]:
+    await ensure_default_cities(session)
     city = await get_city_by_slug(session, slug)
     channels = list(
         (

@@ -222,9 +222,8 @@ class BuyerSearchBar extends StatelessWidget {
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: context.colors.divider),
-        boxShadow: AppShadows.soft(context, blur: 16, y: 3),
       ),
-      padding: EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
         children: [
           SizedBox(width: 8),
@@ -364,7 +363,7 @@ class BuyerPromoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Container(
-      constraints: const BoxConstraints(minHeight: 152),
+      constraints: const BoxConstraints(minHeight: 140),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
@@ -376,7 +375,7 @@ class BuyerPromoBanner extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
           child: Padding(
-            padding: EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.all(AppSpacing.md),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -389,23 +388,24 @@ class BuyerPromoBanner extends StatelessWidget {
                         title,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w800,
-                              height: 1.2,
+                              height: 1.15,
                             ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         subtitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: context.colors.textSecondary,
+                              height: 1.25,
                             ),
                       ),
-                      SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: 8),
                       Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 7,
                         ),
                         decoration: BoxDecoration(
                           color: colors.primary,
@@ -416,22 +416,22 @@ class BuyerPromoBanner extends StatelessWidget {
                           style: TextStyle(
                             color: colors.onPrimary,
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: 12,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(width: 4),
+                const SizedBox(width: 4),
                 Icon(
                   Icons.chair_outlined,
-                  size: 48,
+                  size: 42,
                   color: context.colors.primary.withValues(alpha: 0.25),
                 ),
                 Icon(
                   Icons.shopping_bag_outlined,
-                  size: 36,
+                  size: 32,
                   color: context.colors.border.withValues(alpha: 0.9),
                 ),
               ],
@@ -467,17 +467,22 @@ class _BuyerPromoCarouselState extends State<BuyerPromoCarousel> {
     if (widget.slides.isEmpty) return const SizedBox.shrink();
     return Column(
       children: [
-        SizedBox(
-          height: 160,
-          child: PageView.builder(
-            controller: _controller,
-            itemCount: widget.slides.length,
-            onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (_, i) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: widget.slides[i],
-            ),
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final height = constraints.maxWidth < 360 ? 168.0 : 172.0;
+            return SizedBox(
+              height: height,
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: widget.slides.length,
+                onPageChanged: (i) => setState(() => _index = i),
+                itemBuilder: (_, i) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: widget.slides[i],
+                ),
+              ),
+            );
+          },
         ),
         const SizedBox(height: AppSpacing.sm),
         Row(
@@ -934,7 +939,7 @@ class BuyerSurfaceCard extends StatelessWidget {
     );
 
     return Material(
-      color: Colors.white,
+      color: context.colors.surface,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -943,7 +948,7 @@ class BuyerSurfaceCard extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            boxShadow: AppShadows.soft(context, blur: 16, y: 4),
+            border: Border.all(color: context.colors.border),
           ),
           child: content,
         ),
@@ -990,7 +995,7 @@ class BuyerMenuTile extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            boxShadow: AppShadows.soft(context, blur: 12, y: 2),
+            border: Border.all(color: context.colors.border),
           ),
           child: Row(
             children: [

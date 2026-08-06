@@ -460,6 +460,100 @@ class ApiService {
     int offset = 0,
     int limit = 20,
   }) async {
+    try {
+      return await _searchMarketplaceRequest(
+        query: query,
+        mode: _normalizeSearchMode(mode),
+        category: category,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        minRating: minRating,
+        deliveryAvailable: deliveryAvailable,
+        pickupOnly: pickupOnly,
+        sort: sort,
+        offset: offset,
+        limit: limit,
+      );
+    } on ApiException catch (error) {
+      if (error.statusCode == 422 && mode != 'all') {
+        final fallbackMode = _legacySearchMode(mode);
+        if (fallbackMode != mode) {
+          final page = await _searchMarketplaceRequest(
+            query: query,
+            mode: fallbackMode,
+            category: category,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            minRating: minRating,
+            deliveryAvailable: deliveryAvailable,
+            pickupOnly: pickupOnly,
+            sort: sort,
+            offset: offset,
+            limit: limit,
+          );
+          return _filterSearchPage(page, mode);
+        }
+      }
+      rethrow;
+    }
+  }
+
+  String _normalizeSearchMode(String mode) {
+    return switch (mode) {
+      'providers' => 'sellers',
+      _ => mode,
+    };
+  }
+
+  String _legacySearchMode(String mode) {
+    return switch (mode) {
+      'providers' => 'sellers',
+      'services' => 'all',
+      _ => 'all',
+    };
+  }
+
+  MarketplaceSearchPage _filterSearchPage(MarketplaceSearchPage page, String mode) {
+    return switch (mode) {
+      'services' => MarketplaceSearchPage(
+          products: const [],
+          services: page.services,
+          sellers: const [],
+          totalProducts: 0,
+          totalServices: page.services.length,
+          totalSellers: 0,
+          limit: page.limit,
+          offset: page.offset,
+          hasMore: page.hasMore,
+        ),
+      'providers' => MarketplaceSearchPage(
+          products: const [],
+          services: const [],
+          sellers: page.sellers,
+          totalProducts: 0,
+          totalServices: 0,
+          totalSellers: page.sellers.length,
+          limit: page.limit,
+          offset: page.offset,
+          hasMore: page.hasMore,
+        ),
+      _ => page,
+    };
+  }
+
+  Future<MarketplaceSearchPage> _searchMarketplaceRequest({
+    required String query,
+    required String mode,
+    String? category,
+    double? minPrice,
+    double? maxPrice,
+    double? minRating,
+    bool? deliveryAvailable,
+    bool? pickupOnly,
+    String sort = 'relevance',
+    int offset = 0,
+    int limit = 20,
+  }) async {
     final params = <String, String>{
       'q': query,
       'mode': mode,
@@ -929,6 +1023,23 @@ class ApiService {
     return SubscriptionModel.fromJson(data);
   }
 
+  Future<BillingStatusModel> fetchBillingStatus() async {
+    final data = await getJson('/subscriptions/billing/status', auth: false);
+    return BillingStatusModel.fromJson(data);
+  }
+
+  Future<BillingCheckoutResult> checkoutSubscription(String planCode) async {
+    final data = await postJson(
+      '/subscriptions/checkout/$planCode',
+      {
+        'success_url': 'margem://premium/success',
+        'cancel_url': 'margem://premium/cancel',
+      },
+      auth: true,
+    );
+    return BillingCheckoutResult.fromJson(data);
+  }
+
   Future<void> requestPasswordReset(String email) {
     return postVoid('/auth/password-reset/request', {'email': email},
         auth: false);
@@ -984,6 +1095,10 @@ class ApiService {
                 if (item is Map<String, dynamic>) {
                   final msg = item['msg']?.toString();
                   if (msg == null || msg.isEmpty) return null;
+                  if (msg.contains('should match pattern') ||
+                      msg.contains('validation error')) {
+                    return null;
+                  }
                   final loc = item['loc'];
                   if (loc is List && loc.isNotEmpty) {
                     return '${loc.last}: $msg';
@@ -995,6 +1110,7 @@ class ApiService {
               .whereType<String>()
               .toList();
           if (messages.isNotEmpty) return messages.join('\n');
+          return 'Request could not be processed.';
         }
       }
     } on Object {

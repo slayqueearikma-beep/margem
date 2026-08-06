@@ -138,6 +138,13 @@ abstract class AppStrings {
   String get serverUnreachable;
   String get somethingWentWrong;
   String get tryAgain;
+  String get contentNotFound;
+  String get requestCouldNotBeProcessed;
+  String get tooManyRequests;
+  String get mapUnavailable;
+  String get searchEmptySubtitle;
+  String get premiumCheckoutOpened;
+  String get premiumCheckoutFailed;
   String get verifyEmailToContinue;
   String get pressBackAgainToExit;
   String get search;

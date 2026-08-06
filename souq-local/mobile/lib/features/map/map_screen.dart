@@ -60,31 +60,53 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(buyerCityProvider);
+    final l10n = context.l10n;
 
     if (!AppConfig.hasGoogleMapsApiKey) {
-      return Scaffold(
-        body: SafeArea(
-          child: MapUnavailablePlaceholder(
-            cityCenter: CityCoordinates.centerFor(city),
-            usingDemoData: false,
+      return BuyerScreenScaffold(
+        appBar: BuyerAppBar(
+          title: l10n.mapPreviewTitle,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => context.pop(),
           ),
+        ),
+        body: MapUnavailablePlaceholder(
+          cityCenter: CityCoordinates.centerFor(city),
+          usingDemoData: false,
         ),
       );
     }
-
-    final l10n = context.l10n;
 
     return FutureBuilder<_MapData>(
       future: _mapFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return BuyerScreenScaffold(
+            appBar: BuyerAppBar(
+              title: l10n.mapPreviewTitle,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => context.pop(),
+              ),
+            ),
+            body: const Center(child: CircularProgressIndicator()),
+          );
         }
 
         if (snapshot.hasError) {
-          return AsyncErrorView.fromError(
-            snapshot.error!,
-            onRetry: () => _reload(city),
+          return BuyerScreenScaffold(
+            appBar: BuyerAppBar(
+              title: l10n.mapPreviewTitle,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => context.pop(),
+              ),
+            ),
+            body: AsyncErrorView.fromError(
+              snapshot.error!,
+              onRetry: () => _reload(city),
+            ),
           );
         }
 
@@ -137,8 +159,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               myLocationEnabled: _locationEnabled,
             ),
             Positioned(
-              top: MediaQuery.of(context).padding.top + 12,
+              top: MediaQuery.of(context).padding.top + 8,
               left: AppSpacing.screenHorizontal,
+              child: Material(
+                color: context.colors.surface,
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => context.pop(),
+                ),
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 12,
+              left: AppSpacing.screenHorizontal + 52,
               right: AppSpacing.screenHorizontal,
               child: BuyerSurfaceCard(
                 child: Padding(

@@ -214,10 +214,15 @@ class CommunityCityScreen extends ConsumerWidget {
       ),
       floatingActionButton: isGuest
           ? null
-          : FloatingActionButton.extended(
+          : FloatingActionButton(
               onPressed: () {
                 final channels = channelsAsync.valueOrNull;
-                if (channels == null || channels.isEmpty) return;
+                if (channels == null || channels.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.communityNoChannels)),
+                  );
+                  return;
+                }
                 final general = channels.firstWhere(
                   (c) => c.category == 'general',
                   orElse: () => channels.first,
@@ -230,8 +235,8 @@ class CommunityCityScreen extends ConsumerWidget {
                   },
                 );
               },
-              icon: const Icon(Icons.edit_outlined),
-              label: Text(l10n.communityNewMessage),
+              tooltip: l10n.communityNewMessage,
+              child: const Icon(Icons.edit_rounded, size: 22),
             ),
     );
   }

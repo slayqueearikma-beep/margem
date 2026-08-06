@@ -95,7 +95,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return apiServiceProvider.searchMarketplace(
       query: _debounced,
       mode: _mode,
-      category: category,
+      category: category?.isEmpty == true ? null : category,
       minPrice: _filters.minPrice,
       maxPrice: _filters.maxPrice,
       minRating: _filters.minRating,
@@ -335,28 +335,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   onChanged: _onQueryChanged,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(
-                      value: 'products',
-                      label: Text(l10n.products),
-                      icon: const Icon(Icons.inventory_2_outlined),
-                    ),
-                    ButtonSegment(
-                      value: 'services',
-                      label: Text(l10n.services),
-                      icon: const Icon(Icons.handyman_outlined),
-                    ),
-                    ButtonSegment(
-                      value: 'providers',
-                      label: Text(l10n.provider),
-                      icon: const Icon(Icons.storefront_outlined),
-                    ),
-                  ],
-                  selected: {_mode},
-                  onSelectionChanged: (values) {
+                _SearchModeSelector(
+                  mode: _mode,
+                  onChanged: (value) {
                     setState(() {
-                      _mode = values.first;
+                      _mode = value;
                       _future = _load();
                     });
                   },
@@ -384,7 +367,40 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   _ => page?.products.length ?? 0,
                 };
                 if (count == 0) {
-                  return Center(child: Text(l10n.noBusinessesFound));
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            l10n.noBusinessesFound,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            l10n.searchEmptySubtitle,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(
@@ -494,6 +510,74 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SearchModeSelector extends StatelessWidget {
+  const _SearchModeSelector({
+    required this.mode,
+    required this.onChanged,
+  });
+
+  final String mode;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final items = <({String value, String label, IconData icon})>[
+      (value: 'products', label: l10n.products, icon: Icons.inventory_2_outlined),
+      (value: 'services', label: l10n.services, icon: Icons.handyman_outlined),
+      (value: 'providers', label: l10n.provider, icon: Icons.storefront_outlined),
+    ];
+
+    return Row(
+      children: [
+        for (final item in items) ...[
+          Expanded(
+            child: Material(
+              color: mode == item.value
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                onTap: () => onChanged(item.value),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        item.icon,
+                        size: 18,
+                        color: mode == item.value
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: mode == item.value
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (item != items.last) const SizedBox(width: 8),
+        ],
+      ],
     );
   }
 }

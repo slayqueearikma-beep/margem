@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../config/app_config.dart';
-import '../services/api_service.dart';
 import '../theme/app_spacing.dart';
+import '../utils/friendly_errors.dart';
 import '../theme/theme_context.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -12,26 +11,35 @@ class AsyncErrorView extends StatelessWidget {
     super.key,
     required this.message,
     this.onRetry,
-  });
+  }) : error = null;
 
-  final String message;
+  const AsyncErrorView._fromError({
+    super.key,
+    required this.error,
+    this.onRetry,
+  }) : message = null;
+
+  final String? message;
+  final Object? error;
   final VoidCallback? onRetry;
 
   factory AsyncErrorView.fromError(Object error, {VoidCallback? onRetry}) {
-    final text = error is ApiException
-        ? error.message
-        : (AppConfig.isProduction ? null : error.toString());
-    return AsyncErrorView(message: text ?? '', onRetry: onRetry);
+    return AsyncErrorView._fromError(error: error, onRetry: onRetry);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final displayMessage = error != null
+        ? friendlyErrorMessage(error!, context.l10n)
+        : (message?.isNotEmpty == true
+            ? message!
+            : context.l10n.somethingWentWrong);
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.screenHorizontal,
             vertical: AppSpacing.lg,
           ),
@@ -46,7 +54,7 @@ class AsyncErrorView extends StatelessWidget {
                     size: 48,
                     color: theme.colorScheme.error,
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
                     context.l10n.somethingWentWrong,
                     textAlign: TextAlign.center,
@@ -54,11 +62,9 @@ class AsyncErrorView extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
-                    message.isEmpty
-                        ? context.l10n.somethingWentWrong
-                        : message,
+                    displayMessage,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: context.colors.textSecondary,
