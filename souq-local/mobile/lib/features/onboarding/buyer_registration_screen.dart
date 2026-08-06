@@ -67,7 +67,7 @@ class _BuyerRegistrationScreenState
         final session = await auth.register(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          accountType: 'buyer',
+          accountType: 'customer',
           displayName: _nameController.text.trim(),
         );
 
@@ -83,7 +83,7 @@ class _BuyerRegistrationScreenState
         final userSession = UserSession(
           name: session.user.displayName,
           email: session.user.email,
-          accountType: AccountType.buyer,
+          accountType: AccountType.customer,
           city: _city,
         );
 

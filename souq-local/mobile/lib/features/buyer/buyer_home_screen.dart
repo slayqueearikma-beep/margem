@@ -139,7 +139,6 @@ class BuyerHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
-    final city = ref.watch(buyerCityProvider);
     final sellersAsync = ref.watch(buyerSellersProvider);
     final categoriesAsync = ref.watch(buyerCategoriesProvider);
     final favoriteIds = ref.watch(buyerFavoriteSellerIdsProvider).valueOrNull ??
@@ -165,15 +164,13 @@ class BuyerHomeScreen extends ConsumerWidget {
                     greeting: l10n.goodMorning(
                       session?.name.split(' ').first ?? l10n.guestMode,
                     ),
-                    city: city,
                     isGuest: isGuest,
-                    onCityTap: null,
                     onNotifications: () {
                       if (isGuest) {
                         context.push('/login');
                         return;
                       }
-                      if (session.accountType == AccountType.seller) {
+                      if (session.accountType == AccountType.provider) {
                         context.push('/seller/notifications');
                         return;
                       }
@@ -284,7 +281,7 @@ class BuyerHomeScreen extends ConsumerWidget {
               ),
               child: _ExploreMapCard(
                 title: l10n.exploreOnMap,
-                subtitle: l10n.exploreOnMapSubtitle(city),
+                subtitle: l10n.exploreOnMapSubtitle(AppConfig.launchCity),
                 onTap: () => context.push('/map'),
               ),
             ),
@@ -299,7 +296,8 @@ class BuyerHomeScreen extends ConsumerWidget {
               }
 
               final featured = sellers.take(8).toList();
-              final cityCenter = CityCoordinates.centerFor(city);
+              final cityCenter =
+                  CityCoordinates.centerFor(AppConfig.launchCity);
 
               return SliverList(
                 delegate: SliverChildListDelegate([
@@ -384,11 +382,17 @@ class BuyerHomeScreen extends ConsumerWidget {
 
   static IconData _categoryIcon(String icon) {
     return switch (icon) {
-      'beauty' || 'spa' => Icons.spa_outlined,
-      'clothing' || 'fashion' => Icons.checkroom_outlined,
-      'electronics' => Icons.smartphone_outlined,
+      'beauty' || 'spa' || 'fragrance' => Icons.spa_outlined,
+      'clothing' || 'fashion' || 'checkroom' => Icons.checkroom_outlined,
+      'shoes' || 'steps' => Icons.directions_walk_outlined,
+      'electronics' || 'devices' => Icons.smartphone_outlined,
       'food' || 'restaurant' => Icons.restaurant_outlined,
-      'services' => Icons.handyman_outlined,
+      'home' => Icons.home_outlined,
+      'jewelry' || 'diamond' => Icons.diamond_outlined,
+      'accessories' || 'watch' => Icons.watch_outlined,
+      'sports' || 'sports_soccer' => Icons.sports_soccer_outlined,
+      'health' || 'local_hospital' => Icons.local_hospital_outlined,
+      'kids' || 'child_care' => Icons.child_care_outlined,
       _ => Icons.storefront_outlined,
     };
   }
@@ -461,18 +465,14 @@ class BuyerHomeScreen extends ConsumerWidget {
 class _HomeTopBar extends StatelessWidget {
   const _HomeTopBar({
     required this.greeting,
-    required this.city,
     required this.isGuest,
-    this.onCityTap,
     required this.onNotifications,
     required this.onPremium,
     required this.onProfile,
   });
 
   final String greeting;
-  final String city;
   final bool isGuest;
-  final VoidCallback? onCityTap;
   final VoidCallback onNotifications;
   final VoidCallback onPremium;
   final VoidCallback onProfile;
@@ -484,45 +484,13 @@ class _HomeTopBar extends StatelessWidget {
         const AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 30),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                greeting,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-              ),
-              if (onCityTap == null)
-                Text(
-                  city,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                )
-              else
-                InkWell(
-                  onTap: onCityTap,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          city,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                      ),
-                      const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-                    ],
-                  ),
+          child: Text(
+            greeting,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
-            ],
           ),
         ),
         IconButton(
@@ -1017,11 +985,6 @@ class BuyerProfileScreen extends ConsumerWidget {
                 context.pop();
                 ref.read(buyerTabIndexProvider.notifier).state = 2;
               },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_city_outlined),
-              title: Text(l10n.city),
-              subtitle: Text(session?.city ?? '—'),
             ),
             const LanguageSettingsTile(),
             if (!isGuest)

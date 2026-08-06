@@ -77,7 +77,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               : l10n.returningUser,
           email: session.user.email,
           accountType:
-              session.user.canSell ? AccountType.seller : AccountType.buyer,
+              session.user.canSell ? AccountType.provider : AccountType.customer,
           city: AppConfig.launchCity,
           businessName: existing?.businessName,
           sellerId: existing?.sellerId,
@@ -87,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           try {
             final seller = await apiServiceProvider.fetchMySeller();
             userSession = userSession.copyWith(
-              accountType: AccountType.seller,
+              accountType: AccountType.provider,
               sellerId: seller.id,
               businessName: seller.businessName,
               city: seller.city,
@@ -106,6 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         await storage.saveSession(userSession);
         if (userSession.hasSellerProfile &&
             storage.getAppMode(session: userSession) == AppMode.buyer &&
+            session.user.accountType == 'provider' ||
             session.user.accountType == 'seller') {
           await storage.saveAppMode(AppMode.seller);
         }

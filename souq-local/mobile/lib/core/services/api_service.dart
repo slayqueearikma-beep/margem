@@ -350,8 +350,12 @@ class ApiService {
   Future<MarketplaceSearchPage> searchMarketplace({
     required String query,
     required String mode,
-    String? city,
     String? category,
+    double? minPrice,
+    double? maxPrice,
+    double? minRating,
+    bool? deliveryAvailable,
+    bool? pickupOnly,
     String sort = 'relevance',
     int offset = 0,
     int limit = 20,
@@ -362,8 +366,12 @@ class ApiService {
       'sort': sort,
       'offset': '$offset',
       'limit': '$limit',
-      if (city != null && city.isNotEmpty) 'city': city,
       if (category != null && category.isNotEmpty) 'category': category,
+      if (minPrice != null) 'min_price': '$minPrice',
+      if (maxPrice != null) 'max_price': '$maxPrice',
+      if (minRating != null) 'min_rating': '$minRating',
+      if (deliveryAvailable == true) 'delivery_available': 'true',
+      if (pickupOnly == true) 'pickup_only': 'true',
     };
     final response = await _request(
       () => _get(_uri('/search', params), headers: _authHeaders),

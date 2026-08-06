@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
+import '../../core/models/models.dart';
 import '../../core/models/auth_models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -43,7 +44,7 @@ class _SellerRegistrationScreenState
   final _passwordController = TextEditingController();
 
   // Step 2
-  String _category = 'Food';
+  String? _categorySlug;
   final String _city = AppConfig.launchCity;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -67,17 +68,29 @@ class _SellerRegistrationScreenState
 
   // Step 4
   final List<_ProductDraft> _products = [_ProductDraft()];
+  List<CategoryModel> _categories = const [];
+  bool _categoriesLoading = true;
 
-  static const _categories = [
-    'Food',
-    'Clothing',
-    'Electronics',
-    'Beauty',
-    'Services',
-    'Home & Garden',
-    'Health',
-    'Sports',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await apiServiceProvider.fetchCategories();
+      if (!mounted) return;
+      setState(() {
+        _categories = categories;
+        _categorySlug ??=
+            categories.isNotEmpty ? categories.first.slug : null;
+        _categoriesLoading = false;
+      });
+    } on Object {
+      if (mounted) setState(() => _categoriesLoading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -108,7 +121,8 @@ class _SellerRegistrationScreenState
             _emailController.text.trim().isNotEmpty &&
             _passwordController.text.length >= 8;
       case 2:
-        return _addressController.text.trim().isNotEmpty &&
+        return _categorySlug != null &&
+            _addressController.text.trim().isNotEmpty &&
             _phoneController.text.trim().isNotEmpty;
       case 3:
         return _descriptionController.text.trim().isNotEmpty;
@@ -152,14 +166,14 @@ class _SellerRegistrationScreenState
         final session = await auth.register(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          accountType: 'seller',
+          accountType: 'provider',
           displayName: _ownerNameController.text.trim(),
         );
 
         final prefs = await ref.read(sharedPreferencesProvider.future);
         await auth.persistToken(prefs);
 
-        final slug = sellerCategorySlugMap[_category] ?? 'food';
+        final slug = _categorySlug ?? 'food';
         final categoryId = await apiServiceProvider.categoryIdForSlug(slug);
 
         final uploader = ref.read(uploadServiceProvider);
@@ -223,7 +237,7 @@ class _SellerRegistrationScreenState
         final userSession = UserSession(
           name: _ownerNameController.text.trim(),
           email: session.user.email,
-          accountType: AccountType.seller,
+          accountType: AccountType.provider,
           city: _city,
           businessName: _businessNameController.text.trim(),
           sellerId: sellerId,
@@ -321,6 +335,13 @@ class _SellerRegistrationScreenState
   }
 
   Widget _buildStep2(AppStrings l10n) {
+    final locale = Localizations.localeOf(context).languageCode;
+    final selectedCategory = _categories
+        .where((cat) => cat.slug == _categorySlug)
+        .cast<CategoryModel?>()
+        .firstOrNull;
+    final categoryLabel = selectedCategory?.localizedName(locale) ?? '—';
+
     return Column(
       key: const ValueKey(2),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,32 +349,31 @@ class _SellerRegistrationScreenState
         AppScreenHeader(
             title: l10n.sellerStep2Title, subtitle: l10n.sellerStep2Subtitle),
         const SizedBox(height: AppSpacing.xl),
-        AppTextField(
-          label: l10n.businessCategory,
-          hint: l10n.categoryLabel(_category),
-          readOnly: true,
-          prefixIcon: Icons.category_outlined,
-          onTap: () async {
-            final selected = await showModalBottomSheet<String>(
-              context: context,
-              builder: (ctx) => ListView(
-                children: _categories
-                    .map((c) => ListTile(
-                        title: Text(l10n.categoryLabel(c)),
-                        onTap: () => Navigator.pop(ctx, c)))
-                    .toList(),
-              ),
-            );
-            if (selected != null) setState(() => _category = selected);
-          },
-        ),
-        const SizedBox(height: AppSpacing.md),
-        AppTextField(
-          label: l10n.city,
-          hint: AppConfig.launchCity,
-          readOnly: true,
-          prefixIcon: Icons.location_city_outlined,
-        ),
+        if (_categoriesLoading)
+          const Center(child: CircularProgressIndicator())
+        else if (_categories.isEmpty)
+          Text(l10n.somethingWentWrong)
+        else
+          AppTextField(
+            label: l10n.businessCategory,
+            hint: categoryLabel,
+            readOnly: true,
+            prefixIcon: Icons.category_outlined,
+            onTap: () async {
+              final selected = await showModalBottomSheet<String>(
+                context: context,
+                builder: (ctx) => ListView(
+                  children: _categories
+                      .map((cat) => ListTile(
+                            title: Text(cat.localizedName(locale)),
+                            onTap: () => Navigator.pop(ctx, cat.slug),
+                          ))
+                      .toList(),
+                ),
+              );
+              if (selected != null) setState(() => _categorySlug = selected);
+            },
+          ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
             label: l10n.fullAddress,
@@ -515,6 +535,12 @@ class _SellerRegistrationScreenState
   Widget _buildStep5(AppStrings l10n) {
     final productCount =
         _products.where((p) => p.nameController.text.isNotEmpty).length;
+    final locale = Localizations.localeOf(context).languageCode;
+    final selectedCategory = _categories
+        .where((cat) => cat.slug == _categorySlug)
+        .cast<CategoryModel?>()
+        .firstOrNull;
+    final categoryLabel = selectedCategory?.localizedName(locale) ?? '—';
     return Column(
       key: const ValueKey(5),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,8 +551,7 @@ class _SellerRegistrationScreenState
         _ReviewRow(l10n.reviewBusiness, _businessNameController.text),
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
         _ReviewRow(l10n.email, _emailController.text),
-        _ReviewRow(l10n.reviewCategory, l10n.categoryLabel(_category)),
-        _ReviewRow(l10n.reviewCity, _city),
+        _ReviewRow(l10n.reviewCategory, categoryLabel),
         _ReviewRow(l10n.reviewAddress, _addressController.text),
         _ReviewRow(l10n.reviewPhone, _phoneController.text),
         _ReviewRow(l10n.reviewProducts, l10n.itemsCount(productCount)),

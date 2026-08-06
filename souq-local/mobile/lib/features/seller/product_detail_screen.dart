@@ -190,9 +190,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              product.priceMad == null
-                                  ? l10n.priceOnRequest
-                                  : '${product.priceMad!.toStringAsFixed(2)} MAD',
+                              product.isOffer
+                                  ? l10n.pricingOffer
+                                  : product.priceMad == null
+                                      ? l10n.priceOnRequest
+                                      : '${product.priceMad!.toStringAsFixed(2)} MAD',
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineMedium

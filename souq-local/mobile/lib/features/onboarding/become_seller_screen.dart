@@ -68,7 +68,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
       );
       final storage = ref.read(appStorageProvider);
       final updated = session.copyWith(
-        accountType: AccountType.seller,
+        accountType: AccountType.provider,
         sellerId: seller.id,
         businessName: seller.businessName,
         city: seller.city,
