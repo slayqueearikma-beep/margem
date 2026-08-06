@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
-import '../../core/widgets/onboarding_backdrop.dart';
-import '../../l10n/app_localizations.dart';
+import '../../core/widgets/splash_backdrop.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -116,58 +115,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      backgroundColor: AppColors.cream,
-      body: OnboardingBackdrop(
-        child: SafeArea(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: ColoredBox(
+        color: AppColors.cream,
+        child: SplashBackdrop(
           child: FadeTransition(
             opacity: _fade,
             child: ScaleTransition(
               scale: _scale,
-              child: Column(
-                children: [
-                  const Spacer(flex: 3),
-                  const AppBrandLogo(
-                    tier: AppLogoTier.splash,
-                    includeClearSpace: false,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    l10n.appName,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.lavender,
-                          letterSpacing: -0.5,
-                          height: 1.05,
-                        ) ??
-                        const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.lavender,
-                        ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.screenHorizontal,
-                    ),
-                    child: Text(
-                      l10n.splashTagline,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppColors.navy.withValues(alpha: 0.85),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            height: 1.35,
-                          ),
-                    ),
-                  ),
-                  const Spacer(flex: 4),
-                ],
+              child: const Center(
+                child: AppBrandLogo(
+                  tier: AppLogoTier.splash,
+                  includeClearSpace: false,
+                ),
               ),
             ),
           ),
