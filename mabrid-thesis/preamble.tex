@@ -3,6 +3,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
+\frenchbsetup{AutoSpacePunctuation=true}
 \usepackage{lmodern}
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \usepackage{setspace}
@@ -77,9 +78,22 @@
   maxbibnames=6,
   giveninits=true,
   uniquename=init,
-  language=french
+  autolang=other
 ]{biblatex}
 \addbibresource{references.bib}
+% Filet de sécurité si french.lbx n'est pas chargé (ex. sans texlive-lang-french)
+\DefineBibliographyStrings{french}{
+  and       = {et},
+  andothers = {et\addabbrvspace al\adddot},
+  in        = {dans},
+  page      = {p\adddot},
+  pages     = {p\adddot},
+  urlseen   = {consulté le},
+  editor    = {sous la dir\adddot de},
+  editors   = {sous la dir\adddot de},
+  byeditor  = {sous la dir\adddot de},
+}
+\DeclareLanguageMapping{french}{french}
 
 \usepackage[acronym,toc]{glossaries}
 \makeglossaries

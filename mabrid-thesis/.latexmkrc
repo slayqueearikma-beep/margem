@@ -10,5 +10,6 @@ sub run_makeglossaries {
     system('makeglossaries', '-q', $base_name);
 }
 
-# Force multi-pass builds for TOC and references
+# Force multi-pass builds for TOC, references and bibliography
 $pdflatex = 'pdflatex -interaction=nonstopmode %O %S';
+$max_repeat = 5;
