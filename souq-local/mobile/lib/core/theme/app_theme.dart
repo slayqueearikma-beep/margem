@@ -12,17 +12,19 @@ class AppTheme {
   static ThemeData _build(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     final textTheme = AppTypography.textTheme(brightness);
+    final accent = AppColors.accent(brightness);
+    final accentMuted = AppColors.accentMuted(brightness);
 
     final colorScheme = ColorScheme(
       brightness: brightness,
-      primary: AppColors.lavender,
+      primary: accent,
       onPrimary: Colors.white,
-      secondary: AppColors.peach,
-      onSecondary: AppColors.navy,
-      tertiary: AppColors.lavenderLight,
+      secondary: isDark ? AppColors.darkTextSecondary : AppColors.secondary,
+      onSecondary: Colors.white,
+      tertiary: isDark ? AppColors.darkPrimary : AppColors.primaryLight,
       error: AppColors.danger,
       onError: Colors.white,
-      surface: isDark ? AppColors.darkSurface : AppColors.surfaceLight,
+      surface: AppColors.surface(brightness),
       onSurface: isDark ? Colors.white : AppColors.textPrimary,
       onSurfaceVariant:
           isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
@@ -35,10 +37,9 @@ class AppTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor:
-          isDark ? AppColors.darkBackground : AppColors.cream,
+      scaffoldBackgroundColor: AppColors.scaffold(brightness),
       textTheme: textTheme,
-      appBarTheme: AppBarThemeData(
+      appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -50,7 +51,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: isDark ? AppColors.darkCard : AppColors.cream,
+        color: isDark ? AppColors.darkCard : AppColors.surfaceLight,
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
@@ -64,9 +65,9 @@ class AppTheme {
         color: isDark ? AppColors.darkBorder : AppColors.border,
         thickness: 1,
       ),
-      inputDecorationTheme: InputDecorationThemeData(
+      inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? AppColors.darkCard : AppColors.beigeLight,
+        fillColor: isDark ? AppColors.darkCard : AppColors.surfaceMuted,
         labelStyle: TextStyle(
           color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
         ),
@@ -87,7 +88,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-          borderSide: const BorderSide(color: AppColors.lavender, width: 1.5),
+          borderSide: BorderSide(color: accent, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -98,9 +99,9 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.lavender,
+          backgroundColor: accent,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.lavender.withValues(alpha: 0.35),
+          disabledBackgroundColor: accent.withValues(alpha: 0.35),
           minimumSize: const Size.fromHeight(AppSpacing.minTouchTarget + 4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
@@ -124,14 +125,14 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.lavender,
-          textStyle: textTheme.labelLarge?.copyWith(color: AppColors.lavender),
+          foregroundColor: accent,
+          textStyle: textTheme.labelLarge?.copyWith(color: accent),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor:
-            isDark ? AppColors.darkCard : AppColors.beigeLight,
-        selectedColor: AppColors.lavender.withValues(alpha: 0.18),
+            isDark ? AppColors.darkCard : AppColors.surfaceMuted,
+        selectedColor: accent.withValues(alpha: 0.18),
         labelStyle: textTheme.bodySmall!,
         side: BorderSide(
           color: isDark ? AppColors.darkBorder : AppColors.border,
@@ -143,15 +144,15 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: isDark
             ? AppColors.darkSurface.withValues(alpha: 0.95)
-            : AppColors.cream.withValues(alpha: 0.98),
-        indicatorColor: AppColors.lavender.withValues(alpha: 0.15),
+            : AppColors.surfaceLight.withValues(alpha: 0.98),
+        indicatorColor: accent.withValues(alpha: 0.15),
         elevation: 0,
         height: 68,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.lavender,
+              color: accent,
             );
           }
           return textTheme.labelSmall?.copyWith(
@@ -160,7 +161,7 @@ class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.lavender, size: 24);
+            return IconThemeData(color: accent, size: 24);
           }
           return IconThemeData(
             color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
@@ -168,19 +169,19 @@ class AppTheme {
           );
         }),
       ),
-      bottomAppBarTheme: BottomAppBarThemeData(
-        color: isDark ? AppColors.darkSurface : AppColors.cream,
+      bottomAppBarTheme: BottomAppBarTheme(
+        color: isDark ? AppColors.darkSurface : AppColors.surfaceLight,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.lavender,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: accent,
         foregroundColor: Colors.white,
         elevation: 4,
-        shape: CircleBorder(),
+        shape: const CircleBorder(),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.cream,
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.surfaceLight,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
@@ -196,7 +197,7 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.beigeLight,
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.surfaceMuted,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -204,10 +205,10 @@ class AppTheme {
         dragHandleColor: isDark ? AppColors.darkBorder : AppColors.border,
       ),
       tabBarTheme: TabBarThemeData(
-        labelColor: AppColors.lavender,
+        labelColor: accent,
         unselectedLabelColor:
             isDark ? AppColors.textTertiary : AppColors.textSecondary,
-        indicatorColor: AppColors.lavender,
+        indicatorColor: accent,
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: Colors.transparent,
         labelStyle: textTheme.labelLarge?.copyWith(fontSize: 14),
@@ -220,24 +221,24 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
         ),
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.lavender,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: accent,
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.lavender;
+          if (states.contains(WidgetState.selected)) return accent;
           return isDark ? AppColors.darkBorder : Colors.white;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.lavender.withValues(alpha: 0.4);
+            return accent.withValues(alpha: 0.4);
           }
           return isDark ? AppColors.darkBorder : AppColors.border;
         }),
       ),
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.lavender;
+          if (states.contains(WidgetState.selected)) return accent;
           return Colors.transparent;
         }),
         side: BorderSide(

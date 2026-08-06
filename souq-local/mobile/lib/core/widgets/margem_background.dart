@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// Soft warm gradient blob background used across MarGem screens.
+/// Soft neutral gradient blob background used across MarGem screens.
 class MargemBackground extends StatelessWidget {
   const MargemBackground({
     super.key,
@@ -17,11 +17,13 @@ class MargemBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final accent = AppColors.accent(brightness);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBackground : AppColors.cream,
+        color: AppColors.scaffold(brightness),
       ),
       child: Stack(
         fit: StackFit.expand,
@@ -34,12 +36,12 @@ class MargemBackground extends StatelessWidget {
                 size: 280,
                 colors: isDark
                     ? [
-                        AppColors.beige.withValues(alpha: 0.12),
-                        AppColors.beige.withValues(alpha: 0.02),
+                        AppColors.surfaceMuted.withValues(alpha: 0.12),
+                        AppColors.surfaceMuted.withValues(alpha: 0.02),
                       ]
                     : [
-                        AppColors.beige.withValues(alpha: 0.35),
-                        AppColors.beige.withValues(alpha: 0.05),
+                        AppColors.border.withValues(alpha: 0.35),
+                        AppColors.border.withValues(alpha: 0.05),
                       ],
               ),
             ),
@@ -50,12 +52,12 @@ class MargemBackground extends StatelessWidget {
                 size: 320,
                 colors: isDark
                     ? [
-                        AppColors.lavender.withValues(alpha: 0.10),
-                        AppColors.lavender.withValues(alpha: 0.02),
+                        accent.withValues(alpha: 0.10),
+                        accent.withValues(alpha: 0.02),
                       ]
                     : [
-                        AppColors.lavender.withValues(alpha: 0.12),
-                        AppColors.lavender.withValues(alpha: 0.03),
+                        accent.withValues(alpha: 0.12),
+                        accent.withValues(alpha: 0.03),
                       ],
               ),
             ),
