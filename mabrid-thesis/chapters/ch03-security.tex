@@ -1,45 +1,45 @@
-\chapter{Enterprise Security Architecture}
+\chapter{Architecture de sécurité d'entreprise}
 \label{ch:security}
 
 \section{Introduction}
 
-For a trusted marketplace, security failure translates directly into reputational collapse, regulatory sanction, and user attrition. This chapter presents MABRID's enterprise security architecture: governance, Zero Trust strategy, identity and data protection, cloud and network controls, threat management, monitoring, and alignment with international frameworks. The treatment is strategic and architectural---suitable for board review and CISO programme design---without reference to implementation artefacts.
+Pour une place de marché de confiance, un échec de sécurité se traduit directement par un effondrement de la réputation, des sanctions réglementaires et une attrition des utilisateurs. Ce chapitre présente l'architecture de sécurité d'entreprise de MABRID : gouvernance, stratégie Zero Trust, protection des identités et des données, contrôles cloud et réseau, gestion des menaces, surveillance et alignement sur les cadres internationaux. Le traitement est stratégique et architectural---adapté à l'examen par le conseil d'administration et à la conception du programme CISO---sans référence aux artefacts d'implémentation.
 
-\section{Security Governance}
+\section{Gouvernance de la sécurité}
 
-\subsection{Security Programme Charter}
+\subsection{Charte du programme de sécurité}
 
-The security programme operates under a charter approved by executive leadership, defining mission (protect confidentiality, integrity, and availability of platform and user data), scope, authority of the CISO, and relationship to legal and compliance functions \parencite{nist80039}.
+Le programme de sécurité fonctionne sous une charte approuvée par la direction exécutive, définissant la mission (protéger la confidentialité, l'intégrité et la disponibilité de la plateforme et des données utilisateurs), le périmètre, l'autorité du CISO et la relation avec les fonctions juridiques et de conformité \parencite{nist80039}.
 
-\subsection{Policies, Standards, and Procedures}
+\subsection{Politiques, normes et procédures}
 
-Governance documentation follows a hierarchy:
+La documentation de gouvernance suit une hiérarchie :
 \begin{itemize}
-  \item \textbf{Policies} --- board-approved statements of intent (acceptable use, access control, data classification).
-  \item \textbf{Standards} --- mandatory controls (encryption algorithms, password complexity, log retention).
-  \item \textbf{Procedures} --- operational steps (onboarding access, incident escalation).
-  \item \textbf{Guidelines} --- recommended practices (secure vendor assessment questionnaires).
+  \item \textbf{Politiques} --- déclarations d'intention approuvées par le conseil (usage acceptable, contrôle d'accès, classification des données).
+  \item \textbf{Normes} --- contrôles obligatoires (algorithmes de chiffrement, complexité des mots de passe, conservation des journaux).
+  \item \textbf{Procédures} --- étapes opérationnelles (intégration des accès, escalade des incidents).
+  \item \textbf{Lignes directrices} --- pratiques recommandées (questionnaires d'évaluation sécurisée des fournisseurs).
 \end{itemize}
 
-\subsection{Roles and Responsibilities}
+\subsection{Rôles et responsabilités}
 
-Security is everyone's responsibility, but accountability is explicit. Engineering leadership implements controls; the CISO validates effectiveness; internal audit provides assurance; all employees complete annual security awareness training.
+La sécurité est la responsabilité de tous, mais la responsabilité est explicite. La direction technique met en œuvre les contrôles ; le CISO en valide l'efficacité ; l'audit interne fournit l'assurance ; tous les employés suivent une formation annuelle de sensibilisation à la sécurité.
 
-\figureplaceholder{H}{figures/ch03-security-governance.pdf}{0.9}{Security governance structure and policy hierarchy}
+\figureplaceholder{H}{figures/ch03-security-governance.pdf}{0.9}{Structure de gouvernance de la sécurité et hiérarchie des politiques}
 
-\section{Zero Trust Strategy}
+\section{Stratégie Zero Trust}
 
-\subsection{Beyond Perimeter Security}
+\subsection{Au-delà de la sécurité périmétrique}
 
-Traditional perimeter models assume trust inside the corporate network. Cloud-hosted marketplaces, remote administration, and third-party integrations render perimeter-centric models insufficient \parencite{kindervag2010zero,rose2020zt}. MABRID adopts \gls{zt}: \emph{never trust, always verify}.
+Les modèles périmétriques traditionnels supposent la confiance à l'intérieur du réseau d'entreprise. Les places de marché hébergées dans le cloud, l'administration à distance et les intégrations tierces rendent les modèles centrés sur le périmètre insuffisants \parencite{kindervag2010zero,rose2020zt}. MABRID adopte le \gls{zt} : \emph{ne jamais faire confiance, toujours vérifier}.
 
-\subsection{Core Principles}
+\subsection{Principes fondamentaux}
 
 \begin{enumerate}
-  \item \textbf{Identity first} --- every access request is authenticated and authorised against policy.
-  \item \textbf{Least privilege} --- minimum permissions required for role and task duration.
-  \item \textbf{Continuous verification} --- session risk evaluated dynamically; step-up authentication when context changes.
-  \item \textbf{Micro-segmentation} --- logical separation of production, staging, management, and data tiers.
+  \item \textbf{Identité d'abord} --- chaque demande d'accès est authentifiée et autorisée selon la politique.
+  \item \textbf{Moindre privilège} --- permissions minimales requises pour le rôle et la durée de la tâche.
+  \item \textbf{Vérification continue} --- le risque de session est évalué dynamiquement ; authentification renforcée lorsque le contexte change.
+  \item \textbf{Micro-segmentation} --- séparation logique des environnements de production, de préproduction, de gestion et de données.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -49,218 +49,218 @@ Traditional perimeter models assume trust inside the corporate network. Cloud-ho
     box/.style={draw=mabridblue, thick, rounded corners, minimum width=2.6cm, minimum height=0.9cm, align=center, font=\small},
     arrow/.style={-{Stealth[length=2mm]}, thick}
   ]
-    \node[box] (user) {User / Admin};
-    \node[box, right=of user] (id) {Identity\\Verification};
-    \node[box, right=of id] (policy) {Policy\\Engine};
-    \node[box, right=of policy] (resource) {Protected\\Resource};
+    \node[box] (user) {Utilisateur / Admin};
+    \node[box, right=of user] (id) {Vérification\\d'identité};
+    \node[box, right=of id] (policy) {Moteur de\\politique};
+    \node[box, right=of policy] (resource) {Ressource\\protégée};
     \draw[arrow] (user) -- (id);
-    \draw[arrow] (id) -- node[above,font=\tiny]{MFA + context} (policy);
-    \draw[arrow] (policy) -- node[above,font=\tiny]{Allow / Deny} (resource);
-    \node[below=0.3cm of policy,font=\footnotesize,text width=8cm,align=center] {Continuous logging to SIEM};
+    \draw[arrow] (id) -- node[above,font=\tiny]{MFA + contexte} (policy);
+    \draw[arrow] (policy) -- node[above,font=\tiny]{Autoriser / Refuser} (resource);
+    \node[below=0.3cm of policy,font=\footnotesize,text width=8cm,align=center] {Journalisation continue vers le SIEM};
   \end{tikzpicture}
-  \caption{Zero Trust access decision flow for MABRID}
+  \caption{Flux de décision d'accès Zero Trust pour MABRID}
   \label{fig:zt-flow}
 \end{figure}
 
-\section{Identity and Access Management}
+\section{Gestion des identités et des accès}
 
-\subsection{Role-Based Access Control}
+\subsection{Contrôle d'accès fondé sur les rôles}
 
-\gls{rbac} maps job functions to permission sets. MABRID defines roles including: buyer, seller, moderator, support agent, analyst, administrator, and auditor. Separation of duties prevents single individuals from both deploying changes and approving them in production.
+Le \gls{rbac} associe les fonctions professionnelles à des ensembles de permissions. MABRID définit des rôles comprenant : acheteur, vendeur, modérateur, agent de support, analyste, administrateur et auditeur. La séparation des fonctions empêche qu'une seule personne déploie des changements et les approuve en production.
 
-\subsection{Multi-Factor Authentication}
+\subsection{Authentification multifacteur}
 
-\gls{mfa} is mandatory for administrative access, seller accounts managing financial or verification data, and any user opting into enhanced protection. Phishing-resistant methods (FIDO2 hardware keys for privileged roles) are recommended \parencite{nist80063b}.
+Le \gls{mfa} est obligatoire pour l'accès administratif, les comptes vendeurs gérant des données financières ou de vérification, et tout utilisateur optant pour une protection renforcée. Les méthodes résistantes au hameçonnage (clés matérielles FIDO2 pour les rôles privilégiés) sont recommandées \parencite{nist80063b}.
 
-\subsection{Conditional Access}
+\subsection{Accès conditionnel}
 
-Access decisions incorporate signals: device compliance, geolocation anomaly, impossible travel, and risk scores from identity protection services. High-risk sessions trigger re-authentication or block.
+Les décisions d'accès intègrent des signaux : conformité de l'appareil, anomalie de géolocalisation, déplacement impossible et scores de risque des services de protection d'identité. Les sessions à haut risque déclenchent une ré-authentification ou un blocage.
 
-\subsection{Identity Lifecycle}
+\subsection{Cycle de vie des identités}
 
-Joiner--mover--leaver processes provision and deprovision access within defined SLAs. Offboarding revokes credentials, sessions, and API keys immediately upon termination. Periodic access reviews validate continued need.
+Les processus d'arrivée--mutation--départ provisionnent et déprovisionnent les accès dans des SLA définis. Le départ révoque immédiatement les identifiants, sessions et clés API à la cessation d'emploi. Des revues périodiques des accès valident le besoin continu.
 
 \begin{table}[H]
   \centering
-  \caption{Illustrative RBAC matrix (excerpt)}
+  \caption{Matrice RBAC illustrative (extrait)}
   \label{tab:rbac}
   \begin{tabular}{lcccc}
     \toprule
-    \textbf{Permission} & Buyer & Seller & Moderator & Admin \\
+    \textbf{Permission} & Acheteur & Vendeur & Modérateur & Admin \\
     \midrule
-    Browse listings & \checkmark & \checkmark & \checkmark & \checkmark \\
-    Manage own storefront & --- & \checkmark & --- & --- \\
-    Moderate content & --- & --- & \checkmark & \checkmark \\
-    System configuration & --- & --- & --- & \checkmark \\
+    Parcourir les annonces & \checkmark & \checkmark & \checkmark & \checkmark \\
+    Gérer sa vitrine & --- & \checkmark & --- & --- \\
+    Modérer le contenu & --- & --- & \checkmark & \checkmark \\
+    Configuration système & --- & --- & --- & \checkmark \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\section{Data Protection}
+\section{Protection des données}
 
-\subsection{Data Classification}
+\subsection{Classification des données}
 
-Data is classified Public, Internal, Confidential, and Restricted (personal data, credentials, verification documents). Handling requirements escalate with classification: encryption, access logging, and retention limits.
+Les données sont classifiées Public, Interne, Confidentiel et Restreint (données personnelles, identifiants, documents de vérification). Les exigences de traitement s'intensifient avec la classification : chiffrement, journalisation des accès et limites de conservation.
 
-\subsection{Encryption}
+\subsection{Chiffrement}
 
-Data in transit uses modern TLS configurations. Data at rest employs platform-managed or customer-managed keys depending on sensitivity. End-to-end encryption may apply to certain messaging scenarios subject to moderation and legal obligations balance.
+Les données en transit utilisent des configurations TLS modernes. Les données au repos emploient des clés gérées par la plateforme ou par le client selon la sensibilité. Un chiffrement de bout en bout peut s'appliquer à certains scénarios de messagerie, sous réserve d'un équilibre entre modération et obligations juridiques.
 
-\subsection{Backup and Recovery}
+\subsection{Sauvegarde et reprise}
 
-Backups follow 3-2-1 principles: three copies, two media types, one offsite. Recovery procedures are tested quarterly; results documented for audit.
+Les sauvegardes suivent les principes 3-2-1 : trois copies, deux types de supports, une copie hors site. Les procédures de reprise sont testées trimestriellement ; les résultats sont documentés pour l'audit.
 
-\subsection{Key Management}
+\subsection{Gestion des clés}
 
-Cryptographic keys for production systems are stored in Azure Key Vault or equivalent HSM-backed service. Key rotation, access auditing, and separation of duties for key administrators are enforced \parencite{microsoftKeyVault}.
+Les clés cryptographiques des systèmes de production sont stockées dans Azure Key Vault ou un service équivalent soutenu par HSM. La rotation des clés, l'audit des accès et la séparation des fonctions pour les administrateurs de clés sont appliqués \parencite{microsoftKeyVault}.
 
-\subsection{Secrets Management}
+\subsection{Gestion des secrets}
 
-Application secrets, API credentials, and certificate private keys never reside in source repositories. Centralised secret stores with automatic rotation reduce credential theft impact.
+Les secrets d'application, identifiants API et clés privées de certificats ne résident jamais dans les dépôts de code source. Des magasins de secrets centralisés avec rotation automatique réduisent l'impact du vol d'identifiants.
 
-\section{Cloud Security}
+\section{Sécurité cloud}
 
-\subsection{Shared Responsibility Model}
+\subsection{Modèle de responsabilité partagée}
 
-Cloud providers secure the underlying infrastructure; MABRID secures configuration, identity, data, and workloads \parencite{microsoftSharedResp}. Misconfiguration remains a leading breach cause; governance addresses this through policy-as-code and continuous compliance scanning.
+Les fournisseurs cloud sécurisent l'infrastructure sous-jacente ; MABRID sécurise la configuration, l'identité, les données et les charges de travail \parencite{microsoftSharedResp}. La mauvaise configuration demeure une cause majeure de violation ; la gouvernance y répond par la politique en tant que code et l'analyse continue de conformité.
 
-\subsection{Microsoft Defender and Security Posture}
+\subsection{Microsoft Defender et posture de sécurité}
 
-Microsoft Defender for Cloud (formerly Security Center) provides secure score recommendations, regulatory compliance dashboards, and threat protection for cloud workloads \parencite{microsoftDefenderCloud}.
+Microsoft Defender for Cloud (anciennement Security Center) fournit des recommandations de score de sécurité, des tableaux de bord de conformité réglementaire et une protection contre les menaces pour les charges de travail cloud \parencite{microsoftDefenderCloud}.
 
 \subsection{Azure Policy}
 
-Azure Policy enforces organisational standards: allowed regions (e.g., EU/Morocco-aligned deployments), required encryption, tagging for cost allocation, and restricted public IP attachment.
+Azure Policy applique les normes organisationnelles : régions autorisées (p. ex. déploiements alignés UE/Maroc), chiffrement requis, étiquetage pour l'allocation des coûts et restriction de l'attachement d'adresses IP publiques.
 
-\subsection{Private Networking}
+\subsection{Réseau privé}
 
-Production data tiers reside in private subnets without direct internet exposure. Administrative access uses bastion hosts or private endpoints. egress filtering limits data exfiltration paths.
+Les niveaux de données de production résident dans des sous-réseaux privés sans exposition directe à Internet. L'accès administratif utilise des hôtes bastion ou des points de terminaison privés. Le filtrage en sortie limite les chemins d'exfiltration de données.
 
-\section{Network Segmentation and Firewall Strategy}
+\section{Segmentation réseau et stratégie de pare-feu}
 
-Network segments include: public edge (load balancing), application tier, data tier, management zone, and security tooling zone. Firewall rules default-deny with explicit allow lists. East-west traffic between segments is logged and restricted.
+Les segments réseau comprennent : périphérie publique (équilibrage de charge), couche applicative, couche données, zone de gestion et zone d'outils de sécurité. Les règles de pare-feu refusent par défaut avec des listes d'autorisation explicites. Le trafic est-ouest entre segments est journalisé et restreint.
 
-\figureplaceholder{H}{figures/ch03-network-segmentation.pdf}{0.92}{Logical network segmentation model for MABRID on Azure}
+\figureplaceholder{H}{figures/ch03-network-segmentation.pdf}{0.92}{Modèle de segmentation réseau logique pour MABRID sur Azure}
 
-\section{Threat Management}
+\section{Gestion des menaces}
 
-\subsection{Risk Assessment Methodology}
+\subsection{Méthodologie d'évaluation des risques}
 
-Risk assessments follow ISO 27005 and NIST SP 800-30 \parencite{iso27005,nist80030}: asset identification, threat enumeration, vulnerability analysis, likelihood and impact scoring, and treatment planning. Assessments occur at least annually and upon major architectural change.
+Les évaluations des risques suivent l'ISO 27005 et le NIST SP 800-30 \parencite{iso27005,nist80030} : identification des actifs, énumération des menaces, analyse des vulnérabilités, notation de probabilité et d'impact, et planification du traitement. Les évaluations ont lieu au moins annuellement et lors de tout changement architectural majeur.
 
-\subsection{Threat Modelling}
+\subsection{Modélisation des menaces}
 
-Structured threat modelling (STRIDE, PASTA) examines abuse cases: fake seller onboarding, review manipulation, account takeover, insider abuse, and denial of service. Mitigations map to controls in this architecture.
+La modélisation structurée des menaces (STRIDE, PASTA) examine les cas d'abus : intégration de faux vendeurs, manipulation d'avis, prise de contrôle de compte, abus interne et déni de service. Les atténuations correspondent aux contrôles de cette architecture.
 
-\subsection{Attack Surface Management}
+\subsection{Gestion de la surface d'attaque}
 
-External attack surface includes public endpoints, mobile application distribution, DNS records, and third-party integrations. Continuous discovery tools and penetration testing reduce unknown exposures \parencite{owaspASVS}.
+La surface d'attaque externe comprend les points de terminaison publics, la distribution de l'application mobile, les enregistrements DNS et les intégrations tierces. Les outils de découverte continue et les tests d'intrusion réduisent les expositions inconnues \parencite{owaspASVS}.
 
-\subsection{Vulnerability Management}
+\subsection{Gestion des vulnérabilités}
 
-Vulnerabilities are prioritised by CVSS score and exploitability in context. Critical patches target defined SLAs (e.g., 72 hours for internet-facing critical issues). Exception processes document compensating controls.
+Les vulnérabilités sont priorisées par score CVSS et exploitabilité dans le contexte. Les correctifs critiques visent des SLA définis (p. ex. 72 heures pour les problèmes critiques exposés à Internet). Les processus de dérogation documentent les contrôles compensatoires.
 
-\section{Incident Response}
+\section{Réponse aux incidents}
 
-\subsection{Incident Response Plan}
+\subsection{Plan de réponse aux incidents}
 
-The IR plan defines severity levels, roles (incident commander, communications lead, legal counsel), containment strategies, evidence preservation, and recovery steps \parencite{nist80061}. Playbooks address data breach, ransomware, defacement, and insider threat scenarios.
+Le plan IR définit les niveaux de gravité, les rôles (commandant d'incident, responsable des communications, conseil juridique), les stratégies de confinement, la préservation des preuves et les étapes de reprise \parencite{nist80061}. Les playbooks couvrent les scénarios de violation de données, ransomware, défiguration et menace interne.
 
 \subsection{Communication}
 
-Regulatory notification timelines (including \gls{cndp} and \gls{gdpr} where applicable) are integrated into playbooks. User communication templates balance transparency with investigation integrity.
+Les délais de notification réglementaire (y compris \gls{cndp} et \gls{gdpr} le cas échéant) sont intégrés aux playbooks. Les modèles de communication utilisateur équilibrent transparence et intégrité de l'enquête.
 
-\subsection{Post-Incident Review}
+\subsection{Revue post-incident}
 
-Blameless post-mortems produce corrective actions tracked to closure. Metrics include mean time to detect, mean time to respond, and mean time to recover.
+Les post-mortems sans blâme produisent des actions correctives suivies jusqu'à clôture. Les métriques comprennent le temps moyen de détection, de réponse et de reprise.
 
-\section{Business Continuity and Security}
+\section{Continuité des activités et sécurité}
 
-Security incidents may trigger BCP activation. Critical marketplace functions have alternate communication channels and manual moderation procedures during outages. Cyber insurance may transfer residual financial risk.
+Les incidents de sécurité peuvent déclencher l'activation du BCP. Les fonctions critiques de la place de marché disposent de canaux de communication alternatifs et de procédures de modération manuelle pendant les interruptions. L'assurance cyber peut transférer le risque financier résiduel.
 
-\section{Security Monitoring}
+\section{Surveillance de la sécurité}
 
-\subsection{Azure Monitor and Log Analytics}
+\subsection{Azure Monitor et Log Analytics}
 
-Centralised logging aggregates platform, identity, network, and application telemetry. Retention aligns with legal and investigative requirements \parencite{microsoftMonitor}.
+La journalisation centralisée agrège la télémétrie plateforme, identité, réseau et application. La conservation s'aligne sur les exigences juridiques et d'enquête \parencite{microsoftMonitor}.
 
 \subsection{Microsoft Sentinel SIEM}
 
-Sentinel provides \gls{siem} capabilities: correlation rules, threat intelligence integration, user and entity behaviour analytics, and investigation workbooks \parencite{microsoftSentinel}.
+Sentinel fournit des capacités \gls{siem} : règles de corrélation, intégration de renseignement sur les menaces, analyse du comportement des utilisateurs et entités, et classeurs d'investigation \parencite{microsoftSentinel}.
 
-\subsection{SOAR Automation}
+\subsection{Automatisation SOAR}
 
-\gls{soar} playbooks automate repetitive response: disable compromised accounts, isolate hosts, enrich alerts with threat intelligence, and notify on-call engineers.
+Les playbooks \gls{soar} automatisent les réponses répétitives : désactiver les comptes compromis, isoler les hôtes, enrichir les alertes avec le renseignement sur les menaces et notifier les ingénieurs de garde.
 
-\subsection{Alert Management}
+\subsection{Gestion des alertes}
 
-Alert fatigue is mitigated through tuning, severity classification, and on-call rotations with defined escalation paths. Security operations centre maturity evolves from reactive alerting to proactive threat hunting.
+La fatigue d'alertes est atténuée par le réglage, la classification par gravité et les rotations de garde avec des chemins d'escalade définis. La maturité du centre des opérations de sécurité évolue de l'alerte réactive à la chasse proactive aux menaces.
 
-\subsection{Security Dashboards}
+\subsection{Tableaux de bord de sécurité}
 
-Executive dashboards display secure score trends, open critical vulnerabilities, incident counts, and compliance posture. Operational dashboards support analyst triage.
+Les tableaux de bord exécutifs affichent les tendances du score de sécurité, les vulnérabilités critiques ouvertes, le nombre d'incidents et la posture de conformité. Les tableaux de bord opérationnels soutiennent le triage des analystes.
 
-\figureplaceholder{H}{figures/ch03-soc-dashboard.pdf}{0.88}{Security operations dashboard (insert screenshot when available)}
+\figureplaceholder{H}{figures/ch03-soc-dashboard.pdf}{0.88}{Tableau de bord des opérations de sécurité (insérer une capture d'écran lorsque disponible)}
 
-\section{Compliance Alignment}
+\section{Alignement sur la conformité}
 
 \subsection{ISO 27001}
 
-\gls{iso27001} provides a certifiable ISMS framework. MABRID maps controls to Annex A domains, conducts gap assessments, and pursues certification as a commercial differentiator for enterprise clients \parencite{iso27001standard}.
+L'\gls{iso27001} fournit un cadre SGSI certifiable. MABRID mappe les contrôles aux domaines de l'annexe A, réalise des évaluations d'écarts et poursuit la certification comme différenciateur commercial pour les clients d'entreprise \parencite{iso27001standard}.
 
-\subsection{NIST Cybersecurity Framework}
+\subsection{Cadre de cybersécurité du NIST}
 
-The \gls{nistcsf} functions---Identify, Protect, Detect, Respond, Recover---structure the security programme \parencite{nistcsf20}. Table~\ref{tab:nist-mapping} illustrates mapping.
+Les fonctions du \gls{nistcsf}---Identifier, Protéger, Détecter, Répondre, Récupérer---structurent le programme de sécurité \parencite{nistcsf20}. Le tableau~\ref{tab:nist-mapping} illustre la correspondance.
 
 \begin{table}[H]
   \centering
-  \caption{NIST CSF function mapping (selected controls)}
+  \caption{Correspondance des fonctions NIST CSF (contrôles sélectionnés)}
   \label{tab:nist-mapping}
   \begin{tabularx}{\textwidth}{@{}lX@{}}
     \toprule
-    \textbf{Function} & \textbf{MABRID programme element} \\
+    \textbf{Fonction} & \textbf{Élément du programme MABRID} \\
     \midrule
-    Identify & Asset inventory, risk register, data classification \\
-    Protect & IAM, encryption, secure configuration, awareness training \\
-    Detect & SIEM, vulnerability scanning, anomaly detection \\
-    Respond & Incident response plan, forensics, communications \\
-    Recover & Backups, DR testing, continuous improvement \\
+    Identifier & Inventaire des actifs, registre des risques, classification des données \\
+    Protéger & IAM, chiffrement, configuration sécurisée, formation de sensibilisation \\
+    Détecter & SIEM, analyse des vulnérabilités, détection d'anomalies \\
+    Répondre & Plan de réponse aux incidents, forensique, communications \\
+    Récupérer & Sauvegardes, tests DR, amélioration continue \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
 \subsection{SOC 2}
 
-\gls{soc2} Trust Services Criteria (security, availability, confidentiality) support enterprise sales requiring vendor assurance reports \parencite{aicpaSOC2}.
+Les critères de services de confiance \gls{soc2} (sécurité, disponibilité, confidentialité) soutiennent les ventes d'entreprise exigeant des rapports d'assurance fournisseur \parencite{aicpaSOC2}.
 
-\subsection{CIS Controls}
+\subsection{Contrôles CIS}
 
-\gls{cis} Critical Security Controls v8 provide prioritised safeguards \parencite{ciscontrols18}. Implementation groups guide phased adoption based on organisational maturity.
+Les contrôles de sécurité critiques \gls{cis} v8 fournissent des mesures de protection priorisées \parencite{ciscontrols18}. Les groupes d'implémentation guident l'adoption par phases selon la maturité organisationnelle.
 
-\subsection{OWASP Governance}
+\subsection{Gouvernance OWASP}
 
-\gls{owasp} resources inform secure development governance, application security verification, and top risk awareness \parencite{owaspTop10}. Security requirements are embedded in vendor and change management processes.
+Les ressources \gls{owasp} informent la gouvernance du développement sécurisé, la vérification de la sécurité des applications et la sensibilisation aux principaux risques \parencite{owaspTop10}. Les exigences de sécurité sont intégrées aux processus de gestion des fournisseurs et des changements.
 
-\section{Security Risk Matrix}
+\section{Matrice des risques de sécurité}
 
 \begin{table}[H]
   \centering
-  \caption{Selected security risks and control treatments}
+  \caption{Risques de sécurité sélectionnés et traitements de contrôle}
   \label{tab:sec-risk}
   \small
   \begin{tabularx}{\textwidth}{@{}lccX@{}}
     \toprule
-    \textbf{Risk} & \textbf{Likelihood} & \textbf{Impact} & \textbf{Treatment} \\
+    \textbf{Risque} & \textbf{Probabilité} & \textbf{Impact} & \textbf{Traitement} \\
     \midrule
-    Account takeover & Medium & High & MFA, anomaly detection, session limits \\
-    Data breach & Low & Critical & Encryption, segmentation, DLP monitoring \\
-    Insider threat & Low & High & RBAC, logging, background checks \\
-    DDoS outage & Medium & Medium & CDN, rate limiting, scaling policies \\
-    Supply chain compromise & Low & High & Vendor assessment, signed artefacts \\
+    Prise de contrôle de compte & Moyenne & Élevé & MFA, détection d'anomalies, limites de session \\
+    Violation de données & Faible & Critique & Chiffrement, segmentation, surveillance DLP \\
+    Menace interne & Faible & Élevé & RBAC, journalisation, vérifications d'antécédents \\
+    Interruption DDoS & Moyenne & Moyen & CDN, limitation de débit, politiques de mise à l'échelle \\
+    Compromission de la chaîne d'approvisionnement & Faible & Élevé & Évaluation fournisseur, artefacts signés \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-\section{Chapter Conclusion}
+\section{Conclusion du chapitre}
 
-Enterprise security architecture is the cornerstone of MABRID's trust proposition. Zero Trust, rigorous identity governance, defence in depth on Azure, and continuous monitoring through Sentinel collectively reduce risk to acceptable levels while supporting compliance objectives. Security investment is not overhead but a prerequisite for marketplace credibility, investor confidence, and regulatory acceptance in Morocco and beyond.
+L'architecture de sécurité d'entreprise est la pierre angulaire de la proposition de confiance de MABRID. Zero Trust, une gouvernance rigoureuse des identités, la défense en profondeur sur Azure et la surveillance continue via Sentinel réduisent collectivement le risque à des niveaux acceptables tout en soutenant les objectifs de conformité. L'investissement en sécurité n'est pas une charge mais un prérequis à la crédibilité de la place de marché, à la confiance des investisseurs et à l'acceptation réglementaire au Maroc et au-delà.
