@@ -4,12 +4,13 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import get_current_user, new_local_firebase_uid
+from app.auth import get_current_user, new_local_firebase_uid, security
 from app.config import settings
 from app.database import get_db
 from app.limiter import limiter
@@ -52,6 +53,7 @@ from app.services.signup_verification import consume_signup_proof, send_signup_o
 from app.services.password_policy import validate_password_strength
 from app.services.security import (
     create_access_token,
+    decode_access_token,
     hash_password,
     issue_refresh_token,
     revoke_all_refresh_tokens,
@@ -154,7 +156,7 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
     ip = ""
     ua = ""
     if request is not None:
-        ip = request.client.host if request.client else ""
+        ip = get_client_ip(request)
         ua = (request.headers.get("user-agent") or "")[:255]
         device = (request.headers.get("x-device-name") or ua[:80] or "Device")[:120]
 
@@ -448,7 +450,14 @@ async def logout_all(
 async def list_sessions(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> list[SessionOut]:
+    current_session_id: UUID | None = None
+    if credentials is not None:
+        decoded = decode_access_token(credentials.credentials)
+        if decoded is not None:
+            _, _, current_session_id = decoded
+
     result = await session.execute(
         select(RefreshToken)
         .where(RefreshToken.user_id == user.id, RefreshToken.revoked.is_(False))
@@ -463,7 +472,7 @@ async def list_sessions(
             user_agent=token.user_agent,
             created_at=token.created_at,
             last_seen_at=token.last_seen_at,
-            current=False,
+            current=current_session_id is not None and token.id == current_session_id,
         )
         for token in tokens
     ]
@@ -783,6 +792,14 @@ async def delete_account(
         SellerFollow,
         Subscription,
     )
+    from app.models.community import (
+        CommunityMembership,
+        CommunityMessage,
+        CommunityReaction,
+        CommunityReport,
+        CommunityUserBlock,
+        CommunityUserMute,
+    )
 
     seller = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
     profile = seller.scalar_one_or_none()
@@ -799,6 +816,21 @@ async def delete_account(
     if peer_conversations:
         await session.execute(sql_delete(Message).where(Message.conversation_id.in_(peer_conversations)))
         await session.execute(sql_delete(Conversation).where(Conversation.id.in_(peer_conversations)))
+
+    # Community chat: remove authored content and membership links (soft-delete keeps user row).
+    user_messages = (
+        await session.execute(select(CommunityMessage.id).where(CommunityMessage.sender_id == user.id))
+    ).scalars().all()
+    if user_messages:
+        await session.execute(sql_delete(CommunityReaction).where(CommunityReaction.message_id.in_(user_messages)))
+        await session.execute(sql_delete(CommunityReport).where(CommunityReport.message_id.in_(user_messages)))
+    await session.execute(sql_delete(CommunityMessage).where(CommunityMessage.sender_id == user.id))
+    await session.execute(sql_delete(CommunityReport).where(CommunityReport.reporter_id == user.id))
+    await session.execute(sql_delete(CommunityMembership).where(CommunityMembership.user_id == user.id))
+    await session.execute(sql_delete(CommunityUserBlock).where(CommunityUserBlock.blocker_id == user.id))
+    await session.execute(sql_delete(CommunityUserBlock).where(CommunityUserBlock.blocked_id == user.id))
+    await session.execute(sql_delete(CommunityUserMute).where(CommunityUserMute.muter_id == user.id))
+    await session.execute(sql_delete(CommunityUserMute).where(CommunityUserMute.muted_id == user.id))
 
     if profile is not None:
         from app.models import Product, SellerCategory, Service

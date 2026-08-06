@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
@@ -45,7 +46,8 @@ async def create_checkout_session(
     cancel_url: str,
 ) -> str:
     _stripe_client()
-    checkout = stripe.checkout.Session.create(
+    checkout = await asyncio.to_thread(
+        stripe.checkout.Session.create,
         mode="payment",
         customer_email=user.email,
         line_items=[

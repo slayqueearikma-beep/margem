@@ -270,15 +270,20 @@ async def migrate_guest_favorites(
                 select(Favorite).where(Favorite.user_id == user.id, Favorite.product_id == item.product_id)
             )
             if exists.scalar_one_or_none() is None:
-                session.add(
-                    Favorite(
-                        id=uuid4(),
-                        user_id=user.id,
-                        product_id=item.product_id,
-                        seller_id=product.seller_id,
-                    )
-                )
-                await bump_favorite_count(session, product.seller_id, delta=1)
+                try:
+                    async with session.begin_nested():
+                        session.add(
+                            Favorite(
+                                id=uuid4(),
+                                user_id=user.id,
+                                product_id=item.product_id,
+                                seller_id=product.seller_id,
+                            )
+                        )
+                        await bump_favorite_count(session, product.seller_id, delta=1)
+                        await session.flush()
+                except IntegrityError:
+                    await session.rollback()
         elif item.seller_id:
             seller = await session.get(SellerProfile, item.seller_id)
             if seller is None:
@@ -291,8 +296,13 @@ async def migrate_guest_favorites(
                 )
             )
             if exists.scalar_one_or_none() is None:
-                session.add(Favorite(id=uuid4(), user_id=user.id, seller_id=item.seller_id))
-                await bump_favorite_count(session, item.seller_id, delta=1)
+                try:
+                    async with session.begin_nested():
+                        session.add(Favorite(id=uuid4(), user_id=user.id, seller_id=item.seller_id))
+                        await bump_favorite_count(session, item.seller_id, delta=1)
+                        await session.flush()
+                except IntegrityError:
+                    await session.rollback()
     await session.commit()
     return await list_favorites(user=user, session=session)
 

@@ -79,7 +79,8 @@ class AuthService {
     return _saveSession(AuthSession.fromJson(response));
   }
 
-  Future<bool> refreshAccessToken() async {
+  /// Returns `true` when refreshed, `false` when auth is invalid, `null` on transient errors.
+  Future<bool?> refreshAccessToken() async {
     final refresh = _refreshToken;
     if (refresh == null || refresh.isEmpty) return false;
 
@@ -96,10 +97,11 @@ class AuthService {
         await _storage.delete(key: _accessTokenKey);
         await _storage.delete(key: _refreshTokenKey);
         _syncTokenProvider();
+        return false;
       }
-      return false;
+      return null;
     } on Object {
-      return false;
+      return null;
     }
   }
 
@@ -113,8 +115,15 @@ class AuthService {
     try {
       await _api.getJson('/auth/me', auth: true);
       return true;
+    } on ApiException catch (error) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        final refreshed = await refreshAccessToken();
+        return refreshed == true;
+      }
+      // Transient API errors should not wipe a valid stored session.
+      return true;
     } on Object {
-      return refreshAccessToken();
+      return true;
     }
   }
 

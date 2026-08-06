@@ -54,7 +54,6 @@ from app.services.community_chat import (
 )
 from app.services.community_moderation import create_report, log_moderation
 from app.services.community_websocket import community_ws_manager
-from app.services.security import decode_access_token
 
 router = APIRouter(prefix="/community", tags=["community"])
 
@@ -479,11 +478,9 @@ async def list_reports(
 
 
 async def _ws_user_from_token(token: str, session: AsyncSession) -> User | None:
-    decoded = decode_access_token(token)
-    if decoded is None:
-        return None
-    user_id, _ = decoded
-    return await session.get(User, user_id)
+    from app.auth import resolve_user_from_access_token
+
+    return await resolve_user_from_access_token(token, session)
 
 
 @router.websocket("/ws")

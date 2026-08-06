@@ -123,6 +123,7 @@ async def rotate_refresh_token(session: AsyncSession, plain_token: str) -> tuple
 
     if stored.expires_at < datetime.now(UTC):
         stored.revoked = True
+        await session.flush()
         return None
 
     stored.revoked = True

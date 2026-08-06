@@ -37,7 +37,7 @@ class SignupOtpSendResult {
   }
 }
 
-typedef TokenRefreshCallback = Future<bool> Function();
+typedef TokenRefreshCallback = Future<bool?> Function();
 typedef SessionExpiredCallback = Future<void> Function();
 
 class ApiService {
@@ -238,9 +238,9 @@ class ApiService {
       _refreshInProgress = true;
       try {
         final refreshed = await onTokenRefresh!();
-        if (refreshed) {
+        if (refreshed == true) {
           response = await _send(send);
-        } else if (onSessionExpired != null) {
+        } else if (refreshed == false && onSessionExpired != null) {
           await onSessionExpired!();
         }
       } finally {
