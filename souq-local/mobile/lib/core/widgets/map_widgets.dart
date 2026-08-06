@@ -5,8 +5,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../config/app_config.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import '../utils/directional_ui.dart';
 
 /// Full-screen map picker — never embed inside a [ScrollView].
@@ -139,15 +139,15 @@ class MapUnavailablePlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Container(
-      color: AppColors.surfaceMuted,
+      color: context.colors.surfaceVariant,
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.map_outlined, size: 64, color: AppColors.primary),
-              const SizedBox(height: AppSpacing.md),
+              Icon(Icons.map_outlined, size: 64, color: context.colors.primary),
+              SizedBox(height: AppSpacing.md),
               Text(
                 usingDemoData ? l10n.mapDemoModeTitle : l10n.mapPreviewTitle,
                 style: Theme.of(context)
@@ -155,7 +155,7 @@ class MapUnavailablePlaceholder extends StatelessWidget {
                     .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w700),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               Text(
                 usingDemoData
                     ? l10n.demoBusinessesMapHint
@@ -164,20 +164,20 @@ class MapUnavailablePlaceholder extends StatelessWidget {
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium
-                    ?.copyWith(color: AppColors.textSecondary),
+                    ?.copyWith(color: context.colors.textSecondary),
               ),
               if (markerCount > 0) ...[
-                const SizedBox(height: AppSpacing.md),
+                SizedBox(height: AppSpacing.md),
                 Text(
                   l10n.mapLocationsInArea(markerCount),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
               ],
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               Text(
                 '${cityCenter.latitude.toStringAsFixed(4)}, ${cityCenter.longitude.toStringAsFixed(4)}',
-                style: const TextStyle(
-                  color: AppColors.textTertiary,
+                style: TextStyle(
+                  color: context.colors.textTertiary,
                   fontSize: 12,
                 ),
               ),
@@ -212,7 +212,7 @@ class StoreLocationPickerTile extends StatelessWidget {
           Text(
             label!,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
           ),
         if (label != null) const SizedBox(height: AppSpacing.sm),
@@ -231,39 +231,39 @@ class StoreLocationPickerTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.colors.border),
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
+                      color: context.colors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.location_on_outlined,
-                      color: AppColors.primary,
+                      color: context.colors.primary,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           '${location.latitude.toStringAsFixed(5)}, ${location.longitude.toStringAsFixed(5)}',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         if (hint != null) ...[
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
                             hint!,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
+                            style: TextStyle(
+                              color: context.colors.textSecondary,
                               fontSize: 13,
                             ),
                           ),

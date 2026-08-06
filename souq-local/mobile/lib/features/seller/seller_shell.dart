@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/theme_context.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/navigation/app_back_handler.dart';
-import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_bookings_tab.dart';
 import 'seller_catalog_tab.dart';
@@ -175,7 +175,7 @@ class _SellerNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.textSecondary;
+    final color = selected ? context.colors.primary : context.colors.textSecondary;
 
     return Expanded(
       child: InkWell(

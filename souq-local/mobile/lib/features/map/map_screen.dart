@@ -9,8 +9,8 @@ import '../../core/data/demo_map_data.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/location_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/map_widgets.dart';
@@ -142,36 +142,36 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               right: AppSpacing.screenHorizontal,
               child: BuyerSurfaceCard(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: AppSpacing.md,
                     vertical: 12,
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on_rounded,
-                        color: AppColors.lavender,
+                        color: context.colors.primary,
                       ),
-                      const SizedBox(width: AppSpacing.sm),
+                      SizedBox(width: AppSpacing.sm),
                       Text(
                         city,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                        style: TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      const Spacer(),
+                      Spacer(),
                       if (usingDemo)
                         Container(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.warningMuted,
+                            color: context.colors.warningMuted,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             l10n.demoLabel,
-                            style: const TextStyle(
-                              color: AppColors.warning,
+                            style: TextStyle(
+                              color: context.colors.warning,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -179,18 +179,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         )
                       else if (warnings.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.dangerMuted,
+                            color: context.colors.errorMuted,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             l10n.warningZones(warnings.length),
-                            style: const TextStyle(
-                              color: AppColors.danger,
+                            style: TextStyle(
+                              color: context.colors.error,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),

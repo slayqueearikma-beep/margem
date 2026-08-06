@@ -12,8 +12,8 @@ import '../../core/models/auth_models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -507,7 +507,7 @@ class _SellerRegistrationScreenState
                           _products.removeAt(index);
                         }),
                         child: Text(l10n.remove,
-                            style: const TextStyle(color: AppColors.danger)),
+                            style: TextStyle(color: context.colors.error)),
                       ),
                     ),
                 ],
@@ -528,12 +528,12 @@ class _SellerRegistrationScreenState
     final productCount =
         _products.where((p) => p.nameController.text.isNotEmpty).length;
     return Column(
-      key: const ValueKey(5),
+      key: ValueKey(5),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppScreenHeader(
             title: l10n.sellerStep5Title, subtitle: l10n.sellerStep5Subtitle),
-        const SizedBox(height: AppSpacing.xl),
+        SizedBox(height: AppSpacing.xl),
         _ReviewRow(l10n.reviewBusiness, _businessNameController.text),
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
         _ReviewRow(l10n.email, _emailController.text),
@@ -542,16 +542,16 @@ class _SellerRegistrationScreenState
         _ReviewRow(l10n.reviewAddress, _addressController.text),
         _ReviewRow(l10n.reviewPhone, _phoneController.text),
         _ReviewRow(l10n.reviewProducts, l10n.itemsCount(productCount)),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: AppSpacing.lg),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
+            color: context.colors.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, color: AppColors.primary),
+              Icon(Icons.info_outline, color: context.colors.primary),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                   child: Text(l10n.sellerVisibilityNote(_city),
@@ -573,14 +573,14 @@ class _ReviewRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
               width: 100,
               child: Text(label,
-                  style: const TextStyle(color: AppColors.textSecondary))),
+                  style: TextStyle(color: context.colors.textSecondary))),
           Expanded(
               child: Text(value.isEmpty ? '—' : value,
                   style: const TextStyle(fontWeight: FontWeight.w500))),
@@ -608,8 +608,8 @@ class _ImagePickerBox extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
-                ?.copyWith(color: AppColors.textSecondary)),
-        const SizedBox(height: AppSpacing.sm),
+                ?.copyWith(color: context.colors.textSecondary)),
+        SizedBox(height: AppSpacing.sm),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -617,7 +617,7 @@ class _ImagePickerBox extends StatelessWidget {
             height: height,
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.colors.border),
               borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               color: Theme.of(context).inputDecorationTheme.fillColor,
             ),
@@ -629,12 +629,12 @@ class _ImagePickerBox extends StatelessWidget {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.add_photo_alternate_outlined,
-                          color: AppColors.textSecondary),
-                      const SizedBox(height: 4),
+                      Icon(Icons.add_photo_alternate_outlined,
+                          color: context.colors.textSecondary),
+                      SizedBox(height: 4),
                       Text(context.l10n.upload,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.textSecondary)),
+                          style: TextStyle(
+                              fontSize: 12, color: context.colors.textSecondary)),
                     ],
                   ),
           ),

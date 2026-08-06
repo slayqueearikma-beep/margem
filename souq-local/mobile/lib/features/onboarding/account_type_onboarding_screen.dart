@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/services/app_storage.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/design_system_components.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
@@ -58,16 +58,16 @@ class _AccountTypeOnboardingScreenState
               label: l10n.continueLabel,
               onPressed: _continue,
               accentColor: _selected == AccountType.seller
-                  ? AppColors.peach
-                  : AppColors.lavender,
+                  ? context.colors.secondary
+                  : context.colors.primary,
             ),
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm),
           ],
           AppSecondaryActionRow(
             label: l10n.decideLater,
             onTap: _continueAsGuest,
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.lg),
           AppSecurityFooter(
             line1: l10n.secureSignupLine1,
             line2: l10n.secureSignupLine2,
@@ -83,24 +83,24 @@ class _AccountTypeOnboardingScreenState
             showLogo: true,
             centered: true,
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xl),
           AppSectionLabel(label: l10n.accountTypeSectionLabel),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           AccountTypeCard(
             title: l10n.buyer,
             subtitle: l10n.buyerSubtitle,
             icon: Icons.shopping_bag_outlined,
-            accentColor: AppColors.lavender,
+            accentColor: context.colors.primary,
             ctaLabel: l10n.continueAsBuyer,
             selected: _selected == AccountType.buyer,
             onTap: () => setState(() => _selected = AccountType.buyer),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           AccountTypeCard(
             title: l10n.seller,
             subtitle: l10n.sellerSubtitle,
             icon: Icons.storefront_outlined,
-            accentColor: AppColors.peach,
+            accentColor: context.colors.secondary,
             ctaLabel: l10n.continueAsSeller,
             selected: _selected == AccountType.seller,
             onTap: () => setState(() => _selected = AccountType.seller),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'app_colors.dart';
+import 'app_semantic_colors.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
 
@@ -11,96 +11,87 @@ class AppTheme {
 
   static ThemeData _build(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
-    final textTheme = AppTypography.textTheme(brightness);
+    final semantic =
+        isDark ? AppSemanticColors.dark : AppSemanticColors.light;
+    final textTheme = AppTypography.textTheme(brightness, semantic);
 
     final colorScheme = ColorScheme(
       brightness: brightness,
-      primary: AppColors.lavender,
-      onPrimary: Colors.white,
-      secondary: AppColors.peach,
-      onSecondary: AppColors.navy,
-      tertiary: AppColors.lavenderLight,
-      error: AppColors.danger,
-      onError: Colors.white,
-      surface: isDark ? AppColors.darkSurface : AppColors.surfaceLight,
-      onSurface: isDark ? Colors.white : AppColors.textPrimary,
-      onSurfaceVariant:
-          isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-      outline: isDark ? AppColors.darkBorder : AppColors.border,
-      surfaceContainerHighest:
-          isDark ? AppColors.darkCard : AppColors.surfaceMuted,
+      primary: semantic.primary,
+      onPrimary: semantic.onPrimary,
+      secondary: semantic.secondary,
+      onSecondary: semantic.onPrimary,
+      tertiary: semantic.info,
+      error: semantic.error,
+      onError: semantic.onPrimary,
+      surface: semantic.surface,
+      onSurface: semantic.textPrimary,
+      onSurfaceVariant: semantic.textSecondary,
+      outline: semantic.border,
+      surfaceContainerHighest: semantic.surfaceVariant,
+      surfaceContainerLow: semantic.background,
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor:
-          isDark ? AppColors.darkBackground : AppColors.cream,
+      extensions: [semantic],
+      scaffoldBackgroundColor: semantic.background,
       textTheme: textTheme,
-      appBarTheme: AppBarThemeData(
+      appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: isDark ? Colors.white : AppColors.textPrimary,
+        foregroundColor: semantic.textPrimary,
         titleTextStyle: textTheme.titleLarge,
         systemOverlayStyle:
             isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: isDark ? AppColors.darkCard : AppColors.cream,
+        color: semantic.surface,
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-          side: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.borderLight,
-          ),
+          side: BorderSide(color: semantic.border),
         ),
       ),
       dividerTheme: DividerThemeData(
-        color: isDark ? AppColors.darkBorder : AppColors.border,
+        color: semantic.divider,
         thickness: 1,
       ),
-      inputDecorationTheme: InputDecorationThemeData(
+      inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? AppColors.darkCard : AppColors.beigeLight,
-        labelStyle: TextStyle(
-          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-        ),
-        hintStyle: TextStyle(
-          color: isDark ? AppColors.textTertiary : AppColors.textTertiary,
-        ),
+        fillColor: semantic.surfaceVariant,
+        labelStyle: TextStyle(color: semantic.textSecondary),
+        hintStyle: TextStyle(color: semantic.textTertiary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-          borderSide: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.border,
-          ),
+          borderSide: BorderSide(color: semantic.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-          borderSide: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.border,
-          ),
+          borderSide: BorderSide(color: semantic.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-          borderSide: const BorderSide(color: AppColors.lavender, width: 1.5),
+          borderSide: BorderSide(color: semantic.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-          borderSide: const BorderSide(color: AppColors.danger),
+          borderSide: BorderSide(color: semantic.error),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.lavender,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.lavender.withValues(alpha: 0.35),
+          backgroundColor: semantic.primary,
+          foregroundColor: semantic.onPrimary,
+          disabledBackgroundColor: semantic.primary.withValues(alpha: 0.35),
           minimumSize: const Size.fromHeight(AppSpacing.minTouchTarget + 4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
@@ -111,11 +102,9 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: isDark ? Colors.white : AppColors.textPrimary,
+          foregroundColor: semantic.textPrimary,
           minimumSize: const Size.fromHeight(AppSpacing.minTouchTarget + 4),
-          side: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.border,
-          ),
+          side: BorderSide(color: semantic.border),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
           ),
@@ -124,128 +113,143 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.lavender,
-          textStyle: textTheme.labelLarge?.copyWith(color: AppColors.lavender),
+          foregroundColor: semantic.primary,
+          textStyle: textTheme.labelLarge?.copyWith(color: semantic.primary),
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor:
-            isDark ? AppColors.darkCard : AppColors.beigeLight,
-        selectedColor: AppColors.lavender.withValues(alpha: 0.18),
+        backgroundColor: semantic.surfaceVariant,
+        selectedColor: semantic.primaryMuted,
         labelStyle: textTheme.bodySmall!,
-        side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
-        ),
+        side: BorderSide(color: semantic.border),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: isDark
-            ? AppColors.darkSurface.withValues(alpha: 0.95)
-            : AppColors.cream.withValues(alpha: 0.98),
-        indicatorColor: AppColors.lavender.withValues(alpha: 0.15),
+        backgroundColor: semantic.surface,
+        indicatorColor: semantic.primaryMuted,
         elevation: 0,
         height: 68,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.lavender,
+              color: semantic.primary,
             );
           }
           return textTheme.labelSmall?.copyWith(
-            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+            color: semantic.textSecondary,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.lavender, size: 24);
+            return IconThemeData(color: semantic.primary, size: 24);
           }
-          return IconThemeData(
-            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
-            size: 24,
-          );
+          return IconThemeData(color: semantic.textSecondary, size: 24);
         }),
       ),
-      bottomAppBarTheme: BottomAppBarThemeData(
-        color: isDark ? AppColors.darkSurface : AppColors.cream,
+      bottomAppBarTheme: BottomAppBarTheme(
+        color: semantic.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.lavender,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        shape: CircleBorder(),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: semantic.primary,
+        foregroundColor: semantic.onPrimary,
+        elevation: 2,
+        shape: const CircleBorder(),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.cream,
+        backgroundColor: semantic.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
+          side: BorderSide(color: semantic.border),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         elevation: 0,
-        backgroundColor: isDark ? AppColors.darkCard : AppColors.navy,
-        contentTextStyle: textTheme.bodyMedium?.copyWith(color: Colors.white),
+        backgroundColor: semantic.textPrimary,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: semantic.onPrimary,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.beigeLight,
+        backgroundColor: semantic.surface,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        dragHandleColor: isDark ? AppColors.darkBorder : AppColors.border,
+        dragHandleColor: semantic.border,
       ),
       tabBarTheme: TabBarThemeData(
-        labelColor: AppColors.lavender,
-        unselectedLabelColor:
-            isDark ? AppColors.textTertiary : AppColors.textSecondary,
-        indicatorColor: AppColors.lavender,
+        labelColor: semantic.primary,
+        unselectedLabelColor: semantic.textSecondary,
+        indicatorColor: semantic.primary,
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: Colors.transparent,
         labelStyle: textTheme.labelLarge?.copyWith(fontSize: 14),
-        unselectedLabelStyle:
-            textTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+        unselectedLabelStyle: textTheme.labelLarge?.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       listTileTheme: ListTileThemeData(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
         ),
+        iconColor: semantic.textSecondary,
+        textColor: semantic.textPrimary,
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.lavender,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: semantic.primary,
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.lavender;
-          return isDark ? AppColors.darkBorder : Colors.white;
+          if (states.contains(WidgetState.selected)) return semantic.primary;
+          return semantic.surface;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.lavender.withValues(alpha: 0.4);
+            return semantic.primary.withValues(alpha: 0.4);
           }
-          return isDark ? AppColors.darkBorder : AppColors.border;
+          return semantic.border;
         }),
       ),
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return AppColors.lavender;
+          if (states.contains(WidgetState.selected)) return semantic.primary;
           return Colors.transparent;
         }),
-        side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
-          width: 1.5,
-        ),
+        side: BorderSide(color: semantic.border, width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return semantic.primary;
+          return semantic.border;
+        }),
+      ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(semantic.surface),
+          surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: semantic.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+          side: BorderSide(color: semantic.border),
         ),
       ),
     );

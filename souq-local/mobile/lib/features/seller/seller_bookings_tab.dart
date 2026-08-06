@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
@@ -40,13 +40,13 @@ class _SellerBookingsTabState extends ConsumerState<SellerBookingsTab> {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+              padding: EdgeInsets.all(AppSpacing.screenHorizontal),
               child: SegmentedButton<_BookingFilter>(
                 showSelectedIcon: false,
                 style: SegmentedButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  textStyle: const TextStyle(
+                  textStyle: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -82,7 +82,7 @@ class _SellerBookingsTabState extends ConsumerState<SellerBookingsTab> {
             Expanded(
               child: _filter == _BookingFilter.upcoming && inquiryCount > 0
                   ? ListView(
-                      padding: const EdgeInsets.all(
+                      padding: EdgeInsets.all(
                         AppSpacing.screenHorizontal,
                       ),
                       children: [
@@ -93,15 +93,15 @@ class _SellerBookingsTabState extends ConsumerState<SellerBookingsTab> {
                               .titleSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Card(
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundColor:
-                                  AppColors.primary.withValues(alpha: 0.12),
-                              child: const Icon(
+                                  context.colors.primary.withValues(alpha: 0.12),
+                              child: Icon(
                                 Icons.chat_bubble_outline,
-                                color: AppColors.primary,
+                                color: context.colors.primary,
                               ),
                             ),
                             title: Text(l10n.inquiries),

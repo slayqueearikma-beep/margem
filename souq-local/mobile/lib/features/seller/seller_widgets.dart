@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 
 class SellerSectionHeader extends StatelessWidget {
   const SellerSectionHeader({
@@ -48,7 +48,7 @@ class SellerStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.success : AppColors.danger;
+    final color = active ? context.colors.success : context.colors.error;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -93,7 +93,7 @@ class SellerMetricTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
@@ -103,15 +103,15 @@ class SellerMetricTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: AppColors.primary, size: 22),
-              const Spacer(),
+              Icon(icon, color: context.colors.primary, size: 22),
+              Spacer(),
               Text(
                 value,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2),
               Text(
                 label,
                 maxLines: 2,
@@ -121,13 +121,13 @@ class SellerMetricTile extends StatelessWidget {
                 ),
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   subtitle!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.primary,
+                    color: context.colors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -160,7 +160,7 @@ class SellerHeroMetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -175,7 +175,7 @@ class SellerHeroMetricCard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -185,19 +185,19 @@ class SellerHeroMetricCard extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (positive ? AppColors.success : AppColors.danger)
+                  color: (positive ? context.colors.success : context.colors.error)
                       .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   deltaLabel,
                   style: TextStyle(
-                    color: positive ? AppColors.success : AppColors.danger,
+                    color: positive ? context.colors.success : context.colors.error,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -242,16 +242,16 @@ class SellerStepIndicator extends StatelessWidget {
                       height: 4,
                       decoration: BoxDecoration(
                         color: active
-                            ? AppColors.primary
-                            : AppColors.border,
+                            ? context.colors.primary
+                            : context.colors.border,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ),
-                  if (index < totalSteps - 1) const SizedBox(width: 6),
+                  if (index < totalSteps - 1) SizedBox(width: 6),
                 ],
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(
                 labels[index],
                 maxLines: 1,
@@ -262,7 +262,7 @@ class SellerStepIndicator extends StatelessWidget {
                   fontWeight:
                       index == currentStep ? FontWeight.w700 : FontWeight.w500,
                   color: active
-                      ? AppColors.primary
+                      ? context.colors.primary
                       : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -282,16 +282,20 @@ class SellerMiniSparkline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _SparklinePainter(values: values),
+      painter: _SparklinePainter(
+        values: values,
+        color: context.colors.primary,
+      ),
       child: const SizedBox.expand(),
     );
   }
 }
 
 class _SparklinePainter extends CustomPainter {
-  _SparklinePainter({required this.values});
+  _SparklinePainter({required this.values, required this.color});
 
   final List<double> values;
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -300,7 +304,7 @@ class _SparklinePainter extends CustomPainter {
     final min = values.reduce((a, b) => a < b ? a : b);
     final range = (max - min).clamp(1, double.infinity);
     final paint = Paint()
-      ..color = AppColors.primary
+      ..color = color
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
-import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import 'app_brand_logo.dart';
 
 class PrimaryButton extends StatelessWidget {
@@ -25,47 +24,39 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = accentColor ?? AppColors.lavender;
+    final accent = accentColor ?? context.colors.primary;
 
     return SizedBox(
       width: double.infinity,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-          boxShadow: onPressed != null && !isLoading
-              ? AppShadows.soft(color: accent, blur: 16, y: 4)
-              : null,
+      child: FilledButton(
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          disabledBackgroundColor: accent.withValues(alpha: 0.35),
         ),
-        child: FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: accent,
-            disabledBackgroundColor: accent.withValues(alpha: 0.35),
-          ),
-          onPressed: isLoading ? null : onPressed,
-          child: isLoading
-              ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(icon, size: 20),
-                      const SizedBox(width: 8),
-                    ],
-                    Text(label),
-                    if (trailingIcon != null) ...[
-                      const SizedBox(width: 8),
-                      Icon(trailingIcon, size: 20),
-                    ],
-                  ],
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ? SizedBox(
+                height: 22,
+                width: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: context.colors.onPrimary,
                 ),
-        ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 20),
+                    SizedBox(width: 8),
+                  ],
+                  Text(label),
+                  if (trailingIcon != null) ...[
+                    SizedBox(width: 8),
+                    Icon(trailingIcon, size: 20),
+                  ],
+                ],
+              ),
       ),
     );
   }
@@ -88,9 +79,7 @@ class SecondaryTextButton extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.textTertiary
-                  : AppColors.textSecondary,
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
       ),
@@ -114,8 +103,8 @@ class LinkTextButton extends StatelessWidget {
       onPressed: onPressed,
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.lavender,
+        style: TextStyle(
+          color: context.colors.primary,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -162,12 +151,12 @@ class AppScreenHeader extends StatelessWidget {
               ),
         ),
         if (subtitle != null) ...[
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           Text(
             subtitle!,
             textAlign: textAlign,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.45,
                 ),
           ),

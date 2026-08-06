@@ -7,8 +7,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/achievement_badges.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -187,7 +187,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.reviewSubmittedSuccess),
-            backgroundColor: AppColors.success,
+            backgroundColor: context.colors.success,
           ),
         );
       }
@@ -230,7 +230,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                 pinned: true,
                 stretch: true,
                 flexibleSpace: FlexibleSpaceBar(
-                  stretchModes: const [
+                  stretchModes: [
                     StretchMode.zoomBackground,
                     StretchMode.fadeTitle,
                   ],
@@ -264,7 +264,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _SellerHeader(seller: seller, l10n: l10n),
-                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(height: AppSpacing.lg),
                     if (seller.description.trim().isNotEmpty) ...[
                       Text(
                         seller.description,
@@ -272,7 +272,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                               height: 1.45,
                               color: isDark
                                   ? Colors.white70
-                                  : AppColors.textSecondary,
+                                  : context.colors.textSecondary,
                             ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
@@ -543,7 +543,7 @@ class _SellerHeader extends StatelessWidget {
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.12),
                 blurRadius: 12,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4),
               ),
             ],
           ),
@@ -553,7 +553,7 @@ class _SellerHeader extends StatelessWidget {
             placeholderIcon: Icons.storefront_rounded,
           ),
         ),
-        const SizedBox(width: 14),
+        SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,32 +571,32 @@ class _SellerHeader extends StatelessWidget {
                     ),
                   ),
                   if (seller.verificationStatus == 'verified')
-                    const Icon(Icons.verified_rounded,
+                    Icon(Icons.verified_rounded,
                         color: Colors.blue, size: 22),
                   if (seller.isPremium)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(left: 4),
                       child: Icon(Icons.workspace_premium_rounded,
-                          color: AppColors.goldenCrown, size: 22),
+                          color: context.colors.highlight, size: 22),
                     ),
                 ],
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Row(
                 children: [
                   RatingBarIndicator(
                     rating: seller.averageRating,
                     itemBuilder: (_, __) =>
-                        const Icon(Icons.star_rounded, color: AppColors.star),
+                        Icon(Icons.star_rounded, color: context.colors.star),
                     itemCount: 5,
                     itemSize: 16,
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       '${seller.averageRating.toStringAsFixed(1)} · ${l10n.reviewsCount(seller.reviewCount)}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -652,22 +652,22 @@ class _MetaPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: AppColors.primary),
-          const SizedBox(width: 4),
+          Icon(icon, size: 14, color: context.colors.primary),
+          SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ],
@@ -685,11 +685,11 @@ class _InfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: AppColors.primary),
+          Icon(icon, size: 20, color: context.colors.primary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -758,14 +758,14 @@ class _ReviewsPreview extends StatelessWidget {
                         Expanded(
                           child: Text(
                             r.buyerDisplayName,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
+                            style: TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),
                         RatingBarIndicator(
                           rating: r.overallRating,
-                          itemBuilder: (_, __) => const Icon(
+                          itemBuilder: (_, __) => Icon(
                             Icons.star_rounded,
-                            color: AppColors.star,
+                            color: context.colors.star,
                           ),
                           itemCount: 5,
                           itemSize: 14,
@@ -791,9 +791,9 @@ class _ReviewsPreview extends StatelessWidget {
     if (reviews.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.surfaceMuted,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         ),
         child: Column(
@@ -801,7 +801,7 @@ class _ReviewsPreview extends StatelessWidget {
             Icon(
               Icons.reviews_outlined,
               size: 48,
-              color: AppColors.primary.withValues(alpha: 0.7),
+              color: context.colors.primary.withValues(alpha: 0.7),
             ),
             const SizedBox(height: 12),
             Text(
@@ -825,9 +825,9 @@ class _ReviewsPreview extends StatelessWidget {
       title: l10n.recentReviews,
       trailing: Text(
         seller.averageRating.toStringAsFixed(1),
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.w800,
-          color: AppColors.primary,
+          color: context.colors.primary,
         ),
       ),
       child: Column(
@@ -841,21 +841,21 @@ class _ReviewsPreview extends StatelessWidget {
                     seller.averageRating.toStringAsFixed(1),
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
+                          color: context.colors.primary,
                         ),
                   ),
                   RatingBarIndicator(
                     rating: seller.averageRating,
                     itemBuilder: (_, __) =>
-                        const Icon(Icons.star_rounded, color: AppColors.star),
+                        Icon(Icons.star_rounded, color: context.colors.star),
                     itemCount: 5,
                     itemSize: 16,
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     l10n.reviewsCount(seller.reviewCount),
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -869,28 +869,28 @@ class _ReviewsPreview extends StatelessWidget {
                     final star = 5 - i;
                     final count = dist[star] ?? 0;
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      padding: EdgeInsets.symmetric(vertical: 2),
                       child: Row(
                         children: [
                           SizedBox(
                             width: 12,
                             child: Text(
                               '$star',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: 6),
                           Expanded(
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(99),
                               child: LinearProgressIndicator(
                                 value: count / maxCount,
                                 minHeight: 7,
-                                backgroundColor: AppColors.surfaceMuted,
-                                color: AppColors.star,
+                                backgroundColor: context.colors.surfaceVariant,
+                                color: context.colors.star,
                               ),
                             ),
                           ),
@@ -902,10 +902,10 @@ class _ReviewsPreview extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           ...preview.map(
             (r) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.only(bottom: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -914,14 +914,14 @@ class _ReviewsPreview extends StatelessWidget {
                       Expanded(
                         child: Text(
                           r.buyerDisplayName,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+                          style: TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ),
                       RatingBarIndicator(
                         rating: r.overallRating,
-                        itemBuilder: (_, __) => const Icon(
+                        itemBuilder: (_, __) => Icon(
                           Icons.star_rounded,
-                          color: AppColors.star,
+                          color: context.colors.star,
                         ),
                         itemCount: 5,
                         itemSize: 14,

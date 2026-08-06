@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
@@ -109,21 +109,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             subtitle: city,
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
+            padding: EdgeInsets.symmetric(
               horizontal: AppSpacing.screenHorizontal,
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.near_me_outlined,
                   size: 14,
-                  color: AppColors.lavender,
+                  color: context.colors.primary,
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Text(
                   l10n.searchSortedByNearest,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                 ),
               ],
@@ -169,14 +169,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           Expanded(
             child: FutureBuilder<MarketplaceSearchPage>(
               future: _future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: AppColors.lavender),
+                  return Center(
+                    child: CircularProgressIndicator(color: context.colors.primary),
                   );
                 }
                 if (snapshot.hasError) {
@@ -220,7 +220,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           '/product/${product.sellerId}/${product.id}',
                         ),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
+                          contentPadding: EdgeInsets.symmetric(
                             horizontal: AppSpacing.md,
                             vertical: 4,
                           ),
@@ -237,15 +237,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           ),
                           title: Text(
                             product.name,
-                            style: const TextStyle(fontWeight: FontWeight.w800),
+                            style: TextStyle(fontWeight: FontWeight.w800),
                           ),
                           subtitle: Text(subtitle),
                           trailing: Text(
                             product.priceMad == null
                                 ? '—'
                                 : '${product.priceMad!.toStringAsFixed(0)} MAD',
-                            style: const TextStyle(
-                              color: AppColors.lavender,
+                            style: TextStyle(
+                              color: context.colors.primary,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -262,7 +262,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     return BuyerSurfaceCard(
                       onTap: () => context.push('/seller/${seller.id}'),
                       child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
+                        contentPadding: EdgeInsets.symmetric(
                           horizontal: AppSpacing.md,
                           vertical: 4,
                         ),
@@ -278,12 +278,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         ),
                         title: Text(
                           seller.businessName,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+                          style: TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(subtitle),
                         trailing: Icon(
                           DirectionalUi.forwardChevron(context),
-                          color: AppColors.textTertiary,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                     );

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
-/// Soft warm gradient blob background used across MarGem screens.
+/// Neutral background used across MarGem screens.
 class MargemBackground extends StatelessWidget {
   const MargemBackground({
     super.key,
     required this.child,
-    this.showBlobs = true,
+    this.showBlobs = false,
     this.padding,
   });
 
@@ -17,12 +17,10 @@ class MargemBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = context.colors;
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBackground : AppColors.cream,
-      ),
+      decoration: BoxDecoration(color: colors.background),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -32,15 +30,10 @@ class MargemBackground extends StatelessWidget {
               left: -60,
               child: _GradientBlob(
                 size: 280,
-                colors: isDark
-                    ? [
-                        AppColors.beige.withValues(alpha: 0.12),
-                        AppColors.beige.withValues(alpha: 0.02),
-                      ]
-                    : [
-                        AppColors.beige.withValues(alpha: 0.35),
-                        AppColors.beige.withValues(alpha: 0.05),
-                      ],
+                colors: [
+                  colors.surfaceVariant.withValues(alpha: 0.35),
+                  colors.background.withValues(alpha: 0),
+                ],
               ),
             ),
             Positioned(
@@ -48,15 +41,10 @@ class MargemBackground extends StatelessWidget {
               right: -80,
               child: _GradientBlob(
                 size: 320,
-                colors: isDark
-                    ? [
-                        AppColors.lavender.withValues(alpha: 0.10),
-                        AppColors.lavender.withValues(alpha: 0.02),
-                      ]
-                    : [
-                        AppColors.lavender.withValues(alpha: 0.12),
-                        AppColors.lavender.withValues(alpha: 0.03),
-                      ],
+                colors: [
+                  colors.surfaceVariant.withValues(alpha: 0.25),
+                  colors.background.withValues(alpha: 0),
+                ],
               ),
             ),
           ],

@@ -1,61 +1,60 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
+import 'theme_context.dart';
 
-/// Soft, diffused elevation tokens for the MarGem design system.
+/// Subtle elevation tokens — prefer borders and spacing over heavy shadows.
 class AppShadows {
   AppShadows._();
 
-  static List<BoxShadow> soft({Color? color, double blur = 24, double y = 8}) {
+  static List<BoxShadow> soft(
+    BuildContext context, {
+    double blur = 12,
+    double y = 2,
+  }) {
+    final shadow = context.colors.shadow;
     return [
       BoxShadow(
-        color: (color ?? AppColors.navy).withValues(alpha: 0.06),
+        color: shadow.withValues(alpha: context.isDark ? 0.24 : 0.06),
         blurRadius: blur,
         offset: Offset(0, y),
+        spreadRadius: -2,
+      ),
+    ];
+  }
+
+  static List<BoxShadow> card(BuildContext context) {
+    final shadow = context.colors.shadow;
+    return [
+      BoxShadow(
+        color: shadow.withValues(alpha: context.isDark ? 0.28 : 0.04),
+        blurRadius: 12,
+        offset: const Offset(0, 2),
+        spreadRadius: -2,
+      ),
+    ];
+  }
+
+  static List<BoxShadow> elevated(BuildContext context) {
+    final shadow = context.colors.shadow;
+    return [
+      BoxShadow(
+        color: shadow.withValues(alpha: context.isDark ? 0.36 : 0.08),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
         spreadRadius: -4,
       ),
     ];
   }
 
-  static List<BoxShadow> card({bool isDark = false}) => [
-        BoxShadow(
-          color: (isDark ? Colors.black : AppColors.navy)
-              .withValues(alpha: isDark ? 0.35 : 0.05),
-          blurRadius: 20,
-          offset: const Offset(0, 6),
-          spreadRadius: -6,
-        ),
-      ];
-
-  static List<BoxShadow> elevated({bool isDark = false}) => [
-        BoxShadow(
-          color: (isDark ? Colors.black : AppColors.navy)
-              .withValues(alpha: isDark ? 0.45 : 0.08),
-          blurRadius: 32,
-          offset: const Offset(0, 12),
-          spreadRadius: -8,
-        ),
-      ];
-
-  static List<BoxShadow> iconCircle(Color accent) => [
-        BoxShadow(
-          color: accent.withValues(alpha: 0.18),
-          blurRadius: 16,
-          offset: const Offset(0, 6),
-          spreadRadius: -2,
-        ),
-        BoxShadow(
-          color: AppColors.navy.withValues(alpha: 0.04),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-      ];
-
-  static List<BoxShadow> glow(Color accent) => [
-        BoxShadow(
-          color: accent.withValues(alpha: 0.25),
-          blurRadius: 28,
-          spreadRadius: -4,
-        ),
-      ];
+  static List<BoxShadow> focus(BuildContext context) {
+    final primary = context.colors.primary;
+    return [
+      BoxShadow(
+        color: primary.withValues(alpha: 0.18),
+        blurRadius: 8,
+        offset: const Offset(0, 0),
+        spreadRadius: 0,
+      ),
+    ];
+  }
 }

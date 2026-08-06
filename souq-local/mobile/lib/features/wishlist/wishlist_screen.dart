@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -50,8 +50,8 @@ class FavoritesScreen extends ConsumerWidget {
     return BuyerScreenScaffold(
       appBar: BuyerAppBar(title: l10n.favorites),
       body: favoritesAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.lavender),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.colors.primary),
         ),
         error: (error, _) => AsyncErrorView.fromError(error,
             onRetry: () => ref.invalidate(favoritesProvider)),
@@ -72,7 +72,7 @@ class FavoritesScreen extends ConsumerWidget {
             );
           }
           return RefreshIndicator(
-            color: AppColors.lavender,
+            color: context.colors.primary,
             onRefresh: () async => ref.invalidate(favoritesProvider),
             child: ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
@@ -106,7 +106,7 @@ class _FavoriteTile extends ConsumerWidget {
         }
       },
       child: ListTile(
-        contentPadding: const EdgeInsets.all(AppSpacing.sm),
+        contentPadding: EdgeInsets.all(AppSpacing.sm),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: SizedBox(
@@ -120,7 +120,7 @@ class _FavoriteTile extends ConsumerWidget {
         ),
         title: Text(
           item.productName,
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(fontWeight: FontWeight.w800),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,8 +130,8 @@ class _FavoriteTile extends ConsumerWidget {
               item.priceMad == null
                   ? l10n.priceOnRequest
                   : '${item.priceMad!.toStringAsFixed(2)} MAD',
-              style: const TextStyle(
-                color: AppColors.lavender,
+              style: TextStyle(
+                color: context.colors.primary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -139,7 +139,7 @@ class _FavoriteTile extends ConsumerWidget {
         ),
         trailing: IconButton(
           tooltip: l10n.remove,
-          icon: const Icon(Icons.favorite_rounded, color: AppColors.lavender),
+          icon: Icon(Icons.favorite_rounded, color: context.colors.primary),
           onPressed: () => _remove(context, ref),
         ),
       ),

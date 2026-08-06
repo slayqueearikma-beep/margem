@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import '../utils/directional_ui.dart';
 import 'margem_background.dart';
 
@@ -23,14 +23,14 @@ class StepProgressBar extends StatelessWidget {
         final isActive = index < currentStep;
         return Expanded(
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+            duration: Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
             margin: EdgeInsetsDirectional.only(
               end: index < totalSteps - 1 ? 6 : 0,
             ),
             height: 4,
             decoration: BoxDecoration(
-              color: isActive ? AppColors.lavender : AppColors.border,
+              color: isActive ? context.colors.primary : context.colors.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -53,13 +53,13 @@ class PageDots extends StatelessWidget {
       children: List.generate(count, (index) {
         final isActive = index == currentIndex;
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
+          duration: Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+          margin: EdgeInsets.symmetric(horizontal: 4),
           width: isActive ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: isActive ? AppColors.lavender : AppColors.border,
+            color: isActive ? context.colors.primary : context.colors.border,
             borderRadius: BorderRadius.circular(4),
           ),
         );
@@ -175,13 +175,13 @@ class _GlassIconButton extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: isDark
-                ? AppColors.darkCard.withValues(alpha: 0.6)
+                ? context.colors.surface.withValues(alpha: 0.6)
                 : Colors.white.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.borderLight,
+              color: isDark ? context.colors.border : context.colors.divider,
             ),
-            boxShadow: AppShadows.soft(blur: 12, y: 2),
+            boxShadow: AppShadows.soft(context, blur: 12, y: 2),
           ),
           child: Icon(icon, size: 18),
         ),

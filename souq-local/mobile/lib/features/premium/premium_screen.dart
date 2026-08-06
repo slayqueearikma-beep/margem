@@ -7,8 +7,8 @@ import '../../core/config/app_config.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -74,8 +74,8 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
     return BuyerScreenScaffold(
       appBar: BuyerAppBar(title: l10n.premium),
       body: plansAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.lavender),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.colors.primary),
         ),
         error: (error, _) => AsyncErrorView.fromError(error,
             onRetry: () => ref.invalidate(subscriptionPlansProvider)),
@@ -93,11 +93,11 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
               ref.invalidate(mySubscriptionProvider);
             },
             child: ListView(
-              padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+              padding: EdgeInsets.all(AppSpacing.screenHorizontal),
               children: [
                 BuyerSurfaceCard(
                   child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    padding: EdgeInsets.all(AppSpacing.lg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -105,16 +105,16 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.lavenderMuted,
+                            color: context.colors.primaryMuted,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.workspace_premium_rounded,
-                            color: AppColors.lavender,
+                            color: context.colors.primary,
                             size: 32,
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
+                        SizedBox(height: AppSpacing.sm),
                         Text(
                           l10n.premiumTitle,
                           style: Theme.of(context)
@@ -122,28 +122,28 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                               .headlineSmall
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
+                        SizedBox(height: AppSpacing.sm),
                         Text(
                           l10n.premiumSubtitle,
-                          style: const TextStyle(color: AppColors.textSecondary),
+                          style: TextStyle(color: context.colors.textSecondary),
                         ),
                         if (active != null) ...[
-                          const SizedBox(height: AppSpacing.md),
+                          SizedBox(height: AppSpacing.md),
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.successMuted,
+                              color: context.colors.successMuted,
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.check_circle_rounded,
-                                  color: AppColors.success,
+                                  color: context.colors.success,
                                   size: 18,
                                 ),
                                 const SizedBox(width: 6),
@@ -201,10 +201,10 @@ class _PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: EdgeInsets.only(bottom: AppSpacing.md),
       child: BuyerSurfaceCard(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -220,35 +220,35 @@ class _PlanCard extends StatelessWidget {
                     ),
                   ),
                   if (active)
-                    const Icon(
+                    Icon(
                       Icons.check_circle_rounded,
-                      color: AppColors.success,
+                      color: context.colors.success,
                     ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               Text(
                 plan.description,
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: context.colors.textSecondary),
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               Text(
                 '${plan.priceMad.toStringAsFixed(0)} MAD / ${plan.billingPeriodDays} ${l10n.days}',
-                style: const TextStyle(
-                  color: AppColors.lavender,
+                style: TextStyle(
+                  color: context.colors.primary,
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             if (plan.features.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               ...plan.features.map(
                 (feature) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  padding: EdgeInsets.only(bottom: AppSpacing.sm),
                   child: Row(
                     children: [
-                      const Icon(Icons.check,
-                          color: AppColors.success, size: 18),
+                      Icon(Icons.check,
+                          color: context.colors.success, size: 18),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(child: Text(feature)),
                     ],

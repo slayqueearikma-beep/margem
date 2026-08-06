@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/models/community_models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/design_system_components.dart';
@@ -299,17 +299,17 @@ class _CityBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Container(
-      margin: const EdgeInsets.all(AppSpacing.screenHorizontal),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      margin: EdgeInsets.all(AppSpacing.screenHorizontal),
+      padding: EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.lavender.withValues(alpha: 0.18),
-            AppColors.peach.withValues(alpha: 0.14),
+            context.colors.primary.withValues(alpha: 0.18),
+            context.colors.secondary.withValues(alpha: 0.14),
           ],
         ),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: context.colors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,26 +320,26 @@ class _CityBanner extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          SizedBox(height: AppSpacing.xs),
           Text(
             city.description.isNotEmpty
                 ? city.description
                 : l10n.communityCitySubtitle(city.name),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           Row(
             children: [
               _StatChip(
                 icon: Icons.people_outline,
                 label: '${city.memberCount} ${l10n.communityMembers}',
               ),
-              const SizedBox(width: AppSpacing.sm),
+              SizedBox(width: AppSpacing.sm),
               _StatChip(
                 icon: Icons.circle,
-                iconColor: AppColors.success,
+                iconColor: context.colors.success,
                 label: '${city.onlineCount} ${l10n.communityOnline}',
               ),
             ],
@@ -371,7 +371,7 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
@@ -379,7 +379,7 @@ class _StatChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: iconColor ?? AppColors.lavender),
+          Icon(icon, size: 14, color: iconColor ?? context.colors.primary),
           const SizedBox(width: 6),
           Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         ],
@@ -403,12 +403,12 @@ class _ChannelTile extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.lavenderMuted,
+            color: context.colors.primaryMuted,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             _iconForCategory(channel.category),
-            color: AppColors.lavender,
+            color: context.colors.primary,
           ),
         ),
         title: Text(channel.name, style: const TextStyle(fontWeight: FontWeight.w700)),

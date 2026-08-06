@@ -8,8 +8,8 @@ import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/models/auth_models.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -192,18 +192,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       prefixIcon: Icon(icon),
       suffixIcon: suffix,
       filled: true,
-      fillColor: AppColors.surfaceMuted.withValues(alpha: 0.65),
+      fillColor: context.colors.surfaceVariant.withValues(alpha: 0.65),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+        borderSide: BorderSide(color: context.colors.primary, width: 1.4),
       ),
     );
   }
@@ -237,12 +237,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       letterSpacing: -0.3,
                     ),
               ),
-              const SizedBox(height: AppSpacing.xl),
+              SizedBox(height: AppSpacing.xl),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
-                autofillHints: const [
+                autofillHints: [
                   AutofillHints.username,
                   AutofillHints.email
                 ],
@@ -251,12 +251,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   icon: Icons.email_outlined,
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscure,
                 textInputAction: TextInputAction.done,
-                autofillHints: const [AutofillHints.password],
+                autofillHints: [AutofillHints.password],
                 onSubmitted: (_) => _login(),
                 decoration: _fieldDecoration(
                   label: l10n.password,
@@ -276,32 +276,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: TextButton(
                   onPressed: () => context.push('/forgot-password'),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    foregroundColor: context.colors.textSecondary,
+                    padding: EdgeInsets.symmetric(horizontal: 4),
                   ),
                   child: Text(l10n.forgotPassword),
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               PrimaryButton(
                 label: l10n.logIn,
                 onPressed: _login,
                 isLoading: _loading,
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton(
                   onPressed: () => context.push('/onboarding/account-type'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
+                    foregroundColor: context.colors.primary,
                     side:
-                        const BorderSide(color: AppColors.primary, width: 1.4),
+                        BorderSide(color: context.colors.primary, width: 1.4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    textStyle: const TextStyle(
+                    textStyle: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
                     ),
@@ -309,13 +309,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Text(l10n.createAccount),
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               TextButton(
                 onPressed: _continueAsGuest,
                 child: Text(
                   l10n.guestContinue,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: context.colors.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/service_card.dart';
@@ -247,8 +247,8 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: (_) => onTap(),
-      selectedColor: AppColors.cardSelected,
-      checkmarkColor: AppColors.primary,
+      selectedColor: context.colors.surfaceVariant,
+      checkmarkColor: context.colors.primary,
     );
   }
 }
@@ -278,7 +278,7 @@ class _ProductListCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12),
           child: Row(
             children: [
               ClipRRect(
@@ -292,20 +292,20 @@ class _ProductListCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       productName,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+                      style: TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       priceLabel,
-                      style: const TextStyle(
-                        color: AppColors.primary,
+                      style: TextStyle(
+                        color: context.colors.primary,
                         fontWeight: FontWeight.w800,
                       ),
                     ),

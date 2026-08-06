@@ -5,8 +5,8 @@ import 'package:flutter/services.dart';
 
 import 'app_brand_logo.dart';
 import '../services/api_service.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import '../utils/directional_ui.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -76,24 +76,24 @@ class _ChannelPickerDialog extends StatelessWidget {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                const Spacer(),
+                Spacer(),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                 ),
               ],
             ),
-            const AppBrandLogo(
+            AppBrandLogo(
               tier: AppLogoTier.header,
               includeClearSpace: false,
             ),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
             Text(
               l10n.signupOtpChannelTitle,
               textAlign: TextAlign.center,
@@ -102,16 +102,16 @@ class _ChannelPickerDialog extends StatelessWidget {
                   .titleMedium
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm),
             Text(
               l10n.signupOtpChannelSubtitle,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     height: 1.4,
                   ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            SizedBox(height: AppSpacing.lg),
             if (phone.trim().isNotEmpty) ...[
               _ChannelTile(
                 icon: Icons.phone_iphone_rounded,
@@ -120,7 +120,7 @@ class _ChannelPickerDialog extends StatelessWidget {
                 onTap: () =>
                     Navigator.of(context).pop(SignupVerificationChannel.phone),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
             ],
             _ChannelTile(
               icon: Icons.mail_outline_rounded,
@@ -129,17 +129,17 @@ class _ChannelPickerDialog extends StatelessWidget {
               onTap: () =>
                   Navigator.of(context).pop(SignupVerificationChannel.email),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            SizedBox(height: AppSpacing.lg),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.lock_outline,
-                    size: 14, color: AppColors.textSecondary),
-                const SizedBox(width: 6),
+                Icon(Icons.lock_outline,
+                    size: 14, color: context.colors.textSecondary),
+                SizedBox(width: 6),
                 Text(
                   l10n.signupOtpPrivacyNote,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                 ),
               ],
@@ -167,33 +167,33 @@ class _ChannelTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surfaceMuted,
+      color: context.colors.surfaceVariant,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              Icon(icon, color: AppColors.primary),
-              const SizedBox(width: 12),
+              Icon(icon, color: context.colors.primary),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title,
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                     Text(subtitle,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          color: context.colors.textSecondary,
                           fontSize: 13,
                         )),
                   ],
                 ),
               ),
               Icon(DirectionalUi.forwardChevron(context),
-                  color: AppColors.textSecondary),
+                  color: context.colors.textSecondary),
             ],
           ),
         ),
@@ -337,7 +337,7 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -347,18 +347,18 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
                   onPressed: () => Navigator.of(context).pop(),
                   icon: Icon(DirectionalUi.backArrow(context), size: 18),
                 ),
-                const Spacer(),
+                Spacer(),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(Icons.close_rounded),
                 ),
               ],
             ),
-            const AppBrandLogo(
+            AppBrandLogo(
               tier: AppLogoTier.header,
               includeClearSpace: false,
             ),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
             Text(
               l10n.signupOtpCodeTitle,
               textAlign: TextAlign.center,
@@ -367,12 +367,12 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
                   .titleMedium
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm),
             Text(
               l10n.signupOtpCodeSentTo(_destinationMasked),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     height: 1.4,
                   ),
             ),
@@ -412,18 +412,18 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
               }),
             ),
             if (_error != null) ...[
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.danger, fontSize: 13),
+                style: TextStyle(color: context.colors.error, fontSize: 13),
               ),
             ],
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
             Text(
               l10n.signupOtpDidntReceive,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
             ),
             TextButton(
