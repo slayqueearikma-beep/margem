@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// Shared backdrop for splash (skyline) and onboarding (clean white + accent).
+/// Shared backdrop for splash (skyline) and onboarding screens.
 class OnboardingBackdrop extends StatelessWidget {
   const OnboardingBackdrop({
     super.key,
@@ -21,10 +21,12 @@ class OnboardingBackdrop extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final skylineHeight = width * 0.34;
+    final brightness = Theme.of(context).brightness;
+    final accent = AppColors.accent(brightness);
 
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColors.cream,
+      decoration: BoxDecoration(
+        color: AppColors.scaffold(brightness),
       ),
       child: Stack(
         fit: StackFit.expand,
@@ -41,8 +43,8 @@ class OnboardingBackdrop extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.lavender.withValues(alpha: 0.14),
-                        AppColors.lavender.withValues(alpha: 0.0),
+                        accent.withValues(alpha: 0.14),
+                        accent.withValues(alpha: 0.0),
                       ],
                     ),
                   ),

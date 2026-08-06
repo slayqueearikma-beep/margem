@@ -48,9 +48,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return _navigateNext();
     }
 
-    final session = storage.getSession();
+    final storedSession = storage.getSession();
     final isReturningUser =
-        session != null || storage.isOnboardingComplete;
+        storedSession != null || storage.isOnboardingComplete;
     if (!isReturningUser) {
       await Future<void>.delayed(const Duration(milliseconds: 2200));
     }

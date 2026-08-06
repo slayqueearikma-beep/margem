@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// Programmatic MarGem logo — three overlapping lavender + peach pills.
+/// Programmatic MarGem logo — overlapping primary + secondary pills.
 ///
 /// Vector rendering stays crisp at any DPI; PNG assets are generated from the
 /// same geometry via [scripts/generate_margem_logo.py].
@@ -52,7 +52,7 @@ class MargemMLogo extends StatelessWidget {
               ),
               TextSpan(
                 text: 'Gem',
-                style: TextStyle(color: AppColors.lavender),
+                style: TextStyle(color: AppColors.primary),
               ),
             ],
           ),
@@ -65,45 +65,38 @@ class MargemMLogo extends StatelessWidget {
 class _MargemMLogoPainter extends CustomPainter {
   const _MargemMLogoPainter();
 
-  static const _lavender = Color(0xFF9A87F6);
-  static const _peach = AppColors.peach;
-
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
 
-    // Left lavender leg — curved pill
     final leftPath = Path()
       ..moveTo(w * 0.20, h * 0.90)
       ..cubicTo(w * 0.10, h * 0.62, w * 0.14, h * 0.22, w * 0.30, h * 0.10)
       ..cubicTo(w * 0.36, h * 0.38, w * 0.40, h * 0.62, w * 0.46, h * 0.90)
       ..close();
 
-    // Right peach leg — curved pill
     final rightPath = Path()
       ..moveTo(w * 0.80, h * 0.90)
       ..cubicTo(w * 0.90, h * 0.62, w * 0.86, h * 0.22, w * 0.70, h * 0.10)
       ..cubicTo(w * 0.64, h * 0.38, w * 0.60, h * 0.62, w * 0.54, h * 0.90)
       ..close();
 
-    // Center overlap pill — semi-transparent lavender
     final centerPath = Path()
       ..moveTo(w * 0.46, h * 0.90)
       ..cubicTo(w * 0.48, h * 0.55, w * 0.50, h * 0.30, w * 0.50, h * 0.14)
       ..cubicTo(w * 0.52, h * 0.30, w * 0.52, h * 0.55, w * 0.54, h * 0.90)
       ..close();
 
-    canvas.drawPath(leftPath, Paint()..color = _lavender);
-    canvas.drawPath(rightPath, Paint()..color = _peach);
+    canvas.drawPath(leftPath, Paint()..color = AppColors.primary);
+    canvas.drawPath(rightPath, Paint()..color = AppColors.secondary);
     canvas.drawPath(
       centerPath,
       Paint()
-        ..color = _lavender.withValues(alpha: 0.45)
+        ..color = AppColors.primary.withValues(alpha: 0.45)
         ..blendMode = BlendMode.srcOver,
     );
 
-    // Soft highlight on overlap for glass depth
     canvas.drawPath(
       centerPath,
       Paint()
