@@ -75,6 +75,7 @@ Future<bool> handleAppBack({
           location.startsWith('/seller/settings') ||
           location.startsWith('/seller/notifications') ||
           location.startsWith('/seller/messages') ||
+          location.startsWith('/seller/partnerships') ||
           location == '/seller/dashboard') {
         router?.go('/seller/dashboard');
       } else {

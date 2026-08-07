@@ -345,6 +345,12 @@ class SellerDashboardScreen extends ConsumerWidget {
                                 _showAnalytics(context, analytics, stats),
                           ),
                           DashboardMenuTile(
+                            title: 'Partnerships',
+                            subtitle: 'Collaborate with other sellers',
+                            icon: Icons.handshake_outlined,
+                            onTap: () => context.push('/seller/partnerships'),
+                          ),
+                          DashboardMenuTile(
                             title: l10n.productManagement,
                             subtitle: l10n.productManagementSub,
                             icon: Icons.storefront_outlined,
