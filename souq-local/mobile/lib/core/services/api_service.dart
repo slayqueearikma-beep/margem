@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
+import '../models/bundle_models.dart';
 import '../models/community_models.dart';
 import '../models/marketplace_community_models.dart';
 import '../models/models.dart';

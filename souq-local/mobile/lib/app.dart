@@ -18,6 +18,7 @@ import 'features/buyer/buyer_home_screen.dart';
 import 'features/community_chat/community_channel_screen.dart';
 import 'features/community_chat/community_city_screen.dart';
 import 'features/map/map_screen.dart';
+import 'features/messages/messages_inbox_screen.dart';
 import 'features/marketplace_community/marketplace_community_channel_screen.dart';
 import 'features/marketplace_community/marketplace_community_hub_screen.dart';
 import 'features/onboarding/account_type_onboarding_screen.dart';
