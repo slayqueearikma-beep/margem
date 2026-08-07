@@ -209,6 +209,9 @@ class SellerProfile(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     address: Mapped[str] = mapped_column(String(255))
     city: Mapped[str] = mapped_column(String(80), index=True)
+    marketplace_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("marketplaces.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
     phone: Mapped[str] = mapped_column(String(32), default="")
@@ -244,6 +247,7 @@ class SellerProfile(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="seller_profile")
+    marketplace: Mapped["Marketplace | None"] = relationship(back_populates="sellers")
     categories: Mapped[list[Category]] = relationship(
         secondary="seller_categories", back_populates="sellers"
     )
@@ -555,3 +559,4 @@ from app.models.community import (  # noqa: E402,F401
     CommunityUserMute,
     DEFAULT_CHANNEL_SPECS,
 )
+from app.models.marketplace import Marketplace, MarketplaceCategory  # noqa: E402,F401

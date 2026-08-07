@@ -18,6 +18,7 @@ from app.models import PricingType, Product, SellerProfile, Service, Verificatio
 from app.schemas import PricingType as PricingTypeSchema
 from app.schemas import SellerSummary
 from app.services.geo import haversine_km_sql
+from app.services.marketplace_scope import resolve_marketplace_id
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -86,8 +87,11 @@ def _provider_filters(
     q: str,
     category: str | None,
     min_rating: float | None,
+    marketplace_id=None,
 ):
     stmt = stmt.where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
+    if marketplace_id is not None:
+        stmt = stmt.where(SellerProfile.marketplace_id == marketplace_id)
     if q:
         pattern = f"%{_escaped(q[:120])}%"
         stmt = stmt.where(
@@ -119,6 +123,7 @@ async def search(
     q: str = Query(default="", max_length=120),
     mode: str = Query(default="all", pattern="^(all|products|services|providers|sellers)$"),
     category: str | None = Query(default=None, max_length=80),
+    marketplace: str | None = Query(default=None, max_length=80),
     min_price: float | None = Query(default=None, ge=0),
     max_price: float | None = Query(default=None, ge=0),
     min_rating: float | None = Query(default=None, ge=0, le=5),
@@ -147,6 +152,7 @@ async def search(
         raise HTTPException(status_code=422, detail="lat and lng are required when sort=distance")
 
     has_origin = lat is not None and lng is not None
+    marketplace_id = await resolve_marketplace_id(session, marketplace)
 
     if mode == "sellers":
         mode = "providers"
@@ -162,6 +168,7 @@ async def search(
             q=q,
             category=category,
             min_rating=min_rating,
+            marketplace_id=marketplace_id,
         )
         distance_expr = None
         if has_origin:
@@ -207,6 +214,8 @@ async def search(
             SellerProfile.city.ilike(LAUNCH_CITY),
             Product.is_hidden.is_(False),
         )
+        if marketplace_id is not None:
+            product_stmt = product_stmt.where(SellerProfile.marketplace_id == marketplace_id)
         if available_only:
             product_stmt = product_stmt.where(
                 Product.is_available.is_(True), Product.is_paused.is_(False)
@@ -289,6 +298,8 @@ async def search(
         service_stmt = select(Service, SellerProfile).join(
             SellerProfile, Service.seller_id == SellerProfile.id
         ).where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
+        if marketplace_id is not None:
+            service_stmt = service_stmt.where(SellerProfile.marketplace_id == marketplace_id)
         if available_only:
             service_stmt = service_stmt.where(Service.is_available.is_(True))
         if category:

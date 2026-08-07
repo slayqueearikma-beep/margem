@@ -36,6 +36,7 @@ from app.services.ratings import (
     rounded_overall,
 )
 from app.services.reviews import get_review_eligibility
+from app.services.marketplace_scope import resolve_marketplace_id
 from app.services.upload_security import validate_media_url
 
 router = APIRouter(prefix="/sellers", tags=["sellers"])
@@ -134,11 +135,13 @@ def _public_product_visible(product: Product) -> bool:
 @router.get("", response_model=list[SellerSummary])
 async def list_sellers(
     category: str | None = None,
+    marketplace: str | None = Query(default=None, max_length=80),
     q: str | None = None,
     limit: int = Query(default=_DEFAULT_PAGE_SIZE, ge=1, le=_MAX_PAGE_SIZE),
     offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_db),
 ) -> list[SellerProfile]:
+    marketplace_id = await resolve_marketplace_id(session, marketplace)
     stmt = (
         select(SellerProfile)
         .options(
@@ -147,6 +150,8 @@ async def list_sellers(
         )
         .where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
     )
+    if marketplace_id is not None:
+        stmt = stmt.where(SellerProfile.marketplace_id == marketplace_id)
     if q:
         safe_q = _escape_ilike(q[:120])
         pattern = f"%{safe_q}%"
@@ -183,10 +188,16 @@ async def list_sellers(
 @router.get("/map", response_model=list[MapPin])
 async def map_pins(
     category: str | None = None,
+    marketplace: str | None = Query(default=None, max_length=80),
     session: AsyncSession = Depends(get_db),
 ) -> list[MapPin]:
     sellers = await list_sellers(
-        category=category, q=None, limit=_MAX_PAGE_SIZE, offset=0, session=session
+        category=category,
+        marketplace=marketplace,
+        q=None,
+        limit=_MAX_PAGE_SIZE,
+        offset=0,
+        session=session,
     )
     return [
         MapPin(

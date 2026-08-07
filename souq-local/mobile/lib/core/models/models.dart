@@ -48,6 +48,50 @@ class CategoryModel {
   }
 }
 
+class MarketplaceVenueModel {
+  const MarketplaceVenueModel({
+    required this.id,
+    required this.slug,
+    required this.name,
+    this.description = '',
+    this.district = '',
+    this.city = 'Casablanca',
+    this.coverImageUrl = '',
+    this.logoImageUrl = '',
+    this.displayOrder = 0,
+    this.categoryCount = 0,
+    this.sellerCount = 0,
+  });
+
+  final String id;
+  final String slug;
+  final String name;
+  final String description;
+  final String district;
+  final String city;
+  final String coverImageUrl;
+  final String logoImageUrl;
+  final int displayOrder;
+  final int categoryCount;
+  final int sellerCount;
+
+  factory MarketplaceVenueModel.fromJson(Map<String, dynamic> json) {
+    return MarketplaceVenueModel(
+      id: json['id'] as String,
+      slug: json['slug'] as String,
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      district: json['district'] as String? ?? '',
+      city: json['city'] as String? ?? 'Casablanca',
+      coverImageUrl: json['cover_image_url'] as String? ?? '',
+      logoImageUrl: json['logo_image_url'] as String? ?? '',
+      displayOrder: json['display_order'] as int? ?? 0,
+      categoryCount: json['category_count'] as int? ?? 0,
+      sellerCount: json['seller_count'] as int? ?? 0,
+    );
+  }
+}
+
 class OpeningHoursModel {
   const OpeningHoursModel({
     this.days = const {},

@@ -34,6 +34,14 @@ final buyerCityProvider = StateProvider<String>((ref) {
   return AppConfig.launchCity;
 });
 
+final buyerMarketplacesProvider =
+    FutureProvider.autoDispose<List<MarketplaceVenueModel>>(
+        (ref) => apiServiceProvider.fetchMarketplaces(city: ref.watch(buyerCityProvider)));
+
+final buyerMarketplaceSlugProvider = StateProvider<String?>((ref) {
+  return ref.read(appStorageProvider)?.getMarketplaceSlug();
+});
+
 /// Buyer origin for nearest-seller search (GPS, or city center fallback).
 final buyerSearchLocationProvider = FutureProvider.autoDispose<LatLng>((ref) async {
   final position = await LocationService.getCurrentPosition();
@@ -52,11 +60,22 @@ final buyerSellersProvider =
     FutureProvider.autoDispose<List<SellerModel>>((ref) {
   final city = ref.watch(buyerCityProvider);
   final category = ref.watch(buyerCategorySlugProvider);
-  return apiServiceProvider.fetchSellers(city: city, category: category);
+  final marketplace = ref.watch(buyerMarketplaceSlugProvider);
+  return apiServiceProvider.fetchSellers(
+    city: city,
+    category: category,
+    marketplace: marketplace,
+  );
 });
 
 final buyerCategoriesProvider =
-    FutureProvider.autoDispose((ref) => apiServiceProvider.fetchCategories());
+    FutureProvider.autoDispose<List<CategoryModel>>((ref) async {
+  final slug = ref.watch(buyerMarketplaceSlugProvider);
+  if (slug != null && slug.isNotEmpty) {
+    return apiServiceProvider.fetchMarketplaceCategories(slug);
+  }
+  return apiServiceProvider.fetchCategories();
+});
 
 final buyerFavoriteSellerIdsProvider =
     FutureProvider.autoDispose<Set<String>>((ref) async {
@@ -144,6 +163,8 @@ class BuyerHomeScreen extends ConsumerWidget {
     final city = ref.watch(buyerCityProvider);
     final sellersAsync = ref.watch(buyerSellersProvider);
     final categoriesAsync = ref.watch(buyerCategoriesProvider);
+    final marketplacesAsync = ref.watch(buyerMarketplacesProvider);
+    final selectedMarketplace = ref.watch(buyerMarketplaceSlugProvider);
     final favoriteIds = ref.watch(buyerFavoriteSellerIdsProvider).valueOrNull ??
         const <String>{};
     final isGuest = session == null || session.isGuest;
@@ -188,6 +209,59 @@ class BuyerHomeScreen extends ConsumerWidget {
                     horizontal: AppSpacing.screenHorizontal,
                   ),
                   child: BuyerLocationRow(city: city, onTap: null),
+                ),
+                marketplacesAsync.when(
+                  data: (marketplaces) {
+                    if (marketplaces.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    final activeSlug = selectedMarketplace != null &&
+                            marketplaces.any((m) => m.slug == selectedMarketplace)
+                        ? selectedMarketplace
+                        : marketplaces.first.slug;
+                    if (activeSlug != selectedMarketplace) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        ref.read(buyerMarketplaceSlugProvider.notifier).state =
+                            activeSlug;
+                        ref.read(appStorageProvider)?.setMarketplaceSlug(activeSlug);
+                      });
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        top: AppSpacing.md,
+                        left: AppSpacing.screenHorizontal,
+                      ),
+                      child: SizedBox(
+                        height: 42,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: marketplaces.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: AppSpacing.sm),
+                          itemBuilder: (_, index) {
+                            final venue = marketplaces[index];
+                            final isSelected = venue.slug == activeSlug;
+                            return ChoiceChip(
+                              label: Text(venue.name),
+                              selected: isSelected,
+                              onSelected: (_) {
+                                ref
+                                    .read(buyerMarketplaceSlugProvider.notifier)
+                                    .state = venue.slug;
+                                ref
+                                    .read(appStorageProvider)
+                                    ?.setMarketplaceSlug(venue.slug);
+                                ref.invalidate(buyerCategoriesProvider);
+                                ref.invalidate(buyerSellersProvider);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox(height: AppSpacing.md),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Padding(

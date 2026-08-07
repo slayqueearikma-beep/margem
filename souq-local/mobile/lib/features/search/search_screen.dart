@@ -92,10 +92,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Future<MarketplaceSearchPage> _load() {
     final homeCategory = ref.read(buyerCategorySlugProvider);
     final category = _filters.category ?? homeCategory;
+    final marketplace = ref.read(buyerMarketplaceSlugProvider);
     return apiServiceProvider.searchMarketplace(
       query: _debounced,
       mode: _mode,
       category: category?.isEmpty == true ? null : category,
+      marketplace: marketplace,
       minPrice: _filters.minPrice,
       maxPrice: _filters.maxPrice,
       minRating: _filters.minRating,

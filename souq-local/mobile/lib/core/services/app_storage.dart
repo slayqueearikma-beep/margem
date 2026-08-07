@@ -133,6 +133,12 @@ class AppStorage {
   static const _themeModeKey = 'theme_mode';
   static const _guestFavoritesKey = 'guest_favorite_items';
   static const _legacyGuestCartKey = 'guest_cart_items';
+  static const _marketplaceSlugKey = 'buyer_marketplace_slug';
+
+  String? getMarketplaceSlug() => _prefs.getString(_marketplaceSlugKey);
+
+  Future<bool> setMarketplaceSlug(String slug) =>
+      _prefs.setString(_marketplaceSlugKey, slug);
 
   bool get isOnboardingComplete =>
       _prefs.getBool(_onboardingCompleteKey) ?? false;

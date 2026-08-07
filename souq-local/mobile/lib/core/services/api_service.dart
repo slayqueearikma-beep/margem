@@ -417,22 +417,50 @@ class ApiService {
     return deletePath('/auth/sessions/$sessionId', auth: true);
   }
 
-  Future<String?> categoryIdForSlug(String slug) async {
-    final categories = await fetchCategories();
+  Future<String?> categoryIdForSlug(String slug, {String? marketplace}) async {
+    final categories = marketplace != null && marketplace.isNotEmpty
+        ? await fetchMarketplaceCategories(marketplace)
+        : await fetchCategories();
     for (final cat in categories) {
       if (cat.slug == slug) return cat.id;
     }
     return null;
   }
 
+  Future<List<MarketplaceVenueModel>> fetchMarketplaces({String? city}) async {
+    final params = <String, String>{'active_only': 'true'};
+    if (city != null && city.isNotEmpty) params['city'] = city;
+    final response = await _get(_uri('/marketplaces', params));
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => MarketplaceVenueModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<CategoryModel>> fetchMarketplaceCategories(String marketplaceSlug) async {
+    final response = await _get(
+      _uri('/marketplaces/$marketplaceSlug/categories', {'active_only': 'true'}),
+    );
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<SellerModel>> fetchSellers({
     String? city,
     String? category,
+    String? marketplace,
     String? query,
   }) async {
     final params = <String, String>{};
     if (city != null && city.isNotEmpty) params['city'] = city;
     if (category != null && category.isNotEmpty) params['category'] = category;
+    if (marketplace != null && marketplace.isNotEmpty) {
+      params['marketplace'] = marketplace;
+    }
     if (query != null && query.isNotEmpty) params['q'] = query;
 
     final response = await _request(
@@ -451,6 +479,7 @@ class ApiService {
     required String query,
     required String mode,
     String? category,
+    String? marketplace,
     double? minPrice,
     double? maxPrice,
     double? minRating,
@@ -465,6 +494,7 @@ class ApiService {
         query: query,
         mode: _normalizeSearchMode(mode),
         category: category,
+        marketplace: marketplace,
         minPrice: minPrice,
         maxPrice: maxPrice,
         minRating: minRating,
@@ -482,6 +512,7 @@ class ApiService {
             query: query,
             mode: fallbackMode,
             category: category,
+            marketplace: marketplace,
             minPrice: minPrice,
             maxPrice: maxPrice,
             minRating: minRating,
@@ -545,6 +576,7 @@ class ApiService {
     required String query,
     required String mode,
     String? category,
+    String? marketplace,
     double? minPrice,
     double? maxPrice,
     double? minRating,
@@ -561,6 +593,7 @@ class ApiService {
       'offset': '$offset',
       'limit': '$limit',
       if (category != null && category.isNotEmpty) 'category': category,
+      if (marketplace != null && marketplace.isNotEmpty) 'marketplace': marketplace,
       if (minPrice != null) 'min_price': '$minPrice',
       if (maxPrice != null) 'max_price': '$maxPrice',
       if (minRating != null) 'min_rating': '$minRating',
@@ -587,11 +620,17 @@ class ApiService {
         jsonDecode(response.body) as Map<String, dynamic>);
   }
 
-  Future<List<MapPinModel>> fetchMapPins(
-      {String? city, String? category}) async {
+  Future<List<MapPinModel>> fetchMapPins({
+    String? city,
+    String? category,
+    String? marketplace,
+  }) async {
     final params = <String, String>{};
     if (city != null && city.isNotEmpty) params['city'] = city;
     if (category != null && category.isNotEmpty) params['category'] = category;
+    if (marketplace != null && marketplace.isNotEmpty) {
+      params['marketplace'] = marketplace;
+    }
 
     final response =
         await _get(_uri('/sellers/map', params.isEmpty ? null : params));
