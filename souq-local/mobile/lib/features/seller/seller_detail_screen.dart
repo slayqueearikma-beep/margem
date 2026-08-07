@@ -13,6 +13,7 @@ import '../../core/widgets/achievement_badges.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/marketplace_actions.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
 import '../../core/widgets/service_card.dart';
@@ -234,6 +235,8 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                 expandedHeight: 240,
                 pinned: true,
                 stretch: true,
+                centerTitle: true,
+                title: const MarGemAppBarLogo(),
                 flexibleSpace: FlexibleSpaceBar(
                   stretchModes: [
                     StretchMode.zoomBackground,

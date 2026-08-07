@@ -6,6 +6,7 @@ import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
 import '../utils/directional_ui.dart';
 import 'app_brand_logo.dart';
+import 'margem_app_bar.dart';
 
 /// Customer-facing UI components matching the Home Screen mockup.
 class BuyerShellHeader extends StatelessWidget {
@@ -26,66 +27,77 @@ class BuyerShellHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-      child: Row(
-        children: [
-          _HeaderIconButton(
-            icon: Icons.menu_rounded,
-            onTap: onMenu,
-          ),
-          Spacer(),
-          AppBrandLogo.forContext(
-            AppBrandContext.compactBranding,
-            includeClearSpace: false,
-          ),
-          Spacer(),
-          _HeaderIconButton(
-            icon: Icons.notifications_none_rounded,
-            onTap: onNotifications,
-          ),
-          SizedBox(width: AppSpacing.xs),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              GestureDetector(
-                onTap: onProfile,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: context.colors.divider, width: 2),
-                    boxShadow: AppShadows.soft(context, blur: 12, y: 2),
-                  ),
-                  child: CircleAvatar(
-                    backgroundColor: context.colors.surfaceVariant,
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: context.colors.primary,
-                      size: 22,
-                    ),
-                  ),
-                ),
+      child: SizedBox(
+        height: 56,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: _HeaderIconButton(
+                icon: Icons.menu_rounded,
+                onTap: onMenu,
               ),
-              if (showPremiumBadge)
-                PositionedDirectional(
-                  end: -2,
-                  bottom: -2,
-                  child: Container(
-                    padding: EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.workspace_premium_rounded,
-                      size: 14,
-                      color: context.colors.highlight,
-                    ),
+            ),
+            const MarGemAppBarLogo(),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _HeaderIconButton(
+                    icon: Icons.notifications_none_rounded,
+                    onTap: onNotifications,
                   ),
-                ),
-            ],
-          ),
-        ],
+                  SizedBox(width: AppSpacing.xs),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      GestureDetector(
+                        onTap: onProfile,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: context.colors.divider, width: 2),
+                            boxShadow: AppShadows.soft(context, blur: 12, y: 2),
+                          ),
+                          child: CircleAvatar(
+                            backgroundColor: context.colors.surfaceVariant,
+                            child: Icon(
+                              Icons.person_rounded,
+                              color: context.colors.primary,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (showPremiumBadge)
+                        PositionedDirectional(
+                          end: -2,
+                          bottom: -2,
+                          child: Container(
+                            padding: EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.workspace_premium_rounded,
+                              color: context.colors.primary,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -825,12 +837,12 @@ class BuyerPopularCategoryCard extends StatelessWidget {
 class BuyerScreenTitle extends StatelessWidget {
   const BuyerScreenTitle({
     super.key,
-    required this.title,
+    this.title,
     this.subtitle,
     this.trailing,
   });
 
-  final String title;
+  final String? title;
   final String? subtitle;
   final Widget? trailing;
 
@@ -843,33 +855,15 @@ class BuyerScreenTitle extends StatelessWidget {
         AppSpacing.screenHorizontal,
         AppSpacing.sm,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.4,
-                      ),
-                ),
-                if (subtitle != null) ...[
-                  SizedBox(height: 4),
-                  Text(
-                    subtitle!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: context.colors.textSecondary,
-                        ),
-                  ),
-                ],
-              ],
+          const Center(child: MarGemAppBarLogo()),
+          if (trailing != null)
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: trailing!,
             ),
-          ),
-          if (trailing != null) trailing!,
         ],
       ),
     );
@@ -880,40 +874,24 @@ class BuyerScreenTitle extends StatelessWidget {
 class BuyerAppBar extends StatelessWidget implements PreferredSizeWidget {
   const BuyerAppBar({
     super.key,
-    required this.title,
+    this.title,
     this.actions,
     this.leading,
   });
 
-  final String title;
+  final String? title;
   final List<Widget>? actions;
   final Widget? leading;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const MarGemAppBar().preferredSize;
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: context.colors.surface,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      scrolledUnderElevation: 0,
+    return MarGemAppBar(
       leading: leading,
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-      ),
       actions: actions,
-      bottom: PreferredSize(
-        preferredSize: Size.fromHeight(1),
-        child: Container(
-          height: 1,
-          color: context.colors.divider,
-        ),
-      ),
+      semanticLabel: title,
     );
   }
 }

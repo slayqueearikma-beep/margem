@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/navigation/app_back_handler.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_bookings_tab.dart';
 import 'seller_catalog_tab.dart';
@@ -63,8 +64,8 @@ class SellerShell extends ConsumerWidget {
     return RootBackScope(
       child: Scaffold(
         drawer: const SellerDrawer(),
-        appBar: AppBar(
-          title: Text(_titleForTab(l10n, index)),
+        appBar: MarGemAppBar(
+          automaticallyImplyLeading: false,
           leading: Builder(
             builder: (ctx) => IconButton(
               icon: const Icon(Icons.menu_rounded),

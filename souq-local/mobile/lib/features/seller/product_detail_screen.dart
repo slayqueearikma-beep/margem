@@ -11,6 +11,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
@@ -104,7 +105,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         }
         if (snapshot.hasError || !snapshot.hasData) {
           return Scaffold(
-            appBar: AppBar(),
+            appBar: const MarGemAppBar(),
             body: AsyncErrorView.fromError(
               snapshot.error ?? Exception(context.l10n.somethingWentWrong),
               onRetry: () => setState(() {
@@ -119,7 +120,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             seller.products.where((p) => p.id == widget.productId).toList();
         if (matches.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: Text(context.l10n.products)),
+            appBar: MarGemAppBar(semanticLabel: context.l10n.products),
             body: Center(child: Text(context.l10n.noProductsListed)),
           );
         }
@@ -138,6 +139,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   slivers: [
                     SliverAppBar(
                       pinned: true,
+                      centerTitle: true,
+                      title: const MarGemAppBarLogo(),
                       expandedHeight: MediaQuery.sizeOf(context).width * 0.95,
                       flexibleSpace: FlexibleSpaceBar(
                         background: gallery.isEmpty

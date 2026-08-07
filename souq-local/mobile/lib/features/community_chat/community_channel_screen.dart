@@ -9,6 +9,7 @@ import '../../core/services/community_websocket_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/design_system_components.dart';
 import '../../core/widgets/margem_background.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -145,19 +146,8 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Column(
-          children: [
-            Text(widget.channelName),
-            if (widget.citySlug.isNotEmpty)
-              Text(
-                widget.citySlug,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
-              ),
-          ],
-        ),
+      appBar: MarGemAppBar(
+        semanticLabel: widget.channelName,
       ),
       body: MargemBackground(
         showBlobs: false,

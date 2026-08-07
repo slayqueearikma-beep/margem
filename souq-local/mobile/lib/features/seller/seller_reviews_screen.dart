@@ -6,6 +6,7 @@ import '../../core/services/api_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
 
@@ -18,7 +19,7 @@ class SellerReviewsScreen extends ConsumerWidget {
     final accountAsync = ref.watch(sellerAccountProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reviews)),
+      appBar: MarGemAppBar(semanticLabel: l10n.reviews),
       body: accountAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => AsyncErrorView.fromError(
@@ -186,8 +187,8 @@ class SellerNotificationsScreen extends ConsumerWidget {
     final notificationsAsync = ref.watch(notificationsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.notifications),
+      appBar: MarGemAppBar(
+        semanticLabel: l10n.notifications,
         actions: [
           TextButton(
             onPressed: () async {

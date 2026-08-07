@@ -10,6 +10,7 @@ import '../../core/theme/theme_context.dart';
 import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/design_system_components.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/margem_background.dart';
 import '../../l10n/app_localizations.dart';
 import 'community_providers.dart';
@@ -36,7 +37,8 @@ class CommunityCityScreen extends ConsumerWidget {
             SliverAppBar(
               pinned: true,
               backgroundColor: Colors.transparent,
-              title: Text(l10n.communityChatTitle),
+              centerTitle: true,
+              title: const MarGemAppBarLogo(),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.explore_outlined),

@@ -5,6 +5,7 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
 import 'seller_widgets.dart';
@@ -19,7 +20,7 @@ class SellerAnalyticsScreen extends ConsumerWidget {
     final analyticsAsync = ref.watch(sellerAnalyticsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.analytics)),
+      appBar: MarGemAppBar(semanticLabel: l10n.analytics),
       body: accountAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => AsyncErrorView(

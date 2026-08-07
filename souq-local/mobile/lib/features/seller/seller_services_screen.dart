@@ -13,6 +13,7 @@ import '../../core/services/upload_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/service_card.dart';
@@ -29,8 +30,8 @@ class SellerServicesScreen extends ConsumerWidget {
     final accountAsync = ref.watch(sellerAccountProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.serviceManagement),
+      appBar: MarGemAppBar(
+        semanticLabel: l10n.serviceManagement,
         actions: [
           IconButton(
             tooltip: l10n.addService,
@@ -297,7 +298,7 @@ class _SellerServiceEditorScreenState
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
         error: (error, _) => Scaffold(
-          appBar: AppBar(),
+          appBar: const MarGemAppBar(),
           body: AsyncErrorView.fromError(
             error,
             onRetry: () => ref.invalidate(sellerAccountProvider),
@@ -309,7 +310,7 @@ class _SellerServiceEditorScreenState
               .firstOrNull;
           if (service == null) {
             return Scaffold(
-              appBar: AppBar(),
+              appBar: const MarGemAppBar(),
               body: Center(child: Text(l10n.somethingWentWrong)),
             );
           }
@@ -324,8 +325,8 @@ class _SellerServiceEditorScreenState
 
   Widget _buildForm(AppStrings l10n, ServiceModel? existing) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isEditing ? l10n.editService : l10n.addService),
+      appBar: MarGemAppBar(
+        semanticLabel: widget.isEditing ? l10n.editService : l10n.addService,
         actions: [
           if (widget.isEditing)
             IconButton(

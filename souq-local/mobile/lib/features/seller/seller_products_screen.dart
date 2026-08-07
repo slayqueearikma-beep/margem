@@ -15,6 +15,7 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
 
@@ -27,8 +28,7 @@ class SellerProductsScreen extends ConsumerWidget {
     final accountAsync = ref.watch(sellerAccountProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.productManagement),
+      appBar: MarGemAppBar(
         actions: [
           IconButton(
             tooltip: l10n.addProduct,
@@ -284,14 +284,14 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
       return accountAsync.when(
         loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
         error: (error, _) => Scaffold(
-          appBar: AppBar(),
+          appBar: MarGemAppBar(),
           body: AsyncErrorView.fromError(error, onRetry: () => ref.invalidate(sellerAccountProvider)),
         ),
         data: (account) {
           final product = account.profile.products.where((p) => p.id == widget.productId).firstOrNull;
           if (product == null) {
             return Scaffold(
-              appBar: AppBar(),
+              appBar: MarGemAppBar(),
               body: Center(child: Text(l10n.somethingWentWrong)),
             );
           }
@@ -306,8 +306,8 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
 
   Widget _buildForm(AppStrings l10n) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isEditing ? l10n.editProduct : l10n.addProduct),
+      appBar: MarGemAppBar(
+        semanticLabel: widget.isEditing ? l10n.editProduct : l10n.addProduct,
         actions: [
           if (widget.isEditing)
             IconButton(

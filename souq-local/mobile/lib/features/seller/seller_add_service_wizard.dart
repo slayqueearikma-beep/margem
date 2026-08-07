@@ -13,6 +13,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/service_pricing_fields.dart';
 import '../../l10n/app_localizations.dart';
@@ -158,12 +159,13 @@ class _SellerAddServiceWizardState extends ConsumerState<SellerAddServiceWizard>
           );
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: MarGemAppBar(
+        automaticallyImplyLeading: false,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: _loading ? null : _back,
         ),
-        title: Text(l10n.addService),
+        semanticLabel: l10n.addService,
       ),
       body: Column(
         children: [

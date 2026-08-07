@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../config/app_config.dart';
 import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
@@ -54,8 +55,8 @@ class _MapLocationPickerPageState extends State<MapLocationPickerPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+      appBar: MarGemAppBar(
+        semanticLabel: widget.title,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, _position),
