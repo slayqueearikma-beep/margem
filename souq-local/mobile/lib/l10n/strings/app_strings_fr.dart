@@ -1201,4 +1201,38 @@ class AppStringsFr extends AppStringsEn {
     };
     return days[key] ?? key;
   }
+
+  @override
+  String get bundleBuilderTitle => 'Créateur de pack';
+  @override
+  String get bundleBuilderSubtitle =>
+      'Composez des packs complets et trouvez la meilleure combinaison chez plusieurs vendeurs.';
+  @override
+  String bundleBuilderMarketplace(String slug) => 'Marché : $slug';
+  @override
+  String get bundleBuilderChooseTemplate => 'Choisir un pack';
+  @override
+  String get bundleBuilderSummary => 'Votre pack';
+  @override
+  String get bundleBuilderTotalPrice => 'Prix total';
+  @override
+  String get bundleBuilderSavings => 'Économies estimées';
+  @override
+  String get bundleBuilderAvailability => 'Disponibilité';
+  @override
+  String get bundleBuilderAllAvailable => 'Tous les articles disponibles';
+  @override
+  String get bundleBuilderPartialAvailability => 'Vérifiez la disponibilité avec les vendeurs';
+  @override
+  String get bundleBuilderMatchedSlots => 'Composants trouvés';
+  @override
+  String get bundleBuilderWarranty => 'Garantie';
+  @override
+  String get bundleBuilderInStock => 'En stock';
+  @override
+  String get bundleBuilderCheckAvailability => 'Confirmer la disponibilité';
+  @override
+  String get bundleBuilderSellerBreakdown => 'Répartition par vendeur';
+  @override
+  String get bundleBuilderContactSeller => 'Voir le vendeur';
 }

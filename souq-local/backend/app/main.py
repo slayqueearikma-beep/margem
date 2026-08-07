@@ -25,6 +25,7 @@ from app.middleware.security import SecurityHeadersMiddleware
 from app.models import SubscriptionPlan
 from app.routers import (
     auth,
+    bundles,
     catalog,
     community,
     discovery,
@@ -139,6 +140,7 @@ app.include_router(seller_ops.router)
 app.include_router(community.router)
 app.include_router(marketplaces.router)
 app.include_router(marketplace_admin.router)
+app.include_router(bundles.router)
 
 _admin_dashboard_dir = Path(__file__).resolve().parents[2] / "admin-dashboard"
 if _admin_dashboard_dir.is_dir():

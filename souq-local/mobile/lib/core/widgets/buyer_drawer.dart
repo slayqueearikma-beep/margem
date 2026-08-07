@@ -118,6 +118,11 @@ class BuyerDrawer extends ConsumerWidget {
                     onTap: () => closeAnd(() => context.push('/favorites')),
                   ),
                   _DrawerTile(
+                    icon: Icons.inventory_2_outlined,
+                    label: l10n.bundleBuilderTitle,
+                    onTap: () => closeAnd(() => context.push('/bundle')),
+                  ),
+                  _DrawerTile(
                     icon: Icons.map_outlined,
                     label: l10n.exploreOnMap,
                     onTap: () => closeAnd(() => context.push('/map')),

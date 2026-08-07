@@ -13,6 +13,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_email_screen.dart';
+import 'features/bundle_builder/bundle_builder_screen.dart';
 import 'features/buyer/buyer_home_screen.dart';
 import 'features/community_chat/community_channel_screen.dart';
 import 'features/community_chat/community_city_screen.dart';
@@ -121,6 +122,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
+      GoRoute(path: '/bundle', builder: (_, __) => const BundleBuilderScreen()),
       GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
       GoRoute(
         path: '/community/channels/:channelId',

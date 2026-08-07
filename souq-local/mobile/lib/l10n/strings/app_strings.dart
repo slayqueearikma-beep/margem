@@ -522,6 +522,24 @@ abstract class AppStrings {
   String mapLocationsInArea(int count);
   String distanceLabel(double km);
 
+  // Bundle builder
+  String get bundleBuilderTitle;
+  String get bundleBuilderSubtitle;
+  String bundleBuilderMarketplace(String slug);
+  String get bundleBuilderChooseTemplate;
+  String get bundleBuilderSummary;
+  String get bundleBuilderTotalPrice;
+  String get bundleBuilderSavings;
+  String get bundleBuilderAvailability;
+  String get bundleBuilderAllAvailable;
+  String get bundleBuilderPartialAvailability;
+  String get bundleBuilderMatchedSlots;
+  String get bundleBuilderWarranty;
+  String get bundleBuilderInStock;
+  String get bundleBuilderCheckAvailability;
+  String get bundleBuilderSellerBreakdown;
+  String get bundleBuilderContactSeller;
+
   // Community chat
   String get communityChatTitle;
   String get communitySearchHint;

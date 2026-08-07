@@ -1204,4 +1204,38 @@ class AppStringsAr extends AppStringsEn {
     };
     return days[key] ?? key;
   }
+
+  @override
+  String get bundleBuilderTitle => 'منشئ الحزم';
+  @override
+  String get bundleBuilderSubtitle =>
+      'أنشئ حزمًا كاملة واعثر على أفضل مزيج عبر عدة بائعين.';
+  @override
+  String bundleBuilderMarketplace(String slug) => 'السوق: $slug';
+  @override
+  String get bundleBuilderChooseTemplate => 'اختر حزمة';
+  @override
+  String get bundleBuilderSummary => 'حزمتك';
+  @override
+  String get bundleBuilderTotalPrice => 'السعر الإجمالي';
+  @override
+  String get bundleBuilderSavings => 'التوفير المقدر';
+  @override
+  String get bundleBuilderAvailability => 'التوفر';
+  @override
+  String get bundleBuilderAllAvailable => 'جميع العناصر متوفرة';
+  @override
+  String get bundleBuilderPartialAvailability => 'تحقق من التوفر مع البائعين';
+  @override
+  String get bundleBuilderMatchedSlots => 'المكونات المطابقة';
+  @override
+  String get bundleBuilderWarranty => 'الضمان';
+  @override
+  String get bundleBuilderInStock => 'متوفر';
+  @override
+  String get bundleBuilderCheckAvailability => 'تأكيد التوفر';
+  @override
+  String get bundleBuilderSellerBreakdown => 'تفصيل البائعين';
+  @override
+  String get bundleBuilderContactSeller => 'عرض البائع';
 }

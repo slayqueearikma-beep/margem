@@ -204,6 +204,7 @@ class ProductCreate(BaseModel):
     pricing_type: PricingType = PricingType.FIXED
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     availability_note: str = Field(default="", max_length=160)
+    warranty_note: str = Field(default="", max_length=160)
     delivery_available: bool = False
     pickup_only: bool = True
     image_url: str = ""
@@ -259,6 +260,7 @@ class ProductUpdate(BaseModel):
     pricing_type: PricingType | None = None
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     availability_note: str | None = Field(default=None, max_length=160)
+    warranty_note: str | None = Field(default=None, max_length=160)
     delivery_available: bool | None = None
     pickup_only: bool | None = None
     image_url: str | None = None
@@ -294,6 +296,7 @@ class ProductOut(BaseModel):
     price_mad: float | None
     price_negotiable: bool = False
     availability_note: str = ""
+    warranty_note: str = ""
     delivery_available: bool = False
     pickup_only: bool = True
     image_url: str

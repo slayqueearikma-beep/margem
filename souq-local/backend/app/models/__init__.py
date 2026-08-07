@@ -267,6 +267,7 @@ class Product(Base):
     pricing_type: Mapped[PricingType] = mapped_column(pricing_type_enum, default=PricingType.FIXED)
     price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
     availability_note: Mapped[str] = mapped_column(String(160), default="")
+    warranty_note: Mapped[str] = mapped_column(String(160), default="")
     accepted_payment_methods: Mapped[list] = mapped_column(JSONB, default=list)
     delivery_options: Mapped[list] = mapped_column(JSONB, default=list)
     delivery_available: Mapped[bool] = mapped_column(Boolean, default=False)

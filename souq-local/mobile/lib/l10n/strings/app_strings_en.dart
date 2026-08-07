@@ -1207,4 +1207,38 @@ class AppStringsEn extends AppStrings {
     };
     return days[key] ?? key;
   }
+
+  @override
+  String get bundleBuilderTitle => 'Bundle Builder';
+  @override
+  String get bundleBuilderSubtitle =>
+      'Build complete packages and find the best combination across sellers.';
+  @override
+  String bundleBuilderMarketplace(String slug) => 'Marketplace: $slug';
+  @override
+  String get bundleBuilderChooseTemplate => 'Choose a package';
+  @override
+  String get bundleBuilderSummary => 'Your bundle';
+  @override
+  String get bundleBuilderTotalPrice => 'Total price';
+  @override
+  String get bundleBuilderSavings => 'Estimated savings';
+  @override
+  String get bundleBuilderAvailability => 'Availability';
+  @override
+  String get bundleBuilderAllAvailable => 'All items available';
+  @override
+  String get bundleBuilderPartialAvailability => 'Check availability with sellers';
+  @override
+  String get bundleBuilderMatchedSlots => 'Components matched';
+  @override
+  String get bundleBuilderWarranty => 'Warranty';
+  @override
+  String get bundleBuilderInStock => 'In stock';
+  @override
+  String get bundleBuilderCheckAvailability => 'Confirm availability';
+  @override
+  String get bundleBuilderSellerBreakdown => 'Seller breakdown';
+  @override
+  String get bundleBuilderContactSeller => 'View seller';
 }
