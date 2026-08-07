@@ -29,7 +29,7 @@ CHANNEL_SEEDS = {
         ("construction", "Construction", "Building materials and construction", "general", 1),
         ("wholesale", "Wholesale", "Bulk and wholesale offers", "deal", 2),
     ],
-    "9ti3a": [
+    "9ri3a": [
         ("toyota", "Toyota", "Toyota parts and mechanics", "general", 0),
         ("bmw", "BMW", "BMW parts and mechanics", "general", 1),
         ("mercedes", "Mercedes", "Mercedes parts and mechanics", "general", 2),

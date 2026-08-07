@@ -49,9 +49,9 @@ BUNDLE_TEMPLATES: list[dict] = [
     {
         "slug": "auto-maintenance",
         "name": "Auto maintenance",
-        "description": "Routine maintenance bundle for your car at 9ti3a.",
+        "description": "Routine maintenance bundle for your car at 9ri3a (Souk Al Qurayaa).",
         "icon": "car_repair",
-        "marketplace_slug": "9ti3a",
+        "marketplace_slug": "9ri3a",
         "slots": AUTO_MAINTENANCE_SLOTS,
     },
 ]

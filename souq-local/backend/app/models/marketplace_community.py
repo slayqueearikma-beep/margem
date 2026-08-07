@@ -65,7 +65,7 @@ MARKETPLACE_CHANNEL_SEEDS: dict[str, list[tuple[str, str, str, MarketplacePostTy
         ("construction", "Construction", "Building materials and construction", MarketplacePostType.GENERAL),
         ("wholesale", "Wholesale", "Bulk and wholesale offers", MarketplacePostType.DEAL),
     ],
-    "9ti3a": [
+    "9ri3a": [
         ("toyota", "Toyota", "Toyota parts and mechanics", MarketplacePostType.GENERAL),
         ("bmw", "BMW", "BMW parts and mechanics", MarketplacePostType.GENERAL),
         ("mercedes", "Mercedes", "Mercedes parts and mechanics", MarketplacePostType.GENERAL),
