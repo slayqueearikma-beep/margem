@@ -27,10 +27,10 @@ class AppLogoLayout {
 
     return switch (tier) {
       AppLogoTier.splash => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 168.0,
-          (_, _, true) => 152.0,
-          (_, true, _) => 184.0,
-          _ => 176.0,
+          (true, _, _) => 228.0,
+          (_, _, true) => 188.0,
+          (_, true, _) => 216.0,
+          _ => 204.0,
         },
       AppLogoTier.header => switch ((isTablet, isLargePhone, isSmallPhone)) {
           (true, _, _) => 136.0,

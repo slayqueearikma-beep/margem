@@ -22,14 +22,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late final Animation<double> _scale;
   late final Animation<double> _fade;
 
+  static const _overlayStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemNavigationBarColor: AppColors.cream,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: Colors.transparent,
+  );
+
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(_overlayStyle);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 420),
     );
-    _scale = Tween<double>(begin: 0.95, end: 1).animate(
+    _scale = Tween<double>(begin: 0.96, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _fade = Tween<double>(begin: 0, end: 1).animate(
@@ -115,22 +125,40 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final viewPadding = MediaQuery.viewPaddingOf(context);
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final logoSize = AppLogoLayout.sizeFor(context, AppLogoTier.splash);
+
+    // Place the logo slightly above optical center, accounting for skyline mass.
+    final logoCenterY = (screenHeight * 0.43) + (viewPadding.top * 0.15);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: _overlayStyle,
       child: ColoredBox(
         color: AppColors.cream,
         child: SplashBackdrop(
-          child: FadeTransition(
-            opacity: _fade,
-            child: ScaleTransition(
-              scale: _scale,
-              child: const Center(
-                child: AppBrandLogo(
-                  tier: AppLogoTier.splash,
-                  includeClearSpace: false,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned(
+                left: 0,
+                right: 0,
+                top: logoCenterY - (logoSize / 2),
+                child: FadeTransition(
+                  opacity: _fade,
+                  child: ScaleTransition(
+                    scale: _scale,
+                    alignment: Alignment.center,
+                    child: const Center(
+                      child: AppBrandLogo(
+                        tier: AppLogoTier.splash,
+                        includeClearSpace: false,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
