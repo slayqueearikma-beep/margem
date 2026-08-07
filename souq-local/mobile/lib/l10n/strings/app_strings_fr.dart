@@ -1235,4 +1235,22 @@ class AppStringsFr extends AppStringsEn {
   String get bundleBuilderSellerBreakdown => 'Répartition par vendeur';
   @override
   String get bundleBuilderContactSeller => 'Voir le vendeur';
+
+  @override
+  String get marketplaceCommunityTitle => 'Communauté du marché';
+  @override
+  String get marketplaceCommunitySubtitle =>
+      'Posez des questions, partagez des offres, recommandez des vendeurs et signalez les arnaques.';
+  @override
+  String get marketplaceCommunityJoin => 'Rejoindre la communauté';
+  @override
+  String get marketplaceCommunityChannels => 'Salons de discussion';
+  @override
+  String get marketplaceCommunityPostQuestion => 'Question';
+  @override
+  String get marketplaceCommunityPostDeal => 'Offre';
+  @override
+  String get marketplaceCommunityPostRecommend => 'Recommander';
+  @override
+  String get marketplaceCommunityPostScam => 'Signaler arnaque';
 }

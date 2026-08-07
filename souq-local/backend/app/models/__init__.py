@@ -561,3 +561,13 @@ from app.models.community import (  # noqa: E402,F401
     DEFAULT_CHANNEL_SPECS,
 )
 from app.models.marketplace import Marketplace, MarketplaceCategory  # noqa: E402,F401
+from app.models.marketplace_community import (  # noqa: E402,F401
+    MarketplaceCommunityBan,
+    MarketplaceCommunityChannel,
+    MarketplaceCommunityMembership,
+    MarketplaceCommunityMessage,
+    MarketplaceCommunityModerationLog,
+    MarketplaceCommunityReaction,
+    MarketplaceCommunityReport,
+    MarketplaceCommunitySpamState,
+)

@@ -263,6 +263,24 @@ class BuyerHomeScreen extends ConsumerWidget {
                   loading: () => const SizedBox(height: AppSpacing.md),
                   error: (_, __) => const SizedBox.shrink(),
                 ),
+                if (selectedMarketplace != null && selectedMarketplace!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: AppSpacing.sm,
+                      left: AppSpacing.screenHorizontal,
+                      right: AppSpacing.screenHorizontal,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => context.push(
+                          '/marketplace/$selectedMarketplace/community',
+                        ),
+                        icon: const Icon(Icons.forum_outlined),
+                        label: Text(l10n.marketplaceCommunityTitle),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: AppSpacing.md),
                 Padding(
                   padding: const EdgeInsets.symmetric(

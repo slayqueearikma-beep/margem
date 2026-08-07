@@ -18,7 +18,8 @@ import 'features/buyer/buyer_home_screen.dart';
 import 'features/community_chat/community_channel_screen.dart';
 import 'features/community_chat/community_city_screen.dart';
 import 'features/map/map_screen.dart';
-import 'features/messages/messages_inbox_screen.dart';
+import 'features/marketplace_community/marketplace_community_channel_screen.dart';
+import 'features/marketplace_community/marketplace_community_hub_screen.dart';
 import 'features/onboarding/account_type_onboarding_screen.dart';
 import 'features/onboarding/become_seller_screen.dart';
 import 'features/onboarding/buyer_registration_screen.dart';
@@ -123,6 +124,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
       GoRoute(path: '/bundle', builder: (_, __) => const BundleBuilderScreen()),
+      GoRoute(
+        path: '/marketplace/:slug/community',
+        builder: (_, state) => MarketplaceCommunityHubScreen(
+          marketplaceSlug: state.pathParameters['slug']!,
+        ),
+      ),
+      GoRoute(
+        path: '/marketplace/:slug/community/channels/:channelId',
+        builder: (_, state) {
+          final extra = state.extra;
+          final map = extra is Map ? extra : const {};
+          return MarketplaceCommunityChannelScreen(
+            channelId: state.pathParameters['channelId']!,
+            marketplaceSlug: state.pathParameters['slug']!,
+            channelName: map['channelName'] as String? ?? '',
+            defaultPostType: map['defaultPostType'] as String? ?? 'general',
+          );
+        },
+      ),
       GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
       GoRoute(
         path: '/community/channels/:channelId',

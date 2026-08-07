@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
 import '../models/community_models.dart';
-import '../models/bundle_models.dart';
+import '../models/marketplace_community_models.dart';
 import '../models/models.dart';
 import 'secure_http_client.dart';
 
@@ -1036,6 +1036,86 @@ class ApiService {
 
   Future<void> muteCommunityUser(String userId) {
     return postVoid('/community/users/mute', {'user_id': userId}, auth: true);
+  }
+
+  // ——— Marketplace community (per-venue hubs) ———
+
+  Future<MarketplaceCommunityHubModel> fetchMarketplaceCommunityHub(
+    String marketplaceSlug, {
+    bool auth = false,
+  }) async {
+    final data = await getJson('/marketplaces/$marketplaceSlug/community', auth: auth);
+    return MarketplaceCommunityHubModel.fromJson(data);
+  }
+
+  Future<MarketplaceCommunityHubModel> joinMarketplaceCommunity(
+    String marketplaceSlug,
+  ) async {
+    final data = await postJson(
+      '/marketplaces/$marketplaceSlug/community/join',
+      {},
+      auth: true,
+    );
+    return MarketplaceCommunityHubModel.fromJson(data);
+  }
+
+  Future<List<MarketplaceCommunityChannelModel>> fetchMarketplaceCommunityChannels(
+    String marketplaceSlug, {
+    bool auth = false,
+  }) async {
+    final data = await getJsonList(
+      '/marketplaces/$marketplaceSlug/community/channels',
+      auth: auth,
+    );
+    return data
+        .map((item) =>
+            MarketplaceCommunityChannelModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<MarketplaceCommunityMessageModel>> fetchMarketplaceCommunityMessages(
+    String channelId, {
+    String? beforeId,
+  }) async {
+    final queryParams = <String, String>{if (beforeId != null) 'before_id': beforeId};
+    final path = queryParams.isEmpty
+        ? '/marketplaces/community/channels/$channelId/messages'
+        : '/marketplaces/community/channels/$channelId/messages?${Uri(queryParameters: queryParams).query}';
+    final data = await getJsonList(path, auth: true);
+    return data
+        .map((item) =>
+            MarketplaceCommunityMessageModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<MarketplaceCommunityMessageModel> postMarketplaceCommunityMessage({
+    required String channelId,
+    required String body,
+    String postType = 'general',
+    String? replyToId,
+  }) async {
+    final data = await postJson(
+      '/marketplaces/community/channels/$channelId/messages',
+      {
+        'body': body,
+        'post_type': postType,
+        if (replyToId != null) 'reply_to_id': replyToId,
+      },
+      auth: true,
+    );
+    return MarketplaceCommunityMessageModel.fromJson(data);
+  }
+
+  Future<void> reportMarketplaceCommunityMessage({
+    required String messageId,
+    required String reason,
+    String details = '',
+  }) {
+    return postVoid(
+      '/marketplaces/community/messages/$messageId/report',
+      {'reason': reason, 'details': details},
+      auth: true,
+    );
   }
 
   Future<List<SubscriptionPlanModel>> fetchSubscriptionPlans() async {

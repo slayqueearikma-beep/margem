@@ -1238,4 +1238,22 @@ class AppStringsAr extends AppStringsEn {
   String get bundleBuilderSellerBreakdown => 'تفصيل البائعين';
   @override
   String get bundleBuilderContactSeller => 'عرض البائع';
+
+  @override
+  String get marketplaceCommunityTitle => 'مجتمع السوق';
+  @override
+  String get marketplaceCommunitySubtitle =>
+      'اطرح الأسئلة، شارك العروض، أوصِ بالبائعين، وأبلغ عن الاحتيال.';
+  @override
+  String get marketplaceCommunityJoin => 'انضم إلى المجتمع';
+  @override
+  String get marketplaceCommunityChannels => 'قنوات النقاش';
+  @override
+  String get marketplaceCommunityPostQuestion => 'سؤال';
+  @override
+  String get marketplaceCommunityPostDeal => 'عرض';
+  @override
+  String get marketplaceCommunityPostRecommend => 'توصية';
+  @override
+  String get marketplaceCommunityPostScam => 'بلاغ احتيال';
 }

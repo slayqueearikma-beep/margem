@@ -1241,4 +1241,22 @@ class AppStringsEn extends AppStrings {
   String get bundleBuilderSellerBreakdown => 'Seller breakdown';
   @override
   String get bundleBuilderContactSeller => 'View seller';
+
+  @override
+  String get marketplaceCommunityTitle => 'Marketplace Community';
+  @override
+  String get marketplaceCommunitySubtitle =>
+      'Ask questions, share deals, recommend sellers, and report scams.';
+  @override
+  String get marketplaceCommunityJoin => 'Join community';
+  @override
+  String get marketplaceCommunityChannels => 'Discussion channels';
+  @override
+  String get marketplaceCommunityPostQuestion => 'Question';
+  @override
+  String get marketplaceCommunityPostDeal => 'Deal';
+  @override
+  String get marketplaceCommunityPostRecommend => 'Recommend';
+  @override
+  String get marketplaceCommunityPostScam => 'Report scam';
 }

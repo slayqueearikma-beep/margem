@@ -540,6 +540,16 @@ abstract class AppStrings {
   String get bundleBuilderSellerBreakdown;
   String get bundleBuilderContactSeller;
 
+  // Marketplace community
+  String get marketplaceCommunityTitle;
+  String get marketplaceCommunitySubtitle;
+  String get marketplaceCommunityJoin;
+  String get marketplaceCommunityChannels;
+  String get marketplaceCommunityPostQuestion;
+  String get marketplaceCommunityPostDeal;
+  String get marketplaceCommunityPostRecommend;
+  String get marketplaceCommunityPostScam;
+
   // Community chat
   String get communityChatTitle;
   String get communitySearchHint;

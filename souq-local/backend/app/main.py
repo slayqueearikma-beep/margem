@@ -30,6 +30,7 @@ from app.routers import (
     community,
     discovery,
     marketplace_admin,
+    marketplace_community,
     marketplaces,
     search,
     seller_ops,
@@ -139,6 +140,7 @@ app.include_router(search.router)
 app.include_router(seller_ops.router)
 app.include_router(community.router)
 app.include_router(marketplaces.router)
+app.include_router(marketplace_community.router)
 app.include_router(marketplace_admin.router)
 app.include_router(bundles.router)
 
