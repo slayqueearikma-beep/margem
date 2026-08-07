@@ -317,6 +317,7 @@ class ConversationThreadScreen extends ConsumerStatefulWidget {
 class _ConversationThreadScreenState
     extends ConsumerState<ConversationThreadScreen> {
   final _controller = TextEditingController();
+  final _inputFocusNode = FocusNode();
   late Future<List<ChatMessageModel>> _future;
   bool _sending = false;
 
@@ -324,10 +325,20 @@ class _ConversationThreadScreenState
   void initState() {
     super.initState();
     _future = apiServiceProvider.fetchConversationMessages(widget.conversationId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_inputFocusNode.canRequestFocus) {
+        _inputFocusNode.requestFocus();
+      }
+    });
   }
 
   @override
   void dispose() {
+    if (_inputFocusNode.hasFocus) {
+      _inputFocusNode.unfocus();
+    }
+    _inputFocusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -440,7 +451,7 @@ class _ConversationThreadScreenState
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      autofocus: true,
+                      focusNode: _inputFocusNode,
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _send(),
                       minLines: 1,

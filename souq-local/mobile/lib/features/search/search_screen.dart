@@ -74,6 +74,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    if (_focusNode.hasFocus) {
+      _focusNode.unfocus();
+    }
     _focusNode.dispose();
     super.dispose();
   }
@@ -83,10 +86,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     super.didUpdateWidget(oldWidget);
     if (widget.autofocusSearch && !oldWidget.autofocusSearch) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _focusNode.requestFocus();
+        if (!mounted || !widget.autofocusSearch) return;
+        if (_focusNode.canRequestFocus) {
+          _focusNode.requestFocus();
+        }
       });
     } else if (!widget.autofocusSearch && oldWidget.autofocusSearch) {
-      _focusNode.unfocus();
+      if (_focusNode.hasFocus) {
+        _focusNode.unfocus();
+      }
     }
   }
 
@@ -316,22 +324,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               children: [
                 const Center(child: MarGemAppBarLogo()),
                 const SizedBox(height: AppSpacing.md),
-                TextField(
-                  focusNode: _focusNode,
-                  autofocus: widget.autofocusSearch,
-                  decoration: InputDecoration(
-                    hintText: l10n.businessKeyword,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      tooltip: l10n.searchFilters,
-                      onPressed: () => _openFilters(l10n),
-                      icon: Badge(
-                        isLabelVisible: hasActiveFilters,
-                        child: const Icon(Icons.tune_rounded),
+                ExcludeFocus(
+                  excluding: !widget.autofocusSearch,
+                  child: TextField(
+                    focusNode: _focusNode,
+                    decoration: InputDecoration(
+                      hintText: l10n.businessKeyword,
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: IconButton(
+                        tooltip: l10n.searchFilters,
+                        onPressed: () => _openFilters(l10n),
+                        icon: Badge(
+                          isLabelVisible: hasActiveFilters,
+                          child: const Icon(Icons.tune_rounded),
+                        ),
                       ),
                     ),
+                    onChanged: _onQueryChanged,
                   ),
-                  onChanged: _onQueryChanged,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _SearchModeSelector(
