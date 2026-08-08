@@ -9,7 +9,7 @@ import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
-import '../../core/widgets/margem_app_bar.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
@@ -317,13 +317,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const BuyerAdaptiveHeader(),
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Center(child: MarGemAppBarLogo()),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.sm),
                 ExcludeFocus(
                   excluding: !widget.autofocusSearch,
                   child: TextField(

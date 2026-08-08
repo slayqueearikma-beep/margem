@@ -9,6 +9,8 @@ void main() {
       expect(margemFallbackBackLocation('/seller/abc'), '/buyer/home');
       expect(margemFallbackBackLocation('/favorites'), '/buyer/home');
       expect(margemFallbackBackLocation('/community'), '/buyer/home');
+      expect(margemFallbackBackLocation('/search'), '/buyer/home');
+      expect(margemFallbackBackLocation('/messages'), '/buyer/home');
     });
 
     test('returns seller dashboard for seller management routes', () {

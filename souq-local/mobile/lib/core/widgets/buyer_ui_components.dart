@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../navigation/margem_navigation_leading.dart';
 import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
@@ -833,6 +834,48 @@ class BuyerPopularCategoryCard extends StatelessWidget {
   }
 }
 
+/// Centered logo row for buyer tab content. Shows a back control when this
+/// widget is used on a pushed route (e.g. `/search`, `/messages`) but not
+/// when embedded in [BuyerHomeShell] tabs.
+class BuyerAdaptiveHeader extends StatelessWidget {
+  const BuyerAdaptiveHeader({super.key, this.trailing});
+
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final showBack = shouldShowMargemBackButton(context);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.md,
+        AppSpacing.screenHorizontal,
+        AppSpacing.sm,
+      ),
+      child: SizedBox(
+        height: 56,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Center(child: MarGemAppBarLogo()),
+            if (showBack)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: MargemBackLeading(),
+              ),
+            if (trailing != null)
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: trailing!,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Large screen title used at the top of tab screens.
 class BuyerScreenTitle extends StatelessWidget {
   const BuyerScreenTitle({
@@ -848,25 +891,7 @@ class BuyerScreenTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.screenHorizontal,
-        AppSpacing.md,
-        AppSpacing.screenHorizontal,
-        AppSpacing.sm,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          const Center(child: MarGemAppBarLogo()),
-          if (trailing != null)
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: trailing!,
-            ),
-        ],
-      ),
-    );
+    return BuyerAdaptiveHeader(trailing: trailing);
   }
 }
 

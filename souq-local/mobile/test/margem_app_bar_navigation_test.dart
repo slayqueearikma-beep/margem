@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:souq_local/core/navigation/margem_navigation_leading.dart';
+import 'package:souq_local/core/navigation/margem_navigation_leading.dart';
+import 'package:souq_local/core/widgets/buyer_ui_components.dart';
 import 'package:souq_local/core/widgets/margem_app_bar.dart';
 
 void main() {
@@ -69,6 +72,49 @@ void main() {
     );
 
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BackButton), findsOneWidget);
+  });
+
+  testWidgets('BuyerAdaptiveHeader hides back inside buyer home tab shell',
+      (tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: BuyerAdaptiveHeader(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BackButton), findsNothing);
+  });
+
+  testWidgets('BuyerAdaptiveHeader shows back on pushed /search route',
+      (tester) async {
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, __) => const Scaffold(body: Text('home')),
+          routes: [
+            GoRoute(
+              path: 'search',
+              builder: (_, __) => const Scaffold(
+                body: BuyerAdaptiveHeader(),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    router.go('/search');
     await tester.pumpAndSettle();
 
     expect(find.byType(BackButton), findsOneWidget);
