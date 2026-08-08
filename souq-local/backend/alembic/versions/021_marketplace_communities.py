@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 revision: str = "021"
@@ -38,7 +39,7 @@ CHANNEL_SEEDS = {
 
 
 def upgrade() -> None:
-    post_type = sa.Enum(
+    postgresql.ENUM(
         "general",
         "question",
         "seller_recommendation",
@@ -46,18 +47,39 @@ def upgrade() -> None:
         "announcement",
         "scam_report",
         name="marketplaceposttype",
-    )
-    message_status = sa.Enum(
+    ).create(op.get_bind(), checkfirst=True)
+    postgresql.ENUM(
         "visible",
         "pending_moderation",
         "hidden",
         "deleted",
         name="marketplacemessagestatus",
+    ).create(op.get_bind(), checkfirst=True)
+    postgresql.ENUM(
+        "open", "reviewed", "dismissed", "actioned", name="marketplacereportstatus"
+    ).create(op.get_bind(), checkfirst=True)
+
+    post_type = postgresql.ENUM(
+        "general",
+        "question",
+        "seller_recommendation",
+        "deal",
+        "announcement",
+        "scam_report",
+        name="marketplaceposttype",
+        create_type=False,
     )
-    report_status = sa.Enum("open", "reviewed", "dismissed", "actioned", name="marketplacereportstatus")
-    post_type.create(op.get_bind(), checkfirst=True)
-    message_status.create(op.get_bind(), checkfirst=True)
-    report_status.create(op.get_bind(), checkfirst=True)
+    message_status = postgresql.ENUM(
+        "visible",
+        "pending_moderation",
+        "hidden",
+        "deleted",
+        name="marketplacemessagestatus",
+        create_type=False,
+    )
+    report_status = postgresql.ENUM(
+        "open", "reviewed", "dismissed", "actioned", name="marketplacereportstatus", create_type=False
+    )
 
     op.create_table(
         "marketplace_community_channels",
@@ -172,13 +194,13 @@ def upgrade() -> None:
         sa.column("slug", sa.String),
         sa.column("name", sa.String),
         sa.column("description", sa.Text),
-        sa.column("default_post_type", sa.String),
+        sa.column("default_post_type", post_type),
         sa.column("display_order", sa.Integer),
     )
     for mp_id, slug in marketplaces:
         specs = CHANNEL_SEEDS.get(slug, [("general", "General", f"Discussion for {slug}", "general", 0)])
         rows = []
-        for ch_slug, name, desc, post_type, order in specs:
+        for ch_slug, name, desc, default_post_type, order in specs:
             rows.append(
                 {
                     "id": uuid4(),
@@ -186,7 +208,7 @@ def upgrade() -> None:
                     "slug": ch_slug,
                     "name": name,
                     "description": desc,
-                    "default_post_type": post_type,
+                    "default_post_type": default_post_type,
                     "display_order": order,
                 }
             )

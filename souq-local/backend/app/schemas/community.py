@@ -90,10 +90,15 @@ class CommunityMessageOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class CommunityAttachmentIn(BaseModel):
+    url: str = Field(min_length=1, max_length=2048)
+    content_type: str = Field(default="image/jpeg", max_length=64)
+
+
 class CommunityMessageCreate(BaseModel):
     body: str = Field(default="", max_length=4000)
     reply_to_id: UUID | None = None
-    attachments: list[dict] = Field(default_factory=list)
+    attachments: list[CommunityAttachmentIn] = Field(default_factory=list, max_length=4)
     mentions: list[str] = Field(default_factory=list)
 
     @field_validator("body")

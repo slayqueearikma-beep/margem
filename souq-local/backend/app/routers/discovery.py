@@ -552,7 +552,7 @@ async def create_contact_event(
     request: Request,
     payload: ContactEventCreate,
     session: AsyncSession = Depends(get_db),
-    user: User | None = Depends(get_current_user_optional),
+    user: User = Depends(get_current_user),
 ) -> dict:
     seller = await session.get(SellerProfile, payload.seller_id)
     if seller is None:
@@ -563,7 +563,7 @@ async def create_contact_event(
     event = ContactEvent(
         id=uuid4(),
         seller_id=payload.seller_id,
-        user_id=user.id if user else None,
+        user_id=user.id,
         channel=payload.channel,
     )
     session.add(event)

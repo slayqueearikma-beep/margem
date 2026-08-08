@@ -534,6 +534,7 @@ async def checkout_plan(
         activate_subscription,
         billing_self_serve_enabled,
         create_checkout_session,
+        manual_billing_allowed,
     )
 
     if not billing_self_serve_enabled():
@@ -561,6 +562,12 @@ async def checkout_plan(
             cancel_url=payload.cancel_url,
         )
         return CheckoutOut(checkout_url=checkout_url)
+
+    if not manual_billing_allowed():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Billing is not available in this environment. Configure Stripe or contact support.",
+        )
 
     subscription = await activate_subscription(
         session,
@@ -606,7 +613,11 @@ async def subscribe(
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut:
     """Legacy manual activation — prefer /subscriptions/checkout in production."""
-    from app.services.stripe_billing import activate_subscription, billing_self_serve_enabled
+    from app.services.stripe_billing import (
+        activate_subscription,
+        billing_self_serve_enabled,
+        manual_billing_allowed,
+    )
 
     if not billing_self_serve_enabled():
         raise HTTPException(
@@ -615,6 +626,11 @@ async def subscribe(
                 "Self-serve premium activation is disabled until a billing provider is configured. "
                 "Contact support or use an admin grant."
             ),
+        )
+    if not manual_billing_allowed():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Manual billing is disabled in this environment. Use checkout with Stripe.",
         )
 
     result = await session.execute(
@@ -683,8 +699,10 @@ async def stripe_webhook(
     except stripe.error.SignatureVerificationError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature") from exc
 
-    if event["type"] == "checkout.session.completed":
+    if event["type"] in {"checkout.session.completed", "checkout.session.async_payment_succeeded"}:
         data = event["data"]["object"]
+        if data.get("payment_status") != "paid":
+            return {"status": "ignored"}
         metadata = data.get("metadata") or {}
         user_id = metadata.get("user_id")
         plan_code = metadata.get("plan_code")

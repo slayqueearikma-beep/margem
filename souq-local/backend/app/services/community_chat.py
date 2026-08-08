@@ -25,6 +25,7 @@ from app.models.community import (
 )
 from app.schemas.community import (
     CityCreate,
+    CommunityAttachmentIn,
     CommunityMessageCreate,
     CommunityMessageOut,
     CommunityReactionOut,
@@ -42,6 +43,24 @@ from app.services.community_moderation import (
 )
 from app.services.community_trust import sender_profile
 from app.services.notifications import notify_user
+from app.services.upload_security import validate_media_url
+
+
+def _escape_ilike(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _validate_attachments(attachments: list[CommunityAttachmentIn], *, owner_user_id: UUID) -> list[dict]:
+    validated: list[dict] = []
+    for attachment in attachments:
+        validate_media_url(
+            attachment.url,
+            owner_user_id=owner_user_id,
+            container=settings.azure_storage_container,
+            public_api_url=settings.public_api_url if settings.storage_backend == "local" else None,
+        )
+        validated.append(attachment.model_dump())
+    return validated
 
 
 def slugify_city(name: str) -> str:
@@ -267,7 +286,8 @@ async def list_messages(
             stmt = stmt.where(CommunityMessage.created_at < pivot.created_at)
 
     if q:
-        stmt = stmt.where(CommunityMessage.body.ilike(f"%{q}%"))
+        safe_q = _escape_ilike(q[:120])
+        stmt = stmt.where(CommunityMessage.body.ilike(f"%{safe_q}%"))
 
     messages = list((await session.execute(stmt)).scalars().all())
     results: list[CommunityMessageOut] = []
@@ -322,6 +342,8 @@ async def send_message(
     if not body and not payload.attachments:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Message cannot be empty")
 
+    attachments = _validate_attachments(payload.attachments, owner_user_id=sender.id)
+
     duplicate = await is_duplicate_message(
         session, channel_id=channel.id, sender_id=sender.id, body=body
     )
@@ -348,7 +370,7 @@ async def send_message(
         body=body,
         reply_to_id=payload.reply_to_id,
         thread_root_id=thread_root_id,
-        attachments=payload.attachments,
+        attachments=attachments,
         mentions=payload.mentions or extract_mentions(body),
         hashtags=extract_hashtags(body),
         language=detect_language(body),
@@ -388,6 +410,32 @@ async def send_message(
                 data={"channel_id": str(channel.id), "message_id": str(message.id)},
             )
 
+    await session.flush()
+    return message
+
+
+async def update_message(
+    session: AsyncSession,
+    *,
+    message: CommunityMessage,
+    editor: User,
+    body: str,
+) -> CommunityMessage:
+    channel = await get_channel(session, message.channel_id)
+    await ensure_not_banned(session, city_id=channel.city_id, user_id=editor.id)
+    await ensure_membership(session, city_id=channel.city_id, user_id=editor.id)
+
+    cleaned = body.strip()
+    if not cleaned:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Message cannot be empty")
+
+    spam_score, spam_reason = compute_spam_score(cleaned, recent_duplicate=False)
+    message.body = cleaned
+    message.edited_at = datetime.now(UTC)
+    message.spam_score = spam_score
+    if spam_score >= 0.75:
+        message.status = CommunityMessageStatus.PENDING_MODERATION
+        message.moderation_reason = spam_reason or "spam"
     await session.flush()
     return message
 

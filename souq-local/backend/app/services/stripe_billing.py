@@ -19,9 +19,15 @@ logger = logging.getLogger("margem.billing")
 
 
 def billing_self_serve_enabled() -> bool:
-    if settings.app_env not in {"production", "prod"}:
+    if settings.app_env in {"production", "prod"}:
+        return bool(settings.stripe_secret_key.strip())
+    if settings.stripe_secret_key.strip():
         return True
-    return bool(settings.stripe_secret_key.strip())
+    return settings.allow_manual_billing and settings.app_env in {"development", "dev", "test"}
+
+
+def manual_billing_allowed() -> bool:
+    return settings.allow_manual_billing and settings.app_env in {"development", "dev", "test"}
 
 
 def _stripe_client() -> None:

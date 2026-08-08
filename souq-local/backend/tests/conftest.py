@@ -9,8 +9,10 @@ os.environ["APP_ENV"] = "development"
 os.environ["JWT_SECRET_KEY"] = "test-jwt-secret-key-minimum-32-characters-long"
 os.environ["AUTH_RATE_LIMIT"] = "1000/minute"
 os.environ["RATE_LIMIT"] = "1000/minute"
+os.environ["SIGNUP_OTP_VERIFY_RATE_LIMIT"] = "1000/minute"
 os.environ["AUTH_DEV_BYPASS"] = "false"
 os.environ["DEBUG"] = "false"
+os.environ["ALLOW_MANUAL_BILLING"] = "true"
 
 import pytest_asyncio
 from sqlalchemy import select, text

@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -95,10 +95,9 @@ async def send_signup_otp(
             ),
         )
     else:
-        logger.info(
-            "signup_sms_otp to=%s code=%s (SMS provider not configured — check API logs on home server)",
-            destination,
-            code,
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="SMS verification is not configured",
         )
 
     await session.commit()
@@ -122,6 +121,19 @@ async def verify_signup_otp(
     normalized_code = code.strip()
     if len(normalized_code) != 6 or not normalized_code.isdigit():
         raise HTTPException(status_code=400, detail="Enter the 6-digit code")
+
+    cutoff = datetime.now(UTC) - timedelta(hours=1)
+    failed_total = await session.scalar(
+        select(func.coalesce(func.sum(SignupVerification.failed_attempts), 0)).where(
+            SignupVerification.email == normalized_email,
+            SignupVerification.created_at >= cutoff,
+        )
+    )
+    if int(failed_total or 0) >= 30:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many verification attempts for this email. Try again later.",
+        )
 
     result = await session.execute(
         select(SignupVerification)

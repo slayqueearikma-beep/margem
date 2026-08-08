@@ -43,6 +43,8 @@ from app.services.community_chat import (
     delete_city_community,
     discover_cities,
     ensure_default_cities,
+    ensure_membership,
+    ensure_not_banned,
     get_channel,
     get_city_by_slug,
     join_city,
@@ -51,6 +53,7 @@ from app.services.community_chat import (
     send_message,
     slugify_city,
     toggle_reaction,
+    update_message,
 )
 from app.services.community_moderation import create_report, log_moderation
 from app.services.community_websocket import community_ws_manager
@@ -292,8 +295,7 @@ async def edit_message(
     message = await session.get(CommunityMessage, message_id)
     if message is None or message.sender_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
-    message.body = payload.body.strip()
-    message.edited_at = datetime.now(UTC)
+    message = await update_message(session, message=message, editor=user, body=payload.body)
     await session.commit()
     out = await message_to_out(session, message, viewer_id=user.id)
     await community_ws_manager.broadcast_channel(
@@ -346,6 +348,9 @@ async def react_to_message(
     message = await session.get(CommunityMessage, message_id)
     if message is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+    channel = await get_channel(session, message.channel_id)
+    await ensure_not_banned(session, city_id=channel.city_id, user_id=user.id)
+    await ensure_membership(session, city_id=channel.city_id, user_id=user.id)
     reactions = await toggle_reaction(session, message=message, user=user, emoji=payload.emoji)
     await session.commit()
     await community_ws_manager.broadcast_channel(
@@ -498,6 +503,12 @@ async def community_websocket(
             await websocket.close(code=4401)
             return
         channel = await get_channel(session, channel_id)
+        try:
+            await ensure_not_banned(session, city_id=channel.city_id, user_id=user.id)
+            await ensure_membership(session, city_id=channel.city_id, user_id=user.id)
+        except HTTPException:
+            await websocket.close(code=4403)
+            return
         slug = city_slug or (channel.city.slug if channel.city else "")
 
     await community_ws_manager.connect(

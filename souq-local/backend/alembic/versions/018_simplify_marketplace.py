@@ -97,8 +97,9 @@ def upgrade() -> None:
         ("health", "Health", "Santé", "صحة", "local_hospital"),
         ("kids", "Kids", "Enfants", "أطفال", "child_care"),
     ]
+    bind = op.get_bind()
     for slug, en, fr, ar, icon in categories:
-        op.execute(
+        bind.execute(
             sa.text(
                 """
                 INSERT INTO categories (id, slug, name_en, name_fr, name_ar, icon)

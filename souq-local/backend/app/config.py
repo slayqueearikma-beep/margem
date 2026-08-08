@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local"
 
     auth_dev_bypass: bool = False
+    # When false, non-production hosts cannot activate premium without Stripe.
+    allow_manual_billing: bool = False
     # In production, verified email is required before creating a storefront,
     # messaging users, or creating reputation signals.
     require_verified_email: bool = True
@@ -79,6 +81,7 @@ class Settings(BaseSettings):
 
     rate_limit: str = "300/minute"
     auth_rate_limit: str = "30/minute"
+    signup_otp_verify_rate_limit: str = "5/minute"
     max_request_body_bytes: int = 1_048_576
     redis_url: str = ""
     allow_insecure_email_fallback: bool = False

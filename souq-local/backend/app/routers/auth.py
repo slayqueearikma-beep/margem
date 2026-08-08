@@ -216,7 +216,7 @@ async def signup_otp_send(
 
 
 @router.post("/signup/otp/verify", response_model=SignupOtpProofResponse)
-@limiter.limit(settings.auth_rate_limit)
+@limiter.limit(settings.signup_otp_verify_rate_limit)
 async def signup_otp_verify(
     request: Request,
     payload: SignupOtpVerifyRequest,
@@ -379,7 +379,7 @@ async def register_firebase(
     payload: UserRegisterFirebase,
     session: AsyncSession = Depends(get_db),
 ) -> UserOut:
-    if settings.app_env in {"production", "prod"} or not settings.debug:
+    if settings.app_env not in {"development", "dev"}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not available")
 
     existing = await session.execute(
