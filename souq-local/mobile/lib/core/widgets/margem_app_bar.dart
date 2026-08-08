@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../navigation/margem_navigation_leading.dart';
 import '../theme/theme_context.dart';
 import 'app_brand_logo.dart';
 
@@ -50,8 +51,8 @@ class MarGemAppBar extends StatelessWidget implements PreferredSizeWidget {
     Widget? effectiveLeading = leading;
     if (effectiveLeading == null &&
         automaticallyImplyLeading &&
-        Navigator.canPop(context)) {
-      effectiveLeading = BackButton(color: colors.textPrimary);
+        shouldShowMargemBackButton(context)) {
+      effectiveLeading = MargemBackLeading(color: colors.textPrimary);
     }
 
     final actionWidgets = actions ?? const <Widget>[];

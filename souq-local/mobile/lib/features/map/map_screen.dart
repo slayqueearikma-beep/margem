@@ -9,6 +9,7 @@ import '../../core/data/demo_map_data.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/location_service.dart';
+import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
@@ -66,10 +67,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       return BuyerScreenScaffold(
         appBar: BuyerAppBar(
           title: l10n.mapPreviewTitle,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => context.pop(),
-          ),
+          leading: const MargemBackLeading(),
         ),
         body: MapUnavailablePlaceholder(
           cityCenter: CityCoordinates.centerFor(city),
@@ -85,10 +83,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           return BuyerScreenScaffold(
             appBar: BuyerAppBar(
               title: l10n.mapPreviewTitle,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded),
-                onPressed: () => context.pop(),
-              ),
+              leading: const MargemBackLeading(),
             ),
             body: const Center(child: CircularProgressIndicator()),
           );
@@ -98,10 +93,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           return BuyerScreenScaffold(
             appBar: BuyerAppBar(
               title: l10n.mapPreviewTitle,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded),
-                onPressed: () => context.pop(),
-              ),
+              leading: const MargemBackLeading(),
             ),
             body: AsyncErrorView.fromError(
               snapshot.error!,
@@ -165,10 +157,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 color: context.colors.surface,
                 shape: const CircleBorder(),
                 clipBehavior: Clip.antiAlias,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  onPressed: () => context.pop(),
-                ),
+                child: MargemBackLeading(),
               ),
             ),
             Positioned(

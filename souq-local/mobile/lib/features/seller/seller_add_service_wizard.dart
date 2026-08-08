@@ -9,6 +9,7 @@ import '../../core/models/auth_models.dart';
 import '../../core/models/service_pricing.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/upload_service.dart';
+import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
@@ -160,11 +161,13 @@ class _SellerAddServiceWizardState extends ConsumerState<SellerAddServiceWizard>
 
     return Scaffold(
       appBar: MarGemAppBar(
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: _loading ? null : _back,
+        leading: MargemBackLeading(
+          onPressed: () {
+            if (_loading) return;
+            _back();
+          },
         ),
+        automaticallyImplyLeading: false,
         semanticLabel: l10n.addService,
       ),
       body: Column(

@@ -12,6 +12,7 @@ import '../../core/theme/theme_context.dart';
 import '../../core/widgets/achievement_badges.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -206,36 +207,47 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder<SellerModel>(
-        future: _sellerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return AsyncErrorView.fromError(snapshot.error!, onRetry: _reload);
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return FutureBuilder<SellerModel>(
+      future: _sellerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: MarGemAppBar(semanticLabel: context.l10n.seller),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: MarGemAppBar(semanticLabel: context.l10n.seller),
+            body: AsyncErrorView.fromError(snapshot.error!, onRetry: _reload),
+          );
+        }
+        if (!snapshot.hasData) {
+          return Scaffold(
+            appBar: MarGemAppBar(semanticLabel: context.l10n.seller),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-          final seller = snapshot.data!;
-          final l10n = context.l10n;
-          final session = ref.watch(userSessionProvider);
-          final isOwnStore = session?.sellerId != null &&
-              session!.sellerId!.isNotEmpty &&
-              session.sellerId == seller.id;
-          final carouselProducts = sortProductsForCarousel(seller.products);
-          final isDark = Theme.of(context).brightness == Brightness.dark;
+        final seller = snapshot.data!;
+        final l10n = context.l10n;
+        final session = ref.watch(userSessionProvider);
+        final isOwnStore = session?.sellerId != null &&
+            session!.sellerId!.isNotEmpty &&
+            session.sellerId == seller.id;
+        final carouselProducts = sortProductsForCarousel(seller.products);
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
-          return CustomScrollView(
+        return Scaffold(
+          body: CustomScrollView(
             slivers: [
               SliverAppBar(
                 expandedHeight: 240,
                 pinned: true,
                 stretch: true,
                 centerTitle: true,
+                automaticallyImplyLeading: false,
+                leading: const MargemBackLeading(),
                 title: const MarGemAppBarLogo(),
                 flexibleSpace: FlexibleSpaceBar(
                   stretchModes: [
@@ -504,9 +516,9 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

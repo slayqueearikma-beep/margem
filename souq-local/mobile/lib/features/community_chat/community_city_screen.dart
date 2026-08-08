@@ -8,6 +8,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/utils/directional_ui.dart';
+import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/design_system_components.dart';
 import '../../core/widgets/margem_app_bar.dart';
@@ -38,6 +39,8 @@ class CommunityCityScreen extends ConsumerWidget {
               pinned: true,
               backgroundColor: Colors.transparent,
               centerTitle: true,
+              automaticallyImplyLeading: false,
+              leading: const MargemBackLeading(),
               title: const MarGemAppBarLogo(),
               actions: [
                 IconButton(

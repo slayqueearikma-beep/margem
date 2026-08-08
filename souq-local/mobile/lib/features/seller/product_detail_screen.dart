@@ -12,6 +12,7 @@ import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/margem_app_bar.dart';
+import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
@@ -101,7 +102,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-              body: Center(child: CircularProgressIndicator()));
+            appBar: MarGemAppBar(),
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         if (snapshot.hasError || !snapshot.hasData) {
           return Scaffold(
@@ -140,6 +143,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     SliverAppBar(
                       pinned: true,
                       centerTitle: true,
+                      automaticallyImplyLeading: false,
+                      leading: const MargemBackLeading(),
                       title: const MarGemAppBarLogo(),
                       expandedHeight: MediaQuery.sizeOf(context).width * 0.95,
                       flexibleSpace: FlexibleSpaceBar(
