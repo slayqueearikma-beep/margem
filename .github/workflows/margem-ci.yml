@@ -38,10 +38,12 @@ jobs:
         run: |
           pip install pip-audit
           pip-audit --strict -r requirements.txt
-      - name: Apply migrations
-        run: alembic upgrade head
+      - name: Fresh database migration validation
+        run: |
+          PGPASSWORD=souq_local_dev psql -h localhost -U souq -d postgres -c "DROP DATABASE IF EXISTS margem_migration_ci;"
+          PGPASSWORD=souq_local_dev psql -h localhost -U souq -d postgres -c "CREATE DATABASE margem_migration_ci;"
+          DATABASE_URL=postgresql+asyncpg://souq:souq_local_dev@localhost:5432/margem_migration_ci alembic upgrade head
         env:
-          DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local
           JWT_SECRET_KEY: test-jwt-secret-key-minimum-32-characters-long
       - name: Validate Compose configs
         working-directory: ${{ github.workspace }}/souq-local
@@ -49,11 +51,14 @@ jobs:
           docker compose -f docker-compose.yml config >/dev/null
           docker compose -f docker-compose.home.yml config >/dev/null
           docker compose -f docker-compose.budget.yml config >/dev/null
+          docker compose -f infra/onprem/docker-compose.prod.yml config >/dev/null
       - run: pytest -q
         env:
           PYTHONPATH: .
           DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local
           JWT_SECRET_KEY: test-jwt-secret-key-minimum-32-characters-long
+          UPLOAD_TOKEN_SECRET: test-upload-token-secret-key-32chars-min
+          ALLOW_MANUAL_BILLING: "true"
       - name: Production settings smoke
         run: |
           python - <<'PY'

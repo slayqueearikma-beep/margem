@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -18,7 +20,9 @@ class SplashBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final skylineHeight = (size.height * 0.30).clamp(size.width * 0.34, size.height * 0.36);
+    final minSkyline = math.min(size.width * 0.34, size.height * 0.36);
+    final maxSkyline = math.max(size.width * 0.34, size.height * 0.36);
+    final skylineHeight = (size.height * 0.30).clamp(minSkyline, maxSkyline);
 
     return ColoredBox(
       color: AppColors.cream,

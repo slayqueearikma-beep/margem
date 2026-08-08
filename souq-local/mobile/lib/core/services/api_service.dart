@@ -966,6 +966,15 @@ class ApiService {
         .toList();
   }
 
+  Future<String> fetchCommunityWsTicket(String channelId) async {
+    final data = await postJson(
+      '/community/channels/$channelId/ws-ticket',
+      {},
+      auth: true,
+    );
+    return data['ticket'] as String;
+  }
+
   Future<CommunityMessageModel> postCommunityMessage({
     required String channelId,
     required String body,

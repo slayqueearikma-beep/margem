@@ -75,12 +75,22 @@ async def test_community_reaction_requires_membership(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_community_websocket_requires_membership(client: AsyncClient):
     ctx = await _community_context(client)
-    outsider_token = ctx["outsider_headers"]["Authorization"].removeprefix("Bearer ")
+    ticket_res = await client.post(
+        f"/community/channels/{ctx['channel_id']}/ws-ticket",
+        headers=ctx["member_headers"],
+    )
+    assert ticket_res.status_code == 200, ticket_res.text
+    ticket = ticket_res.json()["ticket"]
     with pytest.raises(Exception):
         async with client.websocket_connect(
-            f"/community/ws?channel_id={ctx['channel_id']}&token={outsider_token}"
+            f"/community/ws?channel_id={ctx['channel_id']}&ticket={ticket}"
         ) as ws:
             await ws.receive_text()
+    denied_ticket = await client.post(
+        f"/community/channels/{ctx['channel_id']}/ws-ticket",
+        headers=ctx["outsider_headers"],
+    )
+    assert denied_ticket.status_code == 403
 
 
 @pytest.mark.asyncio

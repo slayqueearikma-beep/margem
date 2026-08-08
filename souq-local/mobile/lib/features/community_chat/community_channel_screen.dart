@@ -33,7 +33,8 @@ class CommunityChannelScreen extends ConsumerStatefulWidget {
       _CommunityChannelScreenState();
 }
 
-class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen> {
+class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
+    with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final _ws = CommunityWebSocketService();
@@ -44,15 +45,24 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _connectWs());
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _connectWs();
+    }
+  }
+
   void _connectWs() {
-    final token = apiServiceProvider.tokenProvider?.call();
-    if (token == null || token.isEmpty) return;
+    _ws.setTicketFetcher(
+      () => apiServiceProvider.fetchCommunityWsTicket(widget.channelId),
+    );
     _ws.connect(
       channelId: widget.channelId,
-      token: token,
+      fetchTicket: () => apiServiceProvider.fetchCommunityWsTicket(widget.channelId),
       citySlug: widget.citySlug,
       onEvent: _handleWsEvent,
     );
@@ -86,7 +96,8 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
 
   @override
   void dispose() {
-    _ws.disconnect();
+    WidgetsBinding.instance.removeObserver(this);
+    _ws.dispose();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();

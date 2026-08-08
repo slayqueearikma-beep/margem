@@ -54,6 +54,14 @@ def _presign_local(user: User, *, safe_filename: str, content_type: str) -> Pres
     )
 
 
+def _presign_minio(user: User, *, safe_filename: str) -> PresignResponse:
+    from app.services.minio_storage import presign_put
+
+    blob_name = f"{user.id}/{uuid4()}-{safe_filename}"
+    upload_url, public_url = presign_put(blob_name=blob_name)
+    return PresignResponse(upload_url=upload_url, public_url=public_url)
+
+
 async def _presign_azure(user: User, *, safe_filename: str, content_type: str) -> PresignResponse:
     from datetime import datetime, timedelta, timezone
 
@@ -112,6 +120,13 @@ async def presign_upload(
                     user,
                     safe_filename=safe_filename,
                     content_type=payload.content_type,
+                )
+            )
+        if settings.storage_backend == "minio":
+            return _validate_presign_response(
+                _presign_minio(
+                    user,
+                    safe_filename=safe_filename,
                 )
             )
         return _validate_presign_response(

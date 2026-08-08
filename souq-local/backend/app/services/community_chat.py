@@ -58,6 +58,7 @@ def _validate_attachments(attachments: list[CommunityAttachmentIn], *, owner_use
             owner_user_id=owner_user_id,
             container=settings.azure_storage_container,
             public_api_url=settings.public_api_url if settings.storage_backend == "local" else None,
+            minio_public_url=settings.minio_public_url if settings.storage_backend == "minio" else None,
         )
         validated.append(attachment.model_dump())
     return validated

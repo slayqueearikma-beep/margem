@@ -71,9 +71,15 @@ class Settings(BaseSettings):
 
     azure_storage_connection_string: str = ""
     azure_storage_container: str = "margem-media"
-    # azure = Blob SAS uploads; local = laptop disk under LOCAL_MEDIA_ROOT (home server).
+    # azure = Blob SAS; local = API disk; minio = S3-compatible on-prem object store.
     storage_backend: str = "azure"
     local_media_root: str = "./data/media"
+    minio_endpoint: str = ""
+    minio_access_key: str = ""
+    minio_secret_key: str = ""
+    minio_bucket: str = "margem-media"
+    minio_public_url: str = ""
+    minio_region: str = ""
     max_upload_bytes: int = 8_388_608
 
     cors_origins: list[str] = ["http://localhost:3000"]
@@ -113,8 +119,8 @@ class Settings(BaseSettings):
         if value is None or value == "":
             return "azure"
         cleaned = str(value).strip().lower()
-        if cleaned not in {"azure", "local"}:
-            raise ValueError("STORAGE_BACKEND must be 'azure' or 'local'")
+        if cleaned not in {"azure", "local", "minio"}:
+            raise ValueError("STORAGE_BACKEND must be 'azure', 'local', or 'minio'")
         return cleaned
 
     @field_validator("azure_storage_connection_string", "azure_storage_container", "local_media_root", mode="before")
@@ -179,6 +185,11 @@ class Settings(BaseSettings):
                 raise ValueError("ALLOWED_HOSTS must not include '*' in production")
             if self.storage_backend == "azure" and not self.azure_storage_connection_string:
                 raise ValueError("AZURE_STORAGE_CONNECTION_STRING is required in production when STORAGE_BACKEND=azure")
+            if self.storage_backend == "minio":
+                if not self.minio_endpoint or not self.minio_access_key or not self.minio_secret_key:
+                    raise ValueError("MINIO_ENDPOINT, MINIO_ACCESS_KEY, and MINIO_SECRET_KEY are required when STORAGE_BACKEND=minio")
+                if not self.minio_public_url:
+                    raise ValueError("MINIO_PUBLIC_URL is required when STORAGE_BACKEND=minio")
             if self.storage_backend == "local" and not self.public_api_url:
                 raise ValueError("PUBLIC_API_URL is required in production when STORAGE_BACKEND=local")
             if not self.smtp_host and not self.allow_insecure_email_fallback:

@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
+from pydantic import BaseModel
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -57,6 +58,7 @@ from app.services.community_chat import (
 )
 from app.services.community_moderation import create_report, log_moderation
 from app.services.community_websocket import community_ws_manager
+from app.services.ws_ticket import community_audience, issue_ws_ticket, verify_ws_ticket
 
 router = APIRouter(prefix="/community", tags=["community"])
 
@@ -482,6 +484,27 @@ async def list_reports(
     ]
 
 
+class WsTicketOut(BaseModel):
+    ticket: str
+    expires_in: int = 60
+
+
+@router.post("/channels/{channel_id}/ws-ticket", response_model=WsTicketOut)
+@limiter.limit("30/minute")
+async def issue_community_ws_ticket(
+    request: Request,
+    channel_id: UUID,
+    user: User = Depends(require_verified_email),
+    session: AsyncSession = Depends(get_db),
+) -> WsTicketOut:
+    _ = request
+    channel = await get_channel(session, channel_id)
+    await ensure_not_banned(session, city_id=channel.city_id, user_id=user.id)
+    await ensure_membership(session, city_id=channel.city_id, user_id=user.id)
+    ticket = issue_ws_ticket(user_id=user.id, channel_id=channel_id, audience=community_audience())
+    return WsTicketOut(ticket=ticket)
+
+
 async def _ws_user_from_token(token: str, session: AsyncSession) -> User | None:
     from app.auth import resolve_user_from_access_token
 
@@ -492,13 +515,27 @@ async def _ws_user_from_token(token: str, session: AsyncSession) -> User | None:
 async def community_websocket(
     websocket: WebSocket,
     channel_id: UUID,
-    token: str = Query(...),
+    ticket: str = Query(default=""),
+    token: str = Query(default=""),
     city_slug: str = Query(default=""),
 ) -> None:
     from app.database import SessionLocal
 
     async with SessionLocal() as session:
-        user = await _ws_user_from_token(token, session)
+        user: User | None = None
+        if ticket.strip():
+            try:
+                user_id = verify_ws_ticket(
+                    ticket.strip(),
+                    channel_id=channel_id,
+                    audience=community_audience(),
+                )
+                user = await session.get(User, user_id)
+            except HTTPException:
+                await websocket.close(code=4401)
+                return
+        elif token.strip():
+            user = await _ws_user_from_token(token.strip(), session)
         if user is None:
             await websocket.close(code=4401)
             return

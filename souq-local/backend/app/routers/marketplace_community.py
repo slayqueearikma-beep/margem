@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,8 +46,14 @@ from app.services.marketplace_community_chat import (
     send_message,
 )
 from app.services.marketplace_community_websocket import marketplace_community_ws_manager
+from app.services.ws_ticket import issue_ws_ticket, marketplace_audience, verify_ws_ticket
 
 router = APIRouter(prefix="/marketplaces", tags=["marketplace-community"])
+
+
+class WsTicketOut(BaseModel):
+    ticket: str
+    expires_in: int = 60
 
 
 async def _is_member(session: AsyncSession, user: User | None, marketplace_id: UUID) -> bool:
@@ -356,17 +363,47 @@ async def list_marketplace_community_reports(
     return list((await session.execute(stmt)).scalars().all())
 
 
+@router.post("/community/channels/{channel_id}/ws-ticket", response_model=WsTicketOut)
+@limiter.limit("30/minute")
+async def issue_marketplace_ws_ticket(
+    request: Request,
+    channel_id: UUID,
+    user: User = Depends(require_verified_email),
+    session: AsyncSession = Depends(get_db),
+) -> WsTicketOut:
+    _ = request
+    channel = await get_channel(session, channel_id)
+    await ensure_not_banned(session, marketplace_id=channel.marketplace_id, user_id=user.id)
+    await ensure_membership(session, marketplace_id=channel.marketplace_id, user_id=user.id)
+    ticket = issue_ws_ticket(user_id=user.id, channel_id=channel_id, audience=marketplace_audience())
+    return WsTicketOut(ticket=ticket)
+
+
 @router.websocket("/community/ws")
 async def marketplace_community_websocket(
     websocket: WebSocket,
     channel_id: UUID,
-    token: str = Query(...),
+    ticket: str = Query(default=""),
+    token: str = Query(default=""),
     marketplace_slug: str = Query(default=""),
 ) -> None:
     from app.database import SessionLocal
 
     async with SessionLocal() as session:
-        user = await resolve_user_from_access_token(token, session)
+        user: User | None = None
+        if ticket.strip():
+            try:
+                user_id = verify_ws_ticket(
+                    ticket.strip(),
+                    channel_id=channel_id,
+                    audience=marketplace_audience(),
+                )
+                user = await session.get(User, user_id)
+            except HTTPException:
+                await websocket.close(code=4401)
+                return
+        elif token.strip():
+            user = await resolve_user_from_access_token(token.strip(), session)
         if user is None:
             await websocket.close(code=4401)
             return

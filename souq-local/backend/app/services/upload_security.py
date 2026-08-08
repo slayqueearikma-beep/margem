@@ -34,8 +34,18 @@ def validate_presign_upload_url(
 
     api_host = (urlparse(public_api_url.rstrip("/")).hostname or "").lower()
     extra_hosts = {h.lower() for h in (allowed_hosts or []) if h}
+    from app.config import settings
 
-    if host == api_host or host.endswith(_AZURE_BLOB_HOST_SUFFIX) or host in extra_hosts:
+    minio_host = ""
+    if settings.minio_public_url:
+        minio_host = (urlparse(settings.minio_public_url.rstrip("/")).hostname or "").lower()
+
+    if (
+        host == api_host
+        or host.endswith(_AZURE_BLOB_HOST_SUFFIX)
+        or (minio_host and host == minio_host)
+        or host in extra_hosts
+    ):
         return
     raise ValueError("Upload URL host is not allowed")
 
@@ -75,6 +85,7 @@ def validate_media_url(
     owner_user_id: UUID | None = None,
     container: str,
     public_api_url: str | None = None,
+    minio_public_url: str | None = None,
 ) -> str:
     """Ensure image URLs point at Azure Blob or our local /media store.
 
@@ -105,6 +116,10 @@ def validate_media_url(
 
     if parsed.scheme != "https":
         raise ValueError("Media URL must use https")
+    if minio_public_url:
+        from app.services.minio_storage import validate_minio_public_url
+
+        return validate_minio_public_url(value, owner_user_id=owner_user_id)
     if not host.endswith(_AZURE_BLOB_HOST_SUFFIX):
         raise ValueError("Media URL host is not allowed")
 

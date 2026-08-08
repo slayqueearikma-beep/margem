@@ -160,6 +160,7 @@ if settings.storage_backend == "local":
     )
 
 _brand_dir = Path(__file__).resolve().parents[1] / "static" / "brand"
+_legal_dir = Path(__file__).resolve().parents[1] / "static" / "legal"
 if _brand_dir.is_dir():
     app.mount("/brand", StaticFiles(directory=str(_brand_dir)), name="brand")
 
@@ -173,6 +174,18 @@ if _brand_dir.is_dir():
         if manifest.is_file():
             return FileResponse(manifest, media_type="application/manifest+json")
         return FileResponse(_brand_dir / "icon-192.png")
+
+
+if _legal_dir.is_dir():
+    app.mount("/legal", StaticFiles(directory=str(_legal_dir)), name="legal")
+
+    @app.get("/terms", include_in_schema=False)
+    async def terms_page() -> FileResponse:
+        return FileResponse(_legal_dir / "terms.html")
+
+    @app.get("/privacy", include_in_schema=False)
+    async def privacy_page() -> FileResponse:
+        return FileResponse(_legal_dir / "privacy.html")
 
 
 def _request_id(request: Request) -> str:
