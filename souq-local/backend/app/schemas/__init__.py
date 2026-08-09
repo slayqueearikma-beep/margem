@@ -94,8 +94,19 @@ class UserRegisterFirebase(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str = Field(min_length=3, max_length=254)
     password: str = Field(min_length=1, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        email = value.strip().lower()
+        if not email or "@" not in email:
+            raise ValueError("Invalid email address")
+        local, _, domain = email.partition("@")
+        if not local or not domain:
+            raise ValueError("Invalid email address")
+        return email
 
 
 class UserOut(BaseModel):

@@ -28,6 +28,21 @@ function authHeaders() {
   };
 }
 
+function formatApiError(detail, fallback = "Request failed") {
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item.msg === "string") return item.msg;
+        return null;
+      })
+      .filter(Boolean);
+    if (messages.length) return messages.join(", ");
+  }
+  return fallback;
+}
+
 async function api(path, options = {}) {
   const res = await fetch(`${apiBase()}${path}`, {
     ...options,
@@ -41,12 +56,7 @@ async function api(path, options = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const detail = data.detail;
-    const message = typeof detail === "string"
-      ? detail
-      : Array.isArray(detail)
-        ? detail.map((d) => d.msg || JSON.stringify(d)).join(", ")
-        : "Request failed";
-    throw new Error(message);
+    throw new Error(formatApiError(detail));
   }
   return data;
 }
@@ -509,14 +519,28 @@ function bindEvents() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Login failed");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(formatApiError(data.detail, "Login failed"));
+      }
       state.token = data.access_token;
       localStorage.setItem(TOKEN_KEY, state.token);
+      const meRes = await fetch(`${apiBase()}/auth/me`, {
+        headers: authHeaders(),
+      });
+      const me = await meRes.json().catch(() => ({}));
+      if (!meRes.ok) {
+        throw new Error(formatApiError(me.detail, "Could not verify account"));
+      }
+      if (me.role !== "admin") {
+        logout();
+        throw new Error("This account does not have admin access.");
+      }
       $("#login-error").classList.add("hidden");
       showScreen("app");
       await bootstrapApp();
     } catch (err) {
+      logout();
       $("#login-error").textContent = err.message;
       $("#login-error").classList.remove("hidden");
     }

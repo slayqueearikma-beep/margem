@@ -41,6 +41,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  String _loginErrorMessage(ApiException error, AppStrings l10n) {
+    final message = error.message.trim();
+    final lower = message.toLowerCase();
+    if (error.statusCode == 401 ||
+        lower.contains('invalid email or password')) {
+      return 'Invalid email or password. Check your credentials and try again.';
+    }
+    if (error.statusCode == 422 ||
+        lower.contains('valid email') ||
+        lower.contains('invalid email')) {
+      return 'Enter a valid email address (for example, you@example.com).';
+    }
+    if (message.isNotEmpty) return message;
+    return l10n.somethingWentWrong;
+  }
+
   Future<void> _login() async {
     final l10n = context.l10n;
     final email = _emailController.text.trim();
@@ -82,8 +98,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       });
     } on ApiException catch (e) {
       if (!mounted) return;
+      final message = _loginErrorMessage(e, l10n);
       await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: e.message);
+          title: l10n.somethingWentWrong, message: message);
     } catch (e) {
       if (!mounted) return;
       await showAppErrorDialog(context,

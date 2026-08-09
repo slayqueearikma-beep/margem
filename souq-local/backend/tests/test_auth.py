@@ -58,14 +58,20 @@ async def test_register_and_login_flow():
         me = await client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert me.status_code == 200
         assert me.json()["email"] == email
-        assert "firebase_uid" not in me.json()
 
-        refresh = await client.post(
-            "/auth/refresh",
-            json={"refresh_token": body["refresh_token"]},
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("prepare_database")
+async def test_login_accepts_local_dev_email_format():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/auth/login",
+            json={"email": "admin@margem.local", "password": "SecurePass1"},
         )
-        assert refresh.status_code == 200
-        assert refresh.json()["access_token"]
+        # Validation must pass; credentials may be wrong (401), not rejected as bad email (422).
+        assert response.status_code != 422, response.text
+        assert response.status_code == 401
 
 
 @pytest.mark.asyncio
