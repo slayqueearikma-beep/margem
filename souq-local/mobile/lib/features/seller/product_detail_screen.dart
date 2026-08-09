@@ -504,6 +504,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   Future<void> _openChat(SellerModel seller) async {
     final l10n = context.l10n;
     final session = ref.read(userSessionProvider);
+    if (session == null || session.isGuest) {
+      if (!mounted) return;
+      await context.push('/login');
+      return;
+    }
     if (_isStoreOwner(session, seller.id)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -513,22 +518,35 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     }
     setState(() => _contacting = true);
     try {
-      await apiServiceProvider.createContactEvent(
-          sellerId: seller.id, channel: 'message');
-      final session = ref.read(userSessionProvider);
-      if (session == null || session.isGuest) {
-        if (mounted) await context.push('/login');
-        return;
+      try {
+        await apiServiceProvider.createContactEvent(
+          sellerId: seller.id,
+          channel: 'message',
+        );
+      } catch (_) {
+        // Analytics only — do not block opening the chat thread.
       }
       final conversation =
           await apiServiceProvider.openSellerConversation(seller.id);
       if (!mounted) return;
       context.push('/messages/${conversation.id}', extra: conversation);
     } on ApiException catch (error) {
-      if (mounted) {
-        await showAppErrorDialog(context,
-            title: l10n.somethingWentWrong, message: error.message);
-      }
+      if (!mounted) return;
+      final message = error.message.toLowerCase().contains('verify')
+          ? l10n.verifyEmailToContinue
+          : error.message;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: message,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.somethingWentWrong,
+      );
     } finally {
       if (mounted) setState(() => _contacting = false);
     }

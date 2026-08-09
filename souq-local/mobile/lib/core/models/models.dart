@@ -1083,14 +1083,15 @@ class ConversationModel {
 
   factory ConversationModel.fromJson(Map<String, dynamic> json) {
     return ConversationModel(
-      id: json['id'] as String,
-      buyerId: json['buyer_id'] as String? ?? '',
-      sellerId: json['seller_id'] as String? ?? '',
-      peerUserId:
-          json['peer_user_id'] as String? ?? json['buyer_id'] as String? ?? '',
-      lastMessageAt: json['last_message_at'] as String? ?? '',
+      id: json['id']?.toString() ?? '',
+      buyerId: json['buyer_id']?.toString() ?? '',
+      sellerId: json['seller_id']?.toString() ?? '',
+      peerUserId: json['peer_user_id']?.toString() ??
+          json['buyer_id']?.toString() ??
+          '',
+      lastMessageAt: json['last_message_at']?.toString() ?? '',
       peerName: json['peer_name'] as String? ?? '',
-      unreadCount: json['unread_count'] as int? ?? 0,
+      unreadCount: (json['unread_count'] as num?)?.toInt() ?? 0,
       lastMessagePreview: json['last_message_preview'] as String? ?? '',
     );
   }

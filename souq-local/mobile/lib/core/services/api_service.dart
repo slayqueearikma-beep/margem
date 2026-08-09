@@ -778,7 +778,7 @@ class ApiService {
     return postVoid(
       '/contact-events',
       {'seller_id': sellerId, 'channel': channel},
-      auth: _authHeaders.isNotEmpty,
+      auth: true,
     );
   }
 

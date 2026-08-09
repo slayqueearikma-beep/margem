@@ -90,18 +90,35 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
     }
     setState(() => _messaging = true);
     try {
-      await apiServiceProvider.createContactEvent(
-        sellerId: seller.id,
-        channel: 'message',
-      );
+      try {
+        await apiServiceProvider.createContactEvent(
+          sellerId: seller.id,
+          channel: 'message',
+        );
+      } catch (_) {
+        // Analytics only — do not block opening the chat thread.
+      }
       final conversation =
           await apiServiceProvider.openSellerConversation(seller.id);
       if (!mounted) return;
       context.push('/messages/${conversation.id}', extra: conversation);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      final message = error.message.toLowerCase().contains('verify')
+          ? l10n.verifyEmailToContinue
+          : error.message;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: message,
+      );
     } catch (_) {
       if (!mounted) return;
-      await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.somethingWentWrong,
+      );
     } finally {
       if (mounted) setState(() => _messaging = false);
     }
