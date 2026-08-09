@@ -34,7 +34,7 @@ services:
       PUBLIC_API_URL: http://localhost:8000
       ADMIN_DASHBOARD_DIR: /admin-dashboard
       AUTH_DEV_BYPASS: "false"
-      CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000","http://10.0.2.2:8000"]'
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000","http://localhost:8080","http://10.0.2.2:8000"]'
     volumes:
       - api_media:/data/media
       - ./admin-dashboard:/admin-dashboard:ro
@@ -47,6 +47,19 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  admin:
+    build:
+      context: ./admin-dashboard
+      dockerfile: Dockerfile
+    container_name: margem-admin
+    ports:
+      - "${ADMIN_PORT:-8080}:80"
+    environment:
+      MARGEM_API_URL: http://localhost:8000
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   postgres_data:

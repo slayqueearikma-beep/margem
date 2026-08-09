@@ -106,9 +106,11 @@ docker compose -f docker-compose.home.yml --env-file .env.home down
 
 ## Admin dashboard (web)
 
-Staff admin is **not** in the mobile app. Use the browser on the same Wi‑Fi:
+Staff admin is **not** in the mobile app. It runs as a **separate web dashboard** on its own port:
 
-`http://<laptop-lan-ip>:8000/admin` (e.g. `http://192.168.11.101:8000/admin`)
+`http://<laptop-lan-ip>:8080` (e.g. `http://192.168.11.101:8080`)
+
+The mobile app talks to the API on port **8000** only. Admin uses port **8080** and calls the API in the background.
 
 1. Register an account in the mobile app (role cannot be set at signup).
 2. Promote that email to admin:
@@ -117,17 +119,25 @@ Staff admin is **not** in the mobile app. Use the browser on the same Wi‑Fi:
 MARGEM_PROFILE=home ./scripts/docker-admin.sh promote-admin you@example.com
 ```
 
-3. Log in on the admin page with that email and password.
+3. Open the admin URL in a browser (phone or laptop on the same Wi‑Fi) and log in.
 
-**If `/admin` returns 404**, the API container was built or started without the
-`admin-dashboard/` files. From the repo root:
+Ensure `.env.home` allows cross-origin requests from the admin port:
+
+```env
+CORS_ORIGINS=http://192.168.11.101:8000,http://192.168.11.101:8080
+ADMIN_PORT=8080
+```
+
+**If the admin page does not load**, rebuild and start both services:
 
 ```bash
 git pull
 docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
-curl http://192.168.11.101:8000/ready   # should include "admin_dashboard":"ok"
-MARGEM_API_URL=http://192.168.11.101:8000 MARGEM_PROFILE=home ./scripts/docker-admin.sh check-admin
+MARGEM_API_URL=http://192.168.11.101:8000 MARGEM_ADMIN_URL=http://192.168.11.101:8080 \
+  MARGEM_PROFILE=home ./scripts/docker-admin.sh check-admin
 ```
+
+Legacy note: `/admin` on port 8000 may still work if baked into the API image, but **use port 8080** for the dedicated admin dashboard.
 
 ## Backups (home server)
 

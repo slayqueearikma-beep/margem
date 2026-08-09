@@ -23,6 +23,8 @@ const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 
 function apiBase() {
+  const configured = (window.MARGEM_API_URL || "").trim();
+  if (configured) return configured.replace(/\/$/, "");
   return window.location.origin;
 }
 

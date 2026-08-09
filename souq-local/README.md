@@ -29,7 +29,7 @@ Or use the helper script:
 ./scripts/docker-admin.sh up
 ```
 
-- **Admin dashboard:** http://localhost:8000/admin  
+- **Admin dashboard:** http://localhost:8080 (separate from the API; not in the mobile app)  
 - **API docs:** http://localhost:8000/docs  
 
 Register an account in the mobile app, then grant yourself admin:

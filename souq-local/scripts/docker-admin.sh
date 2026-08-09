@@ -35,7 +35,7 @@ Home server (docker-compose.home.yml): set MARGEM_PROFILE=home, e.g.
 
 After `up`:
   API docs   http://localhost:8000/docs
-  Admin UI   http://localhost:8000/admin
+  Admin UI   http://localhost:8080  (separate from the mobile app API)
 
 Register a user in the mobile app first, then:
   ./scripts/docker-admin.sh promote-admin you@example.com
@@ -50,7 +50,7 @@ case "$cmd" in
     "${COMPOSE[@]}" up -d --build
     echo ""
     echo "MarGem is running."
-    echo "  Admin dashboard: http://localhost:8000/admin"
+    echo "  Admin dashboard: http://localhost:8080"
     echo "  API docs:        http://localhost:8000/docs"
     echo ""
     echo "Register in the app, then promote your account:"
@@ -63,29 +63,25 @@ case "$cmd" in
     "${COMPOSE[@]}" logs -f api
     ;;
   check-admin)
-    base_url="${MARGEM_API_URL:-http://127.0.0.1:8000}"
-    ready="$(curl -fsS "${base_url}/ready" 2>/dev/null || true)"
+    api_url="${MARGEM_API_URL:-http://127.0.0.1:8000}"
+    admin_url="${MARGEM_ADMIN_URL:-http://127.0.0.1:8080}"
+    ready="$(curl -fsS "${api_url}/ready" 2>/dev/null || true)"
     if [[ -z "$ready" ]]; then
-      echo "API not reachable at ${base_url}" >&2
+      echo "API not reachable at ${api_url}" >&2
       exit 1
     fi
     echo "$ready"
-    if echo "$ready" | grep -q '"admin_dashboard":"missing"'; then
-      echo ""
-      echo "Admin dashboard files are not mounted in the API container." >&2
-      echo "Rebuild from the repo root (admin-dashboard/ must exist):" >&2
-      if [[ "$PROFILE" == "home" ]]; then
-        echo "  MARGEM_PROFILE=home ./scripts/docker-admin.sh up" >&2
-      else
-        echo "  ./scripts/docker-admin.sh up" >&2
-      fi
-      exit 1
-    fi
-    code="$(curl -s -o /dev/null -w '%{http_code}' -I "${base_url}/admin")"
-    echo "GET /admin -> HTTP ${code}"
+    code="$(curl -s -o /dev/null -w '%{http_code}' -I "${admin_url}/")"
+    echo "GET ${admin_url}/ -> HTTP ${code}"
     if [[ "$code" != "200" && "$code" != "307" && "$code" != "308" ]]; then
+      echo "Admin dashboard container may not be running. Start with: ./scripts/docker-admin.sh up" >&2
       exit 1
     fi
+    if ! curl -fsS "${admin_url}/config.js" | grep -q 'MARGEM_API_URL'; then
+      echo "Admin config.js missing MARGEM_API_URL" >&2
+      exit 1
+    fi
+    echo "Admin dashboard OK (separate service on port 8080)"
     ;;
   psql)
     "${COMPOSE[@]}" exec postgres psql -U "$DB_USER" -d "$DB_NAME"
