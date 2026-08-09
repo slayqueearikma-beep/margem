@@ -23,8 +23,8 @@ services:
 
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: margem-home-api
     restart: unless-stopped
     ports:
@@ -38,6 +38,7 @@ services:
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET}
       STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
       LOCAL_MEDIA_ROOT: /data/media
+      ADMIN_DASHBOARD_DIR: /admin-dashboard
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING:-}
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}

@@ -20,8 +20,8 @@ services:
 
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: margem-api
     restart: unless-stopped
     ports:
@@ -33,6 +33,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://margemadmin:${POSTGRES_PASSWORD}@postgres:5432/margem
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET}
+      ADMIN_DASHBOARD_DIR: /admin-dashboard
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}

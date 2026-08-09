@@ -144,8 +144,20 @@ app.include_router(marketplace_community.router)
 app.include_router(marketplace_admin.router)
 app.include_router(bundles.router)
 
-_admin_dashboard_dir = Path(__file__).resolve().parents[2] / "admin-dashboard"
-if _admin_dashboard_dir.is_dir():
+_admin_dashboard_dir: Path | None = None
+if settings.admin_dashboard_dir.strip():
+    _candidate = Path(settings.admin_dashboard_dir).expanduser()
+    if _candidate.is_dir():
+        _admin_dashboard_dir = _candidate
+if _admin_dashboard_dir is None:
+    for _candidate in (
+        Path(__file__).resolve().parents[2] / "admin-dashboard",
+        Path("/admin-dashboard"),
+    ):
+        if _candidate.is_dir():
+            _admin_dashboard_dir = _candidate
+            break
+if _admin_dashboard_dir is not None:
     app.mount(
         "/admin",
         StaticFiles(directory=str(_admin_dashboard_dir), html=True),

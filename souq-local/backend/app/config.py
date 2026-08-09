@@ -104,6 +104,8 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     public_app_url: str = "https://margem.ma"
     public_api_url: str = "http://localhost:8000"
+    # Optional path to admin-dashboard static files (Docker: /admin-dashboard).
+    admin_dashboard_dir: str = ""
 
     default_cities: list[str] = [
         "Casablanca",
