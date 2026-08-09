@@ -46,14 +46,23 @@ class AppShadows {
     ];
   }
 
-  static List<BoxShadow> focus(BuildContext context) {
-    final primary = context.colors.primary;
+  static List<BoxShadow> focus(BuildContext context) => warm(context, blur: 10, y: 2, alpha: 0.06);
+
+  /// Soft warm-beige shadow — no cool or primary-tinted glow.
+  static List<BoxShadow> warm(
+    BuildContext context, {
+    double blur = 14,
+    double y = 3,
+    double alpha = 0.07,
+  }) {
+    const warmBeige = Color(0xFFBCA98C);
+    final resolvedAlpha = context.isDark ? alpha * 1.4 : alpha;
     return [
       BoxShadow(
-        color: primary.withValues(alpha: 0.18),
-        blurRadius: 8,
-        offset: const Offset(0, 0),
-        spreadRadius: 0,
+        color: warmBeige.withValues(alpha: resolvedAlpha),
+        blurRadius: blur,
+        offset: Offset(0, y),
+        spreadRadius: -3,
       ),
     ];
   }

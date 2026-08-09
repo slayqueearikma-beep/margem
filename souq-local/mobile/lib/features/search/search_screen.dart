@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -68,11 +70,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Timer? _timer;
   Future<MarketplaceSearchPage>? _future;
   final _focusNode = FocusNode();
+  var _searchFocused = false;
   var _mode = 'products';
   SearchFilters _filters = const SearchFilters();
 
   @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onSearchFocusChanged);
+  }
+
+  void _onSearchFocusChanged() {
+    final focused = _focusNode.hasFocus;
+    if (focused != _searchFocused && mounted) {
+      setState(() => _searchFocused = focused);
+    }
+  }
+
+  @override
   void dispose() {
+    _focusNode.removeListener(_onSearchFocusChanged);
     _timer?.cancel();
     if (_focusNode.hasFocus) {
       _focusNode.unfocus();
@@ -328,21 +345,46 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 ExcludeFocus(
                   excluding: !widget.autofocusSearch,
-                  child: TextField(
-                    focusNode: _focusNode,
-                    decoration: InputDecoration(
-                      hintText: l10n.businessKeyword,
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: IconButton(
-                        tooltip: l10n.searchFilters,
-                        onPressed: () => _openFilters(l10n),
-                        icon: Badge(
-                          isLabelVisible: hasActiveFilters,
-                          child: const Icon(Icons.tune_rounded),
-                        ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.inputRadius),
+                      boxShadow: AppShadows.warm(
+                        context,
+                        blur: _searchFocused ? 12 : 10,
+                        y: _searchFocused ? 3 : 2,
+                        alpha: _searchFocused ? 0.08 : 0.05,
                       ),
                     ),
-                    onChanged: _onQueryChanged,
+                    child: TextField(
+                      focusNode: _focusNode,
+                      decoration: InputDecoration(
+                        hintText: l10n.businessKeyword,
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: IconButton(
+                          tooltip: l10n.searchFilters,
+                          onPressed: () => _openFilters(l10n),
+                          icon: Badge(
+                            isLabelVisible: hasActiveFilters,
+                            child: const Icon(Icons.tune_rounded),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.inputRadius),
+                          borderSide: BorderSide(color: context.colors.border),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.inputRadius),
+                          borderSide: BorderSide(
+                            color: context.colors.primary.withValues(alpha: 0.45),
+                            width: 1.25,
+                          ),
+                        ),
+                      ),
+                      onChanged: _onQueryChanged,
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -547,43 +589,62 @@ class _SearchModeSelector extends StatelessWidget {
       children: [
         for (final item in items) ...[
           Expanded(
-            child: Material(
-              color: mode == item.value
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-              child: InkWell(
-                onTap: () => onChanged(item.value),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 18,
-                        color: mode == item.value
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: mode == item.value
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+            child: Builder(
+              builder: (context) {
+                final active = mode == item.value;
+                final colors = context.colors;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutCubic,
+                  decoration: BoxDecoration(
+                    color: active ? colors.surface : colors.surfaceVariant,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: active
+                          ? colors.primary.withValues(alpha: 0.28)
+                          : colors.border.withValues(alpha: 0.7),
+                    ),
+                    boxShadow: active
+                        ? AppShadows.warm(context, blur: 10, y: 2, alpha: 0.07)
+                        : null,
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => onChanged(item.value),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              item.icon,
+                              size: 18,
+                              color: active
+                                  ? colors.primary
+                                  : colors.textTertiary,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: active
+                                    ? colors.primary
+                                    : colors.textTertiary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
           if (item != items.last) const SizedBox(width: 8),
