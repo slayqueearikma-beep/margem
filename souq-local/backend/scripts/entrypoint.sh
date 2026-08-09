@@ -38,6 +38,7 @@ asyncio.run(wait_for_db())
 PY
 
 echo "Running database migrations..."
+python /app/scripts/normalize_env_lists.py
 alembic upgrade head
 
 echo "Starting MarGem API..."
