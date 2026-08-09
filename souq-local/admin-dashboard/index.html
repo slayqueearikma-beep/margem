@@ -45,6 +45,7 @@
       <nav class="tabs">
         <button type="button" class="tab active" data-view="marketplaces">Marketplaces</button>
         <button type="button" class="tab" data-view="categories">Categories</button>
+        <button type="button" class="tab" data-view="users">Users</button>
       </nav>
       <button type="button" id="logout-btn" class="btn ghost">Sign out</button>
     </header>
@@ -128,6 +129,59 @@
 
         <ul id="category-list" class="category-list"></ul>
         <p id="category-empty" class="empty-state hidden">No categories yet. Create the first one for this marketplace.</p>
+      </section>
+
+      <section id="view-users" class="view hidden">
+        <div class="view-header">
+          <div>
+            <h2>Users</h2>
+            <p class="muted">All registered buyer and seller accounts</p>
+          </div>
+          <button type="button" id="refresh-users-btn" class="btn ghost">Refresh</button>
+        </div>
+
+        <div class="stats-grid users-stats">
+          <div class="stat-card"><span class="stat-label">Total accounts</span><span class="stat-value" id="users-total-stat">—</span></div>
+          <div class="stat-card"><span class="stat-label">Showing</span><span class="stat-value" id="users-showing-stat">—</span></div>
+          <div class="stat-card"><span class="stat-label">Your role</span><span class="stat-value role-stat" id="users-role-stat">—</span></div>
+        </div>
+
+        <div class="toolbar">
+          <input type="search" id="users-search" placeholder="Search email or name…" />
+          <select id="users-role-filter">
+            <option value="">All roles</option>
+            <option value="customer">Customer</option>
+            <option value="provider">Provider / seller</option>
+            <option value="admin">Admin</option>
+            <option value="support">Support</option>
+          </select>
+          <select id="users-status-filter">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="deleted">Deleted</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Account</th>
+                <th>Status</th>
+                <th>Premium</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+        <p id="users-empty" class="empty-state hidden">No users match your filters.</p>
+        <div class="pagination" id="users-pagination"></div>
       </section>
     </main>
   </div>

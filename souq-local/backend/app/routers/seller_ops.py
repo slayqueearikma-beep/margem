@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -147,6 +147,13 @@ class AdminUserOut(BaseModel):
     status: UserStatus
     is_premium: bool
     created_at: datetime
+
+
+class AdminUserListOut(BaseModel):
+    items: list[AdminUserOut]
+    total: int
+    limit: int
+    offset: int
 
 
 async def _seller_profile(user: User, session: AsyncSession) -> SellerProfile:
@@ -742,27 +749,50 @@ async def stripe_webhook(
     return {"status": "ok"}
 
 
-@router.get("/admin/users", response_model=list[AdminUserOut])
+@router.get("/admin/users", response_model=AdminUserListOut)
 async def admin_list_users(
     user: User = Depends(require_staff),
     session: AsyncSession = Depends(get_db),
-    limit: int = Query(default=50, ge=1, le=200),
-) -> list[AdminUserOut]:
-    result = await session.execute(select(User).order_by(User.created_at.desc()).limit(limit))
+    q: str | None = Query(default=None, max_length=120),
+    role: str | None = Query(default=None, pattern=r"^(admin|support|customer|provider)$"),
+    status_filter: str | None = Query(
+        default=None, alias="status", pattern=r"^(active|suspended|deleted)$"
+    ),
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> AdminUserListOut:
+    stmt = select(User)
+    if q:
+        like = f"%{q.strip()}%"
+        stmt = stmt.where(or_(User.email.ilike(like), User.display_name.ilike(like)))
+    if role is not None:
+        stmt = stmt.where(User.role == UserRole(role))
+    if status_filter is not None:
+        stmt = stmt.where(User.status == UserStatus(status_filter))
+
+    total = await session.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    result = await session.execute(
+        stmt.order_by(User.created_at.desc()).offset(offset).limit(limit)
+    )
     users = list(result.scalars().all())
-    return [
-        AdminUserOut(
-            id=u.id,
-            email=u.email,
-            display_name=u.display_name,
-            account_type=u.account_type.value,
-            role=u.role,
-            status=u.status,
-            is_premium=u.is_premium,
-            created_at=u.created_at,
-        )
-        for u in users
-    ]
+    return AdminUserListOut(
+        items=[
+            AdminUserOut(
+                id=u.id,
+                email=u.email,
+                display_name=u.display_name,
+                account_type=u.account_type.value,
+                role=u.role,
+                status=u.status,
+                is_premium=u.is_premium,
+                created_at=u.created_at,
+            )
+            for u in users
+        ],
+        total=int(total),
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.patch("/admin/users/{user_id}/status", status_code=status.HTTP_204_NO_CONTENT)

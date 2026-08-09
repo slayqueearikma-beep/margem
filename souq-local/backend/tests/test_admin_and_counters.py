@@ -91,6 +91,32 @@ async def test_support_can_list_pending_but_cannot_verify(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_staff_can_list_all_users(client: AsyncClient):
+    buyer = await _register(client, "buyer")
+    seller = await _register(client, "seller")
+    admin = await _register(client, "buyer")
+    await _set_role(admin["email"], UserRole.ADMIN)
+
+    listed = await client.get("/admin/users", headers=admin["headers"])
+    assert listed.status_code == 200, listed.text
+    body = listed.json()
+    assert body["total"] >= 3
+    assert len(body["items"]) >= 3
+    emails = {item["email"] for item in body["items"]}
+    assert buyer["email"] in emails
+    assert seller["email"] in emails
+
+    filtered = await client.get(
+        "/admin/users",
+        headers=admin["headers"],
+        params={"q": buyer["email"]},
+    )
+    assert filtered.status_code == 200
+    assert filtered.json()["total"] >= 1
+    assert all(buyer["email"] in item["email"] for item in filtered.json()["items"])
+
+
+@pytest.mark.asyncio
 async def test_admin_can_verify_seller(client: AsyncClient):
     seller_id = await _create_pending_seller(client)
     admin = await _register(client, "buyer")

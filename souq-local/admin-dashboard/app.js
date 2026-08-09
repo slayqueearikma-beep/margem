@@ -12,6 +12,11 @@ const state = {
   marketplaces: [],
   categories: [],
   categorySortable: null,
+  users: [],
+  usersTotal: 0,
+  usersPage: 1,
+  usersPageSize: 50,
+  staffRole: "",
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -93,7 +98,119 @@ function switchView(view) {
   $$(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === view));
   $("#view-marketplaces").classList.toggle("hidden", view !== "marketplaces");
   $("#view-categories").classList.toggle("hidden", view !== "categories");
+  $("#view-users").classList.toggle("hidden", view !== "users");
   if (view === "categories") loadCategoryMarketplaceOptions();
+  if (view === "users") loadUsers().catch((e) => toast(e.message, true));
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+  try {
+    return new Date(value).toLocaleString();
+  } catch (_) {
+    return value;
+  }
+}
+
+function roleLabel(role) {
+  return String(role || "customer").replace(/_/g, " ");
+}
+
+function statusPillClass(status) {
+  const value = String(status || "active").toLowerCase();
+  if (value === "suspended") return "suspended";
+  if (value === "deleted") return "deleted";
+  return "active";
+}
+
+async function loadUsers() {
+  const params = new URLSearchParams({
+    limit: String(state.usersPageSize),
+    offset: String((state.usersPage - 1) * state.usersPageSize),
+  });
+  const q = $("#users-search").value.trim();
+  const role = $("#users-role-filter").value;
+  const status = $("#users-status-filter").value;
+  if (q) params.set("q", q);
+  if (role) params.set("role", role);
+  if (status) params.set("status", status);
+
+  const data = await api(`/admin/users?${params.toString()}`);
+  state.users = data.items || [];
+  state.usersTotal = data.total || 0;
+  renderUsers();
+  renderUsersPagination();
+}
+
+function renderUsers() {
+  const tbody = $("#users-tbody");
+  tbody.innerHTML = "";
+  const isAdmin = state.staffRole === "admin";
+  const showingStart = state.usersTotal === 0 ? 0 : (state.usersPage - 1) * state.usersPageSize + 1;
+  const showingEnd = Math.min(state.usersPage * state.usersPageSize, state.usersTotal);
+
+  $("#users-total-stat").textContent = String(state.usersTotal);
+  $("#users-showing-stat").textContent = state.usersTotal
+    ? `${showingStart}–${showingEnd}`
+    : "0";
+  $("#users-role-stat").textContent = roleLabel(state.staffRole);
+  $("#users-empty").classList.toggle("hidden", state.users.length > 0);
+
+  state.users.forEach((user) => {
+    const tr = document.createElement("tr");
+    const role = String(user.role || "customer");
+    const status = String(user.status || "active");
+    const canSuspend = isAdmin && status === "active";
+    const canRestore = isAdmin && status === "suspended";
+    tr.innerHTML = `
+      <td>${escapeHtml(user.email || "")}</td>
+      <td>${escapeHtml(user.display_name || "—")}</td>
+      <td><span class="status-pill ${role === "admin" || role === "support" ? role : ""}">${escapeHtml(roleLabel(role))}</span></td>
+      <td>${escapeHtml(user.account_type || "—")}</td>
+      <td><span class="status-pill ${statusPillClass(status)}">${escapeHtml(status)}</span></td>
+      <td>${user.is_premium ? "Yes" : "No"}</td>
+      <td>${formatDate(user.created_at)}</td>
+      <td class="actions">
+        <button type="button" class="btn sm ghost" data-user-action="copy" data-id="${user.id}" title="Copy user ID">Copy ID</button>
+        ${canSuspend ? `<button type="button" class="btn sm danger" data-user-action="suspend" data-id="${user.id}">Suspend</button>` : ""}
+        ${canRestore ? `<button type="button" class="btn sm" data-user-action="restore" data-id="${user.id}">Restore</button>` : ""}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderUsersPagination() {
+  const totalPages = Math.max(1, Math.ceil(state.usersTotal / state.usersPageSize));
+  const container = $("#users-pagination");
+  container.innerHTML = `
+    <span>Page ${state.usersPage} of ${totalPages} · ${state.usersTotal} accounts</span>
+    <div class="pages">
+      <button type="button" class="btn sm ghost" id="users-prev" ${state.usersPage <= 1 ? "disabled" : ""}>Previous</button>
+      <button type="button" class="btn sm ghost" id="users-next" ${state.usersPage >= totalPages ? "disabled" : ""}>Next</button>
+    </div>
+  `;
+  $("#users-prev").onclick = () => {
+    if (state.usersPage > 1) {
+      state.usersPage -= 1;
+      loadUsers().catch((e) => toast(e.message, true));
+    }
+  };
+  $("#users-next").onclick = () => {
+    const totalPages = Math.max(1, Math.ceil(state.usersTotal / state.usersPageSize));
+    if (state.usersPage < totalPages) {
+      state.usersPage += 1;
+      loadUsers().catch((e) => toast(e.message, true));
+    }
+  };
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function buildOpeningHoursFields(hours = {}) {
@@ -532,10 +649,11 @@ function bindEvents() {
       if (!meRes.ok) {
         throw new Error(formatApiError(me.detail, "Could not verify account"));
       }
-      if (me.role !== "admin") {
+      if (me.role !== "admin" && me.role !== "support") {
         logout();
-        throw new Error("This account does not have admin access.");
+        throw new Error("This account does not have staff access.");
       }
+      state.staffRole = me.role || "";
       $("#login-error").classList.add("hidden");
       showScreen("app");
       await bootstrapApp();
@@ -550,6 +668,46 @@ function bindEvents() {
   $$(".tab").forEach((tab) => {
     tab.onclick = () => switchView(tab.dataset.view);
   });
+
+  $("#refresh-users-btn").onclick = () => {
+    state.usersPage = 1;
+    loadUsers().catch((e) => toast(e.message, true));
+  };
+  $("#users-search").oninput = debounce(() => {
+    state.usersPage = 1;
+    loadUsers().catch((e) => toast(e.message, true));
+  }, 300);
+  ["users-role-filter", "users-status-filter"].forEach((id) => {
+    $(`#${id}`).onchange = () => {
+      state.usersPage = 1;
+      loadUsers().catch((e) => toast(e.message, true));
+    };
+  });
+  $("#users-tbody").onclick = async (event) => {
+    const btn = event.target.closest("button[data-user-action]");
+    if (!btn) return;
+    const userId = btn.dataset.id;
+    const action = btn.dataset.userAction;
+    try {
+      if (action === "copy") {
+        await navigator.clipboard.writeText(userId);
+        toast("User ID copied");
+        return;
+      }
+      if (action === "suspend") {
+        if (!confirm("Suspend this user? They will not be able to sign in.")) return;
+        await api(`/admin/users/${userId}/status?status=suspended`, { method: "PATCH" });
+        toast("User suspended");
+      }
+      if (action === "restore") {
+        await api(`/admin/users/${userId}/status?status=active`, { method: "PATCH" });
+        toast("User restored");
+      }
+      await loadUsers();
+    } catch (err) {
+      toast(err.message, true);
+    }
+  };
 
   $("#create-marketplace-btn").onclick = () => openMarketplaceDialog();
   $("#marketplace-form").onsubmit = saveMarketplace;
@@ -658,7 +816,9 @@ function debounce(fn, ms) {
 async function bootstrapApp() {
   try {
     const me = await api("/auth/me");
+    state.staffRole = me.role || "";
     $("#admin-email").textContent = me.email || "";
+    $("#users-role-stat").textContent = roleLabel(state.staffRole);
     await loadMarketplaces();
     await loadCategoryMarketplaceOptions();
   } catch (err) {
