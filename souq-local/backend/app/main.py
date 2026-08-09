@@ -255,7 +255,12 @@ async def ready(request: Request):
             status_code=503,
             content={"status": "unavailable", "database": "error"},
         )
-    return {"status": "ok", "database": "ok"}
+    body: dict[str, str] = {"status": "ok", "database": "ok"}
+    if _admin_dashboard_dir is not None:
+        body["admin_dashboard"] = "ok"
+    else:
+        body["admin_dashboard"] = "missing"
+    return body
 
 
 @app.get("/health")

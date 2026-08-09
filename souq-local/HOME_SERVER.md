@@ -104,6 +104,31 @@ docker compose -f docker-compose.home.yml --env-file .env.home down
 .\stop_home_server.ps1
 ```
 
+## Admin dashboard (web)
+
+Staff admin is **not** in the mobile app. Use the browser on the same Wi‑Fi:
+
+`http://<laptop-lan-ip>:8000/admin` (e.g. `http://192.168.11.101:8000/admin`)
+
+1. Register an account in the mobile app (role cannot be set at signup).
+2. Promote that email to admin:
+
+```bash
+MARGEM_PROFILE=home ./scripts/docker-admin.sh promote-admin you@example.com
+```
+
+3. Log in on the admin page with that email and password.
+
+**If `/admin` returns 404**, the API container was built or started without the
+`admin-dashboard/` files. From the repo root:
+
+```bash
+git pull
+docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
+curl http://192.168.11.101:8000/ready   # should include "admin_dashboard":"ok"
+MARGEM_API_URL=http://192.168.11.101:8000 MARGEM_PROFILE=home ./scripts/docker-admin.sh check-admin
+```
+
 ## Backups (home server)
 
 ```bash

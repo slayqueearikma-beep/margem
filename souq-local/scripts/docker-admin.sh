@@ -5,9 +5,16 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-COMPOSE=(docker compose)
-DB_USER="souq"
-DB_NAME="souq_local"
+PROFILE="${MARGEM_PROFILE:-dev}"
+if [[ "$PROFILE" == "home" ]]; then
+  COMPOSE=(docker compose -f docker-compose.home.yml --env-file .env.home)
+  DB_USER="margemadmin"
+  DB_NAME="margem"
+else
+  COMPOSE=(docker compose)
+  DB_USER="souq"
+  DB_NAME="souq_local"
+fi
 
 usage() {
   cat <<'EOF'
@@ -17,9 +24,14 @@ Usage:
   ./scripts/docker-admin.sh up              Start API + Postgres (build if needed)
   ./scripts/docker-admin.sh down            Stop containers
   ./scripts/docker-admin.sh logs            Follow API logs
+  ./scripts/docker-admin.sh check-admin     Verify /admin is served (not 404)
   ./scripts/docker-admin.sh psql            Open Postgres shell
   ./scripts/docker-admin.sh list-users      List all accounts in the database
   ./scripts/docker-admin.sh promote-admin <email>   Grant admin role to a user
+
+Home server (docker-compose.home.yml): set MARGEM_PROFILE=home, e.g.
+  MARGEM_PROFILE=home ./scripts/docker-admin.sh up
+  MARGEM_PROFILE=home ./scripts/docker-admin.sh promote-admin you@example.com
 
 After `up`:
   API docs   http://localhost:8000/docs
@@ -49,6 +61,31 @@ case "$cmd" in
     ;;
   logs)
     "${COMPOSE[@]}" logs -f api
+    ;;
+  check-admin)
+    base_url="${MARGEM_API_URL:-http://127.0.0.1:8000}"
+    ready="$(curl -fsS "${base_url}/ready" 2>/dev/null || true)"
+    if [[ -z "$ready" ]]; then
+      echo "API not reachable at ${base_url}" >&2
+      exit 1
+    fi
+    echo "$ready"
+    if echo "$ready" | grep -q '"admin_dashboard":"missing"'; then
+      echo ""
+      echo "Admin dashboard files are not mounted in the API container." >&2
+      echo "Rebuild from the repo root (admin-dashboard/ must exist):" >&2
+      if [[ "$PROFILE" == "home" ]]; then
+        echo "  MARGEM_PROFILE=home ./scripts/docker-admin.sh up" >&2
+      else
+        echo "  ./scripts/docker-admin.sh up" >&2
+      fi
+      exit 1
+    fi
+    code="$(curl -s -o /dev/null -w '%{http_code}' -I "${base_url}/admin")"
+    echo "GET /admin -> HTTP ${code}"
+    if [[ "$code" != "200" && "$code" != "307" && "$code" != "308" ]]; then
+      exit 1
+    fi
     ;;
   psql)
     "${COMPOSE[@]}" exec postgres psql -U "$DB_USER" -d "$DB_NAME"
