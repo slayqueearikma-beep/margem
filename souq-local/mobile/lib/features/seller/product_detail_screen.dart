@@ -16,6 +16,7 @@ import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
+import '../../core/widgets/user_safety_sheet.dart';
 import '../../l10n/app_localizations.dart';
 import '../wishlist/wishlist_screen.dart';
 
@@ -129,6 +130,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         }
         final product = matches.first;
         final l10n = context.l10n;
+        final session = ref.watch(userSessionProvider);
+        final isOwnStore = _isStoreOwner(session, widget.sellerId);
         final gallery = _galleryUrls(product);
         final related = sortProductsForCarousel(
           seller.products.where((p) => p.id != product.id).toList(),
@@ -146,6 +149,18 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       automaticallyImplyLeading: false,
                       leading: const MargemBackLeading(),
                       title: const MarGemAppBarLogo(),
+                      actions: [
+                        if (!isOwnStore &&
+                            session != null &&
+                            !session.isGuest &&
+                            seller.userId.isNotEmpty)
+                          UserSafetyMenuButton(
+                            userId: seller.userId,
+                            displayName: seller.businessName,
+                            sellerId: seller.id,
+                            productId: product.id,
+                          ),
+                      ],
                       expandedHeight: MediaQuery.sizeOf(context).width * 0.95,
                       flexibleSpace: FlexibleSpaceBar(
                         background: gallery.isEmpty

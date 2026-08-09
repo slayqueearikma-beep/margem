@@ -1169,6 +1169,37 @@ class AppStringsEn extends AppStrings {
       'Chat with locals, get recommendations, and discover what\'s happening nearby.';
 
   @override
+  String get reportUser => 'Report user';
+  @override
+  String reportUserSubtitle(String name) =>
+      'Tell us what happened with $name. Our team will review your report.';
+  @override
+  String get blockUser => 'Block user';
+  @override
+  String blockUserConfirm(String name) =>
+      'Block $name? They will not be able to message you and this conversation will be hidden.';
+  @override
+  String get userReported => 'Report submitted. Thank you.';
+  @override
+  String get userBlocked => 'User blocked.';
+  @override
+  String get reportReasonLabel => 'Reason';
+  @override
+  String get reportReasonSpam => 'Spam';
+  @override
+  String get reportReasonHarassment => 'Harassment';
+  @override
+  String get reportReasonScam => 'Scam or fraud';
+  @override
+  String get reportReasonInappropriate => 'Inappropriate content';
+  @override
+  String get reportReasonOther => 'Other';
+  @override
+  String get reportDetailsOptional => 'Additional details (optional)';
+  @override
+  String get submitReport => 'Submit report';
+
+  @override
   String categoryLabel(String key) {
     switch (key) {
       case 'Food':

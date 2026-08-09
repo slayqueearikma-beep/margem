@@ -10,6 +10,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
+import '../../core/widgets/user_safety_sheet.dart';
 import '../../l10n/app_localizations.dart';
 
 final conversationsProvider =
@@ -375,12 +376,31 @@ class _ConversationThreadScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final session = ref.watch(userSessionProvider);
+    final authSession = ref.watch(authSessionProvider);
     final title = widget.conversation?.peerName.isNotEmpty == true
         ? widget.conversation!.peerName
         : l10n.navMessages;
+    final peerUserId = widget.conversation?.peerUserId ?? '';
+    final myUserId = authSession?.user.id ?? '';
+    final canModerate = session != null &&
+        !session.isGuest &&
+        peerUserId.isNotEmpty &&
+        myUserId.isNotEmpty &&
+        peerUserId != myUserId;
 
     return BuyerScreenScaffold(
-      appBar: BuyerAppBar(title: title),
+      appBar: BuyerAppBar(
+        title: title,
+        actions: [
+          if (canModerate)
+            UserSafetyMenuButton(
+              userId: peerUserId,
+              displayName: title,
+              onBlocked: () => context.pop(),
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(

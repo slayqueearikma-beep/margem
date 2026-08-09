@@ -1187,6 +1187,37 @@ class AppStringsFr extends AppStringsEn {
       'Discutez avec les habitants, obtenez des recommandations et découvrez ce qui se passe près de chez vous.';
 
   @override
+  String get reportUser => 'Signaler l\'utilisateur';
+  @override
+  String reportUserSubtitle(String name) =>
+      'Dites-nous ce qui s\'est passé avec $name. Notre équipe examinera votre signalement.';
+  @override
+  String get blockUser => 'Bloquer l\'utilisateur';
+  @override
+  String blockUserConfirm(String name) =>
+      'Bloquer $name ? Cette personne ne pourra plus vous envoyer de messages et la conversation sera masquée.';
+  @override
+  String get userReported => 'Signalement envoyé. Merci.';
+  @override
+  String get userBlocked => 'Utilisateur bloqué.';
+  @override
+  String get reportReasonLabel => 'Motif';
+  @override
+  String get reportReasonSpam => 'Spam';
+  @override
+  String get reportReasonHarassment => 'Harcèlement';
+  @override
+  String get reportReasonScam => 'Arnaque ou fraude';
+  @override
+  String get reportReasonInappropriate => 'Contenu inapproprié';
+  @override
+  String get reportReasonOther => 'Autre';
+  @override
+  String get reportDetailsOptional => 'Détails supplémentaires (facultatif)';
+  @override
+  String get submitReport => 'Envoyer le signalement';
+
+  @override
   String dayLabel(String key) {
     const days = {
       'Mon': 'Lun',

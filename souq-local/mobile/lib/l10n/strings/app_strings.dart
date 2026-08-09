@@ -575,6 +575,21 @@ abstract class AppStrings {
   String get communityHomeCardTitle;
   String get communityHomeCardSubtitle;
 
+  String get reportUser;
+  String reportUserSubtitle(String name);
+  String get blockUser;
+  String blockUserConfirm(String name);
+  String get userReported;
+  String get userBlocked;
+  String get reportReasonLabel;
+  String get reportReasonSpam;
+  String get reportReasonHarassment;
+  String get reportReasonScam;
+  String get reportReasonInappropriate;
+  String get reportReasonOther;
+  String get reportDetailsOptional;
+  String get submitReport;
+
   static AppStrings forLocale(String languageCode) {
     switch (languageCode) {
       case 'fr':

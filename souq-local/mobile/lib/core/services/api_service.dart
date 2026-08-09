@@ -785,6 +785,7 @@ class ApiService {
   Future<void> createReport({
     String? sellerId,
     String? productId,
+    String? reportedUserId,
     required String reason,
     String details = '',
   }) {
@@ -793,11 +794,20 @@ class ApiService {
       {
         if (sellerId != null) 'seller_id': sellerId,
         if (productId != null) 'product_id': productId,
+        if (reportedUserId != null) 'reported_user_id': reportedUserId,
         'reason': reason,
         'details': details,
       },
       auth: _authHeaders.isNotEmpty,
     );
+  }
+
+  Future<void> blockUser(String userId) {
+    return postVoid('/users/block', {'user_id': userId}, auth: true);
+  }
+
+  Future<void> unblockUser(String userId) {
+    return deletePath('/users/block/$userId', auth: true);
   }
 
   Future<void> trackRecentlyViewed({String? sellerId, String? productId}) {

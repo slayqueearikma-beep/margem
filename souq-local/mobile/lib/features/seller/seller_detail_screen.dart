@@ -18,6 +18,7 @@ import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
 import '../../core/widgets/service_card.dart';
+import '../../core/widgets/user_safety_sheet.dart';
 import '../../l10n/app_localizations.dart';
 import 'rate_seller_sheet.dart';
 
@@ -266,6 +267,17 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                 automaticallyImplyLeading: false,
                 leading: const MargemBackLeading(),
                 title: const MarGemAppBarLogo(),
+                actions: [
+                  if (!isOwnStore &&
+                      session != null &&
+                      !session.isGuest &&
+                      seller.userId.isNotEmpty)
+                    UserSafetyMenuButton(
+                      userId: seller.userId,
+                      displayName: seller.businessName,
+                      sellerId: seller.id,
+                    ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   stretchModes: [
                     StretchMode.zoomBackground,

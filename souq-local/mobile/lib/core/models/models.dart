@@ -171,9 +171,11 @@ class SellerModel {
     this.categories = const [],
     this.products = const [],
     this.services = const [],
+    this.userId = '',
   });
 
   final String id;
+  final String userId;
   final String businessName;
   final String description;
   final String city;
@@ -216,6 +218,7 @@ class SellerModel {
   factory SellerModel.fromJson(Map<String, dynamic> json) {
     return SellerModel(
       id: json['id'] as String,
+      userId: json['user_id']?.toString() ?? '',
       businessName: json['business_name'] as String,
       description: json['description'] as String? ?? '',
       city: json['city'] as String,

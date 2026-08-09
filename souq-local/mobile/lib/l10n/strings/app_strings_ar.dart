@@ -1166,6 +1166,37 @@ class AppStringsAr extends AppStringsEn {
       'تحدث مع السكان، احصل على توصيات، واكتشف ما يحدث بالقرب منك.';
 
   @override
+  String get reportUser => 'الإبلاغ عن المستخدم';
+  @override
+  String reportUserSubtitle(String name) =>
+      'أخبرنا بما حدث مع $name. سيقوم فريقنا بمراجعة بلاغك.';
+  @override
+  String get blockUser => 'حظر المستخدم';
+  @override
+  String blockUserConfirm(String name) =>
+      'حظر $name؟ لن يتمكن من مراسلتك وسيتم إخفاء هذه المحادثة.';
+  @override
+  String get userReported => 'تم إرسال البلاغ. شكراً لك.';
+  @override
+  String get userBlocked => 'تم حظر المستخدم.';
+  @override
+  String get reportReasonLabel => 'السبب';
+  @override
+  String get reportReasonSpam => 'رسائل مزعجة';
+  @override
+  String get reportReasonHarassment => 'تحرش';
+  @override
+  String get reportReasonScam => 'احتيال';
+  @override
+  String get reportReasonInappropriate => 'محتوى غير لائق';
+  @override
+  String get reportReasonOther => 'أخرى';
+  @override
+  String get reportDetailsOptional => 'تفاصيل إضافية (اختياري)';
+  @override
+  String get submitReport => 'إرسال البلاغ';
+
+  @override
   String categoryLabel(String key) {
     switch (key) {
       case 'Food':

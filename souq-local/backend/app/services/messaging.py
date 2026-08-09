@@ -10,7 +10,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Conversation, Message, SellerProfile, User, UserStatus
+from app.models import Conversation, Message, SellerProfile, User, UserBlock, UserStatus
 from app.services.notifications import notify_user
 from app.services.seller_counters import bump_inquiry_count
 
@@ -28,6 +28,32 @@ async def get_active_user(session: AsyncSession, user_id: UUID) -> User:
     if getattr(user, "status", None) == UserStatus.SUSPENDED:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
+
+
+async def users_are_blocked(
+    session: AsyncSession, *, user_a: UUID, user_b: UUID
+) -> bool:
+    if user_a == user_b:
+        return False
+    result = await session.execute(
+        select(UserBlock.id).where(
+            or_(
+                (UserBlock.blocker_id == user_a) & (UserBlock.blocked_id == user_b),
+                (UserBlock.blocker_id == user_b) & (UserBlock.blocked_id == user_a),
+            )
+        ).limit(1)
+    )
+    return result.scalar_one_or_none() is not None
+
+
+async def assert_users_can_message(
+    session: AsyncSession, *, initiator_id: UUID, peer_user_id: UUID
+) -> None:
+    if await users_are_blocked(session, user_a=initiator_id, user_b=peer_user_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You cannot message this user",
+        )
 
 
 async def find_conversation(
@@ -54,6 +80,9 @@ async def get_or_create_conversation(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot message yourself")
 
     await get_active_user(session, peer_user_id)
+    await assert_users_can_message(
+        session, initiator_id=initiator_id, peer_user_id=peer_user_id
+    )
     existing = await find_conversation(session, user_a=initiator_id, user_b=peer_user_id)
     if existing is not None:
         if context_seller_id is not None and existing.context_seller_id is None:
@@ -93,6 +122,11 @@ async def send_message(
     if not conversation.involves(sender.id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
 
+    peer_id = conversation.other_participant(sender.id)
+    await assert_users_can_message(
+        session, initiator_id=sender.id, peer_user_id=peer_id
+    )
+
     message = Message(
         id=uuid4(),
         conversation_id=conversation.id,
@@ -102,7 +136,6 @@ async def send_message(
     conversation.last_message_at = datetime.now(UTC)
     session.add(message)
 
-    peer_id = conversation.other_participant(sender.id)
     await notify_user(
         session,
         user_id=peer_id,
@@ -153,3 +186,19 @@ def conversation_participant_filter(user_id: UUID):
         Conversation.participant_a_id == user_id,
         Conversation.participant_b_id == user_id,
     )
+
+
+async def blocked_peer_ids(session: AsyncSession, user_id: UUID) -> set[UUID]:
+    """User IDs that cannot message [user_id] (either direction)."""
+    rows = await session.execute(
+        select(UserBlock.blocker_id, UserBlock.blocked_id).where(
+            or_(UserBlock.blocker_id == user_id, UserBlock.blocked_id == user_id)
+        )
+    )
+    blocked: set[UUID] = set()
+    for blocker_id, blocked_id in rows.all():
+        if blocker_id == user_id:
+            blocked.add(blocked_id)
+        else:
+            blocked.add(blocker_id)
+    return blocked

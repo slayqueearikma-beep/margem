@@ -791,6 +791,7 @@ async def delete_account(
         SavedSearch,
         SellerFollow,
         Subscription,
+        UserBlock,
     )
     from app.models.community import (
         CommunityMembership,
@@ -831,6 +832,8 @@ async def delete_account(
     await session.execute(sql_delete(CommunityUserBlock).where(CommunityUserBlock.blocked_id == user.id))
     await session.execute(sql_delete(CommunityUserMute).where(CommunityUserMute.muter_id == user.id))
     await session.execute(sql_delete(CommunityUserMute).where(CommunityUserMute.muted_id == user.id))
+    await session.execute(sql_delete(UserBlock).where(UserBlock.blocker_id == user.id))
+    await session.execute(sql_delete(UserBlock).where(UserBlock.blocked_id == user.id))
 
     if profile is not None:
         from app.models import Product, SellerCategory, Service

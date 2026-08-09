@@ -250,7 +250,7 @@ async def list_conversations(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> list[ConversationOut]:
-    from app.services.messaging import conversation_participant_filter, peer_display_names
+    from app.services.messaging import blocked_peer_ids, conversation_participant_filter, peer_display_names
 
     result = await session.execute(
         select(Conversation)
@@ -260,6 +260,11 @@ async def list_conversations(
         .offset(offset)
     )
     conversations = list(result.scalars().all())
+    blocked = await blocked_peer_ids(session, user.id)
+    if blocked:
+        conversations = [
+            c for c in conversations if c.other_participant(user.id) not in blocked
+        ]
     return await _conversation_outs(session, conversations, user_id=user.id)
 
 

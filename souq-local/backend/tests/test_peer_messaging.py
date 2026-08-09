@@ -122,3 +122,58 @@ async def test_user_to_user_messaging(client: AsyncClient):
         json={"body": "noop"},
     )
     assert self_msg.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_block_prevents_messaging(client: AsyncClient):
+    buyer_a = await _register(client, "buyer", "Buyer A")
+    buyer_b = await _register(client, "buyer", "Buyer B")
+
+    blocked = await client.post(
+        "/users/block",
+        headers=buyer_a["headers"],
+        json={"user_id": buyer_b["user_id"]},
+    )
+    assert blocked.status_code == 201, blocked.text
+
+    cannot_start = await client.post(
+        f"/messages/users/{buyer_b['user_id']}",
+        headers=buyer_a["headers"],
+        json={"body": "Hello"},
+    )
+    assert cannot_start.status_code == 403
+
+    cannot_reply = await client.post(
+        f"/messages/users/{buyer_a['user_id']}",
+        headers=buyer_b["headers"],
+        json={"body": "Hello back"},
+    )
+    assert cannot_reply.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_block_hides_conversation_from_inbox(client: AsyncClient):
+    buyer_a = await _register(client, "buyer", "Buyer A")
+    buyer_b = await _register(client, "buyer", "Buyer B")
+
+    started = await client.post(
+        f"/messages/users/{buyer_b['user_id']}",
+        headers=buyer_a["headers"],
+        json={"body": "Hi"},
+    )
+    assert started.status_code == 201, started.text
+
+    inbox_before = await client.get("/messages/conversations", headers=buyer_a["headers"])
+    assert len(inbox_before.json()) == 1
+
+    blocked = await client.post(
+        "/users/block",
+        headers=buyer_a["headers"],
+        json={"user_id": buyer_b["user_id"]},
+    )
+    assert blocked.status_code == 201, blocked.text
+
+    inbox_after = await client.get("/messages/conversations", headers=buyer_a["headers"])
+    assert inbox_after.status_code == 200
+    assert inbox_after.json() == []
+

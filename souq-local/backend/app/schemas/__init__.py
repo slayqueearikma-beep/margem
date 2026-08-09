@@ -500,6 +500,7 @@ class SellerUpdate(BaseModel):
 
 class SellerSummary(BaseModel):
     id: UUID
+    user_id: UUID | None = None
     business_name: str
     description: str
     city: str

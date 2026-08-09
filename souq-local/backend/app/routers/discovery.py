@@ -23,6 +23,7 @@ from app.models import (
     SellerFollow,
     SellerProfile,
     User,
+    UserBlock,
 )
 from app.services.seller_counters import (
     bump_contact_click,
@@ -91,8 +92,13 @@ class RecentlyViewedOut(BaseModel):
 class ReportCreate(BaseModel):
     seller_id: UUID | None = None
     product_id: UUID | None = None
+    reported_user_id: UUID | None = None
     reason: str = Field(min_length=3, max_length=80)
     details: str = Field(default="", max_length=2000)
+
+
+class UserBlockCreate(BaseModel):
+    user_id: UUID
 
 
 class ContactEventCreate(BaseModel):
@@ -520,8 +526,11 @@ async def create_report(
     session: AsyncSession = Depends(get_db),
     user: User | None = Depends(get_current_user_optional),
 ) -> dict:
-    if not payload.seller_id and not payload.product_id:
-        raise HTTPException(status_code=400, detail="Provide seller_id or product_id")
+    if not payload.seller_id and not payload.product_id and not payload.reported_user_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide seller_id, product_id, or reported_user_id",
+        )
     if payload.product_id is not None:
         product = await session.get(Product, payload.product_id)
         if product is None:
@@ -530,6 +539,12 @@ async def create_report(
         seller = await session.get(SellerProfile, payload.seller_id)
         if seller is None:
             raise HTTPException(status_code=404, detail="Seller not found")
+    if payload.reported_user_id is not None:
+        reported = await session.get(User, payload.reported_user_id)
+        if reported is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        if user is not None and payload.reported_user_id == user.id:
+            raise HTTPException(status_code=400, detail="Cannot report yourself")
     reason = sanitize_free_text(payload.reason, max_length=80)
     if not reason:
         raise HTTPException(status_code=400, detail="Invalid report reason")
@@ -538,12 +553,64 @@ async def create_report(
         reporter_id=user.id if user else None,
         seller_id=payload.seller_id,
         product_id=payload.product_id,
+        reported_user_id=payload.reported_user_id,
         reason=reason,
         details=sanitize_free_text(payload.details or "", max_length=2000),
     )
     session.add(report)
     await session.commit()
     return {"id": str(report.id), "status": "open"}
+
+
+@router.post("/users/block", status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/minute")
+async def block_user(
+    request: Request,
+    payload: UserBlockCreate,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    if payload.user_id == user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot block yourself")
+    target = await session.get(User, payload.user_id)
+    if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    existing = await session.scalar(
+        select(UserBlock).where(
+            UserBlock.blocker_id == user.id,
+            UserBlock.blocked_id == payload.user_id,
+        )
+    )
+    if existing is None:
+        session.add(
+            UserBlock(
+                id=uuid4(),
+                blocker_id=user.id,
+                blocked_id=payload.user_id,
+            )
+        )
+        await session.commit()
+    return {"status": "blocked"}
+
+
+@router.delete("/users/block/{user_id}", status_code=status.HTTP_200_OK)
+@limiter.limit("20/minute")
+async def unblock_user(
+    request: Request,
+    user_id: UUID,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    existing = await session.scalar(
+        select(UserBlock).where(
+            UserBlock.blocker_id == user.id,
+            UserBlock.blocked_id == user_id,
+        )
+    )
+    if existing is not None:
+        await session.delete(existing)
+        await session.commit()
+    return {"status": "unblocked"}
 
 
 @router.post("/contact-events", status_code=status.HTTP_201_CREATED)
