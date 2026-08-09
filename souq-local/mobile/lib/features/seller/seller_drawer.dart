@@ -151,11 +151,6 @@ class SellerDrawer extends ConsumerWidget {
                     label: l10n.settings,
                     onTap: () => _push(context, '/seller/settings'),
                   ),
-                  _DrawerItem(
-                    icon: Icons.help_outline,
-                    label: l10n.helpSupport,
-                    onTap: () => _push(context, '/seller/settings'),
-                  ),
                 ],
               ),
             ),

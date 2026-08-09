@@ -85,7 +85,6 @@ abstract class AppStrings {
   String get earnings;
   String get gallery;
   String get businessInfo;
-  String get helpSupport;
   String get comingSoon;
   String get upcomingBookings;
   String get viewAll;
