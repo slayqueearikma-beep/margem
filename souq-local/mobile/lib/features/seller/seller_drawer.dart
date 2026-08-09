@@ -20,6 +20,8 @@ class SellerDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final session = ref.watch(userSessionProvider);
+    final isGuest = session == null || session.isGuest;
     final account = ref.watch(sellerAccountProvider).valueOrNull;
     final stats = account?.stats;
     final profile = account?.profile;
@@ -160,19 +162,36 @@ class SellerDrawer extends ConsumerWidget {
             ),
             Padding(
               padding: EdgeInsets.all(16),
-              child: FilledButton.tonal(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: context.colors.primary,
-                  minimumSize: const Size.fromHeight(48),
-                ),
-                onPressed: () async {
-                  Navigator.pop(context);
-                  final storage = ref.read(appStorageProvider);
-                  await storage?.saveAppMode(AppMode.buyer);
-                  if (context.mounted) context.go('/buyer/home');
-                },
-                child: Text(l10n.switchToBuyerMode),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  FilledButton.tonal(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: context.colors.primary,
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      final storage = ref.read(appStorageProvider);
+                      await storage?.saveAppMode(AppMode.buyer);
+                      if (context.mounted) context.go('/buyer/home');
+                    },
+                    child: Text(l10n.switchToBuyerMode),
+                  ),
+                  if (!isGuest) ...[
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: () => _logout(context, ref),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: context.colors.error,
+                        side: BorderSide(color: context.colors.error),
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                      child: Text(l10n.logOut),
+                    ),
+                  ],
+                ],
               ),
             ),
             const SizedBox(height: 8),
@@ -194,6 +213,17 @@ class SellerDrawer extends ConsumerWidget {
   void _push(BuildContext context, String route) {
     Navigator.pop(context);
     context.push(route);
+  }
+
+  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    Navigator.pop(context);
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    await ref.read(authServiceProvider).logout(prefs);
+    await ref.read(appStorageProvider)?.logout();
+    ref.invalidate(sellerAccountProvider);
+    ref.read(userSessionProvider.notifier).state = null;
+    ref.read(authSessionProvider.notifier).state = null;
+    if (context.mounted) context.go('/login');
   }
 }
 
