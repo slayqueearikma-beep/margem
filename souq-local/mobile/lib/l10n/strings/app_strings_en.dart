@@ -177,8 +177,6 @@ class AppStringsEn extends AppStrings {
   @override
   String get businessInfo => 'Business info';
   @override
-  String get helpSupport => 'Help & support';
-  @override
   String get comingSoon => 'Soon';
   @override
   String get upcomingBookings => 'Upcoming bookings';

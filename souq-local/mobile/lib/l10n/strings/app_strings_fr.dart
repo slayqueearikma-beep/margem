@@ -178,8 +178,6 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get businessInfo => 'Infos commerce';
   @override
-  String get helpSupport => 'Aide & support';
-  @override
   String get comingSoon => 'Bientôt';
   @override
   String get upcomingBookings => 'Réservations à venir';

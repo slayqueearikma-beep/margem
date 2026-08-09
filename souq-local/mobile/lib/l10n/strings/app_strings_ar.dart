@@ -173,8 +173,6 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get businessInfo => 'معلومات النشاط';
   @override
-  String get helpSupport => 'المساعدة والدعم';
-  @override
   String get comingSoon => 'قريبًا';
   @override
   String get upcomingBookings => 'الحجوزات القادمة';
