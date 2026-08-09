@@ -1,9 +1,9 @@
 import json
 import logging
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BeforeValidator, field_validator, model_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 logger = logging.getLogger("margem.config")
 
@@ -31,15 +31,43 @@ def _is_loopback_or_private_url(url: str) -> bool:
     return bool(addr.is_loopback or addr.is_private)
 
 
+def _parse_string_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        stripped = value.strip().strip("'").strip('"')
+        if not stripped:
+            return []
+        if stripped.startswith("["):
+            try:
+                parsed = json.loads(stripped)
+                if isinstance(parsed, list):
+                    return [str(item).strip() for item in parsed if str(item).strip()]
+            except json.JSONDecodeError:
+                # Docker/.env often mangles JSON quotes — fall back to loose parse.
+                inner = stripped.strip("[]")
+                return [
+                    item.strip().strip('"').strip("'")
+                    for item in inner.split(",")
+                    if item.strip()
+                ]
+        return [
+            item.strip().strip('"').strip("'")
+            for item in stripped.split(",")
+            if item.strip()
+        ]
+    return value
+
+
+# NoDecode prevents pydantic-settings from JSON-parsing env vars before our validator.
+CommaSeparatedList = Annotated[list[str], NoDecode, BeforeValidator(_parse_string_list)]
+
+
 class Settings(BaseSettings):
-    # Parse comma-delimited and JSON list env values in `parse_string_list`.
-    # Disabling pydantic-settings' eager JSON decoding prevents one malformed
-    # Docker value from crashing startup before our tolerant validator runs.
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
-        enable_decoding=False,
     )
 
     app_name: str = "MarGem API"
@@ -82,8 +110,8 @@ class Settings(BaseSettings):
     minio_region: str = ""
     max_upload_bytes: int = 8_388_608
 
-    cors_origins: list[str] = ["http://localhost:3000"]
-    allowed_hosts: list[str] = ["*"]
+    cors_origins: CommaSeparatedList = ["http://localhost:3000"]
+    allowed_hosts: CommaSeparatedList = ["*"]
 
     rate_limit: str = "300/minute"
     auth_rate_limit: str = "30/minute"
@@ -94,7 +122,7 @@ class Settings(BaseSettings):
     # Number of trusted reverse-proxy hops that append X-Forwarded-For (0 = direct).
     trusted_proxy_hops: int = 0
     # Optional comma-separated extra hosts allowed for presigned upload URLs.
-    upload_allowed_hosts: list[str] = []
+    upload_allowed_hosts: CommaSeparatedList = []
 
     smtp_host: str = ""
     smtp_port: int = 587
@@ -130,21 +158,6 @@ class Settings(BaseSettings):
     def strip_secrets(cls, value: Any) -> Any:
         if isinstance(value, str):
             return value.strip().strip('"').strip("'")
-        return value
-
-    @field_validator("cors_origins", "allowed_hosts", "upload_allowed_hosts", mode="before")
-    @classmethod
-    def parse_string_list(cls, value: Any) -> list[str]:
-        if isinstance(value, str):
-            stripped = value.strip().strip("'").strip('"')
-            if stripped.startswith("["):
-                try:
-                    return json.loads(stripped)
-                except json.JSONDecodeError:
-                    # Docker/.env often mangles JSON quotes — fall back to loose parse.
-                    inner = stripped.strip("[]")
-                    return [item.strip().strip('"').strip("'") for item in inner.split(",") if item.strip()]
-            return [item.strip().strip('"').strip("'") for item in stripped.split(",") if item.strip()]
         return value
 
     @field_validator("allowed_hosts", mode="after")

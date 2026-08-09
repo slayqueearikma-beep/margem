@@ -43,14 +43,17 @@ echo "--- API logs (last 80 lines) ---"
 echo ""
 echo "--- Common fixes ---"
 cat <<'EOF'
-1. SMTP not configured → set in .env.home:
+1. CORS_ORIGINS must be comma-separated (no JSON brackets), e.g.:
+     CORS_ORIGINS=http://192.168.11.101:8000,http://192.168.11.101:8080
+
+2. SMTP not configured → set in .env.home:
      ALLOW_INSECURE_EMAIL_FALLBACK=true
 
-2. Weak secrets → use 32+ random chars for JWT_SECRET_KEY and UPLOAD_TOKEN_SECRET
+3. Weak secrets → use 32+ random chars for JWT_SECRET_KEY and UPLOAD_TOKEN_SECRET
    (they must be different values).
 
-3. Port in use → change API_PORT in .env.home or stop the other service.
+4. Port in use → change API_PORT in .env.home or stop the other service.
 
-4. After editing .env.home:
+5. After editing .env.home:
      docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
 EOF
