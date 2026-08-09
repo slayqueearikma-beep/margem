@@ -349,12 +349,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     decoration: BoxDecoration(
                       borderRadius:
                           BorderRadius.circular(AppSpacing.inputRadius),
-                      boxShadow: AppShadows.warm(
-                        context,
-                        blur: _searchFocused ? 12 : 10,
-                        y: _searchFocused ? 3 : 2,
-                        alpha: _searchFocused ? 0.08 : 0.05,
-                      ),
+                      boxShadow: _searchFocused
+                          ? AppShadows.warm(
+                              context,
+                              blur: 8,
+                              y: 1,
+                              alpha: 0.03,
+                            )
+                          : null,
                     ),
                     child: TextField(
                       focusNode: _focusNode,
@@ -377,8 +379,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius:
                               BorderRadius.circular(AppSpacing.inputRadius),
-                          borderSide: BorderSide(
-                            color: context.colors.primary.withValues(alpha: 0.45),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFD8CBB8),
                             width: 1.25,
                           ),
                         ),
@@ -605,7 +607,7 @@ class _SearchModeSelector extends StatelessWidget {
                           : colors.border.withValues(alpha: 0.7),
                     ),
                     boxShadow: active
-                        ? AppShadows.warm(context, blur: 10, y: 2, alpha: 0.07)
+                        ? AppShadows.warm(context, blur: 6, y: 1, alpha: 0.022)
                         : null,
                   ),
                   child: Material(
