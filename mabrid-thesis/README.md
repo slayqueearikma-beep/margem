@@ -31,7 +31,7 @@ latexmk -C
 latexmk -pdf -interaction=nonstopmode main.tex
 ```
 
-Le fichier généré est **`main.pdf`** (environ 103--106 pages).
+Le fichier généré est **`main.pdf`** (environ 115--120 pages).
 
 ## Structure du rapport
 
@@ -42,12 +42,17 @@ Le fichier généré est **`main.pdf`** (environ 103--106 pages).
 | 3 | Gouvernance d'entreprise |
 | 4 | Architecture de sécurité entreprise |
 | 5 | Sécurisation technique de l'application MarGem (~15 p.) |
-| 6--9 | Cloud, juridique, feuille de route, marketing |
-| 10 | Conclusion |
+| 6 | Gouvernance cloud Azure |
+| 7 | **Architecture technique et flux d'information** (~10 p., diagrammes TikZ + figures Azure/on-prem) |
+| 8--11 | Juridique, feuille de route, marketing, conclusion |
 
 ## Figures
 
-Placer les images dans `figures/` (voir les noms dans les chapitres). Des emplacements gris s'affichent tant que les fichiers sont absents.
+Placer les images dans `figures/`. Fichiers inclus :
+- `architecture-azure-prod.png` — architecture cloud Azure
+- `architecture-onprem-ubuntu.png` — architecture serveur Ubuntu on-premise
+
+Des emplacements gris s'affichent tant que les autres fichiers PDF référencés sont absents.
 
 ## Dépannage
 
