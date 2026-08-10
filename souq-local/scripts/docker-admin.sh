@@ -24,7 +24,7 @@ Usage:
   ./scripts/docker-admin.sh up              Start API + Postgres (build if needed)
   ./scripts/docker-admin.sh down            Stop containers
   ./scripts/docker-admin.sh logs            Follow API logs
-  ./scripts/docker-admin.sh check-admin     Verify /admin is served (not 404)
+  ./scripts/docker-admin.sh check-admin     Verify admin dashboard on :8080
   ./scripts/docker-admin.sh psql            Open Postgres shell
   ./scripts/docker-admin.sh list-users      List all accounts in the database
   ./scripts/docker-admin.sh promote-admin <email>   Grant admin role to a user

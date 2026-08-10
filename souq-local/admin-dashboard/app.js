@@ -4,7 +4,7 @@ const TOKEN_KEY = "margem_admin_token";
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
 const state = {
-  token: localStorage.getItem(TOKEN_KEY) || "",
+  token: sessionStorage.getItem(TOKEN_KEY) || "",
   page: 1,
   pageSize: 10,
   editingMarketplaceId: null,
@@ -92,7 +92,7 @@ function showScreen(name) {
 
 function logout() {
   state.token = "";
-  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
   showScreen("login");
 }
 
@@ -643,7 +643,7 @@ function bindEvents() {
         throw new Error(formatApiError(data.detail, "Login failed"));
       }
       state.token = data.access_token;
-      localStorage.setItem(TOKEN_KEY, state.token);
+      sessionStorage.setItem(TOKEN_KEY, state.token);
       const meRes = await fetch(`${apiBase()}/auth/me`, {
         headers: authHeaders(),
       });

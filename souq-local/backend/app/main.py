@@ -19,6 +19,7 @@ from app.config import settings
 import app.database as database
 from app.limiter import limiter
 from app.logging_config import configure_logging
+from app.middleware.admin_origin_guard import AdminOriginGuardMiddleware
 from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
@@ -109,6 +110,7 @@ app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(RequestSizeLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AdminOriginGuardMiddleware)
 
 if settings.allowed_hosts != ["*"]:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
@@ -145,18 +147,19 @@ app.include_router(marketplace_admin.router)
 app.include_router(bundles.router)
 
 _admin_dashboard_dir: Path | None = None
-if settings.admin_dashboard_dir.strip():
-    _candidate = Path(settings.admin_dashboard_dir).expanduser()
-    if _candidate.is_dir():
-        _admin_dashboard_dir = _candidate
-if _admin_dashboard_dir is None:
-    for _candidate in (
-        Path(__file__).resolve().parents[2] / "admin-dashboard",
-        Path("/admin-dashboard"),
-    ):
+if settings.serve_embedded_admin:
+    if settings.admin_dashboard_dir.strip():
+        _candidate = Path(settings.admin_dashboard_dir).expanduser()
         if _candidate.is_dir():
             _admin_dashboard_dir = _candidate
-            break
+    if _admin_dashboard_dir is None:
+        for _candidate in (
+            Path(__file__).resolve().parents[2] / "admin-dashboard",
+            Path("/admin-dashboard"),
+        ):
+            if _candidate.is_dir():
+                _admin_dashboard_dir = _candidate
+                break
 if _admin_dashboard_dir is not None:
     app.mount(
         "/admin",

@@ -137,7 +137,36 @@ MARGEM_API_URL=http://192.168.11.101:8000 MARGEM_ADMIN_URL=http://192.168.11.101
   MARGEM_PROFILE=home ./scripts/docker-admin.sh check-admin
 ```
 
-Legacy note: `/admin` on port 8000 may still work if baked into the API image, but **use port 8080** for the dedicated admin dashboard.
+Legacy note: home compose disables embedded `/admin` on the API — **use port 8080 only**.
+
+### Admin security (maximum hardening)
+
+The admin container applies several layers by default:
+
+| Layer | What it does |
+|-------|----------------|
+| **Private IP only** | Blocks access from the public internet (`ADMIN_ALLOW_PUBLIC=false`) |
+| **HTTP Basic Auth** | Second password gate before MarGem login (`ADMIN_BASIC_AUTH_*`) |
+| **Security headers + CSP** | Reduces XSS / clickjacking risk |
+| **Rate limiting** | nginx limits requests to the admin UI |
+| **No embedded admin on API** | `/admin` is not served on port 8000 |
+| **Origin guard** | Admin API rejects browser calls from unknown origins |
+| **Session token** | JWT stored in `sessionStorage` (cleared when browser tab closes) |
+| **MFA for staff** | `ADMIN_REQUIRE_STAFF_MFA=true` requires MFA for admin/support |
+
+Add to `.env.home`:
+
+```env
+ADMIN_BASIC_AUTH_USER=margem
+ADMIN_BASIC_AUTH_PASSWORD=your-strong-gate-password
+ADMIN_REQUIRE_STAFF_MFA=true
+ADMIN_ALLOW_PUBLIC=false
+CORS_ORIGINS=http://192.168.11.101:8000,http://192.168.11.111:8080
+```
+
+On your phone you will enter **two passwords**: Basic Auth gate, then MarGem admin login.
+
+**Never** expose port 8080 through Cloudflare or port-forwarding. Keep admin on LAN only.
 
 ## Backups (home server)
 

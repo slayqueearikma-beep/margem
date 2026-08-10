@@ -38,7 +38,9 @@ services:
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET}
       STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
       LOCAL_MEDIA_ROOT: /data/media
-      ADMIN_DASHBOARD_DIR: /admin-dashboard
+      SERVE_EMBEDDED_ADMIN: "false"
+      ADMIN_DASHBOARD_DIR: ""
+      ADMIN_REQUIRE_STAFF_MFA: ${ADMIN_REQUIRE_STAFF_MFA:-true}
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING:-}
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}
@@ -58,7 +60,6 @@ services:
       AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-30/minute}
     volumes:
       - margem_home_media:/data/media
-      - ./admin-dashboard:/admin-dashboard:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,6 +80,10 @@ services:
       - "${ADMIN_PORT:-8080}:80"
     environment:
       MARGEM_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+      ADMIN_BASIC_AUTH_USER: ${ADMIN_BASIC_AUTH_USER:-}
+      ADMIN_BASIC_AUTH_PASSWORD: ${ADMIN_BASIC_AUTH_PASSWORD:-}
+      ADMIN_ALLOW_PUBLIC: ${ADMIN_ALLOW_PUBLIC:-false}
+      ADMIN_EXTRA_ALLOWED_CIDRS: ${ADMIN_EXTRA_ALLOWED_CIDRS:-}
     depends_on:
       api:
         condition: service_healthy

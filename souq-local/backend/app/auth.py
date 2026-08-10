@@ -233,9 +233,9 @@ async def require_staff(user: User = Depends(get_current_user)) -> User:
 
 
 def _enforce_staff_mfa(user: User) -> None:
-    if not settings.staff_mfa_required:
+    if not settings.staff_mfa_required and not settings.admin_require_staff_mfa:
         return
-    if settings.app_env not in {"production", "prod"}:
+    if settings.app_env not in {"production", "prod"} and not settings.admin_require_staff_mfa:
         return
     if not user.mfa_enabled:
         raise HTTPException(

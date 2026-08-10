@@ -134,6 +134,10 @@ class Settings(BaseSettings):
     public_api_url: str = "http://localhost:8000"
     # Optional path to admin-dashboard static files (Docker: /admin-dashboard).
     admin_dashboard_dir: str = ""
+    # When false, do not serve /admin static files from the API (use separate admin container).
+    serve_embedded_admin: bool = True
+    # Require MFA for staff/admin API access outside dev (home server: set true in .env.home).
+    admin_require_staff_mfa: bool = False
 
     default_cities: list[str] = [
         "Casablanca",
