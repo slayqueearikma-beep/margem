@@ -17,7 +17,7 @@ MarGem uses third-party services to operate the Platform. This document disclose
 |---------|----------|---------|----------------|
 | Cloud hosting | Microsoft Azure | Application hosting, container orchestration | Application data, logs |
 | Database | PostgreSQL (Azure) | Primary data storage | Account, listing, message data |
-| Media storage | Azure Blob Storage | Image and video hosting | Uploaded media files |
+| Media storage | Azure Blob Storage or local filesystem (`storage_backend=local`) | Image and video hosting | Uploaded media files |
 | Key management | Azure Key Vault | Secrets and credentials | Configuration secrets |
 | Optional cache | Redis | Rate limiting, session store | IP addresses, request metadata |
 

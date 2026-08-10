@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Politique de confidentialité — MarGem</title>
+<style>
+:root { --text:#1a1a2e; --muted:#5c5c7a; --border:#e8e8f0; --accent:#6b5ce7; --bg:#faf9f7; }
+* { box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
+  line-height: 1.65; color: var(--text); background: var(--bg); margin: 0; padding: 0; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+header { border-bottom: 1px solid var(--border); margin-bottom: 2rem; padding-bottom: 1rem; }
+h1 { font-size: 1.75rem; margin: 0 0 .5rem; letter-spacing: -0.02em; }
+.meta { color: var(--muted); font-size: .9rem; }
+h2 { font-size: 1.15rem; margin: 2rem 0 .75rem; color: var(--text); }
+p, li { font-size: .98rem; }
+ul { padding-inline-start: 1.25rem; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 1rem 0; }
+th, td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: start; vertical-align: top; }
+th { background: #f3f2ff; }
+.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
+.lang-nav { margin-top: .75rem; font-size: .88rem; }
+.lang-nav a { color: var(--accent); margin-inline-end: .75rem; }
+[dir="rtl"] body { text-align: right; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>Politique de confidentialité</h1>
+<p class="meta">MarGem · Version 1.1.0 · Effective August 1, 2026 · Last updated August 10, 2026</p>
+<p class="lang-nav"><a href="/legal/en/privacy">English</a> · <a href="/legal/ar/privacy">العربية</a></p>
+</header>
+<main>
+
+<p>MarGem (« nous ») exploite une plateforme locale de découverte et de marketplace au Maroc (Android, iOS et Web). Cette politique explique comment nous collectons, utilisons, conservons et protégeons les données personnelles.</p>
+<div class="note"><strong>Avis juridique :</strong> MarGem est soumis à la loi marocaine 09-08. Nous n'avons <strong>pas</strong> confirmé l'enregistrement ou l'autorisation CNDP dans ce dépôt — un avocat doit vérifier avant publication.</div>
+<h2>1. Données collectées</h2>
+<ul>
+<li><strong>Compte :</strong> e-mail, nom affiché, mot de passe (haché bcrypt), type de compte, téléphone optionnel</li>
+<li><strong>Vendeur :</strong> entreprise, description, adresse, ville, coordonnées, contacts, images, annonces</li>
+<li><strong>Contenu :</strong> avis, messages, messages communautaires, signalements, favoris, recherches enregistrées</li>
+<li><strong>Automatique :</strong> appareil, version, langue, adresse IP, métadonnées de session</li>
+<li><strong>Localisation :</strong> uniquement avec votre autorisation pour la carte</li>
+</ul>
+<h2>2. Finalités</h2>
+<p>Fourniture du service, messagerie, communauté, sécurité, analyses, conformité légale et fonctionnalités premium. Nous ne vendons pas vos données.</p>
+<h2>3. Services tiers</h2>
+<p>PostgreSQL, stockage média (Azure ou local), SMTP optionnel, Firebase optionnel, Google Maps optionnel, Sentry optionnel, Application Insights optionnel, Redis optionnel. Les paiements d'abonnement ne sont pas encore traités dans l'application.</p>
+<h2>4. Transferts internationaux</h2>
+<p>Données traitées au Maroc et chez nos hébergeurs (ex. Azure). Garanties appropriées lorsque la loi l'exige.</p>
+<h2>5. Conservation et suppression</h2>
+<p>Suppression de compte via l'application ou <code>DELETE /auth/me</code>. E-mail anonymisé en <code>deleted+{uuid}@invalid.local</code>. Export via <code>GET /auth/me/export</code>.</p>
+<h2>6. Vos droits (loi 09-08)</h2>
+<p>Accès, rectification, opposition, suppression : <a href="mailto:privacy@margem.app">privacy@margem.app</a></p>
+<h2>7. Contact</h2>
+<p><a href="mailto:privacy@margem.app">privacy@margem.app</a> · <a href="mailto:dpo@margem.app">dpo@margem.app</a></p>
+
+</main>
+<footer>
+<p><a href="/legal/fr/terms">Terms</a> · <a href="/legal/fr/cookies">Cookies</a> · <a href="/legal/fr/account-deletion">Account deletion</a></p>
+<p>© MarGem · <a href="mailto:privacy@margem.app">privacy@margem.app</a></p>
+</footer>
+</div>
+</body>
+</html>

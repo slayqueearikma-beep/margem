@@ -7,8 +7,10 @@ import 'app_colors.dart';
 class AppTypography {
   AppTypography._();
 
-  static TextTheme textTheme(Brightness brightness) {
-    final base = GoogleFonts.interTextTheme();
+  static TextTheme textTheme(Brightness brightness, {String? languageCode}) {
+    final base = languageCode == 'ar'
+        ? GoogleFonts.notoSansArabicTextTheme()
+        : GoogleFonts.interTextTheme();
     final onSurface =
         brightness == Brightness.dark ? Colors.white : AppColors.textPrimary;
     final secondary = brightness == Brightness.dark

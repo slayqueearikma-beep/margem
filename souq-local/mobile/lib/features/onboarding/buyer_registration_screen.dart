@@ -15,6 +15,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
+import '../../core/widgets/legal_links_section.dart';
 import '../../core/models/city_model.dart';
 import '../../core/providers/city_providers.dart';
 import '../../core/widgets/city_picker_field.dart';
@@ -147,6 +148,8 @@ class _BuyerRegistrationScreenState
       bottom: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const LegalLinksSection(compact: true),
+          const SizedBox(height: AppSpacing.sm),
           PrimaryButton(
               label: l10n.createAccount,
               onPressed: _submit,

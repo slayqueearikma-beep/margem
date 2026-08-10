@@ -86,6 +86,7 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
                     ),
                     error: (e, _) => AsyncErrorView.fromError(
                       e,
+                      context: context,
                       onRetry: () => ref.invalidate(conversationsProvider),
                     ),
                     data: (conversations) {
@@ -385,6 +386,7 @@ class _ConversationThreadScreenState
                 if (snapshot.hasError) {
                   return AsyncErrorView.fromError(
                     snapshot.error!,
+                    context: context,
                     onRetry: () => setState(() {
                       _future = apiServiceProvider
                           .fetchConversationMessages(widget.conversationId);
@@ -404,8 +406,9 @@ class _ConversationThreadScreenState
                     final mine =
                         myId != null && message.senderId.isNotEmpty && message.senderId == myId;
                     return Align(
-                      alignment:
-                          mine ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: mine
+                          ? AlignmentDirectional.centerEnd
+                          : AlignmentDirectional.centerStart,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.symmetric(

@@ -532,6 +532,19 @@ abstract class AppStrings {
   String get communityHomeCardTitle;
   String get communityHomeCardSubtitle;
 
+  // Legal & privacy
+  String get legalSectionTitle;
+  String get privacyPolicy;
+  String get termsOfService;
+  String get cookiePolicy;
+  String get accountDeletionPolicy;
+  String get dataExport;
+  String get contactSupport;
+  String get signupTermsAcknowledgment;
+  String get connectionError;
+  String get apiUnavailable;
+  String requestTimeout(int seconds);
+
   static AppStrings forLocale(String languageCode) {
     switch (languageCode) {
       case 'fr':

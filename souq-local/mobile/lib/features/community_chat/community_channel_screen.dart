@@ -227,7 +227,7 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Text(
                     l10n.communityTyping(typing.first),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(

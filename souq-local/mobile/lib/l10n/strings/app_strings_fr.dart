@@ -1151,6 +1151,43 @@ class AppStringsFr extends AppStringsEn {
       'Discutez avec les habitants, obtenez des recommandations et découvrez ce qui se passe près de chez vous.';
 
   @override
+  String get legalSectionTitle => 'Mentions légales et confidentialité';
+
+  @override
+  String get privacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get termsOfService => 'Conditions d\'utilisation';
+
+  @override
+  String get cookiePolicy => 'Politique des cookies';
+
+  @override
+  String get accountDeletionPolicy => 'Suppression de compte';
+
+  @override
+  String get dataExport => 'Exporter mes données';
+
+  @override
+  String get contactSupport => 'Contacter le support';
+
+  @override
+  String get signupTermsAcknowledgment =>
+      'En créant un compte, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.';
+
+  @override
+  String get connectionError =>
+      'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get apiUnavailable =>
+      'Le service est temporairement indisponible. Veuillez réessayer plus tard.';
+
+  @override
+  String requestTimeout(int seconds) =>
+      'Délai dépassé (${seconds}s). Vérifiez votre connexion et réessayez.';
+
+  @override
   String dayLabel(String key) {
     const days = {
       'Mon': 'Lun',

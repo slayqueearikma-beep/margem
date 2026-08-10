@@ -1,7 +1,7 @@
 # MarGem Account Deletion Policy
 
 **Effective Date:** August 1, 2026  
-**Last Updated:** August 5, 2026
+**Last Updated:** August 10, 2026
 
 ---
 
@@ -15,11 +15,12 @@ You may delete your MarGem account at any time. Account deletion is permanent an
 
 ### 2.1 In-App (Recommended)
 
-1. Open MarGem → Settings
+1. Open MarGem → Settings (Profile)
 2. Select **Delete Account**
 3. Enter your password
-4. Confirm by typing "DELETE"
-5. Your account will be immediately deactivated
+4. Confirm deletion
+
+The mobile app sends confirmation `"DELETE"` to the API on your behalf when you confirm with your password.
 
 ### 2.2 Email Request
 
@@ -38,15 +39,17 @@ Authenticated users may call `DELETE /auth/me` with:
 | Action | Detail |
 |--------|--------|
 | Account status | Set to `deleted` |
-| Email | Anonymized to `deleted_[uuid]@deleted.margem.app` |
+| Email | Anonymized to `deleted+{uuid}@invalid.local` |
+| Phone | Cleared |
 | Password | Cleared |
-| Display name | Set to "Deleted User" |
+| Display name | Set to "Deleted user" |
+| MFA factors | Deleted |
 | Storefront & listings | Removed |
 | Products & services | Deleted |
 | Reviews you wrote | Deleted |
 | Reviews about your business | Deleted (if seller) |
 | Messages | Deleted |
-| Community memberships & channel messages | Deleted or anonymized |
+| Community memberships & channel messages | Memberships deleted; messages anonymized (`[deleted]`) |
 | Favorites & follows | Deleted |
 | Subscriptions | Cancelled |
 | Refresh tokens | Revoked |
@@ -68,7 +71,7 @@ Authenticated users may call `DELETE /auth/me` with:
 
 Consider:
 
-- **Downloading your data:** Request a data export at privacy@margem.app before deletion
+- **Downloading your data:** Call `GET /auth/me/export` while signed in, or request export at privacy@margem.app before deletion
 - **Active subscriptions:** Cancellation takes effect immediately; no refund for remaining period unless eligible under [Refund Policy](../premium/refund-policy.md)
 - **Seller obligations:** Complete pending buyer communications before deletion
 - **Irreversibility:** You cannot recover your account, reviews, or listings after deletion

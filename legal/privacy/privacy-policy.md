@@ -1,7 +1,7 @@
 # MarGem Privacy Policy
 
 **Effective Date:** August 1, 2026  
-**Last Updated:** August 5, 2026
+**Last Updated:** August 10, 2026
 
 ---
 
@@ -217,7 +217,9 @@ Depending on your location, you may have the following rights:
 
 **California residents (CCPA/CPRA):** You have the right to know, delete, correct, and opt out of the sale or sharing of personal information. MarGem does not sell personal information. To exercise your rights, contact privacy@margem.app.
 
-**Morocco (Law 09-08):** You have rights of access, rectification, and opposition regarding your personal data. Contact dpo@margem.app.
+**Morocco (Law 09-08):** You have rights of access, rectification, and opposition regarding your personal data. Contact dpo@margem.app. **CNDP registration/authorization has not been confirmed in this repository** — counsel must verify whether a declaration is required.
+
+**Data export:** Authenticated users may call `GET /auth/me/export` to receive a JSON export of account data.
 
 We will respond to verified requests within the timeframes required by applicable law (typically 30 days).
 
@@ -231,18 +233,18 @@ MarGem mobile applications use local device storage (secure storage and preferen
 
 ## 13. Security
 
-We implement technical and organizational measures aligned with ISO/IEC 27001 and SOC 2 principles, including:
+We implement technical and organizational measures including:
 
 - Encryption of data in transit (TLS/HTTPS)
 - Password hashing (bcrypt)
-- Encrypted local storage of authentication tokens
+- Encrypted local storage of authentication tokens on mobile
 - Access controls and role-based permissions for staff
 - Audit logging for administrative actions
 - Rate limiting and abuse detection
 
 See our [Security Policy](../security/security-policy.md) for more information.
 
-No method of transmission or storage is 100% secure. If you believe your account has been compromised, contact security@margem.ma immediately.
+No method of transmission or storage is completely secure. We do **not** claim ISO 27001, SOC 2, or similar certification unless separately documented and verified.
 
 ---
 

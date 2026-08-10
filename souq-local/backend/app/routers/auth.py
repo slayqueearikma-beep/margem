@@ -761,19 +761,28 @@ async def delete_account(
     if not user.password_hash or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
 
-    from sqlalchemy import delete as sql_delete
+    from sqlalchemy import delete as sql_delete, update
 
     from app.models import (
         AuthToken,
         Conversation,
         Favorite,
         Message,
+        MfaFactor,
+        MfaRecoveryCode,
         Notification,
         RecentlyViewed,
         Review,
         SavedSearch,
         SellerFollow,
         Subscription,
+    )
+    from app.models.community import (
+        CommunityMembership,
+        CommunityMessage,
+        CommunityMessageStatus,
+        CommunityReaction,
+        CommunityReport,
     )
 
     seller = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
@@ -811,14 +820,38 @@ async def delete_account(
         (Subscription, Subscription.user_id),
         (AuthToken, AuthToken.user_id),
         (Review, Review.buyer_id),
+        (MfaFactor, MfaFactor.user_id),
+        (MfaRecoveryCode, MfaRecoveryCode.user_id),
+        (CommunityMembership, CommunityMembership.user_id),
+        (CommunityReaction, CommunityReaction.user_id),
+        (CommunityReport, CommunityReport.reporter_id),
     ):
         await session.execute(sql_delete(model).where(column == user.id))
+
+    # Anonymize community messages instead of hard-deleting (preserves thread structure).
+    await session.execute(
+        update(CommunityMessage)
+        .where(CommunityMessage.sender_id == user.id)
+        .values(
+            body="[deleted]",
+            attachments=[],
+            mentions=[],
+            hashtags=[],
+            status=CommunityMessageStatus.DELETED,
+            deleted_at=datetime.now(UTC),
+            deleted_by_id=user.id,
+        )
+    )
 
     await revoke_all_refresh_tokens(session, user.id)
     user.status = UserStatus.DELETED
     user.email = f"deleted+{user.id}@invalid.local"
     user.display_name = "Deleted user"
+    user.phone = ""
     user.password_hash = None
+    user.firebase_uid = f"deleted-{user.id}"
+    user.email_verified_at = None
+    user.mfa_enabled = False
     user.is_premium = False
     user.premium_until = None
     await session.commit()

@@ -299,8 +299,8 @@ class _MarGemAppState extends ConsumerState<MarGemApp>
       title: 'MarGem',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AppTheme.light(languageCode: locale.languageCode),
+      darkTheme: AppTheme.dark(languageCode: locale.languageCode),
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [

@@ -76,6 +76,8 @@ class AppStringsAr extends AppStringsEn {
   String get connectSubtitle =>
       'ملفات موثقة وتقييمات وتواصل آمن يمكنك الوثوق به.';
   @override
+  String get growTitle => 'نمِّ نشاطك التجاري';
+  @override
   String get growSubtitle =>
       'أدرج منتجاتك أو خدماتك، واصل إلى المزيد من العملاء ونمِّ علامتك التجارية.';
   @override
@@ -163,7 +165,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get navServices => 'الخدمات';
   @override
-  String get navBookings => 'الحجوزات';
+  String get navBookings => 'الاستفسارات';
   @override
   String get navMore => 'المزيد';
   @override
@@ -623,7 +625,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get favorites => 'المفضلة';
   @override
-  String get premium => 'بريميوم';
+  String get premium => 'الاشتراك المميز';
   @override
   String get guestCartSignInHint =>
       'مفضلاتك محفوظة على هذا الجهاز. سجّل الدخول لمزامنتها مع حسابك.';
@@ -1130,6 +1132,43 @@ class AppStringsAr extends AppStringsEn {
       'تحدث مع السكان، احصل على توصيات، واكتشف ما يحدث بالقرب منك.';
 
   @override
+  String get legalSectionTitle => 'القانون والخصوصية';
+
+  @override
+  String get privacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get termsOfService => 'شروط الاستخدام';
+
+  @override
+  String get cookiePolicy => 'سياسة ملفات تعريف الارتباط';
+
+  @override
+  String get accountDeletionPolicy => 'حذف الحساب';
+
+  @override
+  String get dataExport => 'تصدير بياناتي';
+
+  @override
+  String get contactSupport => 'التواصل مع الدعم';
+
+  @override
+  String get signupTermsAcknowledgment =>
+      'بإنشاء حساب، فإنك توافق على شروط الاستخدام وسياسة الخصوصية.';
+
+  @override
+  String get connectionError =>
+      'تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مجدداً.';
+
+  @override
+  String get apiUnavailable =>
+      'الخدمة غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.';
+
+  @override
+  String requestTimeout(int seconds) =>
+      'انتهت مهلة الطلب ($seconds ث). تحقق من اتصالك وحاول مجدداً.';
+
+  @override
   String categoryLabel(String key) {
     switch (key) {
       case 'Food':
@@ -1156,13 +1195,13 @@ class AppStringsAr extends AppStringsEn {
   @override
   String dayLabel(String key) {
     const days = {
-      'Mon': 'الإث',
-      'Tue': 'الثل',
-      'Wed': 'الأر',
-      'Thu': 'الخم',
-      'Fri': 'الجم',
-      'Sat': 'السب',
-      'Sun': 'الأح',
+      'Mon': 'اثن',
+      'Tue': 'ثلا',
+      'Wed': 'أرب',
+      'Thu': 'خمي',
+      'Fri': 'جمعة',
+      'Sat': 'سبت',
+      'Sun': 'أحد',
     };
     return days[key] ?? key;
   }

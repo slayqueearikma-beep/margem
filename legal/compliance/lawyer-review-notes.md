@@ -135,15 +135,14 @@ The legal documents in this `/legal` folder were drafted as a **comprehensive st
 - [ ] File CNDP declaration if required under Law 09-08
 - [ ] Appoint DPO and update contact information
 - [ ] Implement cookie consent banner on Web
-- [ ] Implement in-app links to Privacy Policy and Terms of Service
-- [ ] Update `souq-local/mobile/PRIVACY_POLICY.md` redirect (done)
-- [ ] Publish policies at margem.app/legal, margem.app/privacy, margem.app/terms
-- [ ] Configure `AppConfig.privacyPolicyUrl` and add terms URL
+- [x] Implement in-app links to Privacy Policy and Terms of Service
+- [x] Publish policies at API `/legal/{lang}/{doc}` with `/privacy`, `/terms`, `/cookies` redirects
+- [x] Configure locale-aware legal URLs via `AppConfig.legalDocumentUrl`
 - [ ] Conduct accessibility audit before publishing Accessibility Statement
 - [ ] Update subscription terms when payment provider is integrated
-- [ ] Implement data export endpoint or confirm email-only process with counsel
-- [ ] Translate key documents to French and Arabic
-- [ ] Add legal acceptance checkbox at registration
+- [x] Implement data export endpoint or confirm email-only process with counsel (`GET /auth/me/export` implemented)
+- [ ] Translate key documents to French and Arabic (hosted HTML summaries at `/legal/fr` and `/legal/ar`; full markdown counsel review pending)
+- [x] Add legal acceptance notice at registration
 - [ ] Review Google Play and Apple App Store policy compliance
 
 ---

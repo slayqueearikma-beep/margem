@@ -17,11 +17,34 @@ class AsyncErrorView extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  factory AsyncErrorView.fromError(Object error, {VoidCallback? onRetry}) {
-    final text = error is ApiException
-        ? error.message
-        : (AppConfig.isProduction ? null : error.toString());
-    return AsyncErrorView(message: text ?? '', onRetry: onRetry);
+  factory AsyncErrorView.fromError(Object error, {VoidCallback? onRetry, BuildContext? context}) {
+    String text;
+    if (error is ApiException) {
+      text = error.message;
+      if (context != null) {
+        text = _localizeApiMessage(context.l10n, error);
+      }
+    } else {
+      text = AppConfig.isProduction ? '' : error.toString();
+    }
+    return AsyncErrorView(message: text, onRetry: onRetry);
+  }
+
+  static String _localizeApiMessage(AppStrings l10n, ApiException error) {
+    final msg = error.message;
+    if (msg.contains('API database is unavailable')) {
+      return l10n.apiUnavailable;
+    }
+    if (msg.startsWith('Request timed out')) {
+      final match = RegExp(r'after (\d+)s').firstMatch(msg);
+      final seconds = int.tryParse(match?.group(1) ?? '') ?? 30;
+      return l10n.requestTimeout(seconds);
+    }
+    if (msg.contains('Cannot reach the server') ||
+        msg.contains('Cannot reach the API')) {
+      return l10n.connectionError;
+    }
+    return msg;
   }
 
   @override

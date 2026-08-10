@@ -1132,6 +1132,42 @@ class AppStringsEn extends AppStrings {
       'Chat with locals, get recommendations, and discover what\'s happening nearby.';
 
   @override
+  String get legalSectionTitle => 'Legal & privacy';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get cookiePolicy => 'Cookie Policy';
+
+  @override
+  String get accountDeletionPolicy => 'Account deletion';
+
+  @override
+  String get dataExport => 'Export my data';
+
+  @override
+  String get contactSupport => 'Contact support';
+
+  @override
+  String get signupTermsAcknowledgment =>
+      'By creating an account, you agree to our Terms of Service and Privacy Policy.';
+
+  @override
+  String get connectionError =>
+      'Cannot reach the server. Check your internet connection and try again.';
+
+  @override
+  String get apiUnavailable => 'The service is temporarily unavailable. Please try again later.';
+
+  @override
+  String requestTimeout(int seconds) =>
+      'Request timed out after ${seconds}s. Check your connection and try again.';
+
+  @override
   String categoryLabel(String key) {
     switch (key) {
       case 'Food':
