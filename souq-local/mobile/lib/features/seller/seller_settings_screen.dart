@@ -10,6 +10,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/legal_links_section.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
@@ -183,6 +184,8 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
             isLoading: _loadingPassword,
           ),
           SizedBox(height: AppSpacing.xxl),
+          const LegalLinksSection(),
+          SizedBox(height: AppSpacing.xl),
           OutlinedButton(
             style: OutlinedButton.styleFrom(foregroundColor: context.colors.error),
             onPressed: _confirmDeleteAccount,

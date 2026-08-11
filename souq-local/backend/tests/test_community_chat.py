@@ -102,31 +102,56 @@ async def test_admin_create_and_delete_city(client: AsyncClient):
     user = await _register(client, name="Admin User")
     await _make_admin(database.SessionLocal, user["user_id"])
 
+    slug = f"test-city-{uuid4().hex[:6]}"
     create = await client.post(
         "/community/admin/cities",
         headers=user["headers"],
-        json={"slug": "rabat", "name": "Rabat", "description": "Capital community"},
+        json={"slug": slug, "name": "Test City", "description": "Test community"},
     )
     assert create.status_code == 201
-    assert create.json()["slug"] == "rabat"
+    assert create.json()["slug"] == slug
 
     channels = (
-        await client.get("/community/cities/rabat/channels", headers=user["headers"])
+        await client.get(f"/community/cities/{slug}/channels", headers=user["headers"])
     ).json()
     assert len(channels) == 12
 
-    delete = await client.delete("/community/admin/cities/rabat", headers=user["headers"])
+    delete = await client.delete(f"/community/admin/cities/{slug}", headers=user["headers"])
     assert delete.status_code == 204
 
-    missing = await client.get("/community/cities/rabat")
+    missing = await client.get(f"/community/cities/{slug}")
     assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_non_member_cannot_post_or_read_messages(client: AsyncClient):
+    user = await _register(client)
+    cities = (await client.get("/community/cities")).json()
+    slug = next(c["slug"] for c in cities if c["slug"] == "casablanca")
+    channels = (
+        await client.get(f"/community/cities/{slug}/channels", headers=user["headers"])
+    ).json()
+    channel_id = channels[0]["id"]
+
+    history = await client.get(
+        f"/community/channels/{channel_id}/messages",
+        headers=user["headers"],
+    )
+    assert history.status_code == 403
+
+    post = await client.post(
+        f"/community/channels/{channel_id}/messages",
+        headers=user["headers"],
+        json={"body": "Should not post without joining"},
+    )
+    assert post.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_reaction_and_report(client: AsyncClient):
     user = await _register(client)
     cities = (await client.get("/community/cities")).json()
-    slug = cities[0]["slug"]
+    slug = next(c["slug"] for c in cities if c["slug"] == "casablanca")
     await client.post(f"/community/cities/{slug}/join", headers=user["headers"], json={})
     channels = (await client.get(f"/community/cities/{slug}/channels", headers=user["headers"])).json()
     channel_id = channels[0]["id"]

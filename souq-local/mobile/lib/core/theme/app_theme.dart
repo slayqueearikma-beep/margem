@@ -6,14 +6,20 @@ import 'app_spacing.dart';
 import 'app_typography.dart';
 
 class AppTheme {
-  static ThemeData light() => _build(Brightness.light);
-  static ThemeData dark() => _build(Brightness.dark);
+  static ThemeData light({String? languageCode}) =>
+      _build(Brightness.light, languageCode: languageCode);
+  static ThemeData dark({String? languageCode}) =>
+      _build(Brightness.dark, languageCode: languageCode);
 
-  static ThemeData _build(Brightness brightness) {
+  static ThemeData _build(Brightness brightness, {String? languageCode}) {
     final isDark = brightness == Brightness.dark;
     final semantic =
         isDark ? AppSemanticColors.dark : AppSemanticColors.light;
-    final textTheme = AppTypography.textTheme(brightness, semantic);
+    final textTheme = AppTypography.textTheme(
+      brightness,
+      semantic,
+      languageCode: languageCode,
+    );
 
     final colorScheme = ColorScheme(
       brightness: brightness,

@@ -96,6 +96,13 @@ async def prepare_database():
             )
             await session.commit()
 
+        from app.services.community_chat import ensure_all_city_communities
+        from app.services.geography import ensure_geography_seeded, seed_morocco_cities_if_empty
+
+        await seed_morocco_cities_if_empty(session)
+        await ensure_all_city_communities(session)
+        await ensure_geography_seeded(session)
+
     yield
     async with database.engine.begin() as conn:
         for table in (

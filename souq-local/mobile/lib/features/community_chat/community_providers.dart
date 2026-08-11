@@ -2,11 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/models/community_models.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
-import '../../features/buyer/buyer_home_screen.dart';
 
 final communityCitySlugProvider = Provider<String>((ref) {
+  final model = ref.watch(buyerCityModelProvider);
+  if (model != null) return model.slug;
   return ref.watch(buyerCityProvider).toLowerCase().replaceAll(' ', '-');
 });
 

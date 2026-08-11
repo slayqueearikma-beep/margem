@@ -19,6 +19,21 @@ String friendlyErrorMessage(Object error, AppStrings l10n) {
   if (error.statusCode == 503 && lower.contains('billing')) {
     return l10n.premiumBillingUnavailable;
   }
+  if (lower.contains('app storage is not ready')) {
+    return l10n.appStorageNotReady;
+  }
+  if (lower.contains('api database is unavailable')) {
+    return l10n.apiUnavailable;
+  }
+  if (lower.startsWith('request timed out')) {
+    final match = RegExp(r'after (\d+)s').firstMatch(lower);
+    final seconds = int.tryParse(match?.group(1) ?? '') ?? 30;
+    return l10n.requestTimeout(seconds);
+  }
+  if (lower.contains('cannot reach the server') ||
+      lower.contains('cannot reach the api')) {
+    return l10n.connectionError;
+  }
   if (error.statusCode == 429 || lower.contains('rate limit')) {
     return l10n.tooManyRequests;
   }

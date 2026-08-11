@@ -1232,6 +1232,37 @@ class AppStringsFr extends AppStringsEn {
   }
 
   @override
+  String paymentMethodLabel(String key) {
+    const labels = {
+      'cash': 'Espèces',
+      'bank_transfer': 'Virement bancaire',
+      'card': 'Carte',
+      'mobile_money': 'Mobile money',
+      'cod': 'Paiement à la livraison',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String deliveryMethodLabel(String key) {
+    const labels = {
+      'in_store': 'En magasin',
+      'local_delivery': 'Livraison locale',
+      'pickup': 'Retrait',
+      'delivery': 'Livraison',
+      'shipping': 'Expédition',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String get appStorageNotReady =>
+      'Le stockage de l\'application n\'est pas prêt. Redémarrez l\'application.';
+
+  @override
+  String get communityYou => 'Vous';
+
+  @override
   String get bundleBuilderTitle => 'Créateur de pack';
   @override
   String get bundleBuilderSubtitle =>
@@ -1282,4 +1313,41 @@ class AppStringsFr extends AppStringsEn {
   String get marketplaceCommunityPostRecommend => 'Recommander';
   @override
   String get marketplaceCommunityPostScam => 'Signaler arnaque';
+
+  @override
+  String get legalSectionTitle => 'Mentions légales et confidentialité';
+
+  @override
+  String get privacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get termsOfService => 'Conditions d\'utilisation';
+
+  @override
+  String get cookiePolicy => 'Politique des cookies';
+
+  @override
+  String get accountDeletionPolicy => 'Suppression de compte';
+
+  @override
+  String get dataExport => 'Exporter mes données';
+
+  @override
+  String get contactSupport => 'Contacter le support';
+
+  @override
+  String get signupTermsAcknowledgment =>
+      'En créant un compte, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.';
+
+  @override
+  String get connectionError =>
+      'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get apiUnavailable =>
+      'Le service est temporairement indisponible. Veuillez réessayer plus tard.';
+
+  @override
+  String requestTimeout(int seconds) =>
+      'Délai d\'expiration après ${seconds}s. Vérifiez votre connexion et réessayez.';
 }

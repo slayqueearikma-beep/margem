@@ -9,9 +9,12 @@ class AppTypography {
 
   static TextTheme textTheme(
     Brightness brightness,
-    AppSemanticColors semantic,
-  ) {
-    final base = GoogleFonts.interTextTheme();
+    AppSemanticColors semantic, {
+    String? languageCode,
+  }) {
+    final base = languageCode == 'ar'
+        ? GoogleFonts.notoSansArabicTextTheme()
+        : GoogleFonts.interTextTheme();
 
     return base.copyWith(
       displayLarge: base.displayLarge?.copyWith(

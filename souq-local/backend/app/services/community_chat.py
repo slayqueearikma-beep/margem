@@ -40,7 +40,9 @@ from app.services.community_moderation import (
     is_duplicate_message,
     is_muted,
     log_moderation,
+    require_city_membership,
 )
+from app.services.text_search import escape_ilike
 from app.services.community_trust import sender_profile
 from app.services.notifications import notify_user
 from app.services.upload_security import validate_media_url
@@ -105,6 +107,30 @@ async def ensure_default_cities(session: AsyncSession) -> None:
                     )
             except IntegrityError:
                 continue
+    await session.commit()
+
+
+async def ensure_all_city_communities(session: AsyncSession) -> None:
+    """Create default channels for geography cities missing community setup."""
+    result = await session.execute(select(City).where(City.is_active.is_(True)))
+    cities = list(result.scalars().all())
+    for city in cities:
+        channel_count = await session.scalar(
+            select(func.count())
+            .select_from(CommunityChannel)
+            .where(CommunityChannel.city_id == city.id)
+        )
+        if channel_count == 0:
+            for category, channel_name, channel_desc in DEFAULT_CHANNEL_SPECS:
+                session.add(
+                    CommunityChannel(
+                        id=uuid4(),
+                        city_id=city.id,
+                        category=category,
+                        name=channel_name,
+                        description=channel_desc,
+                    )
+                )
     await session.commit()
 
 
@@ -448,6 +474,12 @@ async def toggle_reaction(
     user: User,
     emoji: str,
 ) -> list[CommunityReactionOut]:
+    channel = await session.get(CommunityChannel, message.channel_id)
+    if channel is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Channel not found")
+    await ensure_not_banned(session, city_id=channel.city_id, user_id=user.id)
+    await require_city_membership(session, city_id=channel.city_id, user_id=user.id)
+
     existing = await session.scalar(
         select(CommunityReaction).where(
             CommunityReaction.message_id == message.id,

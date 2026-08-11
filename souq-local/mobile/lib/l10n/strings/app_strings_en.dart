@@ -1238,6 +1238,37 @@ class AppStringsEn extends AppStrings {
   }
 
   @override
+  String paymentMethodLabel(String key) {
+    const labels = {
+      'cash': 'Cash',
+      'bank_transfer': 'Bank transfer',
+      'card': 'Card',
+      'mobile_money': 'Mobile money',
+      'cod': 'Cash on delivery',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String deliveryMethodLabel(String key) {
+    const labels = {
+      'in_store': 'In-store pickup',
+      'local_delivery': 'Local delivery',
+      'pickup': 'Pickup',
+      'delivery': 'Delivery',
+      'shipping': 'Shipping',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String get appStorageNotReady =>
+      'App storage is not ready. Please restart the app.';
+
+  @override
+  String get communityYou => 'You';
+
+  @override
   String get bundleBuilderTitle => 'Bundle Builder';
   @override
   String get bundleBuilderSubtitle =>
@@ -1288,4 +1319,41 @@ class AppStringsEn extends AppStrings {
   String get marketplaceCommunityPostRecommend => 'Recommend';
   @override
   String get marketplaceCommunityPostScam => 'Report scam';
+
+  @override
+  String get legalSectionTitle => 'Legal & privacy';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get cookiePolicy => 'Cookie Policy';
+
+  @override
+  String get accountDeletionPolicy => 'Account deletion';
+
+  @override
+  String get dataExport => 'Export my data';
+
+  @override
+  String get contactSupport => 'Contact support';
+
+  @override
+  String get signupTermsAcknowledgment =>
+      'By creating an account, you agree to our Terms of Service and Privacy Policy.';
+
+  @override
+  String get connectionError =>
+      'Cannot reach the server. Check your internet connection and try again.';
+
+  @override
+  String get apiUnavailable =>
+      'The service is temporarily unavailable. Please try again later.';
+
+  @override
+  String requestTimeout(int seconds) =>
+      'Request timed out after ${seconds}s. Check your connection and try again.';
 }

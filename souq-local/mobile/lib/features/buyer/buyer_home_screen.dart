@@ -23,6 +23,7 @@ import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/legal_links_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
 import '../premium/premium_screen.dart';
@@ -1012,6 +1013,8 @@ class BuyerProfileScreen extends ConsumerWidget {
               ),
             ),
             if (!isGuest) ...[
+              SizedBox(height: AppSpacing.sm),
+              const LegalLinksSection(),
               SizedBox(height: AppSpacing.sm),
               BuyerMenuTile(
                 icon: Icons.delete_forever_outlined,

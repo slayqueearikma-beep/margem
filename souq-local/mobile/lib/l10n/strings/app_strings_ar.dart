@@ -76,6 +76,8 @@ class AppStringsAr extends AppStringsEn {
   String get connectSubtitle =>
       'ملفات موثقة وتقييمات وتواصل آمن يمكنك الوثوق به.';
   @override
+  String get growTitle => 'نمِّ نشاطك التجاري';
+  @override
   String get growSubtitle =>
       'أدرج منتجاتك أو خدماتك، واصل إلى المزيد من العملاء ونمِّ علامتك التجارية.';
   @override
@@ -1223,16 +1225,47 @@ class AppStringsAr extends AppStringsEn {
   @override
   String dayLabel(String key) {
     const days = {
-      'Mon': 'الإث',
-      'Tue': 'الثل',
-      'Wed': 'الأر',
-      'Thu': 'الخم',
-      'Fri': 'الجم',
-      'Sat': 'السب',
-      'Sun': 'الأح',
+      'Mon': 'اثن',
+      'Tue': 'ثلا',
+      'Wed': 'أرب',
+      'Thu': 'خمي',
+      'Fri': 'جم',
+      'Sat': 'سب',
+      'Sun': 'أحد',
     };
     return days[key] ?? key;
   }
+
+  @override
+  String paymentMethodLabel(String key) {
+    const labels = {
+      'cash': 'نقداً',
+      'bank_transfer': 'تحويل بنكي',
+      'card': 'بطاقة',
+      'mobile_money': 'محفظة إلكترونية',
+      'cod': 'الدفع عند الاستلام',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String deliveryMethodLabel(String key) {
+    const labels = {
+      'in_store': 'استلام من المتجر',
+      'local_delivery': 'توصيل محلي',
+      'pickup': 'استلام',
+      'delivery': 'توصيل',
+      'shipping': 'شحن',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String get appStorageNotReady =>
+      'تخزين التطبيق غير جاهز. أعد تشغيل التطبيق.';
+
+  @override
+  String get communityYou => 'أنت';
 
   @override
   String get bundleBuilderTitle => 'منشئ الحزم';
@@ -1285,4 +1318,41 @@ class AppStringsAr extends AppStringsEn {
   String get marketplaceCommunityPostRecommend => 'توصية';
   @override
   String get marketplaceCommunityPostScam => 'بلاغ احتيال';
+
+  @override
+  String get legalSectionTitle => 'القانون والخصوصية';
+
+  @override
+  String get privacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get termsOfService => 'شروط الاستخدام';
+
+  @override
+  String get cookiePolicy => 'سياسة ملفات تعريف الارتباط';
+
+  @override
+  String get accountDeletionPolicy => 'حذف الحساب';
+
+  @override
+  String get dataExport => 'تصدير بياناتي';
+
+  @override
+  String get contactSupport => 'التواصل مع الدعم';
+
+  @override
+  String get signupTermsAcknowledgment =>
+      'بإنشاء حساب، فإنك توافق على شروط الاستخدام وسياسة الخصوصية.';
+
+  @override
+  String get connectionError =>
+      'تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مجدداً.';
+
+  @override
+  String get apiUnavailable =>
+      'الخدمة غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.';
+
+  @override
+  String requestTimeout(int seconds) =>
+      'انتهت مهلة الطلب بعد ${seconds} ثانية. تحقق من اتصالك وحاول مجدداً.';
 }

@@ -540,6 +540,9 @@ async def community_websocket(
             await websocket.close(code=4401)
             return
         channel = await get_channel(session, channel_id)
+        if channel is None:
+            await websocket.close(code=4404)
+            return
         try:
             await ensure_not_banned(session, city_id=channel.city_id, user_id=user.id)
             await ensure_membership(session, city_id=channel.city_id, user_id=user.id)

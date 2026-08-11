@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: souq_local_dev
       POSTGRES_DB: souq_local
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

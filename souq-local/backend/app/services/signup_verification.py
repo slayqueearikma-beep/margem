@@ -95,9 +95,9 @@ async def send_signup_otp(
             ),
         )
     else:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="SMS verification is not configured",
+        logger.info(
+            "signup_sms_otp to=%s (SMS provider not configured — check API logs on home server)",
+            destination,
         )
 
     await session.commit()

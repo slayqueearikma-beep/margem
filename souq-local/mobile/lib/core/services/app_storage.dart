@@ -203,6 +203,11 @@ class AppStorage {
   Future<void> completeOnboarding() =>
       _prefs.setBool(_onboardingCompleteKey, true);
 
+  String? getSelectedCity() => _prefs.getString(_userCityKey);
+
+  Future<void> saveSelectedCity(String city) =>
+      _prefs.setString(_userCityKey, city);
+
   Future<void> saveSession(UserSession session) async {
     await _prefs.setBool(_loggedInKey, true);
     await _prefs.setString(_accountTypeKey, session.accountType.name);

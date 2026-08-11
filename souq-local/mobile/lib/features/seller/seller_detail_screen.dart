@@ -366,7 +366,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                               .map(
                                 (m) => MarketInfoChip(
                                   icon: Icons.payments_outlined,
-                                  label: m.replaceAll('_', ' '),
+                                  label: l10n.paymentMethodLabel(m),
                                 ),
                               )
                               .toList(),
@@ -384,7 +384,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                               .map(
                                 (m) => MarketInfoChip(
                                   icon: Icons.local_shipping_outlined,
-                                  label: m.replaceAll('_', ' '),
+                                  label: l10n.deliveryMethodLabel(m),
                                 ),
                               )
                               .toList(),

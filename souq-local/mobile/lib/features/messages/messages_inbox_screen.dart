@@ -432,8 +432,9 @@ class _ConversationThreadScreenState
                     final mine =
                         myId != null && message.senderId.isNotEmpty && message.senderId == myId;
                     return Align(
-                      alignment:
-                          mine ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: mine
+                          ? AlignmentDirectional.centerEnd
+                          : AlignmentDirectional.centerStart,
                       child: Container(
                         margin: EdgeInsets.only(bottom: 8),
                         padding: EdgeInsets.symmetric(

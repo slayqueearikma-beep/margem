@@ -110,6 +110,7 @@ async def test_manual_billing_blocked_on_staging(client: AsyncClient, monkeypatc
 
 @pytest.mark.asyncio
 async def test_signup_otp_phone_channel_unconfigured(client: AsyncClient):
+    """Home server may run without SMS; OTP is logged instead of failing signup."""
     res = await client.post(
         "/auth/signup/otp/send",
         json={
@@ -118,4 +119,6 @@ async def test_signup_otp_phone_channel_unconfigured(client: AsyncClient):
             "channel": "phone",
         },
     )
-    assert res.status_code == 503
+    assert res.status_code == 200
+    body = res.json()
+    assert body.get("channel") == "phone"

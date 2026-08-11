@@ -19,6 +19,7 @@ from app.config import settings
 import app.database as database
 from app.limiter import limiter
 from app.logging_config import configure_logging
+from app.middleware.admin_ip_guard import AdminIpGuardMiddleware
 from app.middleware.admin_origin_guard import AdminOriginGuardMiddleware
 from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
@@ -30,6 +31,8 @@ from app.routers import (
     catalog,
     community,
     discovery,
+    geography,
+    legal_pages,
     marketplace_admin,
     marketplace_community,
     marketplaces,
@@ -39,11 +42,27 @@ from app.routers import (
     uploads,
 )
 from app.services.local_storage import media_root
-from app.services.community_chat import ensure_default_cities
+from app.services.community_chat import ensure_all_city_communities, ensure_default_cities
+from app.services.geography import ensure_geography_seeded, seed_morocco_cities_if_empty
 from app.telemetry import configure_telemetry
 
 configure_logging(json_logs=settings.app_env in {"production", "prod"})
 configure_telemetry()
+
+_admin_dashboard_dir: Path | None = None
+if settings.serve_embedded_admin:
+    if settings.admin_dashboard_dir.strip():
+        _candidate = Path(settings.admin_dashboard_dir).expanduser()
+        if _candidate.is_dir():
+            _admin_dashboard_dir = _candidate
+    if _admin_dashboard_dir is None:
+        for _candidate in (
+            Path(__file__).resolve().parents[2] / "admin-dashboard",
+            Path("/admin-dashboard"),
+        ):
+            if _candidate.is_dir():
+                _admin_dashboard_dir = _candidate
+                break
 
 
 @asynccontextmanager
@@ -88,7 +107,10 @@ async def lifespan(app: FastAPI):
             await session.commit()
 
     async with database.SessionLocal() as session:
+        await seed_morocco_cities_if_empty(session)
+        await ensure_geography_seeded(session)
         await ensure_default_cities(session)
+        await ensure_all_city_communities(session)
 
     yield
     await database.engine.dispose()
@@ -105,11 +127,11 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-# Outermost first for ProxyHeaders so TrustedHost/HSTS see the real scheme.
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(RequestSizeLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AdminIpGuardMiddleware)
 app.add_middleware(AdminOriginGuardMiddleware)
 
 if settings.allowed_hosts != ["*"]:
@@ -125,7 +147,6 @@ app.add_middleware(
     max_age=600,
 )
 
-# Only trust forwarded headers from known reverse-proxy hosts (or loopback in dev).
 _proxy_trusted = (
     settings.allowed_hosts
     if settings.allowed_hosts != ["*"]
@@ -145,22 +166,10 @@ app.include_router(marketplaces.router)
 app.include_router(marketplace_community.router)
 app.include_router(marketplace_admin.router)
 app.include_router(bundles.router)
+app.include_router(geography.router)
+app.include_router(legal_pages.router)
 
-_admin_dashboard_dir: Path | None = None
-if settings.serve_embedded_admin:
-    if settings.admin_dashboard_dir.strip():
-        _candidate = Path(settings.admin_dashboard_dir).expanduser()
-        if _candidate.is_dir():
-            _admin_dashboard_dir = _candidate
-    if _admin_dashboard_dir is None:
-        for _candidate in (
-            Path(__file__).resolve().parents[2] / "admin-dashboard",
-            Path("/admin-dashboard"),
-        ):
-            if _candidate.is_dir():
-                _admin_dashboard_dir = _candidate
-                break
-if _admin_dashboard_dir is not None:
+if settings.serve_embedded_admin and _admin_dashboard_dir is not None:
     app.mount(
         "/admin",
         StaticFiles(directory=str(_admin_dashboard_dir), html=True),
@@ -175,7 +184,6 @@ if settings.storage_backend == "local":
     )
 
 _brand_dir = Path(__file__).resolve().parents[1] / "static" / "brand"
-_legal_dir = Path(__file__).resolve().parents[1] / "static" / "legal"
 if _brand_dir.is_dir():
     app.mount("/brand", StaticFiles(directory=str(_brand_dir)), name="brand")
 
@@ -189,18 +197,6 @@ if _brand_dir.is_dir():
         if manifest.is_file():
             return FileResponse(manifest, media_type="application/manifest+json")
         return FileResponse(_brand_dir / "icon-192.png")
-
-
-if _legal_dir.is_dir():
-    app.mount("/legal", StaticFiles(directory=str(_legal_dir)), name="legal")
-
-    @app.get("/terms", include_in_schema=False)
-    async def terms_page() -> FileResponse:
-        return FileResponse(_legal_dir / "terms.html")
-
-    @app.get("/privacy", include_in_schema=False)
-    async def privacy_page() -> FileResponse:
-        return FileResponse(_legal_dir / "privacy.html")
 
 
 def _request_id(request: Request) -> str:
@@ -242,28 +238,57 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 @app.get("/live")
 @limiter.exempt
 async def live(request: Request):
-    """Process liveness — does not check dependencies."""
     return {"status": "ok"}
 
 
 @app.get("/ready")
 @limiter.exempt
 async def ready(request: Request):
-    """Readiness — fails when the database is unreachable."""
+    checks: dict[str, str] = {}
+    db_ok = True
     try:
         async with database.engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
+            row = await conn.execute(
+                text("SELECT to_regclass('public.users') IS NOT NULL AS exists")
+            )
+            schema_ready = row.scalar()
+            checks["schema"] = "ok" if schema_ready else "missing"
     except Exception:
+        db_ok = False
+        checks["database"] = "error"
+
+    if db_ok:
+        checks["database"] = "ok"
+
+    if settings.storage_backend == "local":
+        media_status = "ok"
+        try:
+            root = media_root()
+            root.mkdir(parents=True, exist_ok=True)
+            probe = root / ".writable_probe"
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink(missing_ok=True)
+        except OSError:
+            media_status = "error"
+        checks["media"] = media_status
+
+    if settings.serve_embedded_admin:
+        checks["admin_dashboard"] = "ok" if _admin_dashboard_dir is not None else "missing"
+    else:
+        checks["admin_dashboard"] = "external"
+
+    unhealthy = (
+        checks.get("database") == "error"
+        or checks.get("media") == "error"
+        or checks.get("schema") == "missing"
+    )
+    if unhealthy:
         return JSONResponse(
             status_code=503,
-            content={"status": "unavailable", "database": "error"},
+            content={"status": "unavailable", **checks},
         )
-    body: dict[str, str] = {"status": "ok", "database": "ok"}
-    if _admin_dashboard_dir is not None:
-        body["admin_dashboard"] = "ok"
-    else:
-        body["admin_dashboard"] = "missing"
-    return body
+    return {"status": "ok", **checks}
 
 
 @app.get("/health")

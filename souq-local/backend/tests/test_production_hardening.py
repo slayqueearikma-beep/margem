@@ -48,6 +48,7 @@ def test_production_accepts_rotated_secret():
         auth_dev_bypass=False,
         jwt_secret_key="a-real-production-secret-key-32chars-min",
         upload_token_secret="a-separate-production-upload-secret-32chars",
+        mfa_encryption_key="a-separate-production-mfa-encryption-key32",
         cors_origins=["https://margem.ma"],
         allowed_hosts=["api.margem.ma"],
         azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
@@ -56,6 +57,45 @@ def test_production_accepts_rotated_secret():
         public_api_url="https://api.margem.ma",
     )
     assert settings.app_env == "production"
+
+
+def test_production_rejects_placeholder_secrets():
+    with pytest.raises(ValidationError, match="JWT_SECRET_KEY"):
+        Settings(
+            _env_file=None,
+            app_env="production",
+            debug=False,
+            auth_dev_bypass=False,
+            jwt_secret_key="CHANGE_ME_MIN_32_CHAR_JWT_SECRET_KEY_32CHARS",
+            upload_token_secret="a-separate-production-upload-secret-32chars",
+            mfa_encryption_key="a-separate-production-mfa-encryption-key32",
+            cors_origins=["https://margem.ma"],
+            allowed_hosts=["api.margem.ma"],
+            storage_backend="azure",
+            azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
+            smtp_host="smtp.example.com",
+            public_app_url="https://margem.ma",
+            public_api_url="https://api.margem.ma",
+        )
+
+
+def test_production_rejects_shared_mfa_key():
+    with pytest.raises(ValidationError, match="MFA_ENCRYPTION_KEY"):
+        Settings(
+            _env_file=None,
+            app_env="production",
+            debug=False,
+            auth_dev_bypass=False,
+            jwt_secret_key="a-real-production-secret-key-32chars-min",
+            upload_token_secret="a-separate-production-upload-secret-32chars",
+            mfa_encryption_key="a-real-production-secret-key-32chars-min",
+            cors_origins=["https://margem.ma"],
+            allowed_hosts=["api.margem.ma"],
+            azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
+            smtp_host="smtp.example.com",
+            public_app_url="https://margem.ma",
+            public_api_url="https://api.margem.ma",
+        )
 
 
 def test_host_lists_accept_comma_delimited_docker_environment_values():

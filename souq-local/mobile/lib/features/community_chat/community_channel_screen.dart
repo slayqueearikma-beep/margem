@@ -108,13 +108,14 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
     if (body.isEmpty || _sending) return;
 
     final auth = ref.read(authSessionProvider);
+    final l10n = context.l10n;
     final tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
     final optimistic = CommunityMessageModel(
       id: tempId,
       channelId: widget.channelId,
       sender: CommunitySenderModel(
         id: auth?.user.id ?? '',
-        displayName: auth?.user.displayName ?? 'You',
+        displayName: auth?.user.displayName ?? l10n.communityYou,
       ),
       body: body,
       replyToId: _replyTo?.id,
