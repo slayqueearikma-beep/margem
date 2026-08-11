@@ -32,6 +32,9 @@ class AsyncErrorView extends StatelessWidget {
 
   static String _localizeApiMessage(AppStrings l10n, ApiException error) {
     final msg = error.message;
+    if (msg.contains('App storage is not ready')) {
+      return l10n.appStorageNotReady;
+    }
     if (msg.contains('API database is unavailable')) {
       return l10n.apiUnavailable;
     }

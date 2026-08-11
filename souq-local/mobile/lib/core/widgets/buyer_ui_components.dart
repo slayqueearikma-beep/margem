@@ -394,8 +394,8 @@ class BuyerPromoBanner extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 152),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+          begin: AlignmentDirectional.centerStart,
+          end: AlignmentDirectional.centerEnd,
           colors: gradientColors ?? AppColors.promoBannerGradient(context),
         ),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadiusLg),

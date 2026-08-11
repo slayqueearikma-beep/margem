@@ -1192,6 +1192,37 @@ class AppStringsEn extends AppStrings {
   }
 
   @override
+  String paymentMethodLabel(String key) {
+    const labels = {
+      'cash': 'Cash',
+      'bank_transfer': 'Bank transfer',
+      'card': 'Card',
+      'mobile_money': 'Mobile money',
+      'cod': 'Cash on delivery',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String deliveryMethodLabel(String key) {
+    const labels = {
+      'in_store': 'In-store pickup',
+      'local_delivery': 'Local delivery',
+      'pickup': 'Pickup',
+      'delivery': 'Delivery',
+      'shipping': 'Shipping',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String get appStorageNotReady =>
+      'App storage is not ready. Please restart the app.';
+
+  @override
+  String get communityYou => 'You';
+
+  @override
   String dayLabel(String key) {
     const days = {
       'Mon': 'Mon',

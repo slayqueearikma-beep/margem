@@ -274,7 +274,11 @@ abstract class AppStrings {
   String get categoryHealth;
   String get categorySports;
   String categoryLabel(String key);
+  String paymentMethodLabel(String key);
+  String deliveryMethodLabel(String key);
   String dayLabel(String key);
+  String get appStorageNotReady;
+  String get communityYou;
   String get tapToUpload;
   String get yourName;
   String get emailHint;

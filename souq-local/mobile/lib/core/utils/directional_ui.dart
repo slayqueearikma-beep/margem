@@ -14,4 +14,12 @@ class DirectionalUi {
   static IconData backArrow(BuildContext context) => isRtl(context)
       ? Icons.arrow_forward_ios_rounded
       : Icons.arrow_back_ios_new_rounded;
+
+  static IconData sendIcon(BuildContext context) => Icons.send_rounded;
+
+  static Widget mirroredSendIcon(BuildContext context, {Color? color, double size = 24}) {
+    final icon = Icon(sendIcon(context), color: color, size: size);
+    if (!isRtl(context)) return icon;
+    return Transform.flip(child: icon, flipX: true);
+  }
 }

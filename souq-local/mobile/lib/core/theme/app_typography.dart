@@ -115,7 +115,10 @@ class AppTypography {
 
   static TextStyle wordmark(BuildContext context, {double size = 28}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GoogleFonts.inter(
+    final isAr = Localizations.localeOf(context).languageCode == 'ar';
+    final fontFactory =
+        isAr ? GoogleFonts.notoSansArabic : GoogleFonts.inter;
+    return fontFactory(
       fontSize: size,
       fontWeight: FontWeight.w800,
       letterSpacing: -0.6,

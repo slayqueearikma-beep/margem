@@ -86,6 +86,9 @@ class Settings(BaseSettings):
     trusted_proxy_hops: int = 0
     # Optional comma-separated extra hosts allowed for presigned upload URLs.
     upload_allowed_hosts: list[str] = []
+    # When set, /admin/* and paths containing /admin/ require client IP in these ranges
+    # (comma-separated hosts or CIDR, e.g. 192.168.0.0/16). Loopback always allowed.
+    admin_ip_allowlist: list[str] = []
 
     smtp_host: str = ""
     smtp_port: int = 587
@@ -117,7 +120,7 @@ class Settings(BaseSettings):
             return value.strip().strip('"').strip("'")
         return value
 
-    @field_validator("cors_origins", "allowed_hosts", "upload_allowed_hosts", mode="before")
+    @field_validator("cors_origins", "allowed_hosts", "upload_allowed_hosts", "admin_ip_allowlist", mode="before")
     @classmethod
     def parse_string_list(cls, value: Any) -> list[str]:
         if isinstance(value, str):
@@ -147,6 +150,14 @@ class Settings(BaseSettings):
                 normalized.append(loopback)
         return normalized
 
+    @staticmethod
+    def _looks_like_placeholder(value: str) -> bool:
+        upper = value.upper()
+        return any(
+            marker in upper
+            for marker in ("CHANGE_ME", "CHANGE-THIS-SECRET", "CHANGE-IN-PRODUCTION")
+        )
+
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
         if not self.mfa_encryption_key:
@@ -159,8 +170,18 @@ class Settings(BaseSettings):
             if len(self.jwt_secret_key) < 32:
                 raise ValueError("JWT_SECRET_KEY must be at least 32 characters in production")
             # Reject the documented default even when it already meets length checks.
-            if self.jwt_secret_key.startswith("change-this-secret"):
-                raise ValueError("JWT_SECRET_KEY must be rotated away from the default value in production")
+            if self.jwt_secret_key.startswith("change-this-secret") or self._looks_like_placeholder(
+                self.jwt_secret_key
+            ):
+                raise ValueError("JWT_SECRET_KEY must be rotated away from placeholder values in production")
+            if self._looks_like_placeholder(self.upload_token_secret):
+                raise ValueError("UPLOAD_TOKEN_SECRET must not use placeholder values in production")
+            if self._looks_like_placeholder(self.mfa_encryption_key):
+                raise ValueError("MFA_ENCRYPTION_KEY must not use placeholder values in production")
+            if len(self.mfa_encryption_key) < 32:
+                raise ValueError("MFA_ENCRYPTION_KEY must be at least 32 characters in production")
+            if self.mfa_encryption_key == self.jwt_secret_key:
+                raise ValueError("MFA_ENCRYPTION_KEY must differ from JWT_SECRET_KEY in production")
             if self.storage_backend == "local":
                 if not self.upload_token_secret or len(self.upload_token_secret) < 32:
                     raise ValueError("UPLOAD_TOKEN_SECRET must be at least 32 characters in production")

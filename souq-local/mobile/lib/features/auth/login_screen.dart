@@ -134,7 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final storage = ref.read(appStorageProvider);
     if (storage == null) {
-      throw ApiException('App storage is not ready. Please restart the app.');
+      throw ApiException(context.l10n.appStorageNotReady);
     }
 
     final existing = storage.getSession();

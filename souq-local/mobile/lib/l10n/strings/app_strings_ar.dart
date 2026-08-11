@@ -884,12 +884,12 @@ class AppStringsAr extends AppStringsEn {
   String get emptyFavoritesSubtitle =>
       'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
   @override
-  String get premiumActivated => 'تم تفعيل بريميوم';
+  String get premiumActivated => 'تم تفعيل الاشتراك المميز';
   @override
-  String get noPremiumPlans => 'لا توجد خطط بريميوم متاحة حالياً.';
+  String get noPremiumPlans => 'لا توجد خطط اشتراك مميز متاحة حالياً.';
   @override
   String get premiumBillingUnavailable =>
-      'الاشتراك الذاتي غير مفعّل بعد. تواصل مع دعم MarGem أو اطلب من المسؤول منح البريميوم.';
+      'الاشتراك الذاتي غير مفعّل بعد. تواصل مع دعم MarGem أو اطلب من المسؤول منح الاشتراك المميز.';
   @override
   String get premiumContactSupport => 'تواصل مع الدعم';
   @override
@@ -939,7 +939,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get signupOtpVerify => 'تحقق';
   @override
-  String get premiumTitle => 'نمّ عملك مع MarGem بريميوم';
+  String get premiumTitle => 'نمِّ عملك مع MarGem المميز';
   @override
   String get premiumSubtitle =>
       'افتح ظهوراً أقوى وأدوات اكتشاف وتحليلات للملف.';
@@ -1020,7 +1020,7 @@ class AppStringsAr extends AppStringsEn {
   String analyticsSummary(int profileViews, int contactClicks) =>
       '$profileViews مشاهدة · $contactClicks نقرة تواصل';
   @override
-  String get premiumActiveSub => 'خطة بريميوم نشطة';
+  String get premiumActiveSub => 'خطة الاشتراك المميز نشطة';
   @override
   String get premiumUpgradeSub => 'طوّر الظهور وأدوات الاكتشاف';
   @override
@@ -1191,6 +1191,37 @@ class AppStringsAr extends AppStringsEn {
         return key;
     }
   }
+
+  @override
+  String paymentMethodLabel(String key) {
+    const labels = {
+      'cash': 'نقداً',
+      'bank_transfer': 'تحويل بنكي',
+      'card': 'بطاقة',
+      'mobile_money': 'محفظة إلكترونية',
+      'cod': 'الدفع عند الاستلام',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String deliveryMethodLabel(String key) {
+    const labels = {
+      'in_store': 'استلام من المتجر',
+      'local_delivery': 'توصيل محلي',
+      'pickup': 'استلام',
+      'delivery': 'توصيل',
+      'shipping': 'شحن',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String get appStorageNotReady =>
+      'تخزين التطبيق غير جاهز. أعد تشغيل التطبيق.';
+
+  @override
+  String get communityYou => 'أنت';
 
   @override
   String dayLabel(String key) {

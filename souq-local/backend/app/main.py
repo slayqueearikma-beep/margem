@@ -19,6 +19,7 @@ from app.config import settings
 import app.database as database
 from app.limiter import limiter
 from app.logging_config import configure_logging
+from app.middleware.admin_ip_guard import AdminIpGuardMiddleware
 from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
@@ -100,6 +101,7 @@ app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(RequestSizeLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AdminIpGuardMiddleware)
 
 if settings.allowed_hosts != ["*"]:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
@@ -202,16 +204,47 @@ async def live(request: Request):
 @app.get("/ready")
 @limiter.exempt
 async def ready(request: Request):
-    """Readiness — fails when the database is unreachable."""
+    """Readiness — database, optional local media, migration table."""
+    checks: dict[str, str] = {}
+    db_ok = True
     try:
         async with database.engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
+            row = await conn.execute(
+                text("SELECT to_regclass('public.users') IS NOT NULL AS exists")
+            )
+            schema_ready = row.scalar()
+            checks["schema"] = "ok" if schema_ready else "missing"
     except Exception:
+        db_ok = False
+        checks["database"] = "error"
+
+    if db_ok:
+        checks["database"] = "ok"
+
+    if settings.storage_backend == "local":
+        media_status = "ok"
+        try:
+            root = media_root()
+            root.mkdir(parents=True, exist_ok=True)
+            probe = root / ".writable_probe"
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink(missing_ok=True)
+        except OSError:
+            media_status = "error"
+        checks["media"] = media_status
+
+    unhealthy = (
+        checks.get("database") == "error"
+        or checks.get("media") == "error"
+        or checks.get("schema") == "missing"
+    )
+    if unhealthy:
         return JSONResponse(
             status_code=503,
-            content={"status": "unavailable", "database": "error"},
+            content={"status": "unavailable", **checks},
         )
-    return {"status": "ok", "database": "ok"}
+    return {"status": "ok", **checks}
 
 
 @app.get("/health")

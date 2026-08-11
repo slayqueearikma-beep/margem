@@ -88,3 +88,28 @@ See CI output on PR. Regenerate legal HTML after content changes:
 ```bash
 python3 souq-local/backend/scripts/generate_legal_html.py
 ```
+
+---
+
+## Stability / security / Arabic follow-up (Aug 11, 2026)
+
+### Stability / ops (~8/10)
+- `validate_home_env.py` — preflight `.env.home` before Docker start
+- `start_home_server.sh` — runs validator, correct storage backend messaging, `/ready` URL
+- `/ready` — DB + local media writability + schema probe
+- `entrypoint.sh` — media directory writable check before uvicorn
+- `env.home.example` — bootable LAN defaults (`ALLOW_INSECURE_EMAIL_FALLBACK=true`, `MFA_ENCRYPTION_KEY`, `ADMIN_IP_ALLOWLIST`)
+
+### Security (~8.5/10)
+- `AdminIpGuardMiddleware` — optional `ADMIN_IP_ALLOWLIST` for `/admin/*` paths
+- Production rejects placeholder secrets (`CHANGE_ME`, etc.)
+- Separate `MFA_ENCRYPTION_KEY` required in production (distinct from JWT)
+- Dev Postgres bound to `127.0.0.1` only
+
+### Arabic / RTL (~7.5–8/10)
+- `paymentMethodLabel` / `deliveryMethodLabel` (EN/FR/AR) on storefront screens
+- Localized city names in seller registration review
+- RTL: city picker, promo banner, message send icon, registration remove button
+- `appStorageNotReady`, `communityYou`, premium terminology fixes in Arabic
+- Noto Sans Arabic wordmark for `ar` locale
+

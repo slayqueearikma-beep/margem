@@ -1188,6 +1188,37 @@ class AppStringsFr extends AppStringsEn {
       'Délai dépassé (${seconds}s). Vérifiez votre connexion et réessayez.';
 
   @override
+  String paymentMethodLabel(String key) {
+    const labels = {
+      'cash': 'Espèces',
+      'bank_transfer': 'Virement bancaire',
+      'card': 'Carte',
+      'mobile_money': 'Mobile money',
+      'cod': 'Paiement à la livraison',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String deliveryMethodLabel(String key) {
+    const labels = {
+      'in_store': 'En magasin',
+      'local_delivery': 'Livraison locale',
+      'pickup': 'Retrait',
+      'delivery': 'Livraison',
+      'shipping': 'Expédition',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String get appStorageNotReady =>
+      'Le stockage de l\'application n\'est pas prêt. Redémarrez l\'application.';
+
+  @override
+  String get communityYou => 'Vous';
+
+  @override
   String dayLabel(String key) {
     const days = {
       'Mon': 'Lun',

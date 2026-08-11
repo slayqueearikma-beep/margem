@@ -8,6 +8,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/community_websocket_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/design_system_components.dart';
 import '../../core/widgets/margem_background.dart';
@@ -102,7 +103,7 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
       channelId: widget.channelId,
       sender: CommunitySenderModel(
         id: auth?.user.id ?? '',
-        displayName: auth?.user.displayName ?? 'You',
+        displayName: auth?.user.displayName ?? context.l10n.communityYou,
       ),
       body: body,
       replyToId: _replyTo?.id,
@@ -596,7 +597,7 @@ class _Composer extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.send_rounded),
+                  : DirectionalUi.mirroredSendIcon(context),
             ),
           ],
         ),

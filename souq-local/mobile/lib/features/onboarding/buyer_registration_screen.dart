@@ -91,8 +91,7 @@ class _BuyerRegistrationScreenState
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException(
-              'App storage is not ready. Please restart the app.');
+          throw ApiException(l10n.appStorageNotReady);
         }
 
         final userSession = UserSession(

@@ -232,8 +232,7 @@ class _SellerRegistrationScreenState
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException(
-              'App storage is not ready. Please restart the app.');
+          throw ApiException(l10n.appStorageNotReady);
         }
 
         final userSession = UserSession(
@@ -515,7 +514,7 @@ class _SellerRegistrationScreenState
                           const TextInputType.numberWithOptions(decimal: true)),
                   if (_products.length > 1)
                     Align(
-                      alignment: Alignment.centerRight,
+                      alignment: AlignmentDirectional.centerEnd,
                       child: TextButton(
                         onPressed: () => setState(() {
                           product.dispose();
@@ -540,6 +539,11 @@ class _SellerRegistrationScreenState
   }
 
   Widget _buildStep5(AppStrings l10n) {
+    final locale = Localizations.localeOf(context).languageCode;
+    final cityLabel = _selectedCity?.localizedName(locale) ??
+        findCityByName(ref.watch(citiesProvider).valueOrNull ?? [], AppConfig.launchCity)
+            ?.localizedName(locale) ??
+        AppConfig.launchCity;
     final productCount =
         _products.where((p) => p.nameController.text.isNotEmpty).length;
     return Column(
@@ -553,7 +557,7 @@ class _SellerRegistrationScreenState
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
         _ReviewRow(l10n.email, _emailController.text),
         _ReviewRow(l10n.reviewCategory, l10n.categoryLabel(_category)),
-        _ReviewRow(l10n.reviewCity, _selectedCity?.nameEn ?? AppConfig.launchCity),
+        _ReviewRow(l10n.reviewCity, cityLabel),
         _ReviewRow(l10n.reviewAddress, _addressController.text),
         _ReviewRow(l10n.reviewPhone, _phoneController.text),
         _ReviewRow(l10n.reviewProducts, l10n.itemsCount(productCount)),
@@ -569,8 +573,7 @@ class _SellerRegistrationScreenState
               const Icon(Icons.info_outline, color: AppColors.primary),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                  child: Text(l10n.sellerVisibilityNote(
-                      _selectedCity?.nameEn ?? AppConfig.launchCity),
+                  child: Text(l10n.sellerVisibilityNote(cityLabel),
                       style: Theme.of(context).textTheme.bodySmall)),
             ],
           ),

@@ -49,6 +49,8 @@ def test_production_requires_smtp_host():
             debug=False,
             auth_dev_bypass=False,
             jwt_secret_key="a-real-production-secret-key-32chars-min",
+            upload_token_secret="a-separate-production-upload-secret-32chars",
+            mfa_encryption_key="a-separate-production-mfa-encryption-key32",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
             azure_storage_connection_string=(
@@ -68,6 +70,8 @@ def test_production_allows_email_fallback_flag():
         debug=False,
         auth_dev_bypass=False,
         jwt_secret_key="a-real-production-secret-key-32chars-min",
+        upload_token_secret="a-separate-production-upload-secret-32chars",
+        mfa_encryption_key="a-separate-production-mfa-encryption-key32",
         cors_origins=["https://margem.ma"],
         allowed_hosts=["api.margem.ma"],
         azure_storage_connection_string=(
@@ -89,6 +93,8 @@ def test_production_rejects_http_public_urls():
             debug=False,
             auth_dev_bypass=False,
             jwt_secret_key="a-real-production-secret-key-32chars-min",
+            upload_token_secret="a-separate-production-upload-secret-32chars",
+            mfa_encryption_key="a-separate-production-mfa-encryption-key32",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
             azure_storage_connection_string=(
