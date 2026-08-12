@@ -100,7 +100,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
     final uri = Uri(
       scheme: 'mailto',
       path: 'support@margem.ma',
-      queryParameters: {'subject': 'MarGem Premium'},
+      queryParameters: {'subject': 'Dribex Premium'},
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);

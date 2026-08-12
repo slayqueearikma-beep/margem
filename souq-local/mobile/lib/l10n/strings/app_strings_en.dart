@@ -81,7 +81,7 @@ class AppStringsEn extends AppStrings {
   String get growSubtitle =>
       'List your products or services, reach more customers and grow your brand.';
   @override
-  String get chooseAccountType => 'Welcome to MarGem';
+  String get chooseAccountType => 'Welcome to Dribex';
   @override
   String get chooseAccountTypeSubtitle =>
       'Join our community and discover Morocco\'s hidden gems.';
@@ -232,7 +232,7 @@ class AppStringsEn extends AppStrings {
   String get serviceDetailsHint =>
       'You can update availability and pricing anytime from the services tab.';
   @override
-  String get margemMember => 'MarGem member';
+  String get margemMember => 'Dribex member';
   @override
   String get allCategories => 'All';
   @override
@@ -306,7 +306,7 @@ class AppStringsEn extends AppStrings {
       'Try another keyword, switch category, or clear your filters.';
   @override
   String get premiumCheckoutOpened =>
-      'Complete payment in your browser, then return to MarGem.';
+      'Complete payment in your browser, then return to Dribex.';
   @override
   String get premiumCheckoutFailed =>
       'Could not open checkout. Please try again or contact support.';
@@ -924,7 +924,7 @@ class AppStringsEn extends AppStrings {
   String get noPremiumPlans => 'No premium plans are available right now.';
   @override
   String get premiumBillingUnavailable =>
-      'Self-serve billing is not enabled yet. Contact MarGem support or ask an admin to grant premium visibility.';
+      'Self-serve billing is not enabled yet. Contact Dribex support or ask an admin to grant premium visibility.';
   @override
   String get premiumContactSupport => 'Contact support';
   @override
@@ -975,7 +975,7 @@ class AppStringsEn extends AppStrings {
   @override
   String get signupOtpVerify => 'Verify';
   @override
-  String get premiumTitle => 'Grow with MarGem Premium';
+  String get premiumTitle => 'Grow with Dribex Premium';
   @override
   String get premiumSubtitle =>
       'Unlock stronger visibility, discovery tools, and profile insights.';

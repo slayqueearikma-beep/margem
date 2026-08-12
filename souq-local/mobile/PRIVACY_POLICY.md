@@ -1,8 +1,8 @@
-# MarGem Privacy Policy
+# Dribex Privacy Policy
 
 **Last updated:** August 5, 2026
 
-MarGem ("we", "our", "the app") is a local discovery and marketplace platform that connects buyers with businesses across Morocco.
+Dribex ("we", "our", "the app") is a local discovery and marketplace platform that connects buyers with businesses across Morocco.
 
 ## Information we collect
 
@@ -29,12 +29,12 @@ MarGem ("we", "our", "the app") is a local discovery and marketplace platform th
 
 ## Subscriptions
 
-MarGem offers free standard accounts plus optional paid plans:
+Dribex offers free standard accounts plus optional paid plans:
 
 | Plan | Price | Audience |
 |------|-------|----------|
 | Standard | Free | All users |
-| MarGem Plus | 49 MAD / 30 days | Buyers |
+| Dribex Plus | 49 MAD / 30 days | Buyers |
 | Seller Pro | 199 MAD / 30 days | Sellers |
 
 See [Subscription Terms](../docs/SUBSCRIPTION_TERMS.md) and the full [Privacy Policy](../../legal/privacy/privacy-policy.md) for details.
@@ -51,7 +51,7 @@ We do not sell your personal data. We share data only with service providers req
 
 ## Children
 
-MarGem is not directed to children under 16. We do not knowingly collect data from children under 16.
+Dribex is not directed to children under 16. We do not knowingly collect data from children under 16.
 
 ## Contact
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_config.dart';
 import '../navigation/margem_navigation_leading.dart';
 import '../theme/theme_context.dart';
 import 'app_brand_logo.dart';
@@ -75,7 +76,7 @@ class MarGemAppBar extends StatelessWidget implements PreferredSizeWidget {
                       child: effectiveLeading,
                     ),
                   Semantics(
-                    label: semanticLabel ?? 'MarGem',
+                    label: semanticLabel ?? AppConfig.appName,
                     child: const MarGemAppBarLogo(),
                   ),
                   if (actionWidgets.isNotEmpty)
