@@ -60,7 +60,8 @@ async def send_signup_otp(
 
     existing = await session.execute(select(User).where(User.email == normalized_email))
     if existing.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=409, detail="Email already registered")
+        masked = _mask_email(normalized_email) if channel == "email" else _mask_phone(normalized_phone)
+        return {"channel": channel, "destination_masked": masked}
 
     await session.execute(
         update(SignupVerification)
@@ -103,9 +104,7 @@ async def send_signup_otp(
     await session.commit()
     masked = _mask_email(normalized_email) if channel == "email" else _mask_phone(normalized_phone)
     result = {"channel": channel, "destination_masked": masked}
-    if settings.app_env in {"development", "dev", "test"} or os.environ.get(
-        "PYTEST_CURRENT_TEST"
-    ):
+    if os.environ.get("PYTEST_CURRENT_TEST"):
         result["dev_code"] = code
     return result
 

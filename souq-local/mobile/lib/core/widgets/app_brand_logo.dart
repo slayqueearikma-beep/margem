@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_config.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
@@ -262,7 +263,7 @@ class AppBrandLogo extends StatelessWidget {
 
     final resolved = _resolvedVariant;
     final logo = Semantics(
-      label: 'MarGem logo',
+      label: '${AppConfig.appName} logo',
       child: switch (resolved) {
         AppBrandLogoVariant.full => _FullLockup(
             width: width,

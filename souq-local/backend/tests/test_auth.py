@@ -96,4 +96,5 @@ async def test_register_email_case_insensitive():
                 "channel": "email",
             },
         )
-        assert second.status_code == 409
+        assert second.status_code == 200
+        assert not second.json().get("dev_code")

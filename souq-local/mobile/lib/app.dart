@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/config/app_config.dart';
 import 'core/models/models.dart';
 import 'core/navigation/app_back_handler.dart';
 import 'core/services/app_storage.dart';
@@ -44,9 +45,19 @@ import 'features/settings/language_selection_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'l10n/app_localizations.dart';
 
+/// Notifies [GoRouter] when auth/session state changes so redirects re-run.
+class _RouterRefreshListenable extends ChangeNotifier {
+  _RouterRefreshListenable(Ref ref) {
+    ref.listen(userSessionProvider, (_, __) => notifyListeners());
+    ref.listen(authSessionProvider, (_, __) => notifyListeners());
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
+  final refresh = _RouterRefreshListenable(ref);
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
+    refreshListenable: refresh,
     initialLocation: '/splash',
     // Keep the page stack for Android system-back; only splash/auth flows
     // intentionally replace via context.go().
@@ -63,12 +74,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings') ||
           path.startsWith('/seller/messages');
+      final isMarketplaceCommunity =
+          RegExp(r'^/marketplace/[^/]+/community').hasMatch(path);
       final isAuthProtected = isSellerManagement ||
           path == '/premium' ||
           path == '/profile' ||
           path == '/favorites' ||
           path.startsWith('/messages') ||
-          path.startsWith('/community/channels');
+          path.startsWith('/community/channels') ||
+          isMarketplaceCommunity;
       final isAuthenticated = session != null && !session.isGuest;
       if (isAuthProtected && !isAuthenticated) {
         return '/login';
@@ -319,7 +333,7 @@ class _MarGemAppState extends ConsumerState<MarGemApp>
     }
 
     return MaterialApp.router(
-      title: 'MarGem',
+      title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: AppTheme.light(languageCode: locale.languageCode),

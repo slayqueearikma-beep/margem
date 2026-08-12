@@ -84,7 +84,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 echo "Validating .env.home..."
-if ! python3 "$ROOT/backend/scripts/validate_home_env.py" "$ENV_FILE"; then
+if ! PYTHONPATH="$ROOT/backend" python3 "$ROOT/backend/scripts/validate_home_env.py" "$ENV_FILE"; then
   echo "Fix the errors above before starting Docker." >&2
   exit 1
 fi

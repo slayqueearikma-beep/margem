@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../models/city_model.dart';
 import '../providers/city_providers.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import 'form_widgets.dart';
 
 /// Autocomplete city selector backed by the geography API.
@@ -36,11 +36,26 @@ class CityPickerField extends ConsumerWidget {
         readOnly: true,
         prefixIcon: Icons.location_city_outlined,
       ),
-      error: (_, __) => AppTextField(
-        label: label ?? l10n.city,
-        hint: selected?.localizedName(locale) ?? l10n.city,
-        readOnly: true,
-        prefixIcon: Icons.location_city_outlined,
+      error: (error, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppTextField(
+            label: label ?? l10n.city,
+            hint: selected?.localizedName(locale) ?? l10n.city,
+            readOnly: true,
+            prefixIcon: Icons.location_city_outlined,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.somethingWentWrong,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextButton(
+            onPressed: () => ref.invalidate(citiesProvider),
+            child: Text(l10n.tryAgain),
+          ),
+        ],
       ),
       data: (cities) {
         if (readOnly && selected != null) {
@@ -105,18 +120,18 @@ class _CityAutocompleteField extends StatelessWidget {
             labelText: label,
             prefixIcon: const Icon(Icons.location_city_outlined),
             filled: true,
-            fillColor: AppColors.mutedSurface(context),
+            fillColor: context.colors.surfaceVariant,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.outline(context)),
+              borderSide: BorderSide(color: context.colors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.outline(context)),
+              borderSide: BorderSide(color: context.colors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+              borderSide: BorderSide(color: context.colors.primary, width: 1.4),
             ),
           ),
         );
@@ -192,10 +207,10 @@ Future<CityModel?> showCityPickerSheet(
                       hintText: context.l10n.city,
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
-                      fillColor: AppColors.mutedSurface(context),
+                      fillColor: context.colors.surfaceVariant,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: AppColors.outline(context)),
+                        borderSide: BorderSide(color: context.colors.border),
                       ),
                     ),
                     onChanged: (value) {
@@ -221,7 +236,7 @@ Future<CityModel?> showCityPickerSheet(
                             ? null
                             : Text(city.region),
                         trailing: isSelected
-                            ? const Icon(Icons.check, color: AppColors.primary)
+                            ? Icon(Icons.check, color: context.colors.primary)
                             : null,
                         onTap: () => Navigator.pop(context, city),
                       );

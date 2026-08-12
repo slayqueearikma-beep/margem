@@ -46,6 +46,14 @@ $lanIp = Get-LanIp
 $port = 8000
 if ((Get-Content $EnvFile) -match 'API_PORT=(\d+)') { $port = $Matches[1] }
 
+Write-Host "Validating .env.home..."
+$env:PYTHONPATH = Join-Path $Root "backend"
+python3 (Join-Path $Root "backend\scripts\validate_home_env.py") $EnvFile
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Fix .env.home validation errors before starting Docker."
+}
+Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue
+
 Write-Host "[1/2] Starting Postgres + API..."
 Push-Location $Root
 try {

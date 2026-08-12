@@ -3,7 +3,7 @@ import 'app_strings_en.dart';
 class AppStringsFr extends AppStringsEn {
   @override
   @override
-  String get appName => 'MarGem';
+  String get appName => 'Dribex';
   @override
   String get appTagline => 'Découvrez les trésors cachés du Maroc';
   @override
@@ -80,7 +80,7 @@ class AppStringsFr extends AppStringsEn {
   String get growSubtitle =>
       'Référencez vos produits ou services, touchez plus de clients et développez votre marque.';
   @override
-  String get chooseAccountType => 'Bienvenue sur MarGem';
+  String get chooseAccountType => 'Bienvenue sur Dribex';
   @override
   String get chooseAccountTypeSubtitle =>
       'Rejoignez notre communauté et découvrez les perles cachées du Maroc.';
@@ -152,7 +152,7 @@ class AppStringsFr extends AppStringsEn {
   String get city => 'Ville';
   @override
   String get fillRequiredFields =>
-      'Veuillez remplir tous les champs obligatoires (mot de passe min. 6 caractères).';
+      'Veuillez remplir tous les champs obligatoires (mot de passe min. 8 caractères avec majuscule, minuscule et chiffre).';
   @override
   String get navHome => 'Accueil';
   @override
@@ -234,7 +234,7 @@ class AppStringsFr extends AppStringsEn {
   String get serviceDetailsHint =>
       'Vous pouvez modifier la disponibilité et les tarifs à tout moment.';
   @override
-  String get margemMember => 'Membre MarGem';
+  String get margemMember => 'Membre Dribex';
   @override
   String get allCategories => 'Tous';
   @override
@@ -309,7 +309,7 @@ class AppStringsFr extends AppStringsEn {
       'Essayez un autre mot-clé, une autre catégorie ou réinitialisez les filtres.';
   @override
   String get premiumCheckoutOpened =>
-      'Finalisez le paiement dans votre navigateur, puis revenez sur MarGem.';
+      'Finalisez le paiement dans votre navigateur, puis revenez sur Dribex.';
   @override
   String get premiumCheckoutFailed =>
       'Impossible d\'ouvrir le paiement. Réessayez ou contactez le support.';
@@ -939,7 +939,7 @@ class AppStringsFr extends AppStringsEn {
   String get noPremiumPlans => 'Aucun plan premium disponible pour le moment.';
   @override
   String get premiumBillingUnavailable =>
-      'La facturation libre-service n’est pas encore activée. Contactez le support MarGem ou un administrateur pour activer le premium.';
+      'La facturation libre-service n’est pas encore activée. Contactez le support Dribex ou un administrateur pour activer le premium.';
   @override
   String get premiumContactSupport => 'Contacter le support';
   @override
@@ -990,7 +990,7 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get signupOtpVerify => 'Vérifier';
   @override
-  String get premiumTitle => 'Développez-vous avec MarGem Premium';
+  String get premiumTitle => 'Développez-vous avec Dribex Premium';
   @override
   String get premiumSubtitle =>
       'Débloquez plus de visibilité, d’outils de découverte et d’analyses du profil.';
@@ -1350,4 +1350,12 @@ class AppStringsFr extends AppStringsEn {
   @override
   String requestTimeout(int seconds) =>
       'Délai d\'expiration après ${seconds}s. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get invalidCredentials =>
+      'E-mail ou mot de passe incorrect. Vérifiez vos identifiants et réessayez.';
+
+  @override
+  String get invalidEmailFormat =>
+      'Saisissez une adresse e-mail valide (par exemple, vous@exemple.com).';
 }

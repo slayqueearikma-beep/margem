@@ -606,6 +606,8 @@ abstract class AppStrings {
   String get connectionError;
   String get apiUnavailable;
   String requestTimeout(int seconds);
+  String get invalidCredentials;
+  String get invalidEmailFormat;
 
   static AppStrings forLocale(String languageCode) {
     switch (languageCode) {

@@ -2,7 +2,7 @@ import 'app_strings_en.dart';
 
 class AppStringsAr extends AppStringsEn {
   @override
-  String get appName => 'MarGem';
+  String get appName => 'Dribex';
   @override
   String get appTagline => 'اكتشف كنوز المغرب المخفية';
   @override
@@ -81,7 +81,7 @@ class AppStringsAr extends AppStringsEn {
   String get growSubtitle =>
       'أدرج منتجاتك أو خدماتك، واصل إلى المزيد من العملاء ونمِّ علامتك التجارية.';
   @override
-  String get chooseAccountType => 'مرحباً بك في MarGem';
+  String get chooseAccountType => 'مرحباً بك في Dribex';
   @override
   String get chooseAccountTypeSubtitle =>
       'انضم إلى مجتمعنا واكتشف جواهر المغرب المخفية.';
@@ -149,7 +149,7 @@ class AppStringsAr extends AppStringsEn {
   String get city => 'المدينة';
   @override
   String get fillRequiredFields =>
-      'يرجى ملء جميع الحقول المطلوبة (كلمة المرور 6 أحرف على الأقل).';
+      'يرجى ملء جميع الحقول المطلوبة (كلمة المرور 8 أحرف على الأقل مع حرف كبير وصغير ورقم).';
   @override
   String get navHome => 'الرئيسية';
   @override
@@ -230,7 +230,7 @@ class AppStringsAr extends AppStringsEn {
   String get serviceDetailsHint =>
       'يمكنك تحديث التوفر والأسعار في أي وقت من تبويب الخدمات.';
   @override
-  String get margemMember => 'عضو MarGem';
+  String get margemMember => 'عضو Dribex';
   @override
   String get allCategories => 'الكل';
   @override
@@ -303,7 +303,7 @@ class AppStringsAr extends AppStringsEn {
       'جرّب كلمة أخرى أو فئة مختلفة أو أزل عوامل التصفية.';
   @override
   String get premiumCheckoutOpened =>
-      'أكمل الدفع في المتصفح ثم عد إلى MarGem.';
+      'أكمل الدفع في المتصفح ثم عد إلى Dribex.';
   @override
   String get premiumCheckoutFailed =>
       'تعذر فتح صفحة الدفع. حاول مرة أخرى أو تواصل مع الدعم.';
@@ -922,7 +922,7 @@ class AppStringsAr extends AppStringsEn {
   String get noPremiumPlans => 'لا توجد خطط بريميوم متاحة حالياً.';
   @override
   String get premiumBillingUnavailable =>
-      'الاشتراك الذاتي غير مفعّل بعد. تواصل مع دعم MarGem أو اطلب من المسؤول منح البريميوم.';
+      'الاشتراك الذاتي غير مفعّل بعد. تواصل مع دعم Dribex أو اطلب من المسؤول منح البريميوم.';
   @override
   String get premiumContactSupport => 'تواصل مع الدعم';
   @override
@@ -972,7 +972,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get signupOtpVerify => 'تحقق';
   @override
-  String get premiumTitle => 'نمّ عملك مع MarGem بريميوم';
+  String get premiumTitle => 'نمّ عملك مع Dribex بريميوم';
   @override
   String get premiumSubtitle =>
       'افتح ظهوراً أقوى وأدوات اكتشاف وتحليلات للملف.';
@@ -1355,4 +1355,12 @@ class AppStringsAr extends AppStringsEn {
   @override
   String requestTimeout(int seconds) =>
       'انتهت مهلة الطلب بعد ${seconds} ثانية. تحقق من اتصالك وحاول مجدداً.';
+
+  @override
+  String get invalidCredentials =>
+      'البريد الإلكتروني أو كلمة المرور غير صحيحة. تحقق من بياناتك وحاول مجدداً.';
+
+  @override
+  String get invalidEmailFormat =>
+      'أدخل عنوان بريد إلكتروني صالحاً (مثال: you@example.com).';
 }

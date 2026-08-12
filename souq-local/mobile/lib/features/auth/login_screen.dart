@@ -46,12 +46,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final lower = message.toLowerCase();
     if (error.statusCode == 401 ||
         lower.contains('invalid email or password')) {
-      return 'Invalid email or password. Check your credentials and try again.';
+      return l10n.invalidCredentials;
     }
     if (error.statusCode == 422 ||
         lower.contains('valid email') ||
         lower.contains('invalid email')) {
-      return 'Enter a valid email address (for example, you@example.com).';
+      return l10n.invalidEmailFormat;
     }
     if (message.isNotEmpty) return message;
     return l10n.somethingWentWrong;
@@ -68,7 +68,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
     if (!FormValidators.isValidEmail(email)) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.emailRequired)));
+          .showSnackBar(SnackBar(content: Text(l10n.invalidEmailFormat)));
       return;
     }
 

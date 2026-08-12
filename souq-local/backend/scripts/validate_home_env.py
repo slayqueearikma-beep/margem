@@ -91,11 +91,24 @@ def main() -> int:
     if public_api and public_api not in cors:
         warnings.append(f"CORS_ORIGINS should include PUBLIC_API_URL ({public_api}) for the mobile app")
 
+    admin_port = raw.get("ADMIN_PORT", "8080").strip() or "8080"
+    if public_api:
+        from urllib.parse import urlparse
+
+        parsed = urlparse(public_api)
+        if parsed.hostname:
+            admin_origin = f"{parsed.scheme}://{parsed.hostname}:{admin_port}"
+            if admin_origin not in cors:
+                warnings.append(
+                    f"CORS_ORIGINS should include admin dashboard origin ({admin_origin})"
+                )
+
     if not raw.get("ADMIN_IP_ALLOWLIST", "").strip():
-        warnings.append(
-            "ADMIN_IP_ALLOWLIST is empty — admin APIs accept any client IP. "
-            "Set private ranges for home servers (see env.home.example)"
+        errors.append(
+            "ADMIN_IP_ALLOWLIST is empty — set private LAN ranges "
+            "(see env.home.example) before exposing the API"
         )
+
 
     # Pydantic Settings validation (full cross-field rules).
     try:
