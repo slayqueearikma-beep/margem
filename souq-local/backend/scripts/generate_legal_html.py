@@ -294,6 +294,161 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
 """,
         },
     },
+    "seller-terms": {
+        "en": {
+            "title": "Seller Terms",
+            "body": """
+<p>These Seller Terms apply when you create a seller account or storefront on Dribex. They supplement the Terms of Service and Marketplace Rules.</p>
+<h2>1. Eligibility</h2>
+<p>Sellers must be at least 16, provide accurate business information, comply with Moroccan law, and maintain a verified email address.</p>
+<h2>2. Listings and storefront</h2>
+<p>You are responsible for truthful descriptions, pricing, availability, images, and lawful products or services. Dribex may remove listings that violate policies.</p>
+<h2>3. Verification</h2>
+<p>Verification badges reflect review status only — not a guarantee of quality, safety, or legality.</p>
+<h2>4. Transactions</h2>
+<p>Payments between buyers and sellers generally occur off-platform unless Dribex later enables in-app billing. You are responsible for taxes, receipts, and customer service for your sales.</p>
+<h2>5. Reviews and conduct</h2>
+<p>Do not manipulate reviews, harass users, or post misleading content. Dribex may suspend seller accounts for policy violations.</p>
+<h2>6. Contact</h2>
+<p><a href="mailto:sellers@dribex.ma">sellers@dribex.ma</a></p>
+""",
+        },
+        "fr": {
+            "title": "Conditions vendeur",
+            "body": """
+<p>Ces conditions s'appliquent lorsque vous créez un compte ou une vitrine vendeur sur Dribex, en complément des Conditions d'utilisation.</p>
+<h2>1. Éligibilité</h2>
+<p>Informations exactes, conformité à la loi marocaine, e-mail vérifié, âge minimum 16 ans.</p>
+<h2>2. Annonces</h2>
+<p>Descriptions, prix et images véridiques. Dribex peut retirer les annonces non conformes.</p>
+<h2>3. Transactions</h2>
+<p>Paiements généralement hors plateforme. Vous êtes responsable des taxes et du service client.</p>
+<h2>4. Contact</h2>
+<p><a href="mailto:sellers@dribex.ma">sellers@dribex.ma</a></p>
+""",
+        },
+        "ar": {
+            "title": "شروط البائع",
+            "body": """
+<p>تنطبق شروط البائع عند إنشاء حساب أو متجر على Dribex، بالإضافة إلى شروط الاستخدام.</p>
+<h2>1. الأهلية</h2>
+<p>معلومات دقيقة، الامتثال للقانون المغربي، بريد إلكتروني موثّق، الحد الأدنى للعمر 16 سنة.</p>
+<h2>2. القوائم</h2>
+<p>أوصاف وأسعار وصور صحيحة. يجوز لـ Dribex إزالة القوائم المخالفة.</p>
+<h2>3. المعاملات</h2>
+<p>المدفوعات غالباً خارج المنصة. أنت مسؤول عن الضرائب وخدمة العملاء.</p>
+<h2>4. التواصل</h2>
+<p><a href="mailto:sellers@dribex.ma">sellers@dribex.ma</a></p>
+""",
+        },
+    },
+    "community-guidelines": {
+        "en": {
+            "title": "Community Guidelines",
+            "body": """
+<p>These guidelines keep Dribex trustworthy and respectful for buyers, sellers, and neighbors.</p>
+<h2>Be honest</h2>
+<ul><li>Provide accurate business information and pricing</li><li>Write reviews based on real experiences</li><li>Do not impersonate others</li></ul>
+<h2>Be respectful</h2>
+<ul><li>No harassment, hate speech, or threats</li><li>Disagree without attacking people</li></ul>
+<h2>Be safe</h2>
+<ul><li>Do not promote scams, fraud, or prohibited items</li><li>Report suspicious listings and messages</li><li>Meet safely for offline transactions</li></ul>
+<h2>Marketplace integrity</h2>
+<ul><li>No fake listings or review manipulation</li><li>No spam or abusive messaging</li><li>Follow channel rules in city and marketplace communities</li></ul>
+""",
+        },
+        "fr": {
+            "title": "Règles de la communauté",
+            "body": """
+<p>Ces règles maintiennent une communauté fiable et respectueuse sur Dribex.</p>
+<h2>Honnêteté</h2>
+<ul><li>Informations et prix exacts</li><li>Avis basés sur une expérience réelle</li></ul>
+<h2>Respect</h2>
+<ul><li>Pas de harcèlement ni discours haineux</li></ul>
+<h2>Sécurité</h2>
+<ul><li>Signalez arnaques et contenus interdits</li><li>Pas de faux avis ni spam</li></ul>
+""",
+        },
+        "ar": {
+            "title": "إرشادات المجتمع",
+            "body": """
+<p>تحافظ هذه الإرشادات على ثقة واحترام مجتمع Dribex.</p>
+<h2>الصدق</h2>
+<ul><li>معلومات وأسعار دقيقة</li><li>تقييمات مبنية على تجربة حقيقية</li></ul>
+<h2>الاحترام</h2>
+<ul><li>لا تحرش ولا خطاب كراهية</li></ul>
+<h2>السلامة</h2>
+<ul><li>أبلغ عن الاحتيال والمحتوى المحظور</li><li>لا قوائم مزيفة ولا رسائل مزعجة</li></ul>
+""",
+        },
+    },
+    "legal-notice": {
+        "en": {
+            "title": "Legal Notice",
+            "body": """
+<p><strong>Dribex</strong> is a local discovery and marketplace platform for Morocco (Android, iOS, and Web).</p>
+<h2>Contact</h2>
+<ul><li>Support: <a href="mailto:support@dribex.ma">support@dribex.ma</a></li><li>Legal: <a href="mailto:legal@dribex.ma">legal@dribex.ma</a></li><li>Privacy: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></li></ul>
+<h2>Publisher</h2>
+<div class="note">Insert registered legal entity name and physical address before publication.</div>
+<p>Kingdom of Morocco</p>
+""",
+        },
+        "fr": {
+            "title": "Mentions légales",
+            "body": """
+<p><strong>Dribex</strong> est une plateforme locale de découverte et de marketplace au Maroc.</p>
+<h2>Contact</h2>
+<ul><li>Support : <a href="mailto:support@dribex.ma">support@dribex.ma</a></li><li>Juridique : <a href="mailto:legal@dribex.ma">legal@dribex.ma</a></li></ul>
+""",
+        },
+        "ar": {
+            "title": "إشعار قانوني",
+            "body": """
+<p><strong>Dribex</strong> منصة اكتشاف وسوق محلية في المغرب.</p>
+<h2>التواصل</h2>
+<ul><li>الدعم: <a href="mailto:support@dribex.ma">support@dribex.ma</a></li><li>القانوني: <a href="mailto:legal@dribex.ma">legal@dribex.ma</a></li></ul>
+""",
+        },
+    },
+    "open-source-licenses": {
+        "en": {
+            "title": "Open Source Licenses",
+            "body": """
+<p>Dribex mobile uses open-source software. Major dependencies include:</p>
+<ul>
+<li>Flutter SDK — BSD-3-Clause</li>
+<li>flutter_riverpod — MIT</li>
+<li>go_router — BSD-3-Clause</li>
+<li>google_maps_flutter — BSD-3-Clause</li>
+<li>http — BSD-3-Clause</li>
+<li>cached_network_image — MIT</li>
+<li>url_launcher — BSD-3-Clause</li>
+<li>geolocator — MIT</li>
+<li>shared_preferences — BSD-3-Clause</li>
+<li>flutter_secure_storage — BSD-3-Clause</li>
+<li>sentry_flutter — MIT</li>
+<li>google_fonts — Apache-2.0</li>
+<li>web_socket_channel — BSD-3-Clause</li>
+</ul>
+<p>Full license texts are available from each package publisher. This list may change between app releases.</p>
+""",
+        },
+        "fr": {
+            "title": "Licences open source",
+            "body": """
+<p>L'application Dribex utilise des logiciels open source, notamment Flutter, Riverpod, go_router, Google Maps Flutter, http, geolocator et d'autres bibliothèques listées dans le projet.</p>
+<p>Les textes complets des licences sont disponibles auprès de chaque éditeur de package.</p>
+""",
+        },
+        "ar": {
+            "title": "تراخيص المصدر المفتوح",
+            "body": """
+<p>يستخدم تطبيق Dribex برمجيات مفتوحة المصدر، بما في ذلك Flutter وRiverpod وgo_router وخرائط Google ومكتبات أخرى مدرجة في المشروع.</p>
+<p>نصوص التراخيص الكاملة متوفرة لدى ناشر كل حزمة.</p>
+""",
+        },
+    },
 }
 
 

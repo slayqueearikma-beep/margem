@@ -409,6 +409,10 @@ class ApiService {
     _ensureSuccess(response);
   }
 
+  Future<Map<String, dynamic>> exportMyData() async {
+    return getJson('/auth/me/export', auth: true);
+  }
+
   Future<List<AuthDeviceSession>> fetchAuthSessions() async {
     final data = await getJsonList('/auth/sessions', auth: true);
     return data

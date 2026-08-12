@@ -113,6 +113,11 @@ class BuyerDrawer extends ConsumerWidget {
                     onTap: () => closeAnd(() => context.push('/profile')),
                   ),
                   _DrawerTile(
+                    icon: Icons.settings_outlined,
+                    label: l10n.settingsTitle,
+                    onTap: () => closeAnd(() => context.push('/settings')),
+                  ),
+                  _DrawerTile(
                     icon: Icons.favorite_border_rounded,
                     label: l10n.favorites,
                     onTap: () => closeAnd(() => context.push('/favorites')),

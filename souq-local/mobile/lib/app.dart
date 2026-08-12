@@ -42,6 +42,11 @@ import 'features/seller/seller_reviews_screen.dart';
 import 'features/seller/seller_settings_screen.dart';
 import 'features/wishlist/wishlist_screen.dart';
 import 'features/settings/language_selection_screen.dart';
+import 'features/legal/account_settings_screen.dart';
+import 'features/legal/legal_document_screen.dart';
+import 'features/legal/privacy_legal_hub_screen.dart';
+import 'features/legal/privacy_settings_screen.dart';
+import 'features/legal/your_data_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'l10n/app_localizations.dart';
 
@@ -103,6 +108,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/language',
         builder: (_, __) => const LanguageSelectionScreen(fromSettings: true),
+      ),
+      GoRoute(path: '/settings', builder: (_, __) => const AccountSettingsScreen()),
+      GoRoute(
+        path: '/settings/privacy-legal',
+        builder: (_, __) => const PrivacyLegalHubScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        builder: (_, __) => const PrivacySettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/your-data',
+        builder: (_, __) => const YourDataScreen(),
+      ),
+      GoRoute(
+        path: '/legal/:doc',
+        builder: (_, state) => LegalDocumentScreen(
+          docSlug: state.pathParameters['doc']!,
+        ),
       ),
       GoRoute(
           path: '/onboarding',

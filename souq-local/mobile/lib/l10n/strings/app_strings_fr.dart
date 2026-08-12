@@ -1340,6 +1340,148 @@ class AppStringsFr extends AppStringsEn {
       'En créant un compte, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.';
 
   @override
+  String get privacyAndLegal => 'Confidentialité et mentions légales';
+
+  @override
+  String get privacySettings => 'Paramètres de confidentialité';
+
+  @override
+  String get yourData => 'Vos données';
+
+  @override
+  String get managePermissions => 'Gérer les autorisations';
+
+  @override
+  String get sellerTerms => 'Conditions vendeur';
+
+  @override
+  String get communityGuidelines => 'Règles de la communauté';
+
+  @override
+  String get legalNotice => 'Mentions légales';
+
+  @override
+  String get openSourceLicenses => 'Licences open source';
+
+  @override
+  String get privacyLegalHubIntro =>
+      'Consultez nos politiques et gérez vos choix de confidentialité au même endroit.';
+
+  @override
+  String get privacyLegalHubSubtitle =>
+      'Politiques, confidentialité et vos données';
+
+  @override
+  String get privacySectionTitle => 'Confidentialité';
+
+  @override
+  String get privacySettingsIntro =>
+      'Gérez les préférences optionnelles ci-dessous. Certaines données sont nécessaires au fonctionnement du service.';
+
+  @override
+  String get requiredDataProcessing => 'Traitement obligatoire';
+
+  @override
+  String get requiredDataProcessingBody =>
+      'Nous traitons votre compte, la sécurité et le contenu que vous publiez pour fournir Dribex, prévenir la fraude et respecter la loi. Cela ne peut pas être désactivé tant que vous utilisez le service.';
+
+  @override
+  String get optionalPreferences => 'Préférences optionnelles';
+
+  @override
+  String get locationAccessDescription =>
+      'Dribex utilise votre position pour vous aider à découvrir des commerces à proximité. Vous contrôlez cela dans les réglages de l\'appareil.';
+
+  @override
+  String get manageLocationPermission => 'Gérer la localisation';
+
+  @override
+  String get notificationsPermissionDescription =>
+      'Les notifications push se gèrent dans les réglages de l\'appareil lorsqu\'elles sont disponibles.';
+
+  @override
+  String get manageNotificationPermission => 'Ouvrir les réglages';
+
+  @override
+  String get personalizedRecommendations => 'Recommandations personnalisées';
+
+  @override
+  String get personalizedRecommendationsDescription =>
+      'Utiliser votre activité sur Dribex pour améliorer les suggestions. Vos données ne sont pas vendues.';
+
+  @override
+  String get marketingCommunications => 'Communications marketing';
+
+  @override
+  String get marketingCommunicationsDescription =>
+      'Recevoir des offres et actualités de Dribex par e-mail lorsque ce service est proposé.';
+
+  @override
+  String get yourDataIntro =>
+      'Consultez les données de votre compte, exportez une copie ou demandez la suppression.';
+
+  @override
+  String get viewAccountInfo => 'Informations du compte';
+
+  @override
+  String get dataExportDescription =>
+      'Télécharger une copie JSON de vos données dans le presse-papiers.';
+
+  @override
+  String get dataExportCopied =>
+      'L\'export de vos données a été copié dans le presse-papiers.';
+
+  @override
+  String get requestDataCorrection => 'Demander une correction';
+
+  @override
+  String get requestDataCorrectionDescription =>
+      'Écrivez à notre équipe confidentialité pour corriger des données inexactes.';
+
+  @override
+  String get dataRetentionInfo => 'Conservation des données';
+
+  @override
+  String get deleteAccountExplainer =>
+      'La suppression retire votre vitrine, messages et profil. Certaines données peuvent être conservées si la loi l\'exige.';
+
+  @override
+  String get signInToManageData =>
+      'Connectez-vous pour consulter, exporter ou supprimer vos données.';
+
+  @override
+  String get settingsTitle => 'Paramètres';
+
+  @override
+  String get accountSectionTitle => 'Compte';
+
+  @override
+  String get notificationsSectionTitle => 'Notifications';
+
+  @override
+  String get notificationsSectionSubtitle =>
+      'Préférences de notifications et marketing';
+
+  @override
+  String get privacyAndSecurityTitle => 'Confidentialité et sécurité';
+
+  @override
+  String get helpAndSupportTitle => 'Aide et support';
+
+  @override
+  String get signupTermsPrefix => 'En continuant, vous acceptez les ';
+
+  @override
+  String get signupTermsMiddle => ' et reconnaissez la ';
+
+  @override
+  String get signupTermsSuffix => '.';
+
+  @override
+  String get locationUsageNotice =>
+      'Dribex utilise votre position pour vous aider à découvrir des commerces à proximité.';
+
+  @override
   String get connectionError =>
       'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.';
 

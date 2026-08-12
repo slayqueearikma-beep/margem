@@ -1345,6 +1345,148 @@ class AppStringsAr extends AppStringsEn {
       'بإنشاء حساب، فإنك توافق على شروط الاستخدام وسياسة الخصوصية.';
 
   @override
+  String get privacyAndLegal => 'الخصوصية والقانون';
+
+  @override
+  String get privacySettings => 'إعدادات الخصوصية';
+
+  @override
+  String get yourData => 'بياناتك';
+
+  @override
+  String get managePermissions => 'إدارة الأذونات';
+
+  @override
+  String get sellerTerms => 'شروط البائع';
+
+  @override
+  String get communityGuidelines => 'إرشادات المجتمع';
+
+  @override
+  String get legalNotice => 'إشعار قانوني';
+
+  @override
+  String get openSourceLicenses => 'تراخيص المصدر المفتوح';
+
+  @override
+  String get privacyLegalHubIntro =>
+      'راجع سياساتنا وأدر خيارات الخصوصية من مكان واحد.';
+
+  @override
+  String get privacyLegalHubSubtitle =>
+      'السياسات والخصوصية وبياناتك';
+
+  @override
+  String get privacySectionTitle => 'الخصوصية';
+
+  @override
+  String get privacySettingsIntro =>
+      'تحكم في التفضيلات الاختيارية أدناه. بعض المعالجة مطلوبة لتشغيل حسابك وحماية المنصة.';
+
+  @override
+  String get requiredDataProcessing => 'معالجة البيانات المطلوبة';
+
+  @override
+  String get requiredDataProcessingBody =>
+      'نعالج تفاصيل حسابك وسجلات الأمان والمحتوى الذي تنشره لتقديم Dribex ومنع الاحتيال والامتثال القانوني. لا يمكن إيقاف ذلك أثناء استخدام الخدمة.';
+
+  @override
+  String get optionalPreferences => 'تفضيلات اختيارية';
+
+  @override
+  String get locationAccessDescription =>
+      'يستخدم Dribex موقعك لمساعدتك على اكتشاف الأعمال القريبة عند استخدام الخريطة. يمكنك التحكم في ذلك من إعدادات الجهاز.';
+
+  @override
+  String get manageLocationPermission => 'إدارة إذن الموقع';
+
+  @override
+  String get notificationsPermissionDescription =>
+      'تُدار الإشعارات الفورية من إعدادات الجهاز عند توفرها.';
+
+  @override
+  String get manageNotificationPermission => 'فتح إعدادات الجهاز';
+
+  @override
+  String get personalizedRecommendations => 'توصيات مخصصة';
+
+  @override
+  String get personalizedRecommendationsDescription =>
+      'استخدام نشاطك على Dribex لتحسين الاقتراحات. لا نبيع بياناتك.';
+
+  @override
+  String get marketingCommunications => 'رسائل تسويقية';
+
+  @override
+  String get marketingCommunicationsDescription =>
+      'تلقي عروض وتحديثات من Dribex عبر البريد عند توفر هذه الخدمة.';
+
+  @override
+  String get yourDataIntro =>
+      'اعرض ما نخزنه عن حسابك، أو صدّر نسخة، أو اطلب الحذف.';
+
+  @override
+  String get viewAccountInfo => 'معلومات الحساب';
+
+  @override
+  String get dataExportDescription =>
+      'تنزيل نسخة JSON من بياناتك إلى الحافظة.';
+
+  @override
+  String get dataExportCopied =>
+      'تم نسخ تصدير بياناتك إلى الحافظة.';
+
+  @override
+  String get requestDataCorrection => 'طلب تصحيح';
+
+  @override
+  String get requestDataCorrectionDescription =>
+      'راسل فريق الخصوصية لتحديث بيانات غير دقيقة.';
+
+  @override
+  String get dataRetentionInfo => 'الاحتفاظ بالبيانات';
+
+  @override
+  String get deleteAccountExplainer =>
+      'يحذف حسابك متجرك ورسائلك وملفك. قد نحتفظ بسجلات مطلوبة قانونياً.';
+
+  @override
+  String get signInToManageData =>
+      'سجّل الدخول لعرض بياناتك أو تصديرها أو حذفها.';
+
+  @override
+  String get settingsTitle => 'الإعدادات';
+
+  @override
+  String get accountSectionTitle => 'الحساب';
+
+  @override
+  String get notificationsSectionTitle => 'الإشعارات';
+
+  @override
+  String get notificationsSectionSubtitle =>
+      'تفضيلات الإشعارات والتسويق';
+
+  @override
+  String get privacyAndSecurityTitle => 'الخصوصية والأمان';
+
+  @override
+  String get helpAndSupportTitle => 'المساعدة والدعم';
+
+  @override
+  String get signupTermsPrefix => 'بالمتابعة، فإنك توافق على ';
+
+  @override
+  String get signupTermsMiddle => ' وتقر بـ ';
+
+  @override
+  String get signupTermsSuffix => '.';
+
+  @override
+  String get locationUsageNotice =>
+      'يستخدم Dribex موقعك لمساعدتك على اكتشاف الأعمال القريبة.';
+
+  @override
   String get connectionError =>
       'تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مجدداً.';
 

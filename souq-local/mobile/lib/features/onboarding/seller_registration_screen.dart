@@ -18,7 +18,7 @@ import '../../l10n/app_localizations.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
-import '../../core/widgets/legal_links_section.dart';
+import '../../features/legal/signup_terms_footer.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/models/city_model.dart';
 import '../../core/providers/city_providers.dart';
@@ -283,7 +283,7 @@ class _SellerRegistrationScreenState
       bottom: Column(
         children: [
           if (_step == _totalSteps) ...[
-            const LegalLinksSection(compact: true),
+            const SignupTermsFooter(),
             const SizedBox(height: AppSpacing.sm),
           ],
           PrimaryButton(

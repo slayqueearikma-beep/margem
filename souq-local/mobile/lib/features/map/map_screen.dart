@@ -37,6 +37,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _initLocation() async {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.locationUsageNotice),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
     final granted = await LocationService.ensurePermission();
     if (mounted) setState(() => _locationEnabled = granted);
   }

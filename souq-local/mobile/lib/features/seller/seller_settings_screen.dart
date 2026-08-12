@@ -3,17 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/api_service.dart';
-import '../../core/services/app_storage.dart';
-import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
-import '../../core/widgets/legal_links_section.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
-import 'seller_account_provider.dart';
 
 class SellerSettingsScreen extends ConsumerStatefulWidget {
   const SellerSettingsScreen({super.key});
@@ -58,64 +55,6 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
       await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
     } finally {
       if (mounted) setState(() => _loadingPassword = false);
-    }
-  }
-
-  Future<void> _confirmDeleteAccount() async {
-    final l10n = context.l10n;
-    final controller = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteAccount),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.deleteAccountConfirm),
-            SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              obscureText: true,
-              decoration: InputDecoration(labelText: l10n.password),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: context.colors.error),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.deleteAccount),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) {
-      controller.dispose();
-      return;
-    }
-
-    try {
-      await ref.read(authServiceProvider).deleteAccount(password: controller.text);
-      controller.dispose();
-      final prefs = await ref.read(sharedPreferencesProvider.future);
-      await ref.read(authServiceProvider).logout(prefs);
-      await ref.read(appStorageProvider)?.logout();
-      ref.invalidate(sellerAccountProvider);
-      ref.read(userSessionProvider.notifier).state = null;
-      ref.read(authSessionProvider.notifier).state = null;
-      if (!mounted) return;
-      context.go('/login');
-    } on ApiException catch (e) {
-      controller.dispose();
-      if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
-    } catch (_) {
-      controller.dispose();
-      if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
     }
   }
 
@@ -184,12 +123,11 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
             isLoading: _loadingPassword,
           ),
           SizedBox(height: AppSpacing.xxl),
-          const LegalLinksSection(),
-          SizedBox(height: AppSpacing.xl),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(foregroundColor: context.colors.error),
-            onPressed: _confirmDeleteAccount,
-            child: Text(l10n.deleteAccount),
+          BuyerMenuTile(
+            icon: Icons.policy_outlined,
+            title: l10n.privacyAndLegal,
+            subtitle: l10n.privacyLegalHubSubtitle,
+            onTap: () => context.push('/settings/privacy-legal'),
           ),
         ],
       ),

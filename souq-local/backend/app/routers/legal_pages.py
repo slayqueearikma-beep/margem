@@ -9,7 +9,7 @@ router = APIRouter(tags=["legal"])
 
 _LEGAL_ROOT = Path(__file__).resolve().parents[2] / "static" / "legal"
 _SUPPORTED = {"en", "fr", "ar"}
-_DOCS = {"privacy", "terms", "cookies", "account-deletion"}
+_DOCS = {"privacy", "terms", "cookies", "account-deletion", "seller-terms", "community-guidelines", "legal-notice", "open-source-licenses"}
 
 
 def _pick_language(request: Request, explicit: str | None = None) -> str:

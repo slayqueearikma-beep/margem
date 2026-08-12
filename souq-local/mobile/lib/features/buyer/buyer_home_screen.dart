@@ -23,7 +23,6 @@ import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
-import '../../core/widgets/legal_links_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
 import '../premium/premium_screen.dart';
@@ -1012,15 +1011,18 @@ class BuyerProfileScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            SizedBox(height: AppSpacing.sm),
+            BuyerMenuTile(
+              icon: Icons.settings_outlined,
+              title: l10n.settingsTitle,
+              onTap: () => context.push('/settings'),
+            ),
             if (!isGuest) ...[
               SizedBox(height: AppSpacing.sm),
-              const LegalLinksSection(),
-              SizedBox(height: AppSpacing.sm),
               BuyerMenuTile(
-                icon: Icons.delete_forever_outlined,
-                title: l10n.deleteAccount,
-                destructive: true,
-                onTap: () => _confirmDeleteAccount(context, ref),
+                icon: Icons.policy_outlined,
+                title: l10n.privacyAndLegal,
+                onTap: () => context.push('/settings/privacy-legal'),
               ),
             ],
             SizedBox(height: AppSpacing.xl),
@@ -1110,33 +1112,6 @@ class BuyerProfileScreen extends ConsumerWidget {
       }
     }
   }
-
-  Future<void> _confirmDeleteAccount(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final l10n = context.l10n;
-    final password = await showDialog<String>(
-      context: context,
-      builder: (_) => const _DeleteAccountDialog(),
-    );
-    if (password == null || !context.mounted) return;
-    try {
-      await ref.read(authServiceProvider).deleteAccount(password: password);
-      await ref.read(appStorageProvider)?.logout();
-      ref.read(userSessionProvider.notifier).state = null;
-      ref.read(authSessionProvider.notifier).state = null;
-      if (context.mounted) context.go('/language');
-    } on Object catch (e) {
-      if (context.mounted) {
-        await showAppErrorDialog(
-          context,
-          title: l10n.somethingWentWrong,
-          message: e.toString(),
-        );
-      }
-    }
-  }
 }
 
 class _PasswordChangeValues {
@@ -1214,59 +1189,5 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
         newPassword: _next.text,
       ),
     );
-  }
-}
-
-class _DeleteAccountDialog extends StatefulWidget {
-  const _DeleteAccountDialog();
-
-  @override
-  State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
-}
-
-class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
-  final _password = TextEditingController();
-
-  @override
-  void dispose() {
-    _password.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return AlertDialog(
-      title: Text(l10n.deleteAccount),
-      content: AutofillGroup(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.deleteAccountConfirm),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _password,
-              obscureText: true,
-              autofillHints: const [AutofillHints.password],
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _submit(),
-              decoration: InputDecoration(labelText: l10n.password),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.cancel),
-        ),
-        FilledButton(onPressed: _submit, child: Text(l10n.deleteAccount)),
-      ],
-    );
-  }
-
-  void _submit() {
-    TextInput.finishAutofillContext();
-    Navigator.pop(context, _password.text);
   }
 }
