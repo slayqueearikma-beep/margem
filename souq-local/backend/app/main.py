@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
@@ -24,7 +24,7 @@ from app.middleware.admin_origin_guard import AdminOriginGuardMiddleware
 from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
-from app.models import SubscriptionPlan
+from app.models import Marketplace, SubscriptionPlan
 from app.routers import (
     auth,
     bundles,
@@ -105,6 +105,22 @@ async def lifespan(app: FastAPI):
                 ]
             )
             await session.commit()
+
+    async with database.SessionLocal() as session:
+        await session.execute(
+            update(Marketplace)
+            .where(Marketplace.slug == "9ri3a", Marketplace.name == "9ri3a")
+            .values(name="Al Qurayaa")
+        )
+        await session.execute(
+            update(SubscriptionPlan)
+            .where(
+                SubscriptionPlan.code == "buyer_premium",
+                SubscriptionPlan.name == "MarGem Plus",
+            )
+            .values(name="Dribex Plus")
+        )
+        await session.commit()
 
     async with database.SessionLocal() as session:
         await seed_morocco_cities_if_empty(session)

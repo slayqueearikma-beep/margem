@@ -338,7 +338,7 @@ class BuyerQuickCategoryTile extends StatelessWidget {
                 ),
                 child: Icon(icon, color: context.colors.primary, size: 28),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: 6),
               Text(
                 label,
                 maxLines: 2,
@@ -347,7 +347,7 @@ class BuyerQuickCategoryTile extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
-                      height: 1.2,
+                      height: 1.1,
                     ),
               ),
             ],
@@ -805,7 +805,7 @@ class BuyerPopularCategoryCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           decoration: BoxDecoration(
             color: tileTint,
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
@@ -824,6 +824,7 @@ class BuyerPopularCategoryCard extends StatelessWidget {
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
+                  height: 1.15,
                 ),
               ),
             ],

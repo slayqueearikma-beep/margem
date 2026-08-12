@@ -243,7 +243,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                             final venue = marketplaces[index];
                             final isSelected = venue.slug == activeSlug;
                             return ChoiceChip(
-                              label: Text(venue.name),
+                              label: Text(venue.displayName),
                               selected: isSelected,
                               onSelected: (_) {
                                 ref
@@ -331,7 +331,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                   children: [
                     const SizedBox(height: AppSpacing.lg),
                     SizedBox(
-                      height: 96,
+                      height: 100,
                       child: ListView.separated(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.screenHorizontal,
@@ -550,7 +550,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                             crossAxisCount: 3,
                             mainAxisSpacing: AppSpacing.sm,
                             crossAxisSpacing: AppSpacing.sm,
-                            childAspectRatio: 0.95,
+                            childAspectRatio: 0.92,
                           ),
                           itemCount: popular.length,
                           itemBuilder: (_, i) {

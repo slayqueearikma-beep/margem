@@ -144,7 +144,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
               padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
               children: [
                 _HeroCard(
-                  activePlanName: active?.plan.name,
+                  activePlanName: active?.plan.displayName,
                   isGuest: session == null || session.isGuest,
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -299,7 +299,7 @@ class _PlanCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      plan.name,
+                      plan.displayName,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),

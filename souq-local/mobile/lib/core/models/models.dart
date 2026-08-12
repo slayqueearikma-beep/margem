@@ -75,6 +75,12 @@ class MarketplaceVenueModel {
   final int categoryCount;
   final int sellerCount;
 
+  /// User-facing marketplace label (slug may differ from display name).
+  String get displayName {
+    if (slug == '9ri3a' || name == '9ri3a') return 'Al Qurayaa';
+    return name;
+  }
+
   factory MarketplaceVenueModel.fromJson(Map<String, dynamic> json) {
     return MarketplaceVenueModel(
       id: json['id'] as String,
@@ -973,6 +979,12 @@ class SubscriptionPlanModel {
   final int billingPeriodDays;
   final List<String> features;
   final bool isActive;
+
+  /// User-facing plan label (legacy API rows may still say MarGem Plus).
+  String get displayName {
+    if (code == 'buyer_premium' || name == 'MarGem Plus') return 'Dribex Plus';
+    return name;
+  }
 
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanModel(

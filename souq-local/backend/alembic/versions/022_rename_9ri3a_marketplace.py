@@ -21,7 +21,7 @@ def upgrade() -> None:
             """
             UPDATE marketplaces
             SET slug = '9ri3a',
-                name = '9ri3a',
+                name = 'Al Qurayaa',
                 description = 'Souk Al Qurayaa (القريعة) — auto parts and mechanics district.',
                 address = 'Souk Al Qurayaa',
                 district = 'القريعة'
