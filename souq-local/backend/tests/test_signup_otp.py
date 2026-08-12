@@ -87,5 +87,7 @@ async def test_signup_otp_blocks_existing_email(client: AsyncClient):
         "/auth/signup/otp/send",
         json={"email": email, "phone": "", "channel": "email"},
     )
-    assert sent.status_code == 409
-    assert sent.json()["detail"] == "Email already registered"
+    assert sent.status_code == 200
+    payload = sent.json()
+    assert payload["channel"] == "email"
+    assert not payload.get("dev_code")

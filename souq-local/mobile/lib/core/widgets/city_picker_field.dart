@@ -36,11 +36,26 @@ class CityPickerField extends ConsumerWidget {
         readOnly: true,
         prefixIcon: Icons.location_city_outlined,
       ),
-      error: (_, __) => AppTextField(
-        label: label ?? l10n.city,
-        hint: selected?.localizedName(locale) ?? l10n.city,
-        readOnly: true,
-        prefixIcon: Icons.location_city_outlined,
+      error: (error, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppTextField(
+            label: label ?? l10n.city,
+            hint: selected?.localizedName(locale) ?? l10n.city,
+            readOnly: true,
+            prefixIcon: Icons.location_city_outlined,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.somethingWentWrong,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextButton(
+            onPressed: () => ref.invalidate(citiesProvider),
+            child: Text(l10n.tryAgain),
+          ),
+        ],
       ),
       data: (cities) {
         if (readOnly && selected != null) {

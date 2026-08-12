@@ -151,7 +151,7 @@ class AppStringsEn extends AppStrings {
   String get city => 'City';
   @override
   String get fillRequiredFields =>
-      'Please fill all required fields (password min 6 characters).';
+      'Please fill all required fields (password min 8 characters with upper, lower, and number).';
   @override
   String get navHome => 'Home';
   @override

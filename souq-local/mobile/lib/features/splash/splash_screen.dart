@@ -88,10 +88,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       }
       restored ??= await ref.read(authServiceProvider).restoreAuthSession();
       if (restored == null) {
-        await storage.logout();
-        ref.read(userSessionProvider.notifier).state = null;
-        ref.read(authSessionProvider.notifier).state = null;
-        if (mounted) context.go('/login');
+        final offlineOk = await ref.read(authServiceProvider).ensureSessionValid();
+        if (!offlineOk) {
+          await storage.logout();
+          ref.read(userSessionProvider.notifier).state = null;
+          ref.read(authSessionProvider.notifier).state = null;
+          if (mounted) context.go('/login');
+          return;
+        }
+        ref.read(userSessionProvider.notifier).state = session;
+        if (mounted) context.go(storage.homeRouteFor(session));
         return;
       }
       ref.read(authSessionProvider.notifier).state = restored;

@@ -82,8 +82,8 @@ services:
 
   api:
     build:
-      context: ../../backend
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: backend/Dockerfile
     restart: unless-stopped
     environment:
       APP_ENV: production
@@ -94,6 +94,8 @@ services:
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY}
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET:?set UPLOAD_TOKEN_SECRET}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?set MFA_ENCRYPTION_KEY}
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-1}
       STORAGE_BACKEND: minio
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}

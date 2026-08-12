@@ -5,6 +5,8 @@ from pydantic import ValidationError
 
 from app.config import Settings
 
+_PROD_ADMIN_IP = ["10.0.0.0/8"]
+
 
 def test_production_rejects_default_jwt_secret():
     with pytest.raises(ValidationError, match="JWT_SECRET_KEY"):
@@ -20,6 +22,7 @@ def test_production_rejects_default_jwt_secret():
             smtp_host="smtp.example.com",
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
+            admin_ip_allowlist=_PROD_ADMIN_IP,
         )
 
 
@@ -37,6 +40,7 @@ def test_production_rejects_debug_true():
             smtp_host="smtp.example.com",
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
+            admin_ip_allowlist=_PROD_ADMIN_IP,
         )
 
 
@@ -55,6 +59,7 @@ def test_production_accepts_rotated_secret():
         smtp_host="smtp.example.com",
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
+        admin_ip_allowlist=_PROD_ADMIN_IP,
     )
     assert settings.app_env == "production"
 
@@ -76,6 +81,27 @@ def test_production_rejects_placeholder_secrets():
             smtp_host="smtp.example.com",
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
+            admin_ip_allowlist=_PROD_ADMIN_IP,
+        )
+
+
+def test_production_rejects_missing_admin_ip_allowlist():
+    with pytest.raises(ValidationError, match="ADMIN_IP_ALLOWLIST"):
+        Settings(
+            _env_file=None,
+            app_env="production",
+            debug=False,
+            auth_dev_bypass=False,
+            jwt_secret_key="a-real-production-secret-key-32chars-min",
+            upload_token_secret="a-separate-production-upload-secret-32chars",
+            mfa_encryption_key="a-separate-production-mfa-encryption-key32",
+            cors_origins=["https://margem.ma"],
+            allowed_hosts=["api.margem.ma"],
+            azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
+            smtp_host="smtp.example.com",
+            public_app_url="https://margem.ma",
+            public_api_url="https://api.margem.ma",
+            admin_ip_allowlist=[],
         )
 
 
@@ -95,6 +121,7 @@ def test_production_rejects_shared_mfa_key():
             smtp_host="smtp.example.com",
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
+            admin_ip_allowlist=_PROD_ADMIN_IP,
         )
 
 

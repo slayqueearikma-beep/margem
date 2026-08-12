@@ -60,6 +60,7 @@ def test_production_requires_smtp_host():
             allow_insecure_email_fallback=False,
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
+            admin_ip_allowlist=["10.0.0.0/8"],
         )
 
 
@@ -81,6 +82,7 @@ def test_production_allows_email_fallback_flag():
         allow_insecure_email_fallback=True,
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
+        admin_ip_allowlist=["10.0.0.0/8"],
     )
     assert settings.allow_insecure_email_fallback is True
 
@@ -103,6 +105,7 @@ def test_production_rejects_http_public_urls():
             smtp_host="smtp.example.com",
             public_app_url="https://margem.ma",
             public_api_url="http://api.margem.ma",
+            admin_ip_allowlist=["10.0.0.0/8"],
         )
 
 

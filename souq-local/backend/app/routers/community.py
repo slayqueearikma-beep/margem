@@ -516,26 +516,25 @@ async def community_websocket(
     websocket: WebSocket,
     channel_id: UUID,
     ticket: str = Query(default=""),
-    token: str = Query(default=""),
     city_slug: str = Query(default=""),
 ) -> None:
     from app.database import SessionLocal
 
     async with SessionLocal() as session:
         user: User | None = None
-        if ticket.strip():
-            try:
-                user_id = verify_ws_ticket(
-                    ticket.strip(),
-                    channel_id=channel_id,
-                    audience=community_audience(),
-                )
-                user = await session.get(User, user_id)
-            except HTTPException:
-                await websocket.close(code=4401)
-                return
-        elif token.strip():
-            user = await _ws_user_from_token(token.strip(), session)
+        if not ticket.strip():
+            await websocket.close(code=4401)
+            return
+        try:
+            user_id = verify_ws_ticket(
+                ticket.strip(),
+                channel_id=channel_id,
+                audience=community_audience(),
+            )
+            user = await session.get(User, user_id)
+        except HTTPException:
+            await websocket.close(code=4401)
+            return
         if user is None:
             await websocket.close(code=4401)
             return

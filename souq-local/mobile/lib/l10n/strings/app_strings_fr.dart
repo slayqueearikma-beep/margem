@@ -152,7 +152,7 @@ class AppStringsFr extends AppStringsEn {
   String get city => 'Ville';
   @override
   String get fillRequiredFields =>
-      'Veuillez remplir tous les champs obligatoires (mot de passe min. 6 caractères).';
+      'Veuillez remplir tous les champs obligatoires (mot de passe min. 8 caractères avec majuscule, minuscule et chiffre).';
   @override
   String get navHome => 'Accueil';
   @override

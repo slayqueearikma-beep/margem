@@ -7,6 +7,8 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 logger = logging.getLogger("margem.config")
 
+_STRICT_ENVS = frozenset({"production", "prod", "staging", "preprod", "preview"})
+
 
 def _normalize_host(host: str) -> str:
     """Starlette TrustedHost compares hostname without port."""
@@ -192,11 +194,11 @@ class Settings(BaseSettings):
     def validate_production_settings(self) -> "Settings":
         if not self.mfa_encryption_key:
             object.__setattr__(self, "mfa_encryption_key", self.jwt_secret_key)
-        if self.app_env in {"production", "prod"}:
+        if self.app_env in _STRICT_ENVS:
+            if self.auth_dev_bypass:
+                raise ValueError("AUTH_DEV_BYPASS must be false outside local development")
             if self.debug:
                 raise ValueError("DEBUG must be false in production")
-            if self.auth_dev_bypass:
-                raise ValueError("AUTH_DEV_BYPASS must be false in production")
             if len(self.jwt_secret_key) < 32:
                 raise ValueError("JWT_SECRET_KEY must be at least 32 characters in production")
             # Reject the documented default even when it already meets length checks.
@@ -254,6 +256,13 @@ class Settings(BaseSettings):
                     "PUBLIC_APP_URL must use HTTPS in production "
                     "(http is only allowed for localhost / private LAN IPs)"
                 )
+            if self.app_env in {"production", "prod"} and not self.admin_ip_allowlist:
+                raise ValueError(
+                    "ADMIN_IP_ALLOWLIST is required in production — "
+                    "admin APIs must not be reachable from any IP"
+                )
+        if self.auth_dev_bypass and self.app_env not in {"development", "dev"}:
+            raise ValueError("AUTH_DEV_BYPASS is only allowed when APP_ENV is development or dev")
         return self
 
 

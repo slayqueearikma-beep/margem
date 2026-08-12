@@ -166,7 +166,10 @@ class AuthService {
 
   Future<AuthSession?> restoreAuthSession() async {
     await loadStoredToken();
-    if (_accessToken == null || _accessToken!.isEmpty) return null;
+    if ((_accessToken == null || _accessToken!.isEmpty) &&
+        (_refreshToken == null || _refreshToken!.isEmpty)) {
+      return null;
+    }
     try {
       final me = await _api.getJson('/auth/me', auth: true);
       return AuthSession(
@@ -174,6 +177,24 @@ class AuthService {
         refreshToken: _refreshToken ?? '',
         user: AuthUser.fromJson(me),
       );
+    } on ApiException catch (error) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        final refreshed = await refreshAccessToken();
+        if (refreshed == true) {
+          try {
+            final me = await _api.getJson('/auth/me', auth: true);
+            return AuthSession(
+              accessToken: _accessToken!,
+              refreshToken: _refreshToken ?? '',
+              user: AuthUser.fromJson(me),
+            );
+          } on Object {
+            return null;
+          }
+        }
+        return refreshed == false ? null : null;
+      }
+      return null;
     } on Object {
       return null;
     }

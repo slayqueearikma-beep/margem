@@ -5,6 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/app_config.dart';
 import '../models/community_models.dart';
+import 'api_service.dart';
 
 typedef CommunityWsHandler = void Function(Map<String, dynamic> event);
 
@@ -73,6 +74,12 @@ class CommunityWebSocketService {
   }
 
   void _handleError(Object error) {
+    if (error is ApiException &&
+        (error.statusCode == 401 || error.statusCode == 403)) {
+      disconnect();
+      _onError?.call(error);
+      return;
+    }
     _onError?.call(error);
     _scheduleReconnect();
   }

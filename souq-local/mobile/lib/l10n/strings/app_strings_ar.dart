@@ -149,7 +149,7 @@ class AppStringsAr extends AppStringsEn {
   String get city => 'المدينة';
   @override
   String get fillRequiredFields =>
-      'يرجى ملء جميع الحقول المطلوبة (كلمة المرور 6 أحرف على الأقل).';
+      'يرجى ملء جميع الحقول المطلوبة (كلمة المرور 8 أحرف على الأقل مع حرف كبير وصغير ورقم).';
   @override
   String get navHome => 'الرئيسية';
   @override
