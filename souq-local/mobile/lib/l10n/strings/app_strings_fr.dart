@@ -3,7 +3,7 @@ import 'app_strings_en.dart';
 class AppStringsFr extends AppStringsEn {
   @override
   @override
-  String get appName => 'MarGem';
+  String get appName => 'Dribex';
   @override
   String get appTagline => 'Découvrez les trésors cachés du Maroc';
   @override

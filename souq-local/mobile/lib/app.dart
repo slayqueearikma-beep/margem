@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/config/app_config.dart';
 import 'core/models/models.dart';
 import 'core/navigation/app_back_handler.dart';
 import 'core/services/app_storage.dart';
@@ -332,7 +333,7 @@ class _MarGemAppState extends ConsumerState<MarGemApp>
     }
 
     return MaterialApp.router(
-      title: 'MarGem',
+      title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: AppTheme.light(languageCode: locale.languageCode),

@@ -123,7 +123,7 @@ class AppConfig {
   static String accountDeletionUrlFor(String languageCode) =>
       legalDocumentUrl('account-deletion', languageCode);
 
-  static const String appName = 'MarGem';
+  static const String appName = 'Dribex';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';
 
   static const List<String> moroccanCities = [
