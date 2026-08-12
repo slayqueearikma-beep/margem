@@ -1356,4 +1356,12 @@ class AppStringsEn extends AppStrings {
   @override
   String requestTimeout(int seconds) =>
       'Request timed out after ${seconds}s. Check your connection and try again.';
+
+  @override
+  String get invalidCredentials =>
+      'Invalid email or password. Check your credentials and try again.';
+
+  @override
+  String get invalidEmailFormat =>
+      'Enter a valid email address (for example, you@example.com).';
 }

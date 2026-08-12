@@ -10,6 +10,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from app.config import settings
+from app.services.client_ip import get_client_ip
 
 logger = logging.getLogger("margem.security")
 
@@ -18,19 +19,6 @@ _ADMIN_MARKERS = ("/admin/",)
 
 def _is_admin_path(path: str) -> bool:
     return any(marker in path for marker in _ADMIN_MARKERS)
-
-
-def _client_ip(request: Request) -> str:
-    if settings.trusted_proxy_hops > 0:
-        forwarded = request.headers.get("x-forwarded-for", "")
-        if forwarded:
-            parts = [part.strip() for part in forwarded.split(",") if part.strip()]
-            if parts:
-                index = max(0, len(parts) - settings.trusted_proxy_hops)
-                return parts[index]
-    if request.client:
-        return request.client.host
-    return "127.0.0.1"
 
 
 def _ip_permitted(ip: str, allowlist: list[str]) -> bool:
@@ -62,7 +50,7 @@ class AdminIpGuardMiddleware(BaseHTTPMiddleware):
         if not _is_admin_path(request.url.path):
             return await call_next(request)
 
-        client_ip = _client_ip(request)
+        client_ip = get_client_ip(request)
         if not _ip_permitted(client_ip, settings.admin_ip_allowlist):
             logger.warning(
                 "admin_ip_denied ip=%s path=%s",

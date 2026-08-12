@@ -1350,4 +1350,12 @@ class AppStringsFr extends AppStringsEn {
   @override
   String requestTimeout(int seconds) =>
       'Délai d\'expiration après ${seconds}s. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get invalidCredentials =>
+      'E-mail ou mot de passe incorrect. Vérifiez vos identifiants et réessayez.';
+
+  @override
+  String get invalidEmailFormat =>
+      'Saisissez une adresse e-mail valide (par exemple, vous@exemple.com).';
 }

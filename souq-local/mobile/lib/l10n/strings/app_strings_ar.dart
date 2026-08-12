@@ -1355,4 +1355,12 @@ class AppStringsAr extends AppStringsEn {
   @override
   String requestTimeout(int seconds) =>
       'انتهت مهلة الطلب بعد ${seconds} ثانية. تحقق من اتصالك وحاول مجدداً.';
+
+  @override
+  String get invalidCredentials =>
+      'البريد الإلكتروني أو كلمة المرور غير صحيحة. تحقق من بياناتك وحاول مجدداً.';
+
+  @override
+  String get invalidEmailFormat =>
+      'أدخل عنوان بريد إلكتروني صالحاً (مثال: you@example.com).';
 }

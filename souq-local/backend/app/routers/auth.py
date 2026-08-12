@@ -287,15 +287,15 @@ async def login(
     ip = _request_ip(request)
     result = await session.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
-    if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
-        await record_failed_login(session, user, email=payload.email.lower(), ip=ip)
-        await session.commit()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-    if is_account_locked(user):
+    if user is not None and is_account_locked(user):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Account temporarily locked. Try again in {lockout_remaining_seconds(user)} seconds.",
         )
+    if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
+        await record_failed_login(session, user, email=payload.email.lower(), ip=ip)
+        await session.commit()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     if user.status == UserStatus.SUSPENDED:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account suspended")
     if user.status == UserStatus.DELETED:
@@ -834,7 +834,6 @@ async def delete_account(
     if user_messages:
         await session.execute(sql_delete(CommunityReaction).where(CommunityReaction.message_id.in_(user_messages)))
         await session.execute(sql_delete(CommunityReport).where(CommunityReport.message_id.in_(user_messages)))
-    await session.execute(sql_delete(CommunityMessage).where(CommunityMessage.sender_id == user.id))
     await session.execute(sql_delete(CommunityReport).where(CommunityReport.reporter_id == user.id))
     await session.execute(sql_delete(CommunityMembership).where(CommunityMembership.user_id == user.id))
     await session.execute(sql_delete(CommunityUserBlock).where(CommunityUserBlock.blocker_id == user.id))

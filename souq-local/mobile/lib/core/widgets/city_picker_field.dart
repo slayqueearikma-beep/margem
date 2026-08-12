@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../models/city_model.dart';
 import '../providers/city_providers.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import 'form_widgets.dart';
 
 /// Autocomplete city selector backed by the geography API.
@@ -105,18 +105,18 @@ class _CityAutocompleteField extends StatelessWidget {
             labelText: label,
             prefixIcon: const Icon(Icons.location_city_outlined),
             filled: true,
-            fillColor: AppColors.mutedSurface(context),
+            fillColor: context.colors.surfaceVariant,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.outline(context)),
+              borderSide: BorderSide(color: context.colors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.outline(context)),
+              borderSide: BorderSide(color: context.colors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+              borderSide: BorderSide(color: context.colors.primary, width: 1.4),
             ),
           ),
         );
@@ -192,10 +192,10 @@ Future<CityModel?> showCityPickerSheet(
                       hintText: context.l10n.city,
                       prefixIcon: const Icon(Icons.search),
                       filled: true,
-                      fillColor: AppColors.mutedSurface(context),
+                      fillColor: context.colors.surfaceVariant,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: AppColors.outline(context)),
+                        borderSide: BorderSide(color: context.colors.border),
                       ),
                     ),
                     onChanged: (value) {
@@ -221,7 +221,7 @@ Future<CityModel?> showCityPickerSheet(
                             ? null
                             : Text(city.region),
                         trailing: isSelected
-                            ? const Icon(Icons.check, color: AppColors.primary)
+                            ? Icon(Icons.check, color: context.colors.primary)
                             : null,
                         onTap: () => Navigator.pop(context, city),
                       );
