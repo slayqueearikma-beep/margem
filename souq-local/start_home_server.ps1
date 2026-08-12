@@ -1,4 +1,4 @@
-# Start MarGem on your laptop (API + Postgres) using Azure Blob for images
+# Start Dribex on your laptop (API + Postgres) using Azure Blob for images
 # Usage: .\start_home_server.ps1
 
 $ErrorActionPreference = "Stop"
@@ -18,7 +18,7 @@ function Get-LanIp {
 }
 
 Write-Host ""
-Write-Host "=== MarGem Home Server ===" -ForegroundColor Cyan
+Write-Host "=== Dribex Home Server ===" -ForegroundColor Cyan
 Write-Host ""
 
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {

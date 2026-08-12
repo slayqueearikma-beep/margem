@@ -46,7 +46,7 @@ tags = {
 
 1. Start with **Consumption APIM** in staging; upgrade to Standard at 10k+ RPS
 2. PostgreSQL: begin `GP_Standard_D2s_v3`, scale on CPU > 70%
-3. AKS: 3× `Standard_D4s_v5` API nodes handle ~5k RPS for MarGem's API profile
+3. AKS: 3× `Standard_D4s_v5` API nodes handle ~5k RPS for Dribex's API profile
 4. Disable `module_flags.ai` and `module_flags.search` until product requires them
 
 ## Cost dashboards

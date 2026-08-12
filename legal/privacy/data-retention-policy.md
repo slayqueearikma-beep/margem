@@ -1,4 +1,4 @@
-# MarGem Data Retention Policy
+# Dribex Data Retention Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-This policy defines how long MarGem retains personal information and the criteria for retention and deletion.
+This policy defines how long Dribex retains personal information and the criteria for retention and deletion.
 
 ---
 
@@ -56,7 +56,7 @@ Database and media backups are retained for up to **90 days** for disaster recov
 
 When accounts are deleted, personal identifiers are anonymized:
 
-- Email replaced with `deleted_[uuid]@deleted.margem.app`
+- Email replaced with `deleted_[uuid]@deleted.dribex.app`
 - Display name set to "Deleted User"
 - Password hash cleared
 - Account status set to `deleted`
@@ -73,4 +73,4 @@ We may retain data beyond standard periods when required by law, litigation, or 
 
 ## 7. Contact
 
-privacy@margem.app
+privacy@dribex.app

@@ -5,7 +5,7 @@ API_URL="${MARGEM_API_URL:-http://localhost:8000}"
 API_URL="${API_URL%/}"
 
 cat > /usr/share/nginx/html/config.js <<EOF
-// Generated at container start — points the admin UI at the MarGem API.
+// Generated at container start — points the admin UI at the Dribex API.
 window.MARGEM_API_URL = "${API_URL}";
 EOF
 
@@ -64,7 +64,7 @@ fi
   echo '    location / {'
   echo '        limit_req zone=admin_ui burst=20 nodelay;'
   if [ "$USE_BASIC_AUTH" = true ]; then
-    echo '        auth_basic "MarGem Admin";'
+    echo '        auth_basic "Dribex Admin";'
     echo '        auth_basic_user_file /etc/nginx/.htpasswd;'
   fi
   echo '        try_files $uri $uri/ /index.html;'
@@ -73,7 +73,7 @@ fi
   echo '    location ~* \.(js|css|html)$ {'
   echo '        limit_req zone=admin_ui burst=20 nodelay;'
   if [ "$USE_BASIC_AUTH" = true ]; then
-    echo '        auth_basic "MarGem Admin";'
+    echo '        auth_basic "Dribex Admin";'
     echo '        auth_basic_user_file /etc/nginx/.htpasswd;'
   fi
   echo '        add_header Cache-Control "no-store" always;'

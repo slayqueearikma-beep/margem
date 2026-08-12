@@ -1,26 +1,26 @@
-# MarGem Copyright & Intellectual Property Policy
+# Dribex Copyright & Intellectual Property Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
 
 ---
 
-## 1. MarGem Intellectual Property
+## 1. Dribex Intellectual Property
 
-MarGem owns or licenses all Platform intellectual property, including:
+Dribex owns or licenses all Platform intellectual property, including:
 
-- The "MarGem" name, logo, and branding
+- The "Dribex" name, logo, and branding
 - Software, source code, and application design
 - Platform layout, user interface, and documentation
-- Marketing materials and content created by MarGem
+- Marketing materials and content created by Dribex
 
-You may not copy, modify, distribute, or create derivative works of MarGem intellectual property without written permission.
+You may not copy, modify, distribute, or create derivative works of Dribex intellectual property without written permission.
 
 ---
 
 ## 2. User Content Ownership
 
-You retain ownership of content you submit to MarGem. By submitting content, you grant MarGem the license described in our [User Generated Content Policy](../marketplace/user-generated-content-policy.md).
+You retain ownership of content you submit to Dribex. By submitting content, you grant Dribex the license described in our [User Generated Content Policy](../marketplace/user-generated-content-policy.md).
 
 ---
 
@@ -38,9 +38,9 @@ You must not upload or share content that infringes:
 
 ## 4. Trademark Use
 
-- Do not use MarGem trademarks without authorization
-- Do not imply endorsement or partnership with MarGem without written consent
-- Sellers may reference MarGem verification status accurately
+- Do not use Dribex trademarks without authorization
+- Do not imply endorsement or partnership with Dribex without written consent
+- Sellers may reference Dribex verification status accurately
 
 ---
 
@@ -52,10 +52,10 @@ To report intellectual property infringement, see our [DMCA-Style Takedown Polic
 
 ## 6. Repeat Infringers
 
-MarGem will terminate accounts of repeat infringers in appropriate circumstances.
+Dribex will terminate accounts of repeat infringers in appropriate circumstances.
 
 ---
 
 ## 7. Contact
 
-copyright@margem.ma
+copyright@dribex.ma

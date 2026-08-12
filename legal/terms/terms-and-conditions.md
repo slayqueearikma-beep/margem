@@ -1,4 +1,4 @@
-# MarGem Terms and Conditions
+# Dribex Terms and Conditions
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -24,7 +24,7 @@
 
 ## 1. Introduction
 
-These Terms and Conditions ("**Conditions**") set forth the specific conditions under which MarGem provides access to its local discovery and marketplace platform. These Conditions supplement and form part of the [Terms of Service](terms-of-service.md).
+These Terms and Conditions ("**Conditions**") set forth the specific conditions under which Dribex provides access to its local discovery and marketplace platform. These Conditions supplement and form part of the [Terms of Service](terms-of-service.md).
 
 ---
 
@@ -44,19 +44,19 @@ These Conditions incorporate by reference:
 
 ## 3. Platform Access Conditions
 
-Access to MarGem is conditioned on your agreement to:
+Access to Dribex is conditioned on your agreement to:
 
 1. Provide accurate registration information and keep it current
 2. Comply with all applicable laws in Morocco and your jurisdiction
 3. Use the Platform only for lawful discovery, connection, and business promotion purposes
 4. Not interfere with Platform operation, security, or other users' experience
-5. Accept that MarGem may modify, suspend, or discontinue features with reasonable notice
+5. Accept that Dribex may modify, suspend, or discontinue features with reasonable notice
 
 ---
 
 ## 4. Service Availability
 
-MarGem strives for high availability but does not guarantee uninterrupted access. The Platform may be unavailable due to:
+Dribex strives for high availability but does not guarantee uninterrupted access. The Platform may be unavailable due to:
 
 - Scheduled maintenance (we will endeavor to provide advance notice)
 - Emergency maintenance or security incidents
@@ -69,7 +69,7 @@ We are not liable for temporary unavailability except as required by applicable 
 
 ## 5. Geographic Scope
 
-MarGem is designed for users in **Morocco**. City community, discovery, and listing features are available across **20 Moroccan cities** at launch, with ongoing expansion as new communities are added.
+Dribex is designed for users in **Morocco**. City community, discovery, and listing features are available across **20 Moroccan cities** at launch, with ongoing expansion as new communities are added.
 
 - Listings must represent businesses operating in Morocco unless otherwise authorized
 - Pricing should be displayed in **Moroccan Dirham (MAD)** unless clearly stated otherwise
@@ -85,7 +85,7 @@ Each individual should maintain only one personal account unless authorized for 
 
 ### 6.2 Dual-Mode Accounts
 
-A single MarGem account may function as both buyer and seller. Seller features require completion of storefront setup and compliance with seller policies.
+A single Dribex account may function as both buyer and seller. Seller features require completion of storefront setup and compliance with seller policies.
 
 ### 6.3 Verified Email
 
@@ -105,7 +105,7 @@ Basic Platform features are available at no charge, subject to these Conditions.
 
 ### 7.2 Premium Subscriptions
 
-Paid subscriptions (MarGem Plus, Seller Pro) are subject to:
+Paid subscriptions (Dribex Plus, Seller Pro) are subject to:
 
 - Pricing displayed at time of purchase (currently 49 MAD and 199 MAD per 30-day period respectively)
 - [Subscription Terms](../premium/subscription-terms.md)
@@ -113,7 +113,7 @@ Paid subscriptions (MarGem Plus, Seller Pro) are subject to:
 
 ### 7.3 No Transaction Fees
 
-MarGem does not currently charge fees on transactions between buyers and sellers. This may change with separate notice and terms.
+Dribex does not currently charge fees on transactions between buyers and sellers. This may change with separate notice and terms.
 
 ### 7.4 Taxes
 
@@ -130,13 +130,13 @@ All content you submit must:
 - Comply with [Prohibited Content Policy](../trust-safety/prohibited-content-policy.md)
 - Include appropriate disclaimers for regulated categories (medical, legal, automotive, etc.)
 
-MarGem may remove content that violates these conditions without prior notice.
+Dribex may remove content that violates these conditions without prior notice.
 
 ---
 
 ## 9. Verification Conditions
 
-Business verification on MarGem is a **discretionary trust indicator**, not a guarantee of quality, legality, or fitness for any purpose. Verification is subject to our [Business Verification Policy](../marketplace/business-verification-policy.md) and may be revoked for policy violations.
+Business verification on Dribex is a **discretionary trust indicator**, not a guarantee of quality, legality, or fitness for any purpose. Verification is subject to our [Business Verification Policy](../marketplace/business-verification-policy.md) and may be revoked for policy violations.
 
 ---
 
@@ -144,9 +144,9 @@ Business verification on MarGem is a **discretionary trust indicator**, not a gu
 
 ### 10.1 Termination by You
 
-You may terminate your account at any time via in-app settings or by contacting privacy@margem.app.
+You may terminate your account at any time via in-app settings or by contacting privacy@dribex.app.
 
-### 10.2 Termination by MarGem
+### 10.2 Termination by Dribex
 
 We may suspend or terminate your account for:
 
@@ -169,6 +169,6 @@ The following survive termination: intellectual property provisions, disclaimers
 
 ## 12. Contact
 
-- **Support:** support@margem.ma
-- **Legal:** legal@margem.ma
+- **Support:** support@dribex.ma
+- **Legal:** legal@dribex.ma
 - **Full contact:** [contact.md](../contact.md)

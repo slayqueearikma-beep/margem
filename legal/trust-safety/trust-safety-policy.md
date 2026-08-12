@@ -1,4 +1,4 @@
-# MarGem Trust & Safety Policy
+# Dribex Trust & Safety Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -20,7 +20,7 @@
 
 ## 1. Our Commitment
 
-MarGem is committed to maintaining a safe, trustworthy platform for discovering local businesses in Morocco. We invest in policies, tools, and staff to detect and address abuse.
+Dribex is committed to maintaining a safe, trustworthy platform for discovering local businesses in Morocco. We invest in policies, tools, and staff to detect and address abuse.
 
 ---
 
@@ -32,7 +32,7 @@ Use the **Report** button on any listing, business profile, review, or message t
 
 ### 2.2 Email Reporting
 
-For urgent or complex matters, contact safety@margem.ma with:
+For urgent or complex matters, contact safety@dribex.ma with:
 
 - URL or name of the reported content/account
 - Description of the issue
@@ -53,7 +53,7 @@ Reports may be submitted by authenticated or anonymous users. We encourage accou
 | **Fraud** | Advance-fee scams, fake payment requests, phishing |
 | **Scams** | Bait-and-switch pricing, non-delivery after payment, impersonation |
 | **Spam** | Unsolicited bulk messages, irrelevant promotions, link farming |
-| **Impersonation** | Pretending to be another business, brand, or MarGem staff |
+| **Impersonation** | Pretending to be another business, brand, or Dribex staff |
 | **Illegal products** | Counterfeit goods, controlled substances, stolen items |
 | **Dangerous services** | Unlicensed medical procedures, unsafe automotive modifications |
 | **Harassment** | Threats, stalking, hate speech, doxxing |
@@ -98,7 +98,7 @@ Reports may be submitted by authenticated or anonymous users. We encourage accou
 
 If you believe an enforcement action was taken in error:
 
-1. Email safety@margem.ma within **30 days** of the action
+1. Email safety@dribex.ma within **30 days** of the action
 2. Include your account email, the action taken, and your explanation
 3. Provide supporting evidence if available
 4. Appeals are reviewed by a different staff member within **10 business days**
@@ -108,11 +108,11 @@ If you believe an enforcement action was taken in error:
 
 ## 7. Law Enforcement Cooperation
 
-MarGem cooperates with law enforcement agencies in Morocco and other jurisdictions when presented with valid legal process. Emergency requests involving imminent harm may be escalated through security@margem.ma.
+Dribex cooperates with law enforcement agencies in Morocco and other jurisdictions when presented with valid legal process. Emergency requests involving imminent harm may be escalated through security@dribex.ma.
 
 ---
 
 ## 8. Contact
 
-- **Trust & Safety:** safety@margem.ma
-- **Security emergencies:** security@margem.ma
+- **Trust & Safety:** safety@dribex.ma
+- **Security emergencies:** security@dribex.ma

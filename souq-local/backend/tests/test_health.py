@@ -24,7 +24,7 @@ async def test_health_ok_when_db_available():
     else:
         assert result["status"] == "ok"
         assert result["database"] == "ok"
-        assert result["service"] == "MarGem API"
+        assert result["service"] == "Dribex API"
 
 
 @pytest.mark.asyncio

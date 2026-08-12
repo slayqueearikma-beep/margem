@@ -1,4 +1,4 @@
-/* MarGem Admin — marketplace & category management */
+/* Dribex Admin — marketplace & category management */
 
 const TOKEN_KEY = "margem_admin_token";
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];

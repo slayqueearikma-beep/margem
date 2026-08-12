@@ -9,7 +9,7 @@ activation_phase    = "0"
 location            = "westeurope"
 dr_location         = "francecentral"
 name_prefix         = "margem"
-domain_name         = "api-staging.margem.ma"
+domain_name         = "api-staging.dribex.ma"
 
 # Enable modules incrementally — see docs/11-migration-path.md
 module_flags = {

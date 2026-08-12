@@ -45,8 +45,8 @@ We do not sell your personal data. We share data only with service providers req
 
 ## Your rights (Morocco Law 09-08 / GDPR where applicable)
 
-- Access, correct, or export your data by contacting **privacy@margem.app**
-- Delete your account in **Settings → Delete Account**, via `DELETE /auth/me`, or by emailing **privacy@margem.app**
+- Access, correct, or export your data by contacting **privacy@dribex.app**
+- Delete your account in **Settings → Delete Account**, via `DELETE /auth/me`, or by emailing **privacy@dribex.app**
 - Withdraw location or marketing consent in app settings where available
 
 ## Children
@@ -55,7 +55,7 @@ Dribex is not directed to children under 16. We do not knowingly collect data fr
 
 ## Contact
 
-- **privacy@margem.app**
-- **dpo@margem.app** (Data Protection Officer)
+- **privacy@dribex.app**
+- **dpo@dribex.app** (Data Protection Officer)
 
-Publish this document at your `PRIVACY_POLICY_URL` (default: `https://margem.app/privacy`) before Play Store submission. The complete legal package is in the repository [`legal/`](../../legal/) folder.
+Publish this document at your `PRIVACY_POLICY_URL` (default: `https://dribex.app/privacy`) before Play Store submission. The complete legal package is in the repository [`legal/`](../../legal/) folder.

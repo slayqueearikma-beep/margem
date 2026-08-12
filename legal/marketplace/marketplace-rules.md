@@ -1,4 +1,4 @@
-# MarGem Marketplace Rules
+# Dribex Marketplace Rules
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -25,15 +25,15 @@
 
 ## 1. Overview
 
-These Marketplace Rules govern how users interact on MarGem's discovery and connection platform. MarGem helps buyers find businesses and helps sellers reach customers in Morocco.
+These Marketplace Rules govern how users interact on Dribex's discovery and connection platform. Dribex helps buyers find businesses and helps sellers reach customers in Morocco.
 
-**MarGem is not a marketplace payment intermediary.** Transactions occur directly between buyers and sellers unless future payment features are introduced with separate terms.
+**Dribex is not a marketplace payment intermediary.** Transactions occur directly between buyers and sellers unless future payment features are introduced with separate terms.
 
 ---
 
 ## 2. Platform Role
 
-MarGem provides:
+Dribex provides:
 
 - Discovery tools (search, categories, maps, featured placement)
 - Business storefronts and product/service listings
@@ -42,7 +42,7 @@ MarGem provides:
 - Verification indicators (discretionary, not a guarantee)
 - Reporting and moderation
 
-MarGem does **not**:
+Dribex does **not**:
 
 - Process buyer-to-seller payments
 - Guarantee product quality, delivery, or service outcomes
@@ -55,7 +55,7 @@ MarGem does **not**:
 
 Buyers agree to:
 
-1. Use MarGem for lawful discovery and connection purposes
+1. Use Dribex for lawful discovery and connection purposes
 2. Submit honest reviews based on genuine experiences
 3. Not submit false reports or abuse reporting tools
 4. Conduct due diligence before transacting with sellers
@@ -141,9 +141,9 @@ Prohibited listings are defined in our [Prohibited Content Policy](../trust-safe
 
 ## 10. Pricing and Payment
 
-- Prices on MarGem are **informational** and **negotiable** unless stated otherwise
+- Prices on Dribex are **informational** and **negotiable** unless stated otherwise
 - Payment occurs **off-platform** between buyer and seller
-- Displayed payment methods (cash, bank transfer, mobile payment) are seller preferences, not MarGem payment processing
+- Displayed payment methods (cash, bank transfer, mobile payment) are seller preferences, not Dribex payment processing
 - See [Payment Terms](payment-terms.md)
 
 ---
@@ -151,8 +151,8 @@ Prohibited listings are defined in our [Prohibited Content Policy](../trust-safe
 ## 11. Disputes
 
 - **Buyer-seller disputes:** Resolve directly between parties
-- **Platform policy violations:** Report via in-app tools or safety@margem.ma
-- **MarGem subscription disputes:** See [Dispute Resolution Policy](../terms/dispute-resolution.md)
+- **Platform policy violations:** Report via in-app tools or safety@dribex.ma
+- **Dribex subscription disputes:** See [Dispute Resolution Policy](../terms/dispute-resolution.md)
 
 ---
 
@@ -164,6 +164,6 @@ Violations may result in listing removal, verification revocation, account suspe
 
 ## 13. Contact
 
-- **Marketplace support:** support@margem.ma
-- **Seller support:** sellers@margem.ma
-- **Safety reports:** safety@margem.ma
+- **Marketplace support:** support@dribex.ma
+- **Seller support:** sellers@dribex.ma
+- **Safety reports:** safety@dribex.ma

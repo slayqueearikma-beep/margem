@@ -8,7 +8,7 @@ cd "$ROOT"
 COMPOSE=(docker compose -f docker-compose.home.yml --env-file .env.home)
 ENV_FILE="$ROOT/.env.home"
 
-echo "=== MarGem home server diagnostics ==="
+echo "=== Dribex home server diagnostics ==="
 echo ""
 
 if [[ ! -f "$ENV_FILE" ]]; then

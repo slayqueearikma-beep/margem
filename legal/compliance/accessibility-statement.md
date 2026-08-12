@@ -1,4 +1,4 @@
-# MarGem Accessibility Statement
+# Dribex Accessibility Statement
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Our Commitment
 
-MarGem is committed to making our Platform accessible to all users, including people with disabilities. We strive to conform to the **Web Content Accessibility Guidelines (WCAG) 2.1 Level AA** and applicable accessibility standards on mobile platforms.
+Dribex is committed to making our Platform accessible to all users, including people with disabilities. We strive to conform to the **Web Content Accessibility Guidelines (WCAG) 2.1 Level AA** and applicable accessibility standards on mobile platforms.
 
 ---
 
@@ -49,7 +49,7 @@ We are aware of the following accessibility limitations and are working to addre
 
 ## 4. Ongoing Efforts
 
-MarGem is committed to:
+Dribex is committed to:
 
 - Regular accessibility audits of new features
 - Training development teams on accessibility best practices
@@ -60,9 +60,9 @@ MarGem is committed to:
 
 ## 5. Feedback and Assistance
 
-If you encounter accessibility barriers on MarGem, please contact us:
+If you encounter accessibility barriers on Dribex, please contact us:
 
-- **Email:** accessibility@margem.ma
+- **Email:** accessibility@dribex.ma
 - **Response time:** 5 business days
 
 Please include:
@@ -76,10 +76,10 @@ Please include:
 
 ## 6. Alternative Access
 
-If you are unable to access a feature due to accessibility barriers, contact support@margem.ma and we will provide alternative means of access where reasonably possible.
+If you are unable to access a feature due to accessibility barriers, contact support@dribex.ma and we will provide alternative means of access where reasonably possible.
 
 ---
 
 ## 7. Contact
 
-accessibility@margem.ma
+accessibility@dribex.ma

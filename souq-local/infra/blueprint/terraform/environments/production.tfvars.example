@@ -4,7 +4,7 @@ environment_name    = "production"
 activation_phase    = "0"
 location            = "westeurope"
 dr_location         = "francecentral"
-domain_name         = "api.margem.ma"
+domain_name         = "api.dribex.ma"
 
 module_flags = {
   networking      = false

@@ -1,6 +1,6 @@
-# MarGem — Architecture
+# Dribex — Architecture
 
-MarGem is a **third-party local discovery / connection platform**. Buyers find nearby businesses, compare listings, and contact sellers. Transactions and payments happen **outside** the app. There is no cart, checkout, payment processing, shipping, or in-app refunds.
+Dribex is a **third-party local discovery / connection platform**. Buyers find nearby businesses, compare listings, and contact sellers. Transactions and payments happen **outside** the app. There is no cart, checkout, payment processing, shipping, or in-app refunds.
 
 ## System overview
 
@@ -25,7 +25,7 @@ flowchart TB
 
 ## Auth model
 
-- Primary: email/password with MarGem JWT access + refresh tokens
+- Primary: email/password with Dribex JWT access + refresh tokens
 - Optional: Firebase ID tokens when `FIREBASE_*` is configured
 - Roles: one identity per email; buyer browsing + optional seller storefront (dual-mode)
 - Guests may browse; favorites migrate on signup

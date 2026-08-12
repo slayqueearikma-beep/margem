@@ -1,4 +1,4 @@
-# MarGem Subscription Terms
+# Dribex Subscription Terms
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -23,7 +23,7 @@
 
 ## 1. Overview
 
-These Subscription Terms govern paid membership plans on MarGem. By subscribing, you agree to these terms in addition to the [Terms of Service](../terms/terms-of-service.md) and plan-specific terms.
+These Subscription Terms govern paid membership plans on Dribex. By subscribing, you agree to these terms in addition to the [Terms of Service](../terms/terms-of-service.md) and plan-specific terms.
 
 ---
 
@@ -31,12 +31,12 @@ These Subscription Terms govern paid membership plans on MarGem. By subscribing,
 
 | Plan Code | Display Name | Price | Billing Period | User Type |
 |-----------|-------------|-------|----------------|-----------|
-| `buyer_premium` | MarGem Plus | 49 MAD | 30 days | Buyers |
+| `buyer_premium` | Dribex Plus | 49 MAD | 30 days | Buyers |
 | `seller_pro` | Seller Pro | 199 MAD | 30 days | Sellers / businesses |
 
 See plan-specific terms:
 
-- [MarGem Plus Membership Terms](buyer-plus-membership-terms.md) (buyers)
+- [Dribex Plus Membership Terms](buyer-plus-membership-terms.md) (buyers)
 - [Seller Pro Membership Terms](premium-membership-terms.md) (sellers)
 - [Enterprise Terms](enterprise-terms.md) (custom arrangements)
 
@@ -56,11 +56,11 @@ All prices are in **Moroccan Dirham (MAD)**.
 
 ### 4.2 Payment Processing
 
-When live billing is enabled, payments are processed by a third-party payment provider. MarGem does **not** store full payment card numbers.
+When live billing is enabled, payments are processed by a third-party payment provider. Dribex does **not** store full payment card numbers.
 
 ### 4.3 Current Billing Status
 
-Self-serve subscription billing may not be available in all environments. During pre-launch or when billing is unavailable, contact **billing@margem.ma** or **support@margem.ma** for manual activation.
+Self-serve subscription billing may not be available in all environments. During pre-launch or when billing is unavailable, contact **billing@dribex.ma** or **support@dribex.ma** for manual activation.
 
 ### 4.4 Taxes
 
@@ -79,7 +79,7 @@ Prices may exclude applicable taxes. You are responsible for any taxes on your s
 
 ## 6. Cancellation
 
-- Cancel anytime through account settings or by emailing billing@margem.ma
+- Cancel anytime through account settings or by emailing billing@dribex.ma
 - Cancellation takes effect at the end of the current billing period
 - No partial refunds for unused days unless required by law (see [Refund Policy](refund-policy.md))
 - Premium features remain active until the end of the paid period
@@ -90,7 +90,7 @@ Prices may exclude applicable taxes. You are responsible for any taxes on your s
 
 - You may upgrade or downgrade between plans where applicable
 - Upgrades take effect immediately; downgrades at end of billing period
-- MarGem may modify plan features with reasonable notice
+- Dribex may modify plan features with reasonable notice
 
 ---
 
@@ -102,16 +102,16 @@ Subscription benefits are described in plan-specific terms. Benefits are provide
 
 ## 9. Admin Grants
 
-MarGem staff may manually grant premium status for promotional, support, or testing purposes. Admin-granted subscriptions are subject to these terms unless otherwise specified.
+Dribex staff may manually grant premium status for promotional, support, or testing purposes. Admin-granted subscriptions are subject to these terms unless otherwise specified.
 
 ---
 
 ## 10. Service Interruptions
 
-If the Platform is unavailable for extended periods due to MarGem's fault, we may extend subscription periods at our discretion. We are not liable for interruptions caused by third parties or force majeure.
+If the Platform is unavailable for extended periods due to Dribex's fault, we may extend subscription periods at our discretion. We are not liable for interruptions caused by third parties or force majeure.
 
 ---
 
 ## 11. Contact
 
-billing@margem.ma
+billing@dribex.ma

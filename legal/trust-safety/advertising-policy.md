@@ -1,4 +1,4 @@
-# MarGem Advertising Policy
+# Dribex Advertising Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,13 +7,13 @@
 
 ## 1. Overview
 
-MarGem does **not** operate third-party advertising networks (e.g., AdMob, Facebook Audience Network). This policy governs **internal promotional placement** and future advertising features.
+Dribex does **not** operate third-party advertising networks (e.g., AdMob, Facebook Audience Network). This policy governs **internal promotional placement** and future advertising features.
 
 ---
 
 ## 2. Current Promotional Features
 
-MarGem offers **paid visibility** through subscriptions, not third-party ads:
+Dribex offers **paid visibility** through subscriptions, not third-party ads:
 
 | Feature | Description | Eligibility |
 |---------|-------------|-------------|
@@ -28,12 +28,12 @@ These are **platform membership benefits**, not advertisements sold to third par
 
 ## 3. Platform Announcements
 
-MarGem may send platform announcements to users via:
+Dribex may send platform announcements to users via:
 
 - In-app notifications
 - Email (with consent where required)
 
-Announcements are MarGem communications, not paid third-party advertisements. Admin announcements may target audiences: all users, buyers, sellers, or premium subscribers.
+Announcements are Dribex communications, not paid third-party advertisements. Admin announcements may target audiences: all users, buyers, sellers, or premium subscribers.
 
 ---
 
@@ -50,7 +50,7 @@ Sellers may promote their own businesses through their listings and storefronts,
 
 ## 5. Future Advertising
 
-If MarGem introduces third-party advertising in the future:
+If Dribex introduces third-party advertising in the future:
 
 - This policy will be updated with specific terms
 - Users will be notified of material changes
@@ -67,11 +67,11 @@ Even for self-promotion, the following are prohibited:
 - Bait-and-switch pricing
 - Promotion of illegal products or services
 - Spam or unsolicited bulk messaging
-- Impersonation of competitors or MarGem
+- Impersonation of competitors or Dribex
 
 ---
 
 ## 7. Contact
 
-- **Advertising inquiries:** enterprise@margem.ma
-- **Policy violations:** safety@margem.ma
+- **Advertising inquiries:** enterprise@dribex.ma
+- **Policy violations:** safety@dribex.ma

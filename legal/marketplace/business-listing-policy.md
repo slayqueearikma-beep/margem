@@ -1,4 +1,4 @@
-# MarGem Business Listing Policy
+# Dribex Business Listing Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-This policy sets standards for business storefronts, product listings, and service listings on MarGem.
+This policy sets standards for business storefronts, product listings, and service listings on Dribex.
 
 ---
 
@@ -65,13 +65,13 @@ Optional but recommended: logo, cover image, opening hours, website, social medi
 
 ## 6. Featured and Premium Listings
 
-Featured placement requires an active **Seller Pro** subscription. Featured listings must still comply with all listing standards. MarGem may remove featured status for policy violations without refund.
+Featured placement requires an active **Seller Pro** subscription. Featured listings must still comply with all listing standards. Dribex may remove featured status for policy violations without refund.
 
 ---
 
 ## 7. Listing Moderation
 
-MarGem may:
+Dribex may:
 
 - Hide or remove listings that violate policies
 - Reassign incorrect categories
@@ -88,5 +88,5 @@ See [Prohibited Content Policy](../trust-safety/prohibited-content-policy.md).
 
 ## 9. Contact
 
-- **Seller support:** sellers@margem.ma
-- **Listing issues:** support@margem.ma
+- **Seller support:** sellers@dribex.ma
+- **Listing issues:** support@dribex.ma

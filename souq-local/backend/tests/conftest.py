@@ -77,7 +77,7 @@ async def prepare_database():
                     SubscriptionPlan(
                         id=uuid4(),
                         code="buyer_premium",
-                        name="MarGem Plus",
+                        name="Dribex Plus",
                         description="Personalized discovery",
                         price_mad=49,
                         billing_period_days=30,

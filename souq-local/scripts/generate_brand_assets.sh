@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate MarGem brand assets. Works on Ubuntu without system-wide pip.
+# Regenerate Dribex brand assets. Works on Ubuntu without system-wide pip.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

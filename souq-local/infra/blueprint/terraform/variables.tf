@@ -1,5 +1,5 @@
 # =============================================================================
-# MarGem Enterprise Blueprint — Root Variables
+# Dribex Enterprise Blueprint — Root Variables
 # blueprint_enabled = false (default) → ZERO resources provisioned
 # =============================================================================
 
@@ -94,9 +94,9 @@ variable "postgres_admin_password" {
 }
 
 variable "domain_name" {
-  description = "Public API domain (e.g. api.margem.ma)"
+  description = "Public API domain (e.g. api.dribex.ma)"
   type        = string
-  default     = "api.margem.ma"
+  default     = "api.dribex.ma"
 }
 
 variable "common_tags" {

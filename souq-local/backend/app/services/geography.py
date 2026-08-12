@@ -112,7 +112,7 @@ async def seed_morocco_cities_if_empty(session: AsyncSession) -> None:
                     latitude=lat,
                     longitude=lng,
                     sort_order=sort_order,
-                    description=f"MarGem community for {name_en}",
+                    description=f"Dribex community for {name_en}",
                     is_active=True,
                 )
             )

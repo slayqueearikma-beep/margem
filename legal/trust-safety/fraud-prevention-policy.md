@@ -1,4 +1,4 @@
-# MarGem Fraud Prevention Policy
+# Dribex Fraud Prevention Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-MarGem implements measures to detect, prevent, and respond to fraud on the Platform.
+Dribex implements measures to detect, prevent, and respond to fraud on the Platform.
 
 ---
 
@@ -42,7 +42,7 @@ MarGem implements measures to detect, prevent, and respond to fraud on the Platf
 
 ### 3.3 User Education
 - Community Guidelines and safety tips
-- Clear disclaimers that MarGem does not process buyer-seller payments
+- Clear disclaimers that Dribex does not process buyer-seller payments
 - Verification badge explanations
 
 ---
@@ -73,5 +73,5 @@ Users should:
 
 ## 6. Contact
 
-- **Fraud reports:** safety@margem.ma
-- **Security:** security@margem.ma
+- **Fraud reports:** safety@dribex.ma
+- **Security:** security@dribex.ma

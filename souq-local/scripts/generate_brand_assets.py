@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate MarGem brand assets from brand source PNGs.
+"""Regenerate Dribex brand assets from brand source PNGs.
 
 Sources:
   brand/margem_logo.png       — full lockup (icon + wordmark + tagline)
@@ -115,7 +115,7 @@ def main() -> None:
     if not SRC_FULL.exists():
         raise SystemExit(
             f"Missing full lockup source: {SRC_FULL}\n"
-            "Place your full MarGem lockup at souq-local/brand/margem_logo.png"
+            "Place your full Dribex lockup at souq-local/brand/margem_logo.png"
         )
 
     full = _trim_margins(Image.open(SRC_FULL).convert("RGB"))
@@ -196,8 +196,8 @@ def main() -> None:
     manifest = brand / "site.webmanifest"
     manifest.write_text(
         """{
-  "name": "MarGem",
-  "short_name": "MarGem",
+  "name": "Dribex",
+  "short_name": "Dribex",
   "description": "Discover Morocco's hidden gems",
   "start_url": "/",
   "display": "standalone",

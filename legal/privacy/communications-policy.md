@@ -1,4 +1,4 @@
-# MarGem Communications Policy
+# Dribex Communications Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,15 +7,15 @@
 
 ## 1. Scope
 
-This policy governs how MarGem communicates with users and how users communicate with each other on the Platform.
+This policy governs how Dribex communicates with users and how users communicate with each other on the Platform.
 
 ---
 
-## 2. MarGem-to-User Communications
+## 2. Dribex-to-User Communications
 
 ### 2.1 Transactional Communications
 
-MarGem sends communications necessary for Platform operation:
+Dribex sends communications necessary for Platform operation:
 
 | Type | Channel | Consent Required |
 |------|---------|------------------|
@@ -28,7 +28,7 @@ MarGem sends communications necessary for Platform operation:
 
 ### 2.2 Platform Announcements
 
-MarGem may send announcements about new features, maintenance, or platform updates via in-app notifications and email. Admin announcements may target: all users, buyers, sellers, or premium subscribers.
+Dribex may send announcements about new features, maintenance, or platform updates via in-app notifications and email. Admin announcements may target: all users, buyers, sellers, or premium subscribers.
 
 ### 2.3 Marketing Communications
 
@@ -44,7 +44,7 @@ Registered users with verified email may send in-app messages. Messages must com
 
 ### 3.2 External Contact
 
-Users may contact each other via call, WhatsApp, email, SMS, or website links displayed on listings. These communications occur outside MarGem and are not monitored by MarGem unless reported.
+Users may contact each other via call, WhatsApp, email, SMS, or website links displayed on listings. These communications occur outside Dribex and are not monitored by Dribex unless reported.
 
 ---
 
@@ -60,13 +60,13 @@ Users may contact each other via call, WhatsApp, email, SMS, or website links di
 
 ## 5. Monitoring
 
-MarGem does not routinely monitor in-app messages. Messages may be reviewed when reported for policy violations or as required by law.
+Dribex does not routinely monitor in-app messages. Messages may be reviewed when reported for policy violations or as required by law.
 
 ---
 
 ## 6. Contact
 
-- **Support:** support@margem.ma
-- **Safety:** safety@margem.ma
+- **Support:** support@dribex.ma
+- **Safety:** safety@dribex.ma
 
 See also: [Email & Notification Policy](email-notification-policy.md)

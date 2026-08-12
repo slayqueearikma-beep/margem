@@ -1,4 +1,4 @@
-# MarGem home server — laptop runs API + Postgres + local image storage
+# Dribex home server — laptop runs API + Postgres + local image storage
 # Usage: docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
 #
 # Default STORAGE_BACKEND=local stores images on the laptop (no Azure required).
@@ -52,7 +52,7 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
+      SMTP_FROM: ${SMTP_FROM:-Dribex <noreply@dribex.ma>}
       # Home LAN servers often have no SMTP; tokens are logged server-side only.
       ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-false}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}

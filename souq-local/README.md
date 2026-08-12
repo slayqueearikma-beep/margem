@@ -1,8 +1,8 @@
-# MarGem — Morocco local discovery platform
+# Dribex — Morocco local discovery platform
 
 Discover Morocco's hidden gems. Buyers find shops, services, and local sellers; sellers get a professional storefront and connect directly with customers.
 
-MarGem is a **discovery and connection** platform — not a traditional e-commerce checkout app. Transactions happen outside the platform. Full product capabilities are documented in [docs/MARKETPLACE_PRODUCTION.md](docs/MARKETPLACE_PRODUCTION.md).
+Dribex is a **discovery and connection** platform — not a traditional e-commerce checkout app. Transactions happen outside the platform. Full product capabilities are documented in [docs/MARKETPLACE_PRODUCTION.md](docs/MARKETPLACE_PRODUCTION.md).
 
 Production readiness (score, blockers, checklist): [docs/PRODUCTION_READINESS_AUDIT.md](docs/PRODUCTION_READINESS_AUDIT.md).
 
@@ -93,7 +93,7 @@ terraform init && terraform apply
 ```
 souq-local/
 ├── backend/          # FastAPI API + Alembic migrations
-├── mobile/           # Flutter app (MarGem)
+├── mobile/           # Flutter app (Dribex)
 ├── infra/
 │   ├── terraform/    # Terraform (recommended)
 │   └── main.bicep    # Bicep alternative

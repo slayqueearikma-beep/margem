@@ -11,7 +11,7 @@ resource "azurerm_api_management" "main" {
   name                = "${var.name_prefix}-apim"
   location            = var.location
   resource_group_name = var.resource_group_name
-  publisher_name      = "MarGem"
+  publisher_name      = "Dribex"
   publisher_email     = var.publisher_email
   sku_name            = var.sku_name
   tags                = var.tags
@@ -22,7 +22,7 @@ resource "azurerm_api_management_api" "margem" {
   resource_group_name   = var.resource_group_name
   api_management_name   = azurerm_api_management.main.name
   revision              = "1"
-  display_name          = "MarGem API"
+  display_name          = "Dribex API"
   path                  = ""
   protocols             = ["https"]
   subscription_required = false

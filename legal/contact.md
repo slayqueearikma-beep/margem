@@ -1,13 +1,13 @@
-# MarGem — Contact Information
+# Dribex — Contact Information
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
 
 ---
 
-## About MarGem
+## About Dribex
 
-MarGem is a local discovery and marketplace platform that helps users in Morocco discover businesses, professionals, products, restaurants, healthcare providers, agencies, automotive services, and other local offerings. MarGem is available on Android, iOS, and Web.
+Dribex is a local discovery and marketplace platform that helps users in Morocco discover businesses, professionals, products, restaurants, healthcare providers, agencies, automotive services, and other local offerings. Dribex is available on Android, iOS, and Web.
 
 **Tagline:** Discover Morocco's Hidden Gems
 
@@ -17,9 +17,9 @@ MarGem is a local discovery and marketplace platform that helps users in Morocco
 
 | Purpose | Contact |
 |---------|---------|
-| General support | [support@margem.ma](mailto:support@margem.ma) |
-| Website | [https://margem.ma](https://margem.ma) |
-| App | [https://margem.app](https://margem.app) |
+| General support | [support@dribex.ma](mailto:support@dribex.ma) |
+| Website | [https://dribex.ma](https://dribex.ma) |
+| App | [https://dribex.app](https://dribex.app) |
 
 ---
 
@@ -27,10 +27,10 @@ MarGem is a local discovery and marketplace platform that helps users in Morocco
 
 | Purpose | Contact |
 |---------|---------|
-| Privacy requests (access, deletion, export) | [privacy@margem.app](mailto:privacy@margem.app) |
-| Legal notices | [legal@margem.ma](mailto:legal@margem.ma) |
-| DMCA / copyright claims | [copyright@margem.ma](mailto:copyright@margem.ma) |
-| Data Protection Officer (DPO) | [dpo@margem.app](mailto:dpo@margem.app) |
+| Privacy requests (access, deletion, export) | [privacy@dribex.app](mailto:privacy@dribex.app) |
+| Legal notices | [legal@dribex.ma](mailto:legal@dribex.ma) |
+| DMCA / copyright claims | [copyright@dribex.ma](mailto:copyright@dribex.ma) |
+| Data Protection Officer (DPO) | [dpo@dribex.app](mailto:dpo@dribex.app) |
 
 ---
 
@@ -38,7 +38,7 @@ MarGem is a local discovery and marketplace platform that helps users in Morocco
 
 | Purpose | Contact |
 |---------|---------|
-| Report abuse, fraud, or policy violations | [safety@margem.ma](mailto:safety@margem.ma) |
+| Report abuse, fraud, or policy violations | [safety@dribex.ma](mailto:safety@dribex.ma) |
 | In-app reporting | Use the **Report** feature on any listing, business, or review |
 
 ---
@@ -47,7 +47,7 @@ MarGem is a local discovery and marketplace platform that helps users in Morocco
 
 | Purpose | Contact |
 |---------|---------|
-| Vulnerability reports | [security@margem.ma](mailto:security@margem.ma) |
+| Vulnerability reports | [security@dribex.ma](mailto:security@dribex.ma) |
 | Security policy | [security/responsible-disclosure.md](security/responsible-disclosure.md) |
 
 ---
@@ -56,9 +56,9 @@ MarGem is a local discovery and marketplace platform that helps users in Morocco
 
 | Purpose | Contact |
 |---------|---------|
-| Seller onboarding & verification | [sellers@margem.ma](mailto:sellers@margem.ma) |
-| Premium & subscription billing | [billing@margem.ma](mailto:billing@margem.ma) |
-| Enterprise inquiries | [enterprise@margem.ma](mailto:enterprise@margem.ma) |
+| Seller onboarding & verification | [sellers@dribex.ma](mailto:sellers@dribex.ma) |
+| Premium & subscription billing | [billing@dribex.ma](mailto:billing@dribex.ma) |
+| Enterprise inquiries | [enterprise@dribex.ma](mailto:enterprise@dribex.ma) |
 
 ---
 
@@ -66,7 +66,7 @@ MarGem is a local discovery and marketplace platform that helps users in Morocco
 
 | Purpose | Contact |
 |---------|---------|
-| Accessibility feedback | [accessibility@margem.ma](mailto:accessibility@margem.ma) |
+| Accessibility feedback | [accessibility@dribex.ma](mailto:accessibility@dribex.ma) |
 
 ---
 
@@ -74,7 +74,7 @@ MarGem is a local discovery and marketplace platform that helps users in Morocco
 
 > **Note for counsel:** Insert the registered legal entity name and physical address before publication.
 
-**MarGem**  
+**Dribex**  
 [Registered Legal Entity Name]  
 [Street Address]  
 [Casablanca / Morocco Postal Code]  
@@ -98,4 +98,4 @@ We aim to respond to inquiries within the following timeframes:
 
 ## Languages
 
-MarGem provides support in **English**, **French**, and **Arabic**. You may submit inquiries in any of these languages.
+Dribex provides support in **English**, **French**, and **Arabic**. You may submit inquiries in any of these languages.

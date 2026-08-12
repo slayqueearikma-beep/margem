@@ -112,4 +112,3 @@ python3 souq-local/backend/scripts/generate_legal_html.py
 - RTL: city picker, promo banner, message send icon, registration remove button
 - `appStorageNotReady`, `communityYou`, premium terminology fixes in Arabic
 - Noto Sans Arabic wordmark for `ar` locale
-

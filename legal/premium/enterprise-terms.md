@@ -1,4 +1,4 @@
-# MarGem Enterprise Terms
+# Dribex Enterprise Terms
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Overview
 
-MarGem Enterprise provides custom visibility, support, and platform arrangements for larger businesses, agencies, and organizations. Enterprise is not a self-serve subscription tier — it requires a separate agreement with MarGem.
+Dribex Enterprise provides custom visibility, support, and platform arrangements for larger businesses, agencies, and organizations. Enterprise is not a self-serve subscription tier — it requires a separate agreement with Dribex.
 
 ---
 
@@ -21,7 +21,7 @@ Enterprise arrangements may include:
 | **Dedicated support** | Named account manager or priority support channel |
 | **Multi-location management** | Support for businesses with multiple locations (future) |
 | **Custom analytics** | Extended reporting and data exports (future) |
-| **API access** | Programmatic access to MarGem services (future) |
+| **API access** | Programmatic access to Dribex services (future) |
 | **SLA commitments** | Uptime and support response guarantees (negotiated) |
 | **Admin console access** | Enterprise visibility tools (internal admin branding) |
 
@@ -43,8 +43,8 @@ Specific services are defined in each Enterprise Agreement.
 
 ## 4. Agreement Process
 
-1. Contact **enterprise@margem.ma** with your business requirements
-2. MarGem provides a proposal and Enterprise Agreement
+1. Contact **enterprise@dribex.ma** with your business requirements
+2. Dribex provides a proposal and Enterprise Agreement
 3. Upon execution, enterprise features are activated
 4. Billing terms are defined in the Enterprise Agreement
 
@@ -64,4 +64,4 @@ Enterprise Agreements specify termination terms. Upon termination, enterprise fe
 
 ## 7. Contact
 
-enterprise@margem.ma
+enterprise@dribex.ma

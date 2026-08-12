@@ -1,4 +1,4 @@
-"""Stripe Checkout for MarGem premium visibility subscriptions."""
+"""Stripe Checkout for Dribex premium visibility subscriptions."""
 
 from __future__ import annotations
 
@@ -62,7 +62,7 @@ async def create_checkout_session(
                     "currency": settings.stripe_currency.lower(),
                     "product_data": {
                         "name": plan.name,
-                        "description": plan.description or "MarGem Premium",
+                        "description": plan.description or "Dribex Premium",
                     },
                     "unit_amount": int(round(plan.price_mad * 100)),
                 },

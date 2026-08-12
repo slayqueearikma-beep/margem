@@ -88,9 +88,9 @@ async def send_signup_otp(
     if channel == "email":
         email_service.send(
             to=normalized_email,
-            subject="Your MarGem verification code",
+            subject="Your Dribex verification code",
             text_body=(
-                "Your MarGem signup verification code is:\n\n"
+                "Your Dribex signup verification code is:\n\n"
                 f"{code}\n\n"
                 "This code expires in 10 minutes. If you did not request this, ignore this email."
             ),

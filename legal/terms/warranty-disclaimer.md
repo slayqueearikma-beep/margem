@@ -1,4 +1,4 @@
-# MarGem Warranty Disclaimer
+# Dribex Warranty Disclaimer
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,13 +7,13 @@
 
 ## 1. "As Is" and "As Available"
 
-THE MARGEM PLATFORM AND ALL SERVICES, CONTENT, AND FEATURES ARE PROVIDED ON AN **"AS IS"** AND **"AS AVAILABLE"** BASIS WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY.
+THE DRIBEXM PLATFORM AND ALL SERVICES, CONTENT, AND FEATURES ARE PROVIDED ON AN **"AS IS"** AND **"AS AVAILABLE"** BASIS WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY.
 
 ---
 
 ## 2. Disclaimed Warranties
 
-TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, MARGEM DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO:
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, DRIBEXM DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO:
 
 | Warranty | Disclaimer |
 |----------|------------|
@@ -29,13 +29,13 @@ TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, MARGEM DISCLAIMS ALL WARRANTI
 
 ## 3. No Professional Advice
 
-MarGem does not provide legal, medical, financial, tax, or business advice. Information on the Platform is for general discovery purposes only.
+Dribex does not provide legal, medical, financial, tax, or business advice. Information on the Platform is for general discovery purposes only.
 
 ---
 
 ## 4. Third-Party Content
 
-MarGem does not warrant the accuracy, completeness, or reliability of user-generated content, including listings, reviews, and business profiles.
+Dribex does not warrant the accuracy, completeness, or reliability of user-generated content, including listings, reviews, and business profiles.
 
 ---
 
@@ -53,4 +53,4 @@ This Warranty Disclaimer is incorporated into the [Terms of Service](terms-of-se
 
 ## 7. Contact
 
-legal@margem.ma
+legal@dribex.ma

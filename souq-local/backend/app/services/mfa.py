@@ -17,7 +17,7 @@ from app.config import settings
 from app.models import MfaFactor, MfaRecoveryCode, User
 from app.services.audit import log_security_event
 
-_ISSUER = "MarGem"
+_ISSUER = "Dribex"
 _RECOVERY_CODE_COUNT = 8
 
 

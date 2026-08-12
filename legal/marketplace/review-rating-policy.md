@@ -1,4 +1,4 @@
-# MarGem Review & Rating Policy
+# Dribex Review & Rating Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-This policy governs how reviews and ratings work on MarGem to ensure they are honest, useful, and fair.
+This policy governs how reviews and ratings work on Dribex to ensure they are honest, useful, and fair.
 
 ---
 
@@ -64,23 +64,23 @@ Reviews include four category scores (1–5):
 
 ## 6. Moderation
 
-MarGem may remove reviews that:
+Dribex may remove reviews that:
 
 - Violate this policy or [Prohibited Content Policy](../trust-safety/prohibited-content-policy.md)
 - Are clearly fake or fraudulent
 - Contain personal information or illegal content
 - Are submitted from compromised or duplicate accounts
 
-MarGem does not remove reviews solely because they are negative.
+Dribex does not remove reviews solely because they are negative.
 
 ---
 
 ## 7. Reporting Reviews
 
-Report inappropriate reviews via in-app reporting or safety@margem.ma.
+Report inappropriate reviews via in-app reporting or safety@dribex.ma.
 
 ---
 
 ## 8. Contact
 
-safety@margem.ma
+safety@dribex.ma

@@ -1,4 +1,4 @@
-# MarGem Mobile — Play Store ready setup
+# Dribex Mobile — Play Store ready setup
 
 ## Prerequisites
 
@@ -71,7 +71,7 @@ Edit `android/key.properties` with your keystore path and passwords.
 flutter build appbundle \
   --dart-define=PRODUCTION=true \
   --dart-define=API_BASE_URL=https://YOUR-API.azurecontainerapps.io \
-  --dart-define=PRIVACY_POLICY_URL=https://margem.app/privacy
+  --dart-define=PRIVACY_POLICY_URL=https://dribex.app/privacy
 ```
 
 Output: `build/app/outputs/bundle/release/app-release.aab`

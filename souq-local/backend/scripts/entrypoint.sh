@@ -64,5 +64,5 @@ PY
   fi
 fi
 
-echo "Starting MarGem API..."
+echo "Starting Dribex API..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000

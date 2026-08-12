@@ -1,4 +1,4 @@
-# MarGem Subscription Terms (Summary)
+# Dribex Subscription Terms (Summary)
 
 **Last updated:** August 5, 2026
 
@@ -9,7 +9,7 @@ This summary supports in-app links and Play Store listings. The full legal text 
 | Plan | Code | Price | Period | Audience |
 |------|------|-------|--------|----------|
 | **Standard** | — | Free | — | All buyers and sellers |
-| **MarGem Plus** | `buyer_premium` | 49 MAD | 30 days | Buyers |
+| **Dribex Plus** | `buyer_premium` | 49 MAD | 30 days | Buyers |
 | **Seller Pro** | `seller_pro` | 199 MAD | 30 days | Sellers / businesses |
 
 All prices are in Moroccan Dirham (MAD).
@@ -20,24 +20,24 @@ All prices are in Moroccan Dirham (MAD).
 - Browse, search, message, list products/services, and use city community features
 - No payment required
 
-## MarGem Plus and Seller Pro
+## Dribex Plus and Seller Pro
 
 - Optional paid upgrades with features described in the app
 - Billed in 30-day cycles when self-serve billing is available
-- May be activated manually during pre-launch via **billing@margem.ma**
+- May be activated manually during pre-launch via **billing@dribex.ma**
 
 ## Cancellation
 
-- Cancel through account settings or by emailing **billing@margem.ma**
+- Cancel through account settings or by emailing **billing@dribex.ma**
 - Cancellation takes effect at the end of the current billing period
 - Account reverts to the free standard tier
 
 ## Refunds
 
-Contact **billing@margem.ma**. See [`legal/premium/refund-policy.md`](../../legal/premium/refund-policy.md).
+Contact **billing@dribex.ma**. See [`legal/premium/refund-policy.md`](../../legal/premium/refund-policy.md).
 
 ## Contact
 
-**billing@margem.ma** · **support@margem.ma**
+**billing@dribex.ma** · **support@dribex.ma**
 
 Publish this document alongside your Terms of Service and Privacy Policy.

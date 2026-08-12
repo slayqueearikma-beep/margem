@@ -1,4 +1,4 @@
-# MarGem Cookie Policy
+# Dribex Cookie Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Introduction
 
-This Cookie Policy explains how MarGem uses cookies and similar technologies on our **Web platform** (margem.ma, margem.app). MarGem **mobile applications** use local device storage rather than browser cookies.
+This Cookie Policy explains how Dribex uses cookies and similar technologies on our **Web platform** (dribex.ma, dribex.app). Dribex **mobile applications** use local device storage rather than browser cookies.
 
 ---
 
@@ -54,7 +54,7 @@ Analytics cookies are only set with your consent where required by law.
 
 ## 4. Mobile App Storage
 
-MarGem mobile apps use:
+Dribex mobile apps use:
 
 | Storage | Purpose |
 |---------|---------|
@@ -81,7 +81,7 @@ These are not browser cookies but serve similar functions. Manage by clearing ap
 
 ## 6. Do Not Track
 
-MarGem does not currently respond to "Do Not Track" browser signals. We honor cookie consent preferences where required by law.
+Dribex does not currently respond to "Do Not Track" browser signals. We honor cookie consent preferences where required by law.
 
 ---
 
@@ -93,4 +93,4 @@ We may update this policy. Material changes will be communicated via the Platfor
 
 ## 8. Contact
 
-privacy@margem.app
+privacy@dribex.app

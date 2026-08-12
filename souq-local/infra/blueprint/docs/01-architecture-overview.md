@@ -2,7 +2,7 @@
 
 ## Design goals
 
-MarGem is a local discovery marketplace (Flutter + FastAPI + PostgreSQL). This blueprint scales the **infrastructure** without changing application business logic until optional integration phases.
+Dribex is a local discovery marketplace (Flutter + FastAPI + PostgreSQL). This blueprint scales the **infrastructure** without changing application business logic until optional integration phases.
 
 ## High-level architecture (future state)
 
@@ -21,7 +21,7 @@ flowchart TB
 
         subgraph compute [Backend Subnet]
             AKS[AKS Cluster]
-            API[MarGem API Pods]
+            API[Dribex API Pods]
             WORK[Background Workers]
         end
 

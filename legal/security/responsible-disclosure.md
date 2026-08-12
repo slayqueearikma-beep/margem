@@ -1,4 +1,4 @@
-# MarGem Responsible Disclosure Policy
+# Dribex Responsible Disclosure Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Our Commitment
 
-MarGem welcomes responsible disclosure of security vulnerabilities. We are committed to working with security researchers to keep our users safe.
+Dribex welcomes responsible disclosure of security vulnerabilities. We are committed to working with security researchers to keep our users safe.
 
 ---
 
@@ -15,10 +15,10 @@ MarGem welcomes responsible disclosure of security vulnerabilities. We are commi
 
 This policy covers security vulnerabilities in:
 
-- MarGem mobile applications (Android, iOS)
-- MarGem Web platform (margem.ma, margem.app)
-- MarGem API (api.margem.ma)
-- MarGem infrastructure (when directly related to MarGem services)
+- Dribex mobile applications (Android, iOS)
+- Dribex Web platform (dribex.ma, dribex.app)
+- Dribex API (api.dribex.ma)
+- Dribex infrastructure (when directly related to Dribex services)
 
 **Out of scope:**
 - Third-party services (Google Maps, Firebase, Azure, Sentry)
@@ -31,7 +31,7 @@ This policy covers security vulnerabilities in:
 
 ## 3. How to Report
 
-Email **security@margem.ma** with:
+Email **security@dribex.ma** with:
 
 1. Description of the vulnerability
 2. Steps to reproduce
@@ -39,7 +39,7 @@ Email **security@margem.ma** with:
 4. Your contact information
 5. Proof of concept (if available, but do not exploit beyond demonstration)
 
-**Encrypt sensitive reports** using our PGP key (to be published at margem.app/security).
+**Encrypt sensitive reports** using our PGP key (to be published at dribex.app/security).
 
 ---
 
@@ -59,7 +59,7 @@ Email **security@margem.ma** with:
 
 Please:
 
-- Report vulnerabilities promptly and exclusively to security@margem.ma
+- Report vulnerabilities promptly and exclusively to security@dribex.ma
 - Allow reasonable time for remediation before public disclosure (minimum 90 days)
 - Avoid accessing, modifying, or deleting other users' data
 - Avoid actions that degrade Platform availability
@@ -75,7 +75,7 @@ Please do not:
 
 ## 6. Safe Harbor
 
-MarGem considers security research conducted in accordance with this policy to be authorized. We will not initiate legal action against researchers who:
+Dribex considers security research conducted in accordance with this policy to be authorized. We will not initiate legal action against researchers who:
 
 - Make a good faith effort to comply with this policy
 - Do not cause harm to users or the Platform
@@ -85,4 +85,4 @@ MarGem considers security research conducted in accordance with this policy to b
 
 ## 7. Contact
 
-security@margem.ma
+security@dribex.ma

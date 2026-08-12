@@ -1,4 +1,4 @@
-# MarGem Home Server — Laptop API + local (or Azure) images
+# Dribex Home Server — Laptop API + local (or Azure) images
 
 Run the API and database on **your laptop**. Images default to **local disk** on the
 laptop (no Azure required). Optionally point `STORAGE_BACKEND=azure` at Blob (~$1–3/month).
@@ -116,7 +116,7 @@ The mobile app talks to the API on port **8000** only. Admin uses port **8080** 
 2. Promote that email to admin:
 
 ```bash
-MARGEM_PROFILE=home ./scripts/docker-admin.sh promote-admin you@example.com
+DRIBEXM_PROFILE=home ./scripts/docker-admin.sh promote-admin you@example.com
 ```
 
 3. Open the admin URL in a browser (phone or laptop on the same Wi‑Fi) and log in.
@@ -134,7 +134,7 @@ ADMIN_PORT=8080
 git pull
 docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
 MARGEM_API_URL=http://192.168.11.101:8000 MARGEM_ADMIN_URL=http://192.168.11.101:8080 \
-  MARGEM_PROFILE=home ./scripts/docker-admin.sh check-admin
+  DRIBEXM_PROFILE=home ./scripts/docker-admin.sh check-admin
 ```
 
 Legacy note: home compose disables embedded `/admin` on the API — **use port 8080 only**.
@@ -146,7 +146,7 @@ The admin container applies several layers by default:
 | Layer | What it does |
 |-------|----------------|
 | **Private IP only** | Blocks access from the public internet (`ADMIN_ALLOW_PUBLIC=false`) |
-| **HTTP Basic Auth** | Second password gate before MarGem login (`ADMIN_BASIC_AUTH_*`) |
+| **HTTP Basic Auth** | Second password gate before Dribex login (`ADMIN_BASIC_AUTH_*`) |
 | **Security headers + CSP** | Reduces XSS / clickjacking risk |
 | **Rate limiting** | nginx limits requests to the admin UI |
 | **No embedded admin on API** | `/admin` is not served on port 8000 |
@@ -164,7 +164,7 @@ ADMIN_ALLOW_PUBLIC=false
 CORS_ORIGINS=http://192.168.11.101:8000,http://192.168.11.111:8080
 ```
 
-On your phone you will enter **two passwords**: Basic Auth gate, then MarGem admin login.
+On your phone you will enter **two passwords**: Basic Auth gate, then Dribex admin login.
 
 **Never** expose port 8080 through Cloudflare or port-forwarding. Keep admin on LAN only.
 

@@ -160,7 +160,7 @@ def upgrade() -> None:
                     "lat": lat,
                     "lng": lng,
                     "sort_order": sort_order,
-                    "description": f"MarGem community for {name_en}",
+                    "description": f"Dribex community for {name_en}",
                 },
             )
 

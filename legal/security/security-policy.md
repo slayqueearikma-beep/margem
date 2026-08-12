@@ -1,4 +1,4 @@
-# MarGem Security Policy
+# Dribex Security Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -25,7 +25,7 @@
 
 ## 1. Security Commitment
 
-MarGem implements security measures aligned with **ISO/IEC 27001**, **SOC 2**, and **OWASP** best practices to protect user data and Platform integrity.
+Dribex implements security measures aligned with **ISO/IEC 27001**, **SOC 2**, and **OWASP** best practices to protect user data and Platform integrity.
 
 ---
 
@@ -148,13 +148,13 @@ Logs do not contain passwords, full payment details, or unnecessary PII.
 
 ### 10.3 Breach Notification
 
-In the event of a personal data breach, MarGem will notify affected users and relevant authorities (including Morocco's CNDP under Law 09-08) within the timeframes required by applicable law.
+In the event of a personal data breach, Dribex will notify affected users and relevant authorities (including Morocco's CNDP under Law 09-08) within the timeframes required by applicable law.
 
 ---
 
 ## 11. Security Reporting
 
-Report security vulnerabilities to **security@margem.ma**. See our [Responsible Disclosure Policy](responsible-disclosure.md).
+Report security vulnerabilities to **security@dribex.ma**. See our [Responsible Disclosure Policy](responsible-disclosure.md).
 
 **Do not** report security issues through public channels, social media, or support tickets.
 
@@ -174,4 +174,4 @@ Report security vulnerabilities to **security@margem.ma**. See our [Responsible 
 
 ## 13. Contact
 
-security@margem.ma
+security@dribex.ma

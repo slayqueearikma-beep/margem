@@ -37,8 +37,8 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
         "en": {
             "title": "Privacy Policy",
             "body": """
-<p>MarGem ("we", "us") operates a local discovery and marketplace platform for Morocco (Android, iOS, and Web). This Privacy Policy explains how we collect, use, retain, and protect personal information.</p>
-<div class="note"><strong>Legal notice:</strong> MarGem is subject to Morocco's Law 09-08 on the protection of individuals with regard to the processing of personal data. We have <strong>not</strong> confirmed CNDP registration or authorization in this repository — counsel must verify before publication.</div>
+<p>Dribex ("we", "us") operates a local discovery and marketplace platform for Morocco (Android, iOS, and Web). This Privacy Policy explains how we collect, use, retain, and protect personal information.</p>
+<div class="note"><strong>Legal notice:</strong> Dribex is subject to Morocco's Law 09-08 on the protection of individuals with regard to the processing of personal data. We have <strong>not</strong> confirmed CNDP registration or authorization in this repository — counsel must verify before publication.</div>
 <h2>1. Data we collect</h2>
 <ul>
 <li><strong>Account:</strong> email, display name, password (stored as a bcrypt hash), account type, optional phone, email verification status</li>
@@ -64,24 +64,24 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
 </table>
 <p>Payments for subscriptions are <strong>not</strong> processed in-app today; billing is manual/admin-assisted. Off-platform payments between buyers and sellers are arranged directly between users.</p>
 <h2>4. International transfers</h2>
-<p>MarGem is based in Morocco. Data may be processed in Morocco and in countries where our infrastructure providers operate (for example Microsoft Azure regions). Transfers outside Morocco or the EEA use appropriate safeguards where required by law.</p>
+<p>Dribex is based in Morocco. Data may be processed in Morocco and in countries where our infrastructure providers operate (for example Microsoft Azure regions). Transfers outside Morocco or the EEA use appropriate safeguards where required by law.</p>
 <h2>5. Retention & deletion</h2>
 <p>We keep data only as long as needed for the purposes above. When you delete your account, we anonymize your profile (email becomes <code>deleted+{uuid}@invalid.local</code>), remove storefronts, listings, messages, favorites, and tokens, and anonymize community messages. Limited records (billing, security logs, backups up to 90 days, legal holds) may be retained as described in our Account Deletion Policy.</p>
 <h2>6. Your rights (Morocco Law 09-08)</h2>
-<p>You may request access, rectification, opposition, and deletion. Contact <a href="mailto:privacy@margem.app">privacy@margem.app</a> or use in-app deletion. Data export is available via <code>GET /auth/me/export</code> when signed in.</p>
+<p>You may request access, rectification, opposition, and deletion. Contact <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> or use in-app deletion. Data export is available via <code>GET /auth/me/export</code> when signed in.</p>
 <h2>7. Security</h2>
 <p>We use TLS in transit, bcrypt password hashing, encrypted token storage on mobile, access controls, audit logging, and rate limiting. No system is completely secure.</p>
 <h2>8. Children</h2>
-<p>MarGem is not directed to children under 16. We do not knowingly collect children's data.</p>
+<p>Dribex is not directed to children under 16. We do not knowingly collect children's data.</p>
 <h2>9. Contact</h2>
-<p>Privacy: <a href="mailto:privacy@margem.app">privacy@margem.app</a> · DPO: <a href="mailto:dpo@margem.app">dpo@margem.app</a></p>
+<p>Privacy: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> · DPO: <a href="mailto:dpo@dribex.app">dpo@dribex.app</a></p>
 """,
         },
         "fr": {
             "title": "Politique de confidentialité",
             "body": """
-<p>MarGem (« nous ») exploite une plateforme locale de découverte et de marketplace au Maroc (Android, iOS et Web). Cette politique explique comment nous collectons, utilisons, conservons et protégeons les données personnelles.</p>
-<div class="note"><strong>Avis juridique :</strong> MarGem est soumis à la loi marocaine 09-08. Nous n'avons <strong>pas</strong> confirmé l'enregistrement ou l'autorisation CNDP dans ce dépôt — un avocat doit vérifier avant publication.</div>
+<p>Dribex (« nous ») exploite une plateforme locale de découverte et de marketplace au Maroc (Android, iOS et Web). Cette politique explique comment nous collectons, utilisons, conservons et protégeons les données personnelles.</p>
+<div class="note"><strong>Avis juridique :</strong> Dribex est soumis à la loi marocaine 09-08. Nous n'avons <strong>pas</strong> confirmé l'enregistrement ou l'autorisation CNDP dans ce dépôt — un avocat doit vérifier avant publication.</div>
 <h2>1. Données collectées</h2>
 <ul>
 <li><strong>Compte :</strong> e-mail, nom affiché, mot de passe (haché bcrypt), type de compte, téléphone optionnel</li>
@@ -99,16 +99,16 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
 <h2>5. Conservation et suppression</h2>
 <p>Suppression de compte via l'application ou <code>DELETE /auth/me</code>. E-mail anonymisé en <code>deleted+{uuid}@invalid.local</code>. Export via <code>GET /auth/me/export</code>.</p>
 <h2>6. Vos droits (loi 09-08)</h2>
-<p>Accès, rectification, opposition, suppression : <a href="mailto:privacy@margem.app">privacy@margem.app</a></p>
+<p>Accès, rectification, opposition, suppression : <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
 <h2>7. Contact</h2>
-<p><a href="mailto:privacy@margem.app">privacy@margem.app</a> · <a href="mailto:dpo@margem.app">dpo@margem.app</a></p>
+<p><a href="mailto:privacy@dribex.app">privacy@dribex.app</a> · <a href="mailto:dpo@dribex.app">dpo@dribex.app</a></p>
 """,
         },
         "ar": {
             "title": "سياسة الخصوصية",
             "body": """
-<p>تدير MarGem («نحن») منصة اكتشاف وسوق محلية في المغرب (أندرويد وiOS والويب). توضح هذه السياسة كيفية جمع بياناتك الشخصية واستخدامها وحمايتها.</p>
-<div class="note"><strong>تنبيه قانوني:</strong> تخضع MarGem للقانون المغربي 09-08. <strong>لم</strong> يتم تأكيد التصريح أو الترخيص لدى اللجنة الوطنية (CNDP) في هذا المستودع — يجب على المستشار القانوني التحقق قبل النشر.</div>
+<p>تدير Dribex («نحن») منصة اكتشاف وسوق محلية في المغرب (أندرويد وiOS والويب). توضح هذه السياسة كيفية جمع بياناتك الشخصية واستخدامها وحمايتها.</p>
+<div class="note"><strong>تنبيه قانوني:</strong> تخضع Dribex للقانون المغربي 09-08. <strong>لم</strong> يتم تأكيد التصريح أو الترخيص لدى اللجنة الوطنية (CNDP) في هذا المستودع — يجب على المستشار القانوني التحقق قبل النشر.</div>
 <h2>1. البيانات التي نجمعها</h2>
 <ul>
 <li><strong>الحساب:</strong> البريد الإلكتروني، الاسم المعروض، كلمة المرور (مشفّرة bcrypt)، نوع الحساب، رقم الهاتف اختياري</li>
@@ -126,9 +126,9 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
 <h2>5. الاحتفاظ والحذف</h2>
 <p>حذف الحساب من الإعدادات أو عبر <code>DELETE /auth/me</code>. يُستبدل البريد بـ <code>deleted+{uuid}@invalid.local</code>. التصدير عبر <code>GET /auth/me/export</code>.</p>
 <h2>6. حقوقك (القانون 09-08)</h2>
-<p>الوصول، التصحيح، الاعتراض، الحذف: <a href="mailto:privacy@margem.app">privacy@margem.app</a></p>
+<p>الوصول، التصحيح، الاعتراض، الحذف: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
 <h2>7. التواصل</h2>
-<p><a href="mailto:privacy@margem.app">privacy@margem.app</a> · <a href="mailto:dpo@margem.app">dpo@margem.app</a></p>
+<p><a href="mailto:privacy@dribex.app">privacy@dribex.app</a> · <a href="mailto:dpo@dribex.app">dpo@dribex.app</a></p>
 """,
         },
     },
@@ -136,9 +136,9 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
         "en": {
             "title": "Terms of Service",
             "body": """
-<p>These Terms govern your use of MarGem. By creating an account or using the Platform, you agree to these Terms and our Privacy Policy.</p>
+<p>These Terms govern your use of Dribex. By creating an account or using the Platform, you agree to these Terms and our Privacy Policy.</p>
 <h2>1. The Platform</h2>
-<p>MarGem helps users discover local businesses, products, and services in Morocco. MarGem is an intermediary — we do not own inventory, employ sellers, or guarantee off-platform transactions.</p>
+<p>Dribex helps users discover local businesses, products, and services in Morocco. Dribex is an intermediary — we do not own inventory, employ sellers, or guarantee off-platform transactions.</p>
 <h2>2. Accounts</h2>
 <p>You must provide accurate information, keep credentials secure, and be at least 16 years old. You are responsible for activity under your account.</p>
 <h2>3. Sellers</h2>
@@ -146,23 +146,23 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
 <h2>4. Payments</h2>
 <p>Buyer–seller payments are arranged directly between users (cash, transfer, etc.) unless we later enable in-app billing. Premium subscriptions are administered manually today and are blocked for self-service checkout in production.</p>
 <h2>5. User content</h2>
-<p>You retain ownership of content you post but grant MarGem a license to host, display, and moderate it on the Platform. Do not post illegal, fraudulent, hateful, or infringing content.</p>
+<p>You retain ownership of content you post but grant Dribex a license to host, display, and moderate it on the Platform. Do not post illegal, fraudulent, hateful, or infringing content.</p>
 <h2>6. Prohibited conduct</h2>
 <p>No spam, scraping, impersonation, harassment, malware, or attempts to bypass security or rate limits.</p>
 <h2>7. Limitation of liability</h2>
-<p>MarGem is provided "as is" to the maximum extent permitted by law. We are not liable for off-platform dealings, seller conduct, or indirect damages.</p>
+<p>Dribex is provided "as is" to the maximum extent permitted by law. We are not liable for off-platform dealings, seller conduct, or indirect damages.</p>
 <h2>8. Governing law</h2>
 <p>These Terms are governed by the laws of the Kingdom of Morocco, subject to mandatory consumer protections. Disputes may be brought before competent Moroccan courts unless counsel approves alternative dispute resolution.</p>
 <h2>9. Contact</h2>
-<p><a href="mailto:legal@margem.ma">legal@margem.ma</a> · <a href="mailto:support@margem.ma">support@margem.ma</a></p>
+<p><a href="mailto:legal@dribex.ma">legal@dribex.ma</a> · <a href="mailto:support@dribex.ma">support@dribex.ma</a></p>
 """,
         },
         "fr": {
             "title": "Conditions d'utilisation",
             "body": """
-<p>Ces conditions régissent votre utilisation de MarGem. En créant un compte, vous acceptez ces conditions et notre politique de confidentialité.</p>
+<p>Ces conditions régissent votre utilisation de Dribex. En créant un compte, vous acceptez ces conditions et notre politique de confidentialité.</p>
 <h2>1. La plateforme</h2>
-<p>MarGem met en relation acheteurs et vendeurs locaux au Maroc. Nous ne sommes pas partie aux transactions hors plateforme.</p>
+<p>Dribex met en relation acheteurs et vendeurs locaux au Maroc. Nous ne sommes pas partie aux transactions hors plateforme.</p>
 <h2>2. Comptes</h2>
 <p>Informations exactes, sécurité des identifiants, âge minimum 16 ans.</p>
 <h2>3. Vendeurs</h2>
@@ -172,15 +172,15 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
 <h2>5. Responsabilité</h2>
 <p>Service fourni « en l'état » dans les limites légales. Loi marocaine applicable.</p>
 <h2>6. Contact</h2>
-<p><a href="mailto:legal@margem.ma">legal@margem.ma</a></p>
+<p><a href="mailto:legal@dribex.ma">legal@dribex.ma</a></p>
 """,
         },
         "ar": {
             "title": "شروط الاستخدام",
             "body": """
-<p>تحكم هذه الشروط استخدامك لـ MarGem. بإنشاء حساب، فإنك توافق على هذه الشروط وسياسة الخصوصية.</p>
+<p>تحكم هذه الشروط استخدامك لـ Dribex. بإنشاء حساب، فإنك توافق على هذه الشروط وسياسة الخصوصية.</p>
 <h2>1. المنصة</h2>
-<p>تساعد MarGem على اكتشاف المحلات والمنتجات والخدمات المحلية في المغرب. نحن وسيط — لا نملك مخزون البائعين ولا نضمن المعاملات خارج المنصة.</p>
+<p>تساعد Dribex على اكتشاف المحلات والمنتجات والخدمات المحلية في المغرب. نحن وسيط — لا نملك مخزون البائعين ولا نضمن المعاملات خارج المنصة.</p>
 <h2>2. الحسابات</h2>
 <p>معلومات دقيقة، حماية بيانات الدخول، الحد الأدنى للعمر 16 سنة.</p>
 <h2>3. البائعون</h2>
@@ -190,7 +190,7 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
 <h2>5. المسؤولية</h2>
 <p>الخدمة «كما هي» ضمن حدود القانون. يخضع النزاع للقانون المغربي.</p>
 <h2>6. التواصل</h2>
-<p><a href="mailto:legal@margem.ma">legal@margem.ma</a></p>
+<p><a href="mailto:legal@dribex.ma">legal@dribex.ma</a></p>
 """,
         },
     },
@@ -198,7 +198,7 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
         "en": {
             "title": "Cookie Policy",
             "body": """
-<p>This policy covers the MarGem <strong>website</strong>. Mobile apps use secure storage and preferences instead of browser cookies.</p>
+<p>This policy covers the Dribex <strong>website</strong>. Mobile apps use secure storage and preferences instead of browser cookies.</p>
 <h2>Web cookies</h2>
 <table>
 <tr><th>Cookie</th><th>Purpose</th><th>Duration</th></tr>
@@ -219,7 +219,7 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
         "fr": {
             "title": "Politique des cookies",
             "body": """
-<p>Cette politique concerne le <strong>site Web</strong> MarGem. Les applications mobiles utilisent le stockage sécurisé.</p>
+<p>Cette politique concerne le <strong>site Web</strong> Dribex. Les applications mobiles utilisent le stockage sécurisé.</p>
 <h2>Cookies Web</h2>
 <p>Session, langue, consentement aux cookies. Analytics uniquement si activé et avec consentement si requis.</p>
 <h2>Stockage mobile</h2>
@@ -229,7 +229,7 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
         "ar": {
             "title": "سياسة ملفات تعريف الارتباط",
             "body": """
-<p>تنطبق هذه السياسة على <strong>موقع</strong> MarGem. تستخدم التطبيقات تخزيناً آمناً بدلاً من ملفات تعريف الارتباط.</p>
+<p>تنطبق هذه السياسة على <strong>موقع</strong> Dribex. تستخدم التطبيقات تخزيناً آمناً بدلاً من ملفات تعريف الارتباط.</p>
 <h2>ملفات الويب</h2>
 <p>الجلسة، اللغة، الموافقة على ملفات التعريف. التحليلات فقط عند التفعيل وبالموافقة عند الاقتضاء.</p>
 <h2>تخزين التطبيق</h2>
@@ -241,12 +241,12 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
         "en": {
             "title": "Account Deletion",
             "body": """
-<p>You may delete your MarGem account at any time. Deletion is permanent.</p>
+<p>You may delete your Dribex account at any time. Deletion is permanent.</p>
 <h2>How to delete</h2>
 <ol>
 <li>In the app: Settings → Delete account → enter password → confirm</li>
 <li>API: <code>DELETE /auth/me</code> with password and confirmation <code>"DELETE"</code></li>
-<li>Email: <a href="mailto:privacy@margem.app">privacy@margem.app</a> from your registered address</li>
+<li>Email: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> from your registered address</li>
 </ol>
 <h2>What we remove</h2>
 <ul>
@@ -266,7 +266,7 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
 <li>Data under legal hold</li>
 </ul>
 <h2>Before you delete</h2>
-<p>Export your data via <code>GET /auth/me/export</code> or email privacy@margem.app. Guest favorites remain on your device until you clear app data.</p>
+<p>Export your data via <code>GET /auth/me/export</code> or email privacy@dribex.app. Guest favorites remain on your device until you clear app data.</p>
 """,
         },
         "fr": {
@@ -274,7 +274,7 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
             "body": """
 <p>Vous pouvez supprimer votre compte à tout moment. Action irréversible.</p>
 <h2>Comment supprimer</h2>
-<p>Application → Paramètres → Supprimer le compte, ou <code>DELETE /auth/me</code>, ou e-mail à privacy@margem.app.</p>
+<p>Application → Paramètres → Supprimer le compte, ou <code>DELETE /auth/me</code>, ou e-mail à privacy@dribex.app.</p>
 <h2>Données supprimées</h2>
 <p>Boutique, annonces, messages, avis, favoris, abonnements, jetons, adhésions communautaires (messages anonymisés).</p>
 <h2>Données conservées</h2>
@@ -284,9 +284,9 @@ DOCS: dict[str, dict[str, dict[str, str]]] = {
         "ar": {
             "title": "حذف الحساب",
             "body": """
-<p>يمكنك حذف حساب MarGem في أي وقت. الحذف نهائي.</p>
+<p>يمكنك حذف حساب Dribex في أي وقت. الحذف نهائي.</p>
 <h2>كيفية الحذف</h2>
-<p>الإعدادات → حذف الحساب، أو <code>DELETE /auth/me</code>، أو privacy@margem.app.</p>
+<p>الإعدادات → حذف الحساب، أو <code>DELETE /auth/me</code>، أو privacy@dribex.app.</p>
 <h2>ما نحذفه</h2>
 <p>المتجر، القوائم، الرسائل، التقييمات، المفضلة، الاشتراكات، عضويات المجتمع (رسائلك تُجهّل).</p>
 <h2>ما نحتفظ به</h2>
@@ -321,14 +321,14 @@ def page(lang: str, doc: str, content: dict[str, str]) -> str:
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>{content["title"]} — MarGem</title>
+<title>{content["title"]} — Dribex</title>
 <style>{CSS}</style>
 </head>
 <body>
 <div class="wrap">
 <header>
 <h1>{content["title"]}</h1>
-<p class="meta">MarGem · Version {VERSION} · Effective {EFFECTIVE} · Last updated {UPDATED}</p>
+<p class="meta">Dribex · Version {VERSION} · Effective {EFFECTIVE} · Last updated {UPDATED}</p>
 <p class="lang-nav">{nav}</p>
 </header>
 <main>
@@ -336,7 +336,7 @@ def page(lang: str, doc: str, content: dict[str, str]) -> str:
 </main>
 <footer>
 <p>{doc_nav}</p>
-<p>© MarGem · <a href="mailto:privacy@margem.app">privacy@margem.app</a></p>
+<p>© Dribex · <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
 </footer>
 </div>
 </body>

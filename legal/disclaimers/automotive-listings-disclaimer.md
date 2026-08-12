@@ -1,4 +1,4 @@
-# MarGem Automotive Listings Disclaimer
+# Dribex Automotive Listings Disclaimer
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,13 +7,13 @@
 
 ## 1. General Disclaimer
 
-MarGem lists automotive dealers, repair shops, parts sellers, and vehicle listings provided by third-party businesses. **MarGem does not sell vehicles, inspect vehicles, or guarantee automotive services.**
+Dribex lists automotive dealers, repair shops, parts sellers, and vehicle listings provided by third-party businesses. **Dribex does not sell vehicles, inspect vehicles, or guarantee automotive services.**
 
 ---
 
 ## 2. Vehicle Listings
 
-Vehicle listings on MarGem are posted by sellers. MarGem does **not**:
+Vehicle listings on Dribex are posted by sellers. Dribex does **not**:
 
 - Inspect vehicles or verify their condition
 - Confirm mileage, accident history, or ownership records
@@ -25,7 +25,7 @@ Vehicle listings on MarGem are posted by sellers. MarGem does **not**:
 
 ## 3. Buyer Responsibility
 
-Before purchasing any vehicle found on MarGem:
+Before purchasing any vehicle found on Dribex:
 
 - Inspect the vehicle in person with a qualified mechanic
 - Verify ownership documents and registration with Moroccan authorities
@@ -38,7 +38,7 @@ Before purchasing any vehicle found on MarGem:
 
 ## 4. Automotive Services
 
-Listings for repair shops, mechanics, and automotive services are provided by third parties. MarGem does not:
+Listings for repair shops, mechanics, and automotive services are provided by third parties. Dribex does not:
 
 - Verify mechanic certifications or workshop licenses
 - Guarantee quality of repairs or parts
@@ -59,16 +59,16 @@ Sellers of vehicles and automotive services must comply with Moroccan automotive
 - Unregistered or illegally imported vehicles
 - Misrepresentation of vehicle condition or history
 
-Report violations to safety@margem.ma.
+Report violations to safety@dribex.ma.
 
 ---
 
 ## 7. Limitation of Liability
 
-MarGem is not liable for any damages arising from vehicle purchases or automotive services obtained through the Platform.
+Dribex is not liable for any damages arising from vehicle purchases or automotive services obtained through the Platform.
 
 ---
 
 ## 8. Contact
 
-legal@margem.ma
+legal@dribex.ma

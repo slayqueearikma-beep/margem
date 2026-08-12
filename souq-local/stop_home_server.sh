@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stop MarGem home server containers (local media and DB volumes persist).
+# Stop Dribex home server containers (local media and DB volumes persist).
 # Usage: ./stop_home_server.sh
 
 set -euo pipefail

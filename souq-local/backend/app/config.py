@@ -72,7 +72,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "MarGem API"
+    app_name: str = "Dribex API"
     app_env: str = "development"
     debug: bool = False
 
@@ -131,9 +131,9 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_username: str = ""
     smtp_password: str = ""
-    smtp_from: str = "MarGem <noreply@margem.ma>"
+    smtp_from: str = "Dribex <noreply@dribex.ma>"
     smtp_use_tls: bool = True
-    public_app_url: str = "https://margem.ma"
+    public_app_url: str = "https://dribex.ma"
     public_api_url: str = "http://localhost:8000"
     # Optional path to admin-dashboard static files (Docker: /admin-dashboard).
     admin_dashboard_dir: str = ""

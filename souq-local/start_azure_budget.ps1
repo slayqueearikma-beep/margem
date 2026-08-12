@@ -1,4 +1,4 @@
-# MarGem — cheapest Azure deploy (1 small VM + blob storage)
+# Dribex — cheapest Azure deploy (1 small VM + blob storage)
 # Usage: .\start_azure_budget.ps1
 #        .\start_azure_budget.ps1 -InfraOnly   # terraform only, skip app deploy
 
@@ -27,7 +27,7 @@ function Get-TfVarValue {
 }
 
 Write-Host ""
-Write-Host "=== MarGem Budget Azure Deploy ===" -ForegroundColor Cyan
+Write-Host "=== Dribex Budget Azure Deploy ===" -ForegroundColor Cyan
 Write-Host "  ~`$15-25/month (1 VM + storage)" -ForegroundColor DarkGray
 Write-Host ""
 

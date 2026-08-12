@@ -1,4 +1,4 @@
-# MarGem Community Guidelines
+# Dribex Community Guidelines
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## Our Community Promise
 
-MarGem connects people with local businesses across Morocco. These Community Guidelines help keep our platform trustworthy, respectful, and useful for everyone.
+Dribex connects people with local businesses across Morocco. These Community Guidelines help keep our platform trustworthy, respectful, and useful for everyone.
 
 ---
 
@@ -21,7 +21,7 @@ MarGem connects people with local businesses across Morocco. These Community Gui
 
 ## 2. Be Respectful
 
-- Treat other users, businesses, and MarGem staff with respect
+- Treat other users, businesses, and Dribex staff with respect
 - No harassment, hate speech, threats, or discriminatory content
 - Disagree constructively; do not attack individuals
 
@@ -31,7 +31,7 @@ MarGem connects people with local businesses across Morocco. These Community Gui
 
 - Do not list or promote dangerous, illegal, or prohibited products and services
 - Report suspicious listings, scams, and impersonation immediately
-- Meet in safe locations for in-person transactions; MarGem does not supervise offline interactions
+- Meet in safe locations for in-person transactions; Dribex does not supervise offline interactions
 
 ---
 
@@ -55,13 +55,13 @@ MarGem connects people with local businesses across Morocco. These Community Gui
 
 - Only upload content you own or have permission to use
 - Do not copy competitor listings, photos, or descriptions
-- Report copyright violations to copyright@margem.ma
+- Report copyright violations to copyright@dribex.ma
 
 ---
 
-## 7. Use MarGem as Intended
+## 7. Use Dribex as Intended
 
-MarGem is for **local discovery and connection** — not for:
+Dribex is for **local discovery and connection** — not for:
 
 - Unrelated advertising or link farming
 - Political campaigning unrelated to business listings
@@ -87,7 +87,7 @@ You may appeal moderation decisions as described in our [Content Moderation Poli
 
 ## 9. City Community Chat
 
-MarGem offers **city-based community channels** where members can discuss local businesses, recommendations, and neighborhood topics.
+Dribex offers **city-based community channels** where members can discuss local businesses, recommendations, and neighborhood topics.
 
 - **Join before participating:** You must join a city community before reading or posting in its channels
 - **Stay on topic:** Use the appropriate channel category (general, food, services, events, etc.)
@@ -101,5 +101,5 @@ Community chat is governed by these Guidelines, our [Acceptable Use Policy](acce
 
 ## 10. Contact
 
-- **Report abuse:** In-app Report button or safety@margem.ma
-- **Questions:** support@margem.ma
+- **Report abuse:** In-app Report button or safety@dribex.ma
+- **Questions:** support@dribex.ma

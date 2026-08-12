@@ -1,4 +1,4 @@
-# MarGem Seller Pro Membership Terms
+# Dribex Seller Pro Membership Terms
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Plan Overview
 
-**Seller Pro** (plan code: `seller_pro`) is MarGem's premium subscription for sellers and businesses.
+**Seller Pro** (plan code: `seller_pro`) is Dribex's premium subscription for sellers and businesses.
 
 | Detail | Value |
 |--------|-------|
@@ -57,4 +57,4 @@ See [Refund Policy](refund-policy.md).
 
 ## 6. Contact
 
-billing@margem.ma
+billing@dribex.ma

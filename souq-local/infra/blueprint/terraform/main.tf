@@ -163,7 +163,7 @@ module "apim" {
   name_prefix         = local.name_prefix
   location            = var.location
   resource_group_name = azurerm_resource_group.blueprint[0].name
-  publisher_email     = "platform@margem.ma"
+  publisher_email     = "platform@dribex.ma"
   sku_name            = var.environment_name == "production" ? "Standard_1" : "Consumption_0"
   backend_url         = local.flags.aks ? "http://${module.aks[0].internal_lb_fqdn}" : ""
   jwt_issuer          = "margem-api"

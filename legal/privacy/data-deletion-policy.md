@@ -1,4 +1,4 @@
-# MarGem Data Deletion Policy
+# Dribex Data Deletion Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-This policy explains how MarGem handles requests to delete personal data, separate from full account deletion.
+This policy explains how Dribex handles requests to delete personal data, separate from full account deletion.
 
 ---
 
@@ -15,7 +15,7 @@ This policy explains how MarGem handles requests to delete personal data, separa
 
 | Request Type | Description |
 |--------------|-------------|
-| **Account deletion** | Complete removal of your MarGem account and associated data |
+| **Account deletion** | Complete removal of your Dribex account and associated data |
 | **Partial data deletion** | Removal of specific data while retaining your account |
 | **Data subject request (GDPR/Law 09-08)** | Formal request under privacy law |
 
@@ -23,12 +23,12 @@ This policy explains how MarGem handles requests to delete personal data, separa
 
 ## 3. Account Deletion
 
-For full account deletion, see [Account Deletion Policy](account-deletion-policy.md). Account deletion is the primary method for removing your personal data from MarGem.
+For full account deletion, see [Account Deletion Policy](account-deletion-policy.md). Account deletion is the primary method for removing your personal data from Dribex.
 
 **Methods:**
 - In-app: Settings → Delete Account (requires password confirmation)
 - API: `DELETE /auth/me` with password and confirmation
-- Email: privacy@margem.app
+- Email: privacy@dribex.app
 
 ---
 
@@ -40,8 +40,8 @@ You may request deletion of specific data without deleting your account:
 |------|---------------|
 | Profile information | Update in account settings |
 | Listings | Delete via seller dashboard |
-| Reviews you wrote | Contact privacy@margem.app |
-| Messages | Delete conversations in-app (where supported) or contact privacy@margem.app |
+| Reviews you wrote | Contact privacy@dribex.app |
+| Messages | Delete conversations in-app (where supported) or contact privacy@dribex.app |
 | Saved searches / favorites | Remove in-app |
 
 ---
@@ -76,4 +76,4 @@ We may verify your identity before processing deletion requests to prevent unaut
 
 ## 8. Contact
 
-privacy@margem.app
+privacy@dribex.app

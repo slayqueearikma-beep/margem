@@ -99,7 +99,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
   Future<void> _contactSupport() async {
     final uri = Uri(
       scheme: 'mailto',
-      path: 'support@margem.ma',
+      path: 'support@dribex.ma',
       queryParameters: {'subject': 'Dribex Premium'},
     );
     if (await canLaunchUrl(uri)) {

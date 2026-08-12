@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MarGem Docker helpers — start stack, promote admin, list users.
+# Dribex Docker helpers — start stack, promote admin, list users.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -18,7 +18,7 @@ fi
 
 usage() {
   cat <<'EOF'
-MarGem Docker admin helpers
+Dribex Docker admin helpers
 
 Usage:
   ./scripts/docker-admin.sh up              Start API + Postgres (build if needed)
@@ -49,7 +49,7 @@ case "$cmd" in
   up)
     "${COMPOSE[@]}" up -d --build
     echo ""
-    echo "MarGem is running."
+    echo "Dribex is running."
     echo "  Admin dashboard: http://localhost:8080"
     echo "  API docs:        http://localhost:8000/docs"
     echo ""

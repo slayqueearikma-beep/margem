@@ -1,4 +1,4 @@
-# MarGem Terms of Service
+# Dribex Terms of Service
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -10,7 +10,7 @@
 1. [Agreement to Terms](#1-agreement-to-terms)
 2. [Definitions](#2-definitions)
 3. [Eligibility](#3-eligibility)
-4. [The MarGem Platform](#4-the-margem-platform)
+4. [The Dribex Platform](#4-the-dribex-platform)
 5. [Accounts and Registration](#5-accounts-and-registration)
 6. [User Roles](#6-user-roles)
 7. [Platform Services](#7-platform-services)
@@ -33,11 +33,11 @@
 
 ## 1. Agreement to Terms
 
-These Terms of Service ("**Terms**") constitute a binding legal agreement between you and MarGem ("**MarGem**," "**we**," "**us**," or "**our**") governing your access to and use of the MarGem platform, including our mobile applications (Android and iOS), website (margem.ma, margem.app), APIs, and related services (collectively, the "**Platform**").
+These Terms of Service ("**Terms**") constitute a binding legal agreement between you and Dribex ("**Dribex**," "**we**," "**us**," or "**our**") governing your access to and use of the Dribex platform, including our mobile applications (Android and iOS), website (dribex.ma, dribex.app), APIs, and related services (collectively, the "**Platform**").
 
 By creating an account, accessing, or using the Platform, you agree to these Terms and our [Privacy Policy](../privacy/privacy-policy.md). If you do not agree, do not use the Platform.
 
-If you use MarGem on behalf of a business, you represent that you have authority to bind that business to these Terms.
+If you use Dribex on behalf of a business, you represent that you have authority to bind that business to these Terms.
 
 ---
 
@@ -47,28 +47,28 @@ If you use MarGem on behalf of a business, you represent that you have authority
 |------|------------|
 | **User** | Any person who accesses the Platform, including guests, buyers, and sellers. |
 | **Buyer** | A User who discovers businesses, listings, reviews, and contacts sellers. |
-| **Seller / Business** | A User who maintains a storefront, listing, or professional profile on MarGem. |
+| **Seller / Business** | A User who maintains a storefront, listing, or professional profile on Dribex. |
 | **Guest** | A User who browses without registering an account. |
 | **Content** | Text, images, videos, reviews, messages, listings, and other materials submitted to or displayed on the Platform. |
 | **User Content** | Content that you submit, post, or make available through the Platform. |
-| **MarGem Content** | Content owned or licensed by MarGem, including software, design, trademarks, and branding. |
-| **Premium Services** | Paid subscription features, including MarGem Plus (buyers) and Seller Pro (sellers). |
+| **Dribex Content** | Content owned or licensed by Dribex, including software, design, trademarks, and branding. |
+| **Premium Services** | Paid subscription features, including Dribex Plus (buyers) and Seller Pro (sellers). |
 
 ---
 
 ## 3. Eligibility
 
-You must be at least **16 years old** (or the age of digital consent in your jurisdiction, whichever is higher) to create an account and use MarGem. By using the Platform, you represent that you meet this requirement.
+You must be at least **16 years old** (or the age of digital consent in your jurisdiction, whichever is higher) to create an account and use Dribex. By using the Platform, you represent that you meet this requirement.
 
-MarGem is primarily designed for users in **Morocco**. City community, discovery, and listing features are available across **20 Moroccan cities** (including Casablanca, Rabat, Marrakech, Fes, Tangier, Agadir, and others). We may expand geographic availability over time.
+Dribex is primarily designed for users in **Morocco**. City community, discovery, and listing features are available across **20 Moroccan cities** (including Casablanca, Rabat, Marrakech, Fes, Tangier, Agadir, and others). We may expand geographic availability over time.
 
 ---
 
-## 4. The MarGem Platform
+## 4. The Dribex Platform
 
-MarGem is a **local discovery and connection platform**. We help users discover businesses, professionals, products, restaurants, healthcare providers, agencies, automotive services, and other categories in Morocco.
+Dribex is a **local discovery and connection platform**. We help users discover businesses, professionals, products, restaurants, healthcare providers, agencies, automotive services, and other categories in Morocco.
 
-**Important:** MarGem is **not** a party to transactions between buyers and sellers. We do not process payments between users, facilitate shipping, guarantee product quality, or act as an escrow agent. All commercial transactions occur directly between users outside the Platform, unless and until we explicitly introduce in-platform payment features with separate terms.
+**Important:** Dribex is **not** a party to transactions between buyers and sellers. We do not process payments between users, facilitate shipping, guarantee product quality, or act as an escrow agent. All commercial transactions occur directly between users outside the Platform, unless and until we explicitly introduce in-platform payment features with separate terms.
 
 ---
 
@@ -80,7 +80,7 @@ To access certain features, you must create an account with a valid email addres
 
 ### 5.2 Account Security
 
-You are responsible for maintaining the confidentiality of your credentials and for all activity under your account. Notify us immediately at security@margem.ma if you suspect unauthorized access.
+You are responsible for maintaining the confidentiality of your credentials and for all activity under your account. Notify us immediately at security@dribex.ma if you suspect unauthorized access.
 
 ### 5.3 Email Verification
 
@@ -88,7 +88,7 @@ Certain features (storefront creation, messaging, reviews) require a verified em
 
 ### 5.4 Account Deletion
 
-You may delete your account at any time through in-app settings or by contacting privacy@margem.app. See our [Account Deletion Policy](../privacy/account-deletion-policy.md).
+You may delete your account at any time through in-app settings or by contacting privacy@dribex.app. See our [Account Deletion Policy](../privacy/account-deletion-policy.md).
 
 ---
 
@@ -96,7 +96,7 @@ You may delete your account at any time through in-app settings or by contacting
 
 ### 6.1 Buyers
 
-Buyers may browse, search, favorite, follow, review, message, and contact sellers. Buyers may upgrade to **MarGem Plus** for enhanced discovery features.
+Buyers may browse, search, favorite, follow, review, message, and contact sellers. Buyers may upgrade to **Dribex Plus** for enhanced discovery features.
 
 ### 6.2 Sellers and Businesses
 
@@ -110,7 +110,7 @@ Guests may browse and search without an account. Guest data (e.g., local favorit
 
 ## 7. Platform Services
 
-MarGem provides:
+Dribex provides:
 
 - Business and listing discovery (search, categories, maps)
 - Storefront and listing management for sellers
@@ -130,30 +130,30 @@ We may add, modify, or discontinue features at any time with reasonable notice w
 
 ### 8.1 Off-Platform Transactions
 
-Buyers and sellers negotiate and complete transactions **outside** MarGem. Payment methods displayed on listings (cash, bank transfer, mobile payment, etc.) are informational only.
+Buyers and sellers negotiate and complete transactions **outside** Dribex. Payment methods displayed on listings (cash, bank transfer, mobile payment, etc.) are informational only.
 
 ### 8.2 No Platform Guarantee
 
-MarGem does not guarantee the accuracy of listings, the quality of goods or services, seller legitimacy, or transaction outcomes. Users transact at their own risk.
+Dribex does not guarantee the accuracy of listings, the quality of goods or services, seller legitimacy, or transaction outcomes. Users transact at their own risk.
 
 ### 8.3 Disputes Between Users
 
-Disputes between buyers and sellers must be resolved directly between the parties. MarGem may assist with reports and moderation but is not obligated to mediate commercial disputes. See our [Dispute Resolution Policy](../terms/dispute-resolution.md).
+Disputes between buyers and sellers must be resolved directly between the parties. Dribex may assist with reports and moderation but is not obligated to mediate commercial disputes. See our [Dispute Resolution Policy](../terms/dispute-resolution.md).
 
 ---
 
 ## 9. Subscriptions and Premium Services
 
-MarGem offers optional paid subscriptions:
+Dribex offers optional paid subscriptions:
 
 | Plan | Price | Benefits |
 |------|-------|----------|
-| **MarGem Plus** | 49 MAD / 30 days | Saved search sync, personalized recommendations, priority support, early access to featured listings |
+| **Dribex Plus** | 49 MAD / 30 days | Saved search sync, personalized recommendations, priority support, early access to featured listings |
 | **Seller Pro** | 199 MAD / 30 days | Featured placement, premium badge, advanced analytics, extra media uploads, verification priority |
 
 Standard buyer and seller accounts are **free**. Paid plans are optional upgrades.
 
-Subscription terms, billing, cancellation, and refunds are governed by our [Subscription Terms](../premium/subscription-terms.md), [MarGem Plus Membership Terms](../premium/buyer-plus-membership-terms.md), [Seller Pro Membership Terms](../premium/premium-membership-terms.md), and [Refund Policy](../premium/refund-policy.md).
+Subscription terms, billing, cancellation, and refunds are governed by our [Subscription Terms](../premium/subscription-terms.md), [Dribex Plus Membership Terms](../premium/buyer-plus-membership-terms.md), [Seller Pro Membership Terms](../premium/premium-membership-terms.md), and [Refund Policy](../premium/refund-policy.md).
 
 ---
 
@@ -161,7 +161,7 @@ Subscription terms, billing, cancellation, and refunds are governed by our [Subs
 
 ### 10.1 Your Content
 
-You retain ownership of User Content you submit. By submitting User Content, you grant MarGem a worldwide, non-exclusive, royalty-free, sublicensable license to use, host, store, reproduce, display, and distribute your User Content solely to operate, promote, and improve the Platform.
+You retain ownership of User Content you submit. By submitting User Content, you grant Dribex a worldwide, non-exclusive, royalty-free, sublicensable license to use, host, store, reproduce, display, and distribute your User Content solely to operate, promote, and improve the Platform.
 
 ### 10.2 Content Standards
 
@@ -192,7 +192,7 @@ See our [Acceptable Use Policy](../terms/acceptable-use-policy.md) and [Fraud Pr
 
 ## 12. Moderation and Enforcement
 
-MarGem reserves the right to investigate violations and take enforcement action, including:
+Dribex reserves the right to investigate violations and take enforcement action, including:
 
 - Content removal or visibility restrictions
 - Account warnings or suspensions
@@ -205,7 +205,7 @@ See our [Content Moderation Policy](../trust-safety/content-moderation-policy.md
 
 ## 13. Intellectual Property
 
-MarGem and its licensors own all MarGem Content, including trademarks, logos, software, and design. You may not copy, modify, or distribute MarGem Content without our written permission.
+Dribex and its licensors own all Dribex Content, including trademarks, logos, software, and design. You may not copy, modify, or distribute Dribex Content without our written permission.
 
 For copyright complaints, see our [DMCA-Style Takedown Policy](../trust-safety/dmca-takedown-policy.md).
 
@@ -219,7 +219,7 @@ The Platform integrates with third-party services (maps, messaging apps, email, 
 
 ## 15. Disclaimers
 
-THE PLATFORM IS PROVIDED "**AS IS**" AND "**AS AVAILABLE**." TO THE MAXIMUM EXTENT PERMITTED BY LAW, MARGEM DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+THE PLATFORM IS PROVIDED "**AS IS**" AND "**AS AVAILABLE**." TO THE MAXIMUM EXTENT PERMITTED BY LAW, DRIBEXM DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
 
 See our [Warranty Disclaimer](../terms/warranty-disclaimer.md) and category-specific disclaimers for professionals, medical providers, and automotive listings.
 
@@ -227,7 +227,7 @@ See our [Warranty Disclaimer](../terms/warranty-disclaimer.md) and category-spec
 
 ## 16. Limitation of Liability
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, MARGEM SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR GOODWILL, ARISING FROM YOUR USE OF THE PLATFORM.
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, DRIBEXM SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR GOODWILL, ARISING FROM YOUR USE OF THE PLATFORM.
 
 See our [Limitation of Liability](../terms/limitation-of-liability.md).
 
@@ -235,7 +235,7 @@ See our [Limitation of Liability](../terms/limitation-of-liability.md).
 
 ## 17. Indemnification
 
-You agree to indemnify and hold harmless MarGem from claims arising from your use of the Platform, your User Content, your violation of these Terms, or your transactions with other users.
+You agree to indemnify and hold harmless Dribex from claims arising from your use of the Platform, your User Content, your violation of these Terms, or your transactions with other users.
 
 See our [Indemnification](../terms/indemnification.md) clause.
 
@@ -243,7 +243,7 @@ See our [Indemnification](../terms/indemnification.md) clause.
 
 ## 18. Dispute Resolution
 
-Disputes between you and MarGem shall be resolved in accordance with our [Dispute Resolution Policy](../terms/dispute-resolution.md).
+Disputes between you and Dribex shall be resolved in accordance with our [Dispute Resolution Policy](../terms/dispute-resolution.md).
 
 ---
 
@@ -263,8 +263,8 @@ We may modify these Terms at any time. Material changes will be communicated via
 
 | Purpose | Email |
 |---------|-------|
-| General | support@margem.ma |
-| Legal | legal@margem.ma |
+| General | support@dribex.ma |
+| Legal | legal@dribex.ma |
 | Full contact page | [contact.md](../contact.md) |
 
 ---

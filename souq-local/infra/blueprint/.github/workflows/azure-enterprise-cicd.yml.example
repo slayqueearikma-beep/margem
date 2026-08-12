@@ -1,9 +1,9 @@
 # Example only — NOT active. Do not enable without renaming to .github/workflows/
 #
-# Enterprise CI/CD for MarGem Azure blueprint.
+# Enterprise CI/CD for Dribex Azure blueprint.
 # Current production CI remains: .github/workflows/margem-ci.yml
 
-name: MarGem Enterprise Blueprint CI/CD (EXAMPLE)
+name: Dribex Enterprise Blueprint CI/CD (EXAMPLE)
 
 on:
   workflow_dispatch: # Manual only — never auto-trigger

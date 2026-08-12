@@ -76,7 +76,7 @@ async def lifespan(app: FastAPI):
                     SubscriptionPlan(
                         id=uuid4(),
                         code="buyer_premium",
-                        name="MarGem Plus",
+                        name="Dribex Plus",
                         description="Saved searches, personalized recommendations, priority support",
                         price_mad=49,
                         billing_period_days=30,

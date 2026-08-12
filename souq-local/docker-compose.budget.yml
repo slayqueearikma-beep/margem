@@ -1,4 +1,4 @@
-# MarGem budget production stack — runs on a single Azure VM
+# Dribex budget production stack — runs on a single Azure VM
 # Used by start_azure_budget.ps1 (do not use for local dev — use docker-compose.yml)
 
 services:
@@ -42,7 +42,7 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
+      SMTP_FROM: ${SMTP_FROM:-Dribex <noreply@dribex.ma>}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
       JWT_ACCESS_EXPIRE_MINUTES: "60"

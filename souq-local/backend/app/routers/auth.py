@@ -76,7 +76,7 @@ def _auth_action_body(*, path: str, token: str, intro: str) -> str:
     deep = f"margem://app{path}?token={token}"
     return (
         f"{intro}\n\n"
-        f"Open in the MarGem app:\n{deep}\n\n"
+        f"Open in the Dribex app:\n{deep}\n\n"
         f"Or use this link:\n{web}\n\n"
         f"Code: {token}"
     )
@@ -262,11 +262,11 @@ async def register(
     verify_token = await _issue_auth_token(session, user.id, "email_verify", minutes=15)
     delivery = email_service.send(
         to=user.email,
-        subject="Verify your MarGem email",
+        subject="Verify your Dribex email",
         text_body=_auth_action_body(
             path="/verify-email",
             token=verify_token,
-            intro="Welcome to MarGem. Verify your email to secure your account.",
+            intro="Welcome to Dribex. Verify your email to secure your account.",
         ),
     )
     log_security_event("register_success", user_id=str(user.id), account_type=user.account_type.value)
@@ -513,11 +513,11 @@ async def request_email_verification(
     await session.commit()
     email_service.send(
         to=user.email,
-        subject="Verify your MarGem email",
+        subject="Verify your Dribex email",
         text_body=_auth_action_body(
             path="/verify-email",
             token=token,
-            intro="Verify your MarGem email address.",
+            intro="Verify your Dribex email address.",
         ),
     )
 
@@ -595,11 +595,11 @@ async def request_password_reset(
     await session.commit()
     email_service.send(
         to=user.email,
-        subject="Reset your MarGem password",
+        subject="Reset your Dribex password",
         text_body=_auth_action_body(
             path="/reset-password",
             token=token,
-            intro="Reset your MarGem password. If you did not request this, ignore this email.",
+            intro="Reset your Dribex password. If you did not request this, ignore this email.",
         ),
     )
 

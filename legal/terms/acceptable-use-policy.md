@@ -1,4 +1,4 @@
-# MarGem Acceptable Use Policy
+# Dribex Acceptable Use Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,13 +7,13 @@
 
 ## 1. Purpose
 
-This Acceptable Use Policy ("**AUP**") defines permitted and prohibited uses of the MarGem platform. Violations may result in content removal, account suspension, or permanent termination.
+This Acceptable Use Policy ("**AUP**") defines permitted and prohibited uses of the Dribex platform. Violations may result in content removal, account suspension, or permanent termination.
 
 ---
 
 ## 2. Permitted Uses
 
-You may use MarGem to:
+You may use Dribex to:
 
 - Discover local businesses, products, and services in Morocco
 - Create and manage legitimate business listings and storefronts
@@ -26,7 +26,7 @@ You may use MarGem to:
 
 ## 3. Prohibited Uses
 
-You may **not** use MarGem to:
+You may **not** use Dribex to:
 
 ### 3.1 Illegal Activity
 - Violate any applicable law, regulation, or court order
@@ -35,7 +35,7 @@ You may **not** use MarGem to:
 
 ### 3.2 Fraud and Deception
 - Create fake accounts, listings, or reviews
-- Impersonate individuals, businesses, or MarGem staff
+- Impersonate individuals, businesses, or Dribex staff
 - Mislead users about pricing, availability, location, or credentials
 - Manipulate ratings, rankings, or verification status
 
@@ -55,12 +55,12 @@ You may **not** use MarGem to:
 - List counterfeit, stolen, or recalled products
 - Offer unlicensed professional, medical, or financial services
 - Engage in pyramid schemes, unsolicited bulk messaging, or referral fraud
-- Use MarGem solely to redirect traffic to off-platform scams
+- Use Dribex solely to redirect traffic to off-platform scams
 
 ### 3.6 Privacy Violations
 - Collect personal information from users without consent
 - Publish others' private information (doxxing)
-- Use MarGem data for unauthorized marketing or profiling
+- Use Dribex data for unauthorized marketing or profiling
 
 ---
 
@@ -72,11 +72,11 @@ Violations are handled under our [Content Moderation Policy](../trust-safety/con
 
 ## 5. Reporting Violations
 
-Report violations via in-app reporting or email safety@margem.ma.
+Report violations via in-app reporting or email safety@dribex.ma.
 
 ---
 
 ## 6. Contact
 
-- **Trust & Safety:** safety@margem.ma
-- **Legal:** legal@margem.ma
+- **Trust & Safety:** safety@dribex.ma
+- **Legal:** legal@dribex.ma

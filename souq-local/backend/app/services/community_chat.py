@@ -103,7 +103,7 @@ async def ensure_default_cities(session: AsyncSession) -> None:
                         session,
                         slug=slug,
                         name=city_name,
-                        description=f"MarGem community for {city_name}",
+                        description=f"Dribex community for {city_name}",
                     )
             except IntegrityError:
                 continue

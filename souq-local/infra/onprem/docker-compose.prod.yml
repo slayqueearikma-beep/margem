@@ -1,4 +1,4 @@
-# MarGem on-prem production stack (Ubuntu)
+# Dribex on-prem production stack (Ubuntu)
 # Usage:
 #   cp env.prod.example .env.prod
 #   ./scripts/deploy.sh
@@ -108,7 +108,7 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
+      SMTP_FROM: ${SMTP_FROM:-Dribex <noreply@dribex.ma>}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL}
       PUBLIC_API_URL: ${PUBLIC_API_URL}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}

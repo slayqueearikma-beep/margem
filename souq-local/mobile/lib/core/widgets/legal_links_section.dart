@@ -74,7 +74,7 @@ class LegalLinksSection extends ConsumerWidget {
           icon: Icons.support_agent_outlined,
           label: l10n.contactSupport,
           onTap: () => launchUrl(
-            Uri.parse('mailto:support@margem.ma'),
+            Uri.parse('mailto:support@dribex.ma'),
             mode: LaunchMode.externalApplication,
           ),
         ),

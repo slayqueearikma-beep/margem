@@ -1,4 +1,4 @@
-# MarGem Legal Package — Lawyer Review Notes
+# Dribex Legal Package — Lawyer Review Notes
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## Important Notice
 
-The legal documents in this `/legal` folder were drafted as a **comprehensive starting point** tailored to MarGem's current product architecture, data practices, and business model. **They do not constitute legal advice.** A licensed attorney qualified in Moroccan law (and, where applicable, EU/GDPR and California/CCPA law) must review and approve all documents before public release.
+The legal documents in this `/legal` folder were drafted as a **comprehensive starting point** tailored to Dribex's current product architecture, data practices, and business model. **They do not constitute legal advice.** A licensed attorney qualified in Moroccan law (and, where applicable, EU/GDPR and California/CCPA law) must review and approve all documents before public release.
 
 ---
 
@@ -74,7 +74,7 @@ The legal documents in this `/legal` folder were drafted as a **comprehensive st
 
 | Item | Concern |
 |------|---------|
-| Platform intermediary status | Confirm MarGem's legal classification under Moroccan e-commerce law |
+| Platform intermediary status | Confirm Dribex's legal classification under Moroccan e-commerce law |
 | Off-platform transaction disclaimer | Strengthen if required by consumer protection authorities |
 | Verification badge liability | Ensure disclaimers are prominent in UI, not just legal docs |
 | Category-specific disclaimers | Medical, legal, automotive — confirm regulatory requirements |
@@ -89,7 +89,7 @@ The legal documents in this `/legal` folder were drafted as a **comprehensive st
 |------|---------|
 | DMCA-style process | Morocco has different IP enforcement framework — adapt for local law |
 | User content license scope | Confirm scope is sufficient for Platform operation without overreach |
-| Trademark registration | Confirm "MarGem" trademark status |
+| Trademark registration | Confirm "Dribex" trademark status |
 
 **Affected documents:** [DMCA Takedown](../trust-safety/dmca-takedown-policy.md), [Copyright Policy](../trust-safety/copyright-ip-policy.md), [UGC Policy](../marketplace/user-generated-content-policy.md)
 
@@ -124,7 +124,7 @@ The legal documents in this `/legal` folder were drafted as a **comprehensive st
 | No AI currently used | Disclosure is accurate as of August 2026 |
 | "Personalized recommendations" marketing | Ensure UI/marketing aligns with non-AI implementation |
 
-**Affected documents:** [AI Usage Disclosure](../privacy/ai-usage-disclosure.md), [MarGem Plus Membership Terms](../premium/buyer-plus-membership-terms.md)
+**Affected documents:** [AI Usage Disclosure](../privacy/ai-usage-disclosure.md), [Dribex Plus Membership Terms](../premium/buyer-plus-membership-terms.md)
 
 ---
 
@@ -157,4 +157,4 @@ All documents are in Markdown format, organized under `/legal/` with subdirector
 
 ## Contact for Legal Review
 
-legal@margem.ma
+legal@dribex.ma

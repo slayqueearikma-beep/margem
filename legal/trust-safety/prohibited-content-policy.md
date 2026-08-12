@@ -1,4 +1,4 @@
-# MarGem Prohibited Content Policy
+# Dribex Prohibited Content Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Overview
 
-The following content is **prohibited** on MarGem. Violations result in immediate content removal and may lead to account termination.
+The following content is **prohibited** on Dribex. Violations result in immediate content removal and may lead to account termination.
 
 ---
 
@@ -29,7 +29,7 @@ The following content is **prohibited** on MarGem. Violations result in immediat
 - Fake businesses, listings, or reviews
 - Phishing links, malware, and scam schemes
 - Misleading pricing, bait-and-switch tactics
-- Impersonation of individuals, brands, or MarGem
+- Impersonation of individuals, brands, or Dribex
 
 ### 2.4 Harmful Content
 - Hate speech targeting protected characteristics
@@ -77,10 +77,10 @@ The following content is **prohibited** on MarGem. Violations result in immediat
 
 ## 4. Reporting
 
-Report prohibited content via in-app reporting or safety@margem.ma.
+Report prohibited content via in-app reporting or safety@dribex.ma.
 
 ---
 
 ## 5. Contact
 
-safety@margem.ma
+safety@dribex.ma

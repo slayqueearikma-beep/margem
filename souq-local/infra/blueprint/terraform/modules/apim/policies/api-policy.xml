@@ -1,5 +1,5 @@
 <!--
-  APIM inbound policies — preserves MarGem FastAPI JWT validation (no app change).
+  APIM inbound policies — preserves Dribex FastAPI JWT validation (no app change).
   Rate limits mirror backend defaults: 300/min global, stricter on /auth via separate API.
 -->
 <policies>
@@ -11,8 +11,8 @@
     <rate-limit calls="300" renewal-period="60" />
     <cors allow-credentials="true">
       <allowed-origins>
-        <origin>https://margem.ma</origin>
-        <origin>https://margem.app</origin>
+        <origin>https://dribex.ma</origin>
+        <origin>https://dribex.app</origin>
       </allowed-origins>
       <allowed-methods>
         <method>GET</method>

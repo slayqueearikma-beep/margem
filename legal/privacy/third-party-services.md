@@ -1,4 +1,4 @@
-# MarGem Third-Party Services Disclosure
+# Dribex Third-Party Services Disclosure
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Overview
 
-MarGem uses third-party services to operate the Platform. This document discloses those services and their role in processing your data.
+Dribex uses third-party services to operate the Platform. This document discloses those services and their role in processing your data.
 
 ---
 
@@ -28,7 +28,7 @@ MarGem uses third-party services to operate the Platform. This document disclose
 | Service | Provider | Purpose | Data Processed |
 |---------|----------|---------|----------------|
 | Firebase Admin | Google (optional) | Identity token verification | Firebase UID |
-| Email/password auth | MarGem (self-hosted) | Primary authentication | Email, password hash |
+| Email/password auth | Dribex (self-hosted) | Primary authentication | Email, password hash |
 
 ---
 
@@ -37,8 +37,8 @@ MarGem uses third-party services to operate the Platform. This document disclose
 | Service | Provider | Purpose | Data Processed |
 |---------|----------|---------|----------------|
 | SMTP email | Configurable (e.g., SendGrid, Azure Communication) | Verification, password reset, announcements | Email address, message content |
-| WhatsApp | Meta | External contact (user-initiated) | Phone number (not processed by MarGem) |
-| Phone/SMS | Device native | External contact (user-initiated) | Phone number (not processed by MarGem) |
+| WhatsApp | Meta | External contact (user-initiated) | Phone number (not processed by Dribex) |
+| Phone/SMS | Device native | External contact (user-initiated) | Phone number (not processed by Dribex) |
 
 ---
 
@@ -63,19 +63,19 @@ Maps are disabled unless `ENABLE_MAPS=true` and a valid API key is configured.
 
 ## 7. External Contact Tools
 
-When you use call, WhatsApp, email, SMS, or website buttons on MarGem, you are directed to third-party services or your device's native apps. MarGem logs contact events (type and timestamp) for analytics but does not process the content of external communications.
+When you use call, WhatsApp, email, SMS, or website buttons on Dribex, you are directed to third-party services or your device's native apps. Dribex logs contact events (type and timestamp) for analytics but does not process the content of external communications.
 
 ---
 
 ## 8. Payment Processing (Future)
 
-When subscription billing is enabled, payments will be processed by a third-party payment provider (to be disclosed at launch). MarGem will not store full payment card numbers.
+When subscription billing is enabled, payments will be processed by a third-party payment provider (to be disclosed at launch). Dribex will not store full payment card numbers.
 
 ---
 
 ## 9. Data Processing Agreements
 
-MarGem requires third-party service providers to process data only on our instructions and implement appropriate security measures. Data Processing Agreements (DPAs) are maintained where required by GDPR and other applicable law.
+Dribex requires third-party service providers to process data only on our instructions and implement appropriate security measures. Data Processing Agreements (DPAs) are maintained where required by GDPR and other applicable law.
 
 ---
 
@@ -90,4 +90,4 @@ MarGem requires third-party service providers to process data only on our instru
 
 ## 11. Contact
 
-privacy@margem.app
+privacy@dribex.app

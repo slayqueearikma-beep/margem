@@ -74,7 +74,7 @@ async def sender_profile(session: AsyncSession, user: User) -> CommunitySenderOu
 
     return CommunitySenderOut(
         id=user.id,
-        display_name=display_name or "MarGem User",
+        display_name=display_name or "Dribex User",
         avatar_url=avatar_url or "",
         role=role,
         is_premium=bool(user.is_premium),

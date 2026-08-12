@@ -896,7 +896,7 @@ async def admin_grant_premium(
         session,
         user_id=target.id,
         title="Premium activated",
-        body=f"{plan.name} granted by MarGem staff",
+        body=f"{plan.name} granted by Dribex staff",
         kind="premium",
         data={"plan_code": plan.code},
     )

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start everything for MarGem home server: Docker (API + Postgres) + Flutter app.
+# Start everything for Dribex home server: Docker (API + Postgres) + Flutter app.
 # Usage:
 #   ./start_home_server.sh           # API + Flutter (if phone connected)
 #   ./start_home_server.sh --build   # Rebuild API image first
@@ -55,7 +55,7 @@ ensure_docker_running() {
 }
 
 echo ""
-echo "=== MarGem Home Server — start all ==="
+echo "=== Dribex Home Server — start all ==="
 echo ""
 
 if ! command -v docker >/dev/null 2>&1; then

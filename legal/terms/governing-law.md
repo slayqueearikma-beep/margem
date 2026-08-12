@@ -1,4 +1,4 @@
-# MarGem Governing Law
+# Dribex Governing Law
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Governing Law
 
-These Terms and all matters arising from or related to your use of the MarGem Platform shall be governed by and construed in accordance with the **laws of the Kingdom of Morocco**, without regard to conflict of law principles.
+These Terms and all matters arising from or related to your use of the Dribex Platform shall be governed by and construed in accordance with the **laws of the Kingdom of Morocco**, without regard to conflict of law principles.
 
 ---
 
@@ -19,7 +19,7 @@ Subject to the [Dispute Resolution Policy](dispute-resolution.md), you agree tha
 
 ## 3. International Users
 
-MarGem is designed primarily for users in Morocco. If you access the Platform from outside Morocco:
+Dribex is designed primarily for users in Morocco. If you access the Platform from outside Morocco:
 
 - Moroccan law still governs these Terms
 - You are responsible for compliance with local laws in your jurisdiction
@@ -29,7 +29,7 @@ MarGem is designed primarily for users in Morocco. If you access the Platform fr
 
 ## 4. Regulatory Compliance
 
-MarGem complies with applicable Moroccan regulations, including:
+Dribex complies with applicable Moroccan regulations, including:
 
 - **Law 09-08** — Protection of individuals with regard to the processing of personal data
 - **Law 31-08** — Consumer protection (where applicable to subscription services)
@@ -51,4 +51,4 @@ This Governing Law section is incorporated into the [Terms of Service](terms-of-
 
 ## 7. Contact
 
-legal@margem.ma
+legal@dribex.ma

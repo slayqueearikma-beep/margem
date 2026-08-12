@@ -1,4 +1,4 @@
-# MarGem On-Prem Production (Ubuntu)
+# Dribex On-Prem Production (Ubuntu)
 
 Production Docker Compose stack for self-hosted deployment on Ubuntu.
 

@@ -52,7 +52,7 @@ flowchart LR
 
 ## API security (APIM policies)
 
-- JWT validation against MarGem issuer (`jwt_issuer` from app config)
+- JWT validation against Dribex issuer (`jwt_issuer` from app config)
 - Rate limit: 300 req/min per IP (matches current `RATE_LIMIT`)
 - Auth endpoints: 30 req/min (matches `AUTH_RATE_LIMIT`)
 - Request size cap: 8 MB (matches `max_upload_bytes`)

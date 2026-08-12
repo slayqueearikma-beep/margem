@@ -1,11 +1,11 @@
-# MarGem Legal & Compliance Package
+# Dribex Legal & Compliance Package
 
-**Platform:** MarGem — local discovery and marketplace platform for Morocco  
-**Domains:** [margem.ma](https://margem.ma) · [margem.app](https://margem.app) · [api.margem.ma](https://api.margem.ma)  
+**Platform:** Dribex — local discovery and marketplace platform for Morocco  
+**Domains:** [dribex.ma](https://dribex.ma) · [dribex.app](https://dribex.app) · [api.dribex.ma](https://api.dribex.ma)  
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
 
-This folder contains the production-ready legal and compliance documentation for MarGem across Android, iOS, and Web.
+This folder contains the production-ready legal and compliance documentation for Dribex across Android, iOS, and Web.
 
 ---
 
@@ -77,7 +77,7 @@ This folder contains the production-ready legal and compliance documentation for
 | Document | Path |
 |----------|------|
 | Subscription Terms | [premium/subscription-terms.md](premium/subscription-terms.md) |
-| MarGem Plus Membership Terms | [premium/buyer-plus-membership-terms.md](premium/buyer-plus-membership-terms.md) |
+| Dribex Plus Membership Terms | [premium/buyer-plus-membership-terms.md](premium/buyer-plus-membership-terms.md) |
 | Seller Pro Membership Terms | [premium/premium-membership-terms.md](premium/premium-membership-terms.md) |
 | Enterprise Terms | [premium/enterprise-terms.md](premium/enterprise-terms.md) |
 | Refund Policy | [premium/refund-policy.md](premium/refund-policy.md) |
@@ -110,10 +110,10 @@ This folder contains the production-ready legal and compliance documentation for
 
 | Document | Suggested URL |
 |----------|---------------|
-| Privacy Policy | `https://margem.app/privacy` |
-| Terms of Service | `https://margem.app/terms` |
-| Cookie Policy | `https://margem.app/cookies` |
-| All policies index | `https://margem.app/legal` |
+| Privacy Policy | `https://dribex.app/privacy` |
+| Terms of Service | `https://dribex.app/terms` |
+| Cookie Policy | `https://dribex.app/cookies` |
+| All policies index | `https://dribex.app/legal` |
 
 ---
 
@@ -132,4 +132,4 @@ These documents are drafted to align with:
 
 ## Important Notice
 
-These documents are a comprehensive starting point tailored to MarGem's current product architecture. **They do not constitute legal advice.** See [compliance/lawyer-review-notes.md](compliance/lawyer-review-notes.md) for clauses requiring review by licensed counsel before public release.
+These documents are a comprehensive starting point tailored to Dribex's current product architecture. **They do not constitute legal advice.** See [compliance/lawyer-review-notes.md](compliance/lawyer-review-notes.md) for clauses requiring review by licensed counsel before public release.

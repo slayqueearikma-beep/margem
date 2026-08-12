@@ -1,4 +1,4 @@
-# MarGem Seller Terms
+# Dribex Seller Terms
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -24,13 +24,13 @@
 
 ## 1. Agreement
 
-By creating a seller account or storefront on MarGem, you agree to these Seller Terms in addition to the [Terms of Service](../terms/terms-of-service.md), [Marketplace Rules](marketplace-rules.md), and all incorporated policies.
+By creating a seller account or storefront on Dribex, you agree to these Seller Terms in addition to the [Terms of Service](../terms/terms-of-service.md), [Marketplace Rules](marketplace-rules.md), and all incorporated policies.
 
 ---
 
 ## 2. Seller Eligibility
 
-To operate as a seller on MarGem, you must:
+To operate as a seller on Dribex, you must:
 
 - Be at least 16 years old (or the age of majority for business in Morocco)
 - Have a verified email address
@@ -63,18 +63,18 @@ Each listing must comply with our [Business Listing Policy](business-listing-pol
 
 ### 3.3 Listing Management
 
-You may pause, hide, or delete listings at any time. Inactive or misleading listings may be removed by MarGem.
+You may pause, hide, or delete listings at any time. Inactive or misleading listings may be removed by Dribex.
 
 ---
 
 ## 4. Verification
 
-MarGem offers optional business verification. Verification:
+Dribex offers optional business verification. Verification:
 
-- Is reviewed manually by MarGem staff
+- Is reviewed manually by Dribex staff
 - Indicates that basic business information was reviewed — **not** a guarantee of quality, legality, or fitness
 - May be revoked for policy violations or inaccurate information
-- Does not constitute endorsement by MarGem
+- Does not constitute endorsement by Dribex
 
 See [Business Verification Policy](business-verification-policy.md) and [Business Verification Standards](business-verification-standards.md).
 
@@ -98,11 +98,11 @@ Premium features are subject to [Premium Membership Terms](../premium/premium-me
 
 ### 6.1 Inquiries and Messaging
 
-Respond to buyer inquiries professionally and promptly. MarGem may track response times for analytics and quality indicators.
+Respond to buyer inquiries professionally and promptly. Dribex may track response times for analytics and quality indicators.
 
 ### 6.2 Off-Platform Transactions
 
-All commercial transactions occur **outside** MarGem. You are solely responsible for:
+All commercial transactions occur **outside** Dribex. You are solely responsible for:
 
 - Payment collection and receipts
 - Product quality and delivery
@@ -111,7 +111,7 @@ All commercial transactions occur **outside** MarGem. You are solely responsible
 
 ### 6.3 Contact Tools
 
-When buyers use call, WhatsApp, email, or SMS buttons, MarGem logs contact events for analytics. You must not misuse buyer contact information for spam or unauthorized marketing.
+When buyers use call, WhatsApp, email, or SMS buttons, Dribex logs contact events for analytics. You must not misuse buyer contact information for spam or unauthorized marketing.
 
 ---
 
@@ -120,7 +120,7 @@ When buyers use call, WhatsApp, email, or SMS buttons, MarGem logs contact event
 - Buyers may leave one review per seller with category ratings and comments
 - You may not solicit fake reviews, offer incentives for positive reviews, or retaliate against reviewers
 - You may report reviews that violate our [Review & Rating Policy](review-rating-policy.md)
-- MarGem does not remove legitimate negative reviews
+- Dribex does not remove legitimate negative reviews
 
 ---
 
@@ -128,7 +128,7 @@ When buyers use call, WhatsApp, email, or SMS buttons, MarGem logs contact event
 
 - Basic seller features are free
 - Seller Pro subscriptions are billed per [Subscription Terms](../premium/subscription-terms.md)
-- MarGem does not currently charge transaction fees on buyer-seller sales
+- Dribex does not currently charge transaction fees on buyer-seller sales
 
 ---
 
@@ -141,7 +141,7 @@ You are solely responsible for:
 - Consumer protection compliance
 - Industry-specific regulations (food safety, healthcare, automotive, etc.)
 
-MarGem does not provide tax or legal advice.
+Dribex does not provide tax or legal advice.
 
 ---
 
@@ -154,13 +154,13 @@ Sellers must not:
 - Manipulate rankings through fake accounts or reviews
 - Harass buyers or competitors
 - Use buyer data for unauthorized purposes
-- Circumvent MarGem fees (if introduced in the future)
+- Circumvent Dribex fees (if introduced in the future)
 
 ---
 
 ## 11. Termination
 
-MarGem may suspend or terminate seller accounts for policy violations. Upon termination:
+Dribex may suspend or terminate seller accounts for policy violations. Upon termination:
 
 - Your storefront and listings will be removed or hidden
 - Active subscriptions may be cancelled per [Refund Policy](../premium/refund-policy.md)
@@ -172,6 +172,6 @@ You may delete your account at any time via [Account Deletion Policy](../privacy
 
 ## 12. Contact
 
-- **Seller support:** sellers@margem.ma
-- **Verification:** sellers@margem.ma
-- **Billing:** billing@margem.ma
+- **Seller support:** sellers@dribex.ma
+- **Verification:** sellers@dribex.ma
+- **Billing:** billing@dribex.ma

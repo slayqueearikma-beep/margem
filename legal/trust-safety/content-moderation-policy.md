@@ -1,4 +1,4 @@
-# MarGem Content Moderation Policy
+# Dribex Content Moderation Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-This policy describes how MarGem moderates user-generated content to maintain platform quality and safety.
+This policy describes how Dribex moderates user-generated content to maintain platform quality and safety.
 
 ---
 
@@ -20,7 +20,7 @@ This policy describes how MarGem moderates user-generated content to maintain pl
 | **Automated signals** | Rate limiting, duplicate detection, and abuse pattern recognition |
 | **Admin actions** | Staff-initiated moderation via admin console |
 
-MarGem does not currently use AI-based content moderation. Human review is the primary method.
+Dribex does not currently use AI-based content moderation. Human review is the primary method.
 
 ---
 
@@ -66,4 +66,4 @@ See [Trust & Safety Policy](trust-safety-policy.md) — Appeals Process.
 
 ## 7. Contact
 
-safety@margem.ma
+safety@dribex.ma

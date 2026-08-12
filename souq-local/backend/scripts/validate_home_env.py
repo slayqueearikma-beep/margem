@@ -31,7 +31,7 @@ def _is_placeholder(value: str) -> bool:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate MarGem home server environment")
+    parser = argparse.ArgumentParser(description="Validate Dribex home server environment")
     parser.add_argument(
         "env_file",
         nargs="?",

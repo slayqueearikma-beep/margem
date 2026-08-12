@@ -1,4 +1,4 @@
-# MarGem Email & Notification Policy
+# Dribex Email & Notification Policy
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -11,9 +11,9 @@
 
 | Address | Purpose |
 |---------|---------|
-| noreply@margem.ma | Transactional emails (verification, password reset) |
-| support@margem.ma | Support correspondence |
-| privacy@margem.app | Privacy-related communications |
+| noreply@dribex.ma | Transactional emails (verification, password reset) |
+| support@dribex.ma | Support correspondence |
+| privacy@dribex.app | Privacy-related communications |
 
 ### 1.2 Email Types
 
@@ -31,8 +31,8 @@ Transactional emails may contain deep links:
 
 - `margem://app/verify-email` — Email verification
 - `margem://app/reset-password` — Password reset
-- `https://margem.ma/verify-email` — Web fallback
-- `https://margem.ma/reset-password` — Web fallback
+- `https://dribex.ma/verify-email` — Web fallback
+- `https://dribex.ma/reset-password` — Web fallback
 
 ---
 
@@ -48,7 +48,7 @@ Transactional emails may contain deep links:
 
 ### 2.2 Push Notifications
 
-MarGem does not currently send push notifications (no FCM/APNs integration). In-app notifications are displayed when the app is open or accessed.
+Dribex does not currently send push notifications (no FCM/APNs integration). In-app notifications are displayed when the app is open or accessed.
 
 ---
 
@@ -77,4 +77,4 @@ Emails and notifications may contain:
 
 ## 5. Contact
 
-privacy@margem.app
+privacy@dribex.app

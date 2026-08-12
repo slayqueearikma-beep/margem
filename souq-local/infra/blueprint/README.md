@@ -1,10 +1,10 @@
-# MarGem Azure Enterprise Scalability Blueprint
+# Dribex Azure Enterprise Scalability Blueprint
 
 > **Status: DORMANT** — This directory is a **future-ready infrastructure blueprint**. It is **not** connected to the running application, CI/CD, or home-server deployment. **Do not `terraform apply` here** unless you are intentionally migrating to enterprise scale.
 
 ## Purpose
 
-Define production-grade Azure infrastructure capable of scaling MarGem from hundreds to millions of users **without a major redesign**, while preserving:
+Define production-grade Azure infrastructure capable of scaling Dribex from hundreds to millions of users **without a major redesign**, while preserving:
 
 - All existing APIs and business logic
 - PostgreSQL schema and Alembic migrations

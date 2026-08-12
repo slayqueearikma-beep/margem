@@ -1,4 +1,4 @@
-# MarGem Business Verification Standards
+# Dribex Business Verification Standards
 
 **Effective Date:** August 1, 2026  
 **Last Updated:** August 5, 2026
@@ -7,7 +7,7 @@
 
 ## 1. Overview
 
-These standards define the criteria MarGem staff use when reviewing business verification requests. Meeting these standards does not guarantee approval; MarGem retains sole discretion.
+These standards define the criteria Dribex staff use when reviewing business verification requests. Meeting these standards does not guarantee approval; Dribex retains sole discretion.
 
 ---
 
@@ -15,7 +15,7 @@ These standards define the criteria MarGem staff use when reviewing business ver
 
 To be considered for verification, a seller must:
 
-1. Have a **verified email address** on their MarGem account
+1. Have a **verified email address** on their Dribex account
 2. Maintain a **complete storefront** (name, description, city, contact)
 3. Have at least **one active listing** (product or service)
 4. Have **no active policy violations** or suspensions
@@ -25,7 +25,7 @@ To be considered for verification, a seller must:
 
 ## 3. Information Reviewed
 
-MarGem staff review the following:
+Dribex staff review the following:
 
 | Item | Standard |
 |------|----------|
@@ -45,7 +45,7 @@ MarGem staff review the following:
 - No prohibited food items
 
 ### Healthcare
-- Clear disclaimer that MarGem does not verify medical licensure (see [Medical Information Disclaimer](../disclaimers/medical-information-disclaimer.md))
+- Clear disclaimer that Dribex does not verify medical licensure (see [Medical Information Disclaimer](../disclaimers/medical-information-disclaimer.md))
 - No claims of guaranteed medical outcomes
 
 ### Automotive
@@ -79,10 +79,10 @@ Rejected sellers may reapply after addressing the stated reason for rejection. R
 
 ## 7. Future Enhancements
 
-MarGem may introduce enhanced verification tiers (e.g., document upload, license verification) with updated standards and separate terms.
+Dribex may introduce enhanced verification tiers (e.g., document upload, license verification) with updated standards and separate terms.
 
 ---
 
 ## 8. Contact
 
-sellers@margem.ma
+sellers@dribex.ma

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restore a MarGem home-server database and its matching local media archive.
+# Restore a Dribex home-server database and its matching local media archive.
 # Usage: ./scripts/restore_home_backup.sh backups/margem-YYYY.sql.gz
 set -euo pipefail
 
@@ -19,7 +19,7 @@ fi
 STAMP="$(basename "$DB_BACKUP" | sed -E 's/^margem-([0-9TZ]+)\.sql\.gz$/\1/')"
 MEDIA_BACKUP="$(dirname "$DB_BACKUP")/margem-media-$STAMP.tar.gz"
 
-read -r -p "This replaces the current MarGem database. Type RESTORE to continue: " confirm
+read -r -p "This replaces the current Dribex database. Type RESTORE to continue: " confirm
 [[ "$confirm" == "RESTORE" ]] || { echo "Cancelled."; exit 1; }
 
 echo "Stopping API connections..."
