@@ -13,11 +13,12 @@ class SignupTermsFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+    final style = (Theme.of(context).textTheme.bodySmall ?? const TextStyle())
+        .copyWith(
           color: context.colors.textSecondary,
           height: 1.45,
         );
-    final linkStyle = style?.copyWith(
+    final linkStyle = style.copyWith(
       color: context.colors.primary,
       fontWeight: FontWeight.w600,
       decoration: TextDecoration.underline,
