@@ -84,6 +84,18 @@ class PrivacyLegalHubScreen extends StatelessWidget {
             onTap: () => openLegalDocument(context, LegalDocumentId.cookies),
           ),
           _HubTile(
+            icon: Icons.receipt_long_outlined,
+            label: l10n.subscriptionTerms,
+            onTap: () =>
+                openLegalDocument(context, LegalDocumentId.subscriptionTerms),
+          ),
+          _HubTile(
+            icon: Icons.policy_outlined,
+            label: l10n.accountDeletionPolicy,
+            onTap: () =>
+                openLegalDocument(context, LegalDocumentId.accountDeletion),
+          ),
+          _HubTile(
             icon: Icons.gavel_outlined,
             label: l10n.legalNotice,
             onTap: () => openLegalDocument(context, LegalDocumentId.legalNotice),

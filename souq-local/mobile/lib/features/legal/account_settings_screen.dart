@@ -9,6 +9,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../l10n/app_localizations.dart';
+import 'legal_config.dart';
 import '../settings/language_settings_tile.dart';
 
 class AccountSettingsScreen extends ConsumerWidget {
@@ -97,7 +98,7 @@ class AccountSettingsScreen extends ConsumerWidget {
                 icon: Icons.support_agent_outlined,
                 title: l10n.contactSupport,
                 onTap: () => launchUrl(
-                  Uri.parse('mailto:support@dribex.ma'),
+                  LegalConfig.supportMailto(),
                   mode: LaunchMode.externalApplication,
                 ),
               ),

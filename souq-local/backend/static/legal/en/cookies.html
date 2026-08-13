@@ -15,14 +15,15 @@ h1 { font-size: 1.75rem; margin: 0 0 .5rem; letter-spacing: -0.02em; }
 .meta { color: var(--muted); font-size: .9rem; }
 h2 { font-size: 1.15rem; margin: 2rem 0 .75rem; color: var(--text); }
 p, li { font-size: .98rem; }
-ul { padding-inline-start: 1.25rem; }
+ul, ol { padding-inline-start: 1.25rem; }
 table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 1rem 0; }
 th, td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: start; vertical-align: top; }
 th { background: #f3f2ff; }
-.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; }
+.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; margin: 1rem 0; }
 footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
 .lang-nav { margin-top: .75rem; font-size: .88rem; }
 .lang-nav a { color: var(--accent); margin-inline-end: .75rem; }
+.doc-nav a { color: var(--accent); margin-inline-end: .75rem; }
 [dir="rtl"] body { text-align: right; }
 </style>
 </head>
@@ -30,31 +31,45 @@ footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border
 <div class="wrap">
 <header>
 <h1>Cookie Policy</h1>
-<p class="meta">Dribex · Version 1.1.0 · Effective August 1, 2026 · Last updated August 10, 2026</p>
+<p class="meta">Dribex · Version 2.0.0 · Effective 2026-08-13 · Last updated 2026-08-13</p>
 <p class="lang-nav"><a href="/legal/fr/cookies">Français</a> · <a href="/legal/ar/cookies">العربية</a></p>
 </header>
 <main>
-
-<p>This policy covers the Dribex <strong>website</strong>. Mobile apps use secure storage and preferences instead of browser cookies.</p>
-<h2>Web cookies</h2>
+<div class="note"><strong>Note:</strong> This policy describes cookies and similar technologies on our <strong>website</strong>. Mobile apps use secure local storage and preferences instead of browser cookies.</div>
+<h2>1. What are cookies?</h2>
+<p>Cookies are small text files stored on your device when you visit a website. Similar technologies include local storage, session storage, and pixels. We use them to operate the site, remember preferences, and (where permitted) measure performance.</p>
+<h2>2. Cookies we use</h2>
 <table>
-<tr><th>Cookie</th><th>Purpose</th><th>Duration</th></tr>
-<tr><td>Session / auth</td><td>Keep you signed in on Web</td><td>Session</td></tr>
-<tr><td>Language</td><td>Remember language choice</td><td>1 year</td></tr>
-<tr><td>Cookie consent</td><td>Store consent choice (when banner is shown)</td><td>1 year</td></tr>
+<tr><th>Name / type</th><th>Purpose</th><th>Duration</th><th>Category</th></tr>
+<tr><td>-------------</td><td>---------</td><td>----------</td><td>----------</td></tr>
+<tr><td>Session / authentication</td><td>Keep you signed in on the web</td><td>Session</td><td>Strictly necessary</td></tr>
+<tr><td>Language preference</td><td>Remember your language choice</td><td>Up to 12 months</td><td>Functional</td></tr>
+<tr><td>Cookie consent</td><td>Store your cookie choices when a banner is shown</td><td>Up to 12 months</td><td>Functional</td></tr>
+<tr><td>Security</td><td>Help detect abuse and protect accounts</td><td>Session or short-term</td><td>Strictly necessary</td></tr>
+<tr><td>Analytics (if enabled)</td><td>Understand usage and improve the service</td><td>As configured</td><td>Optional</td></tr>
 </table>
-<p>Analytics cookies are used only if enabled and, where required, with consent. Google Maps may set cookies when maps are enabled.</p>
-<h2>Mobile storage</h2>
+<p>If we enable third-party maps or embedded content, those providers may set their own cookies subject to their policies.</p>
+<h2>3. Mobile app storage</h2>
+<p>Our mobile apps do not use browser cookies. Instead, they may store:</p>
 <ul>
-<li>Encrypted tokens (secure storage)</li>
-<li>Language, onboarding, guest favorites (preferences)</li>
-<li>Cache for performance</li>
+<li>Encrypted authentication tokens (secure storage)</li>
+<li>Language, onboarding, and privacy preference settings</li>
+<li>Guest favorites and cached content for performance</li>
 </ul>
-<p>Clear app data or delete your account to remove local storage.</p>
-
+<p>You can clear app storage through your device settings or delete your account to remove account-linked data from our systems.</p>
+<h2>4. Your choices</h2>
+<ul>
+<li><strong>Browser:</strong> Use browser settings to block or delete cookies. Blocking necessary cookies may affect sign-in and core features.</li>
+<li><strong>Consent banner:</strong> Where required, we will ask before non-essential cookies. You can change choices through the banner or site settings when available.</li>
+<li><strong>App:</strong> Manage optional preferences in <strong>Settings → Privacy</strong> where offered.</li>
+</ul>
+<h2>5. Changes</h2>
+<p>We will update this policy when our cookies or providers change materially. See our Privacy Policy for broader data practices.</p>
+<h2>6. Contact</h2>
+<p>Questions: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
 </main>
 <footer>
-<p><a href="/legal/en/privacy">Privacy</a></p>
+<p class="doc-nav"><a href="/legal/en/privacy">Privacy</a></p>
 <p>© Dribex · <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
 </footer>
 </div>

@@ -15,14 +15,15 @@ h1 { font-size: 1.75rem; margin: 0 0 .5rem; letter-spacing: -0.02em; }
 .meta { color: var(--muted); font-size: .9rem; }
 h2 { font-size: 1.15rem; margin: 2rem 0 .75rem; color: var(--text); }
 p, li { font-size: .98rem; }
-ul { padding-inline-start: 1.25rem; }
+ul, ol { padding-inline-start: 1.25rem; }
 table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 1rem 0; }
 th, td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: start; vertical-align: top; }
 th { background: #f3f2ff; }
-.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; }
+.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; margin: 1rem 0; }
 footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
 .lang-nav { margin-top: .75rem; font-size: .88rem; }
 .lang-nav a { color: var(--accent); margin-inline-end: .75rem; }
+.doc-nav a { color: var(--accent); margin-inline-end: .75rem; }
 [dir="rtl"] body { text-align: right; }
 </style>
 </head>
@@ -30,37 +31,82 @@ footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border
 <div class="wrap">
 <header>
 <h1>Politique de confidentialité</h1>
-<p class="meta">Dribex · Version 1.1.0 · Effective August 1, 2026 · Last updated August 10, 2026</p>
+<p class="meta">Dribex · Version 2.0.0 · Effective 2026-08-13 · Last updated 2026-08-13</p>
 <p class="lang-nav"><a href="/legal/en/privacy">English</a> · <a href="/legal/ar/privacy">العربية</a></p>
 </header>
 <main>
-
-<p>Dribex (« nous ») exploite une plateforme locale de découverte et de marketplace au Maroc (Android, iOS et Web). Cette politique explique comment nous collectons, utilisons, conservons et protégeons les données personnelles.</p>
-<div class="note"><strong>Avis juridique :</strong> Dribex est soumis à la loi marocaine 09-08. Nous n'avons <strong>pas</strong> confirmé l'enregistrement ou l'autorisation CNDP dans ce dépôt — un avocat doit vérifier avant publication.</div>
-<h2>1. Données collectées</h2>
+<div class="note"><strong>Important :</strong> Dribex est soumis à la loi marocaine n° 09-08 relative à la protection des personnes physiques à l'égard du traitement des données à caractère personnel. [CNDP DECLARATION OR AUTHORIZATION STATUS — TO BE CONFIRMED BY COUNSEL]. Ces documents ne constituent pas un avis juridique. Faites les relire par un conseil qualifié avant publication.</div>
+<h2>1. Qui sommes-nous</h2>
+<p>Dribex (« nous », « notre », « nos ») exploite a local discovery and marketplace platform for Morocco sur Android, iOS, Web. La présente Politique de confidentialité explique quelles informations personnelles nous traitons, pourquoi, combien de temps nous les conservons et quels choix s'offrent à vous.</p>
+<p><strong>Responsable du traitement :</strong> [REGISTERED LEGAL ENTITY NAME — TO BE CONFIRMED BY COUNSEL] (exploitant sous le nom Dribex) <strong>Contact :</strong> <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> · DPO : <a href="mailto:dpo@dribex.app">dpo@dribex.app</a></p>
+<h2>2. Champ d'application</h2>
+<p>Cette politique s'applique lorsque vous utilisez nos applications, notre site web, vos comptes, annonces, messagerie, fonctionnalités communautaires, abonnements et l'assistance associée. Elle ne couvre pas les sites web ou services tiers auxquels vous accédez via des liens, ni les transactions hors plateforme conclues directement entre utilisateurs.</p>
+<h2>3. Informations que nous collectons</h2>
+<table>
+<tr><th>Catégorie</th><th>Exemples</th><th>Source</th></tr>
+<tr><td>-----------</td><td>----------</td><td>--------</td></tr>
+<tr><td>Compte</td><td>Adresse e-mail, nom affiché, mot de passe (stocké de manière sécurisée), type de compte, téléphone facultatif, statut de vérification</td><td>Vous</td></tr>
+<tr><td>Profil et données vendeur</td><td>Nom commercial, description, adresse, ville, localisation (avec autorisation), liens de contact, images, annonces, horaires, options de paiement ou de livraison affichées</td><td>Vous</td></tr>
+<tr><td>Contenu utilisateur</td><td>Avis, messages, publications communautaires, réactions, signalements, favoris, abonnements, recherches enregistrées</td><td>Vous</td></tr>
+<tr><td>Utilisation et appareil</td><td>Type d'appareil, système d'exploitation, version de l'application, langue, adresse IP, identifiants de session, journaux de sécurité</td><td>Automatique</td></tr>
+<tr><td>Localisation</td><td>Localisation approximative ou précise lorsque vous accordez l'autorisation</td><td>Vous (autorisation)</td></tr>
+<tr><td>Utilisation invité</td><td>Préférences et favoris stockés sur votre appareil jusqu'à votre connexion</td><td>Votre appareil</td></tr>
+<tr><td>Assistance et conformité</td><td>Correspondance, signaux de fraude, dossiers de modération, dossiers de facturation le cas échéant</td><td>Vous / nos systèmes</td></tr>
+</table>
+<p>Nous ne vendons pas d'informations personnelles et n'exploitons pas de réseaux publicitaires tiers.</p>
+<h2>4. Pourquoi nous utilisons les informations</h2>
+<p>Nous traitons les informations personnelles pour :</p>
 <ul>
-<li><strong>Compte :</strong> e-mail, nom affiché, mot de passe (haché bcrypt), type de compte, téléphone optionnel</li>
-<li><strong>Vendeur :</strong> entreprise, description, adresse, ville, coordonnées, contacts, images, annonces</li>
-<li><strong>Contenu :</strong> avis, messages, messages communautaires, signalements, favoris, recherches enregistrées</li>
-<li><strong>Automatique :</strong> appareil, version, langue, adresse IP, métadonnées de session</li>
-<li><strong>Localisation :</strong> uniquement avec votre autorisation pour la carte</li>
+<li>Fournir, maintenir et améliorer la plateforme et ses fonctionnalités actuelles et futures</li>
+<li>Créer et sécuriser les comptes, authentifier les utilisateurs et prévenir la fraude et les abus</li>
+<li>Permettre la découverte, les annonces, la messagerie, les communautés, les notifications et les services premium</li>
+<li>Vérifier les identités, entreprises ou éligibilités lorsque nous proposons des fonctionnalités de vérification</li>
+<li>Envoyer des communications de service, de sécurité et (lorsque la loi le permet) marketing</li>
+<li>Respecter la loi, répondre aux demandes légitimes et faire respecter nos conditions</li>
+<li>Analyser une utilisation agrégée ou pseudonymisée pour améliorer la fiabilité et l'expérience utilisateur</li>
 </ul>
-<h2>2. Finalités</h2>
-<p>Fourniture du service, messagerie, communauté, sécurité, analyses, conformité légale et fonctionnalités premium. Nous ne vendons pas vos données.</p>
-<h2>3. Services tiers</h2>
-<p>PostgreSQL, stockage média (Azure ou local), SMTP optionnel, Firebase optionnel, Google Maps optionnel, Sentry optionnel, Application Insights optionnel, Redis optionnel. Les paiements d'abonnement ne sont pas encore traités dans l'application.</p>
-<h2>4. Transferts internationaux</h2>
-<p>Données traitées au Maroc et chez nos hébergeurs (ex. Azure). Garanties appropriées lorsque la loi l'exige.</p>
-<h2>5. Conservation et suppression</h2>
-<p>Suppression de compte via l'application ou <code>DELETE /auth/me</code>. E-mail anonymisé en <code>deleted+{uuid}@invalid.local</code>. Export via <code>GET /auth/me/export</code>.</p>
-<h2>6. Vos droits (loi 09-08)</h2>
-<p>Accès, rectification, opposition, suppression : <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
-<h2>7. Contact</h2>
-<p><a href="mailto:privacy@dribex.app">privacy@dribex.app</a> · <a href="mailto:dpo@dribex.app">dpo@dribex.app</a></p>
-
+<p>Nos bases juridiques peuvent inclure l'exécution du contrat, l'intérêt légitime, le consentement (lorsque requis) et l'obligation légale, selon l'activité et la loi applicable.</p>
+<h2>5. Communications et préférences</h2>
+<p>Nous pouvons envoyer des messages transactionnels (vérification, alertes de sécurité, mises à jour de service) nécessaires au fonctionnement de votre compte. Le marketing facultatif ou les recommandations personnalisées ne sont utilisés que conformément à vos paramètres et à la loi applicable. Vous pouvez ajuster certaines préférences dans l'application et vous désabonner des e-mails promotionnels lorsque cette option est proposée.</p>
+<h2>6. Partage avec des prestataires de services</h2>
+<p>Nous faisons appel à des prestataires de confiance pour héberger l'infrastructure, envoyer des e-mails, stocker des médias, fournir des cartes, surveiller les erreurs et renforcer la sécurité. Ils ne traitent les données que sur nos instructions et aux fins décrites dans la présente politique. Nous pouvons également partager des informations :</p>
+<ul>
+<li>Avec d'autres utilisateurs, selon vos choix (par exemple annonces publiques ou messages)</li>
+<li>Avec les autorités lorsque la loi l'exige ou pour protéger les droits et la sécurité</li>
+<li>Dans le cadre d'une fusion, acquisition ou cession d'actifs, sous réserve de garanties appropriées</li>
+</ul>
+<p>Les processeurs de paiement actuels et futurs, les prestataires de vérification d'identité, les outils d'analyse et les systèmes de modération seront décrits dans des mises à jour de cette politique ou dans des avis connexes avant tout nouveau traitement important, lorsque la loi l'exige.</p>
+<h2>7. Transferts internationaux</h2>
+<p>Nous sommes établis en Kingdom of Morocco. Les données peuvent être traitées au Maroc et dans d'autres pays où nos prestataires exercent leurs activités. Lorsque les transferts exigent des garanties, nous mettons en œuvre des mesures contractuelles ou organisationnelles appropriées.</p>
+<h2>8. Conservation</h2>
+<p>Nous conservons les informations uniquement aussi longtemps que nécessaire aux fins ci-dessus, y compris la sécurité, le règlement des litiges et la conformité légale. Les durées de conservation varient selon le type de données. Lorsque vous supprimez votre compte, nous supprimons ou anonymisons les données personnelles comme décrit dans notre document Suppression de compte et droits relatifs aux données, sauf lorsque la loi exige une conservation plus longue (par exemple fiscalité, facturation ou mesures légales).</p>
+<h2>9. Vos droits</h2>
+<p>Selon la loi applicable (y compris la loi marocaine n° 09-08 et, le cas échéant, le RGPD ou des cadres similaires), vous pouvez disposer de droits d'accès, de rectification, de suppression, de limitation, d'opposition ou de portabilité de vos données, ainsi que de retrait du consentement lorsque le traitement repose sur celui-ci.</p>
+<p>Vous pouvez :</p>
+<ul>
+<li>Exporter les données de votre compte dans l'application (<strong>Paramètres → Vos données</strong>)</li>
+<li>Demander une rectification en contactant <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></li>
+<li>Supprimer votre compte dans l'application ou par demande vérifiée par e-mail</li>
+</ul>
+<p>Nous pouvons devoir vérifier votre identité avant de traiter vos demandes.</p>
+<h2>10. Sécurité</h2>
+<p>Nous mettons en œuvre des mesures administratives, techniques et organisationnelles telles que des contrôles d'accès, le chiffrement en transit, le stockage sécurisé des identifiants, la surveillance et la limitation du débit. Aucune méthode de transmission ou de stockage n'est totalement sécurisée.</p>
+<p>Signalez les problèmes de sécurité à <a href="mailto:security@dribex.ma">security@dribex.ma</a>.</p>
+<h2>11. Enfants</h2>
+<p>Dribex ne s'adresse pas aux enfants de moins de 16 ans. Nous ne collectons pas sciemment d'informations personnelles auprès d'enfants de moins de cet âge. Contactez-nous si vous pensez qu'un enfant nous a transmis des données.</p>
+<h2>12. Modifications de cette politique</h2>
+<p>Nous pouvons mettre à jour cette politique lorsque nos services, obligations légales ou pratiques en matière de données changent de manière significative. Nous mettrons à jour la date d'entrée en vigueur et, lorsque requis, vous informerons dans l'application ou par e-mail et solliciterons un consentement renouvelé si nécessaire. La poursuite de l'utilisation après notification ne remplace pas, à elle seule, le consentement ou toute autre exigence légale applicable à un traitement spécifique.</p>
+<h2>13. Contact</h2>
+<table>
+<tr><th>Objet</th><th>Contact</th></tr>
+<tr><td>-------</td><td>---------</td></tr>
+<tr><td>Demandes relatives à la vie privée</td><td><a href="mailto:privacy@dribex.app">privacy@dribex.app</a></td></tr>
+<tr><td>Délégué à la protection des données</td><td><a href="mailto:dpo@dribex.app">dpo@dribex.app</a></td></tr>
+<tr><td>Assistance générale</td><td><a href="mailto:support@dribex.ma">support@dribex.ma</a></td></tr>
+</table>
 </main>
 <footer>
-<p><a href="/legal/fr/terms">Terms</a> · <a href="/legal/fr/cookies">Cookies</a> · <a href="/legal/fr/account-deletion">Account deletion</a></p>
+<p class="doc-nav"><a href="/legal/fr/cookies">Cookies</a> · <a href="/legal/fr/account-deletion">Account deletion</a> · <a href="/legal/fr/legal-notice">Legal notice</a></p>
 <p>© Dribex · <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
 </footer>
 </div>

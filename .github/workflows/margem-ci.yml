@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - "souq-local/**"
+      - "legal/**"
   pull_request:
     paths:
       - "souq-local/**"
+      - "legal/**"
 
 jobs:
   backend:
@@ -34,6 +36,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
+      - name: Validate legal HTML generation
+        working-directory: ${{ github.workspace }}
+        run: python souq-local/backend/scripts/generate_legal_html.py
       - name: Audit Python dependencies
         run: |
           pip install pip-audit bandit

@@ -15,14 +15,15 @@ h1 { font-size: 1.75rem; margin: 0 0 .5rem; letter-spacing: -0.02em; }
 .meta { color: var(--muted); font-size: .9rem; }
 h2 { font-size: 1.15rem; margin: 2rem 0 .75rem; color: var(--text); }
 p, li { font-size: .98rem; }
-ul { padding-inline-start: 1.25rem; }
+ul, ol { padding-inline-start: 1.25rem; }
 table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 1rem 0; }
 th, td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: start; vertical-align: top; }
 th { background: #f3f2ff; }
-.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; }
+.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; margin: 1rem 0; }
 footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
 .lang-nav { margin-top: .75rem; font-size: .88rem; }
 .lang-nav a { color: var(--accent); margin-inline-end: .75rem; }
+.doc-nav a { color: var(--accent); margin-inline-end: .75rem; }
 [dir="rtl"] body { text-align: right; }
 </style>
 </head>
@@ -30,17 +31,34 @@ footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border
 <div class="wrap">
 <header>
 <h1>Licences open source</h1>
-<p class="meta">Dribex · Version 1.1.0 · Effective August 1, 2026 · Last updated August 10, 2026</p>
+<p class="meta">Dribex · Version 2.0.0 · Effective 2026-08-13 · Last updated 2026-08-13</p>
 <p class="lang-nav"><a href="/legal/en/open-source-licenses">English</a> · <a href="/legal/ar/open-source-licenses">العربية</a></p>
 </header>
 <main>
-
-<p>L'application Dribex utilise des logiciels open source, notamment Flutter, Riverpod, go_router, Google Maps Flutter, http, geolocator et d'autres bibliothèques listées dans le projet.</p>
-<p>Les textes complets des licences sont disponibles auprès de chaque éditeur de package.</p>
-
+<p>Les applications mobiles Dribex incluent des logiciels open source. Les dépendances principales suivantes correspondent à la version actuelle. Les noms de paquets et versions peuvent changer entre les versions.</p>
+<table>
+<tr><th>Composant</th><th>Licence</th></tr>
+<tr><td>-----------</td><td>---------</td></tr>
+<tr><td>Flutter SDK</td><td>BSD-3-Clause</td></tr>
+<tr><td>flutter_riverpod</td><td>MIT</td></tr>
+<tr><td>go_router</td><td>BSD-3-Clause</td></tr>
+<tr><td>google_maps_flutter</td><td>BSD-3-Clause</td></tr>
+<tr><td>http</td><td>BSD-3-Clause</td></tr>
+<tr><td>cached_network_image</td><td>MIT</td></tr>
+<tr><td>url_launcher</td><td>BSD-3-Clause</td></tr>
+<tr><td>geolocator</td><td>MIT</td></tr>
+<tr><td>shared_preferences</td><td>BSD-3-Clause</td></tr>
+<tr><td>flutter_secure_storage</td><td>BSD-3-Clause</td></tr>
+<tr><td>sentry_flutter</td><td>MIT</td></tr>
+<tr><td>google_fonts</td><td>Apache-2.0</td></tr>
+<tr><td>web_socket_channel</td><td>BSD-3-Clause</td></tr>
+<tr><td>image_picker</td><td>Apache-2.0 / BSD-3-Clause (composants variables)</td></tr>
+</table>
+<p>Les textes complets des licences sont disponibles auprès de chaque éditeur de paquet et dans les avis de dépendances du projet. Pour toute question, contactez <a href="mailto:support@dribex.ma">support@dribex.ma</a>.</p>
+<p>Cette liste est fournie à titre informatif et ne modifie pas les conditions de licence des tiers.</p>
 </main>
 <footer>
-<p></p>
+<p class="doc-nav"></p>
 <p>© Dribex · <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
 </footer>
 </div>

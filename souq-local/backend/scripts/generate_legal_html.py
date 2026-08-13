@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-"""Generate localized legal HTML pages under backend/static/legal/."""
+"""Generate localized legal HTML from modular markdown sources."""
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1] / "static" / "legal"
-VERSION = "1.1.0"
-EFFECTIVE = "August 1, 2026"
-UPDATED = "August 10, 2026"
+try:
+    import yaml
+except ImportError:
+    yaml = None  # type: ignore
+
+WORKSPACE = Path(__file__).resolve().parents[3]
+LEGAL = WORKSPACE / "legal"
+CONTENT = LEGAL / "content"
+CONFIG = LEGAL / "config" / "entity.yaml"
+MANIFEST = LEGAL / "manifest.yaml"
+OUTPUT = Path(__file__).resolve().parents[1] / "static" / "legal"
 
 CSS = """
 :root { --text:#1a1a2e; --muted:#5c5c7a; --border:#e8e8f0; --accent:#6b5ce7; --bg:#faf9f7; }
@@ -21,477 +29,216 @@ h1 { font-size: 1.75rem; margin: 0 0 .5rem; letter-spacing: -0.02em; }
 .meta { color: var(--muted); font-size: .9rem; }
 h2 { font-size: 1.15rem; margin: 2rem 0 .75rem; color: var(--text); }
 p, li { font-size: .98rem; }
-ul { padding-inline-start: 1.25rem; }
+ul, ol { padding-inline-start: 1.25rem; }
 table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 1rem 0; }
 th, td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: start; vertical-align: top; }
 th { background: #f3f2ff; }
-.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; }
+.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; margin: 1rem 0; }
 footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
 .lang-nav { margin-top: .75rem; font-size: .88rem; }
 .lang-nav a { color: var(--accent); margin-inline-end: .75rem; }
+.doc-nav a { color: var(--accent); margin-inline-end: .75rem; }
 [dir="rtl"] body { text-align: right; }
 """
 
-DOCS: dict[str, dict[str, dict[str, str]]] = {
-    "privacy": {
-        "en": {
-            "title": "Privacy Policy",
-            "body": """
-<p>Dribex ("we", "us") operates a local discovery and marketplace platform for Morocco (Android, iOS, and Web). This Privacy Policy explains how we collect, use, retain, and protect personal information.</p>
-<div class="note"><strong>Legal notice:</strong> Dribex is subject to Morocco's Law 09-08 on the protection of individuals with regard to the processing of personal data. We have <strong>not</strong> confirmed CNDP registration or authorization in this repository — counsel must verify before publication.</div>
-<h2>1. Data we collect</h2>
-<ul>
-<li><strong>Account:</strong> email, display name, password (stored as a bcrypt hash), account type, optional phone, email verification status</li>
-<li><strong>Seller profile:</strong> business name, description, address, city, coordinates, contact links, images, listings, hours, payment/delivery options (display only)</li>
-<li><strong>User content:</strong> reviews, buyer–seller messages, city community messages, reports, favorites, follows, saved searches</li>
-<li><strong>Automatic:</strong> device/OS, app version, language, IP address, request IDs, refresh-token metadata (device name, IP, user agent, last seen)</li>
-<li><strong>Location:</strong> only with your permission, to show nearby businesses on the map</li>
-<li><strong>Guests:</strong> favorites and preferences stored locally on the device until you sign in</li>
-</ul>
-<h2>2. Why we process data</h2>
-<p>We use data to provide accounts, listings, messaging, community channels, verification, notifications, discovery, security, fraud prevention, analytics, legal compliance, and premium features. We do <strong>not</strong> sell personal information or run third-party ad networks.</p>
-<h2>3. Third-party services (actual)</h2>
-<table>
-<tr><th>Service</th><th>Purpose</th></tr>
-<tr><td>PostgreSQL</td><td>Primary database</td></tr>
-<tr><td>Azure Blob Storage or local media storage</td><td>Uploaded images/media</td></tr>
-<tr><td>SMTP (optional)</td><td>Verification, password reset, service email</td></tr>
-<tr><td>Firebase Admin (optional)</td><td>Identity token verification only if enabled</td></tr>
-<tr><td>Google Maps (optional, ENABLE_MAPS)</td><td>Map display when configured</td></tr>
-<tr><td>Sentry (optional)</td><td>Crash/error reporting when SENTRY_DSN is set</td></tr>
-<tr><td>Azure Application Insights (optional)</td><td>Performance telemetry when configured</td></tr>
-<tr><td>Redis (optional)</td><td>Rate limiting / caching</td></tr>
-</table>
-<p>Payments for subscriptions are <strong>not</strong> processed in-app today; billing is manual/admin-assisted. Off-platform payments between buyers and sellers are arranged directly between users.</p>
-<h2>4. International transfers</h2>
-<p>Dribex is based in Morocco. Data may be processed in Morocco and in countries where our infrastructure providers operate (for example Microsoft Azure regions). Transfers outside Morocco or the EEA use appropriate safeguards where required by law.</p>
-<h2>5. Retention & deletion</h2>
-<p>We keep data only as long as needed for the purposes above. When you delete your account, we anonymize your profile (email becomes <code>deleted+{uuid}@invalid.local</code>), remove storefronts, listings, messages, favorites, and tokens, and anonymize community messages. Limited records (billing, security logs, backups up to 90 days, legal holds) may be retained as described in our Account Deletion Policy.</p>
-<h2>6. Your rights (Morocco Law 09-08)</h2>
-<p>You may request access, rectification, opposition, and deletion. Contact <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> or use in-app deletion. Data export is available via <code>GET /auth/me/export</code> when signed in.</p>
-<h2>7. Security</h2>
-<p>We use TLS in transit, bcrypt password hashing, encrypted token storage on mobile, access controls, audit logging, and rate limiting. No system is completely secure.</p>
-<h2>8. Children</h2>
-<p>Dribex is not directed to children under 16. We do not knowingly collect children's data.</p>
-<h2>9. Contact</h2>
-<p>Privacy: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> · DPO: <a href="mailto:dpo@dribex.app">dpo@dribex.app</a></p>
-""",
-        },
-        "fr": {
-            "title": "Politique de confidentialité",
-            "body": """
-<p>Dribex (« nous ») exploite une plateforme locale de découverte et de marketplace au Maroc (Android, iOS et Web). Cette politique explique comment nous collectons, utilisons, conservons et protégeons les données personnelles.</p>
-<div class="note"><strong>Avis juridique :</strong> Dribex est soumis à la loi marocaine 09-08. Nous n'avons <strong>pas</strong> confirmé l'enregistrement ou l'autorisation CNDP dans ce dépôt — un avocat doit vérifier avant publication.</div>
-<h2>1. Données collectées</h2>
-<ul>
-<li><strong>Compte :</strong> e-mail, nom affiché, mot de passe (haché bcrypt), type de compte, téléphone optionnel</li>
-<li><strong>Vendeur :</strong> entreprise, description, adresse, ville, coordonnées, contacts, images, annonces</li>
-<li><strong>Contenu :</strong> avis, messages, messages communautaires, signalements, favoris, recherches enregistrées</li>
-<li><strong>Automatique :</strong> appareil, version, langue, adresse IP, métadonnées de session</li>
-<li><strong>Localisation :</strong> uniquement avec votre autorisation pour la carte</li>
-</ul>
-<h2>2. Finalités</h2>
-<p>Fourniture du service, messagerie, communauté, sécurité, analyses, conformité légale et fonctionnalités premium. Nous ne vendons pas vos données.</p>
-<h2>3. Services tiers</h2>
-<p>PostgreSQL, stockage média (Azure ou local), SMTP optionnel, Firebase optionnel, Google Maps optionnel, Sentry optionnel, Application Insights optionnel, Redis optionnel. Les paiements d'abonnement ne sont pas encore traités dans l'application.</p>
-<h2>4. Transferts internationaux</h2>
-<p>Données traitées au Maroc et chez nos hébergeurs (ex. Azure). Garanties appropriées lorsque la loi l'exige.</p>
-<h2>5. Conservation et suppression</h2>
-<p>Suppression de compte via l'application ou <code>DELETE /auth/me</code>. E-mail anonymisé en <code>deleted+{uuid}@invalid.local</code>. Export via <code>GET /auth/me/export</code>.</p>
-<h2>6. Vos droits (loi 09-08)</h2>
-<p>Accès, rectification, opposition, suppression : <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
-<h2>7. Contact</h2>
-<p><a href="mailto:privacy@dribex.app">privacy@dribex.app</a> · <a href="mailto:dpo@dribex.app">dpo@dribex.app</a></p>
-""",
-        },
-        "ar": {
-            "title": "سياسة الخصوصية",
-            "body": """
-<p>تدير Dribex («نحن») منصة اكتشاف وسوق محلية في المغرب (أندرويد وiOS والويب). توضح هذه السياسة كيفية جمع بياناتك الشخصية واستخدامها وحمايتها.</p>
-<div class="note"><strong>تنبيه قانوني:</strong> تخضع Dribex للقانون المغربي 09-08. <strong>لم</strong> يتم تأكيد التصريح أو الترخيص لدى اللجنة الوطنية (CNDP) في هذا المستودع — يجب على المستشار القانوني التحقق قبل النشر.</div>
-<h2>1. البيانات التي نجمعها</h2>
-<ul>
-<li><strong>الحساب:</strong> البريد الإلكتروني، الاسم المعروض، كلمة المرور (مشفّرة bcrypt)، نوع الحساب، رقم الهاتف اختياري</li>
-<li><strong>البائع:</strong> اسم النشاط، الوصف، العنوان، المدينة، الإحداثيات، وسائل التواصل، الصور، القوائم</li>
-<li><strong>المحتوى:</strong> التقييمات، الرسائل، رسائل المجتمع، البلاغات، المفضلة، عمليات البحث المحفوظة</li>
-<li><strong>تلقائياً:</strong> الجهاز، إصدار التطبيق، اللغة، عنوان IP، بيانات الجلسة</li>
-<li><strong>الموقع:</strong> فقط بإذنك لعرض المحلات القريبة على الخريطة</li>
-</ul>
-<h2>2. أغراض المعالجة</h2>
-<p>تقديم الخدمة، المراسلة، المجتمعات، الأمان، التحليلات، الامتثال القانوني، والميزات المميزة. لا نبيع بياناتك الشخصية.</p>
-<h2>3. خدمات الطرف الثالث</h2>
-<p>PostgreSQL، تخزين الوسائط (Azure أو محلي)، SMTP اختياري، Firebase اختياري، خرائط Google اختياري، Sentry اختياري، Application Insights اختياري، Redis اختياري. مدفوعات الاشتراك غير مفعّلة داخل التطبيق حالياً.</p>
-<h2>4. النقل الدولي</h2>
-<p>قد تُعالج البيانات في المغرب ودى مزودي البنية التحتية (مثل Azure) مع الضمانات المناسبة عند الاقتضاء.</p>
-<h2>5. الاحتفاظ والحذف</h2>
-<p>حذف الحساب من الإعدادات أو عبر <code>DELETE /auth/me</code>. يُستبدل البريد بـ <code>deleted+{uuid}@invalid.local</code>. التصدير عبر <code>GET /auth/me/export</code>.</p>
-<h2>6. حقوقك (القانون 09-08)</h2>
-<p>الوصول، التصحيح، الاعتراض، الحذف: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
-<h2>7. التواصل</h2>
-<p><a href="mailto:privacy@dribex.app">privacy@dribex.app</a> · <a href="mailto:dpo@dribex.app">dpo@dribex.app</a></p>
-""",
-        },
-    },
-    "terms": {
-        "en": {
-            "title": "Terms of Service",
-            "body": """
-<p>These Terms govern your use of Dribex. By creating an account or using the Platform, you agree to these Terms and our Privacy Policy.</p>
-<h2>1. The Platform</h2>
-<p>Dribex helps users discover local businesses, products, and services in Morocco. Dribex is an intermediary — we do not own inventory, employ sellers, or guarantee off-platform transactions.</p>
-<h2>2. Accounts</h2>
-<p>You must provide accurate information, keep credentials secure, and be at least 16 years old. You are responsible for activity under your account.</p>
-<h2>3. Sellers</h2>
-<p>Sellers must provide truthful listings, comply with Moroccan law, handle customer communications responsibly, and not list prohibited content. Verification badges indicate review status, not a guarantee of quality or legality.</p>
-<h2>4. Payments</h2>
-<p>Buyer–seller payments are arranged directly between users (cash, transfer, etc.) unless we later enable in-app billing. Premium subscriptions are administered manually today and are blocked for self-service checkout in production.</p>
-<h2>5. User content</h2>
-<p>You retain ownership of content you post but grant Dribex a license to host, display, and moderate it on the Platform. Do not post illegal, fraudulent, hateful, or infringing content.</p>
-<h2>6. Prohibited conduct</h2>
-<p>No spam, scraping, impersonation, harassment, malware, or attempts to bypass security or rate limits.</p>
-<h2>7. Limitation of liability</h2>
-<p>Dribex is provided "as is" to the maximum extent permitted by law. We are not liable for off-platform dealings, seller conduct, or indirect damages.</p>
-<h2>8. Governing law</h2>
-<p>These Terms are governed by the laws of the Kingdom of Morocco, subject to mandatory consumer protections. Disputes may be brought before competent Moroccan courts unless counsel approves alternative dispute resolution.</p>
-<h2>9. Contact</h2>
-<p><a href="mailto:legal@dribex.ma">legal@dribex.ma</a> · <a href="mailto:support@dribex.ma">support@dribex.ma</a></p>
-""",
-        },
-        "fr": {
-            "title": "Conditions d'utilisation",
-            "body": """
-<p>Ces conditions régissent votre utilisation de Dribex. En créant un compte, vous acceptez ces conditions et notre politique de confidentialité.</p>
-<h2>1. La plateforme</h2>
-<p>Dribex met en relation acheteurs et vendeurs locaux au Maroc. Nous ne sommes pas partie aux transactions hors plateforme.</p>
-<h2>2. Comptes</h2>
-<p>Informations exactes, sécurité des identifiants, âge minimum 16 ans.</p>
-<h2>3. Vendeurs</h2>
-<p>Annonces véridiques, respect de la loi marocaine, contenu interdit interdit. Le badge de vérification n'est pas une garantie.</p>
-<h2>4. Paiements</h2>
-<p>Paiements directs entre utilisateurs. Abonnements premium gérés manuellement aujourd'hui.</p>
-<h2>5. Responsabilité</h2>
-<p>Service fourni « en l'état » dans les limites légales. Loi marocaine applicable.</p>
-<h2>6. Contact</h2>
-<p><a href="mailto:legal@dribex.ma">legal@dribex.ma</a></p>
-""",
-        },
-        "ar": {
-            "title": "شروط الاستخدام",
-            "body": """
-<p>تحكم هذه الشروط استخدامك لـ Dribex. بإنشاء حساب، فإنك توافق على هذه الشروط وسياسة الخصوصية.</p>
-<h2>1. المنصة</h2>
-<p>تساعد Dribex على اكتشاف المحلات والمنتجات والخدمات المحلية في المغرب. نحن وسيط — لا نملك مخزون البائعين ولا نضمن المعاملات خارج المنصة.</p>
-<h2>2. الحسابات</h2>
-<p>معلومات دقيقة، حماية بيانات الدخول، الحد الأدنى للعمر 16 سنة.</p>
-<h2>3. البائعون</h2>
-<p>قوائم صحيحة، الامتثال للقانون المغربي، محتوى محظور ممنوع. شارة التوثيق ليست ضماناً للجودة.</p>
-<h2>4. المدفوعات</h2>
-<p>الدفع مباشرة بين المستخدمين. الاشتراكات المميزة تُدار يدوياً حالياً.</p>
-<h2>5. المسؤولية</h2>
-<p>الخدمة «كما هي» ضمن حدود القانون. يخضع النزاع للقانون المغربي.</p>
-<h2>6. التواصل</h2>
-<p><a href="mailto:legal@dribex.ma">legal@dribex.ma</a></p>
-""",
-        },
-    },
-    "cookies": {
-        "en": {
-            "title": "Cookie Policy",
-            "body": """
-<p>This policy covers the Dribex <strong>website</strong>. Mobile apps use secure storage and preferences instead of browser cookies.</p>
-<h2>Web cookies</h2>
-<table>
-<tr><th>Cookie</th><th>Purpose</th><th>Duration</th></tr>
-<tr><td>Session / auth</td><td>Keep you signed in on Web</td><td>Session</td></tr>
-<tr><td>Language</td><td>Remember language choice</td><td>1 year</td></tr>
-<tr><td>Cookie consent</td><td>Store consent choice (when banner is shown)</td><td>1 year</td></tr>
-</table>
-<p>Analytics cookies are used only if enabled and, where required, with consent. Google Maps may set cookies when maps are enabled.</p>
-<h2>Mobile storage</h2>
-<ul>
-<li>Encrypted tokens (secure storage)</li>
-<li>Language, onboarding, guest favorites (preferences)</li>
-<li>Cache for performance</li>
-</ul>
-<p>Clear app data or delete your account to remove local storage.</p>
-""",
-        },
-        "fr": {
-            "title": "Politique des cookies",
-            "body": """
-<p>Cette politique concerne le <strong>site Web</strong> Dribex. Les applications mobiles utilisent le stockage sécurisé.</p>
-<h2>Cookies Web</h2>
-<p>Session, langue, consentement aux cookies. Analytics uniquement si activé et avec consentement si requis.</p>
-<h2>Stockage mobile</h2>
-<p>Jetons chiffrés, préférences, cache. Effacez les données de l'application pour supprimer le stockage local.</p>
-""",
-        },
-        "ar": {
-            "title": "سياسة ملفات تعريف الارتباط",
-            "body": """
-<p>تنطبق هذه السياسة على <strong>موقع</strong> Dribex. تستخدم التطبيقات تخزيناً آمناً بدلاً من ملفات تعريف الارتباط.</p>
-<h2>ملفات الويب</h2>
-<p>الجلسة، اللغة، الموافقة على ملفات التعريف. التحليلات فقط عند التفعيل وبالموافقة عند الاقتضاء.</p>
-<h2>تخزين التطبيق</h2>
-<p>رموز مشفّرة، تفضيلات، ذاكرة تخزين مؤقت. امسح بيانات التطبيق أو احذف حسابك لإزالة التخزين المحلي.</p>
-""",
-        },
-    },
-    "account-deletion": {
-        "en": {
-            "title": "Account Deletion",
-            "body": """
-<p>You may delete your Dribex account at any time. Deletion is permanent.</p>
-<h2>How to delete</h2>
-<ol>
-<li>In the app: Settings → Delete account → enter password → confirm</li>
-<li>API: <code>DELETE /auth/me</code> with password and confirmation <code>"DELETE"</code></li>
-<li>Email: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> from your registered address</li>
-</ol>
-<h2>What we remove</h2>
-<ul>
-<li>Storefront, products, services, seller categories</li>
-<li>Buyer–seller messages and conversations</li>
-<li>Reviews you wrote; reviews on your business (if seller)</li>
-<li>Favorites, follows, saved searches, notifications, subscriptions, refresh tokens</li>
-<li>Community memberships; your community messages are anonymized</li>
-<li>MFA factors and recovery codes</li>
-</ul>
-<h2>What we keep</h2>
-<ul>
-<li>Anonymized account row (<code>deleted+{uuid}@invalid.local</code>, display name "Deleted user")</li>
-<li>Billing/tax records where legally required (up to 7 years)</li>
-<li>Security and admin audit logs</li>
-<li>Backup copies up to 90 days</li>
-<li>Data under legal hold</li>
-</ul>
-<h2>Before you delete</h2>
-<p>Export your data via <code>GET /auth/me/export</code> or email privacy@dribex.app. Guest favorites remain on your device until you clear app data.</p>
-""",
-        },
-        "fr": {
-            "title": "Suppression de compte",
-            "body": """
-<p>Vous pouvez supprimer votre compte à tout moment. Action irréversible.</p>
-<h2>Comment supprimer</h2>
-<p>Application → Paramètres → Supprimer le compte, ou <code>DELETE /auth/me</code>, ou e-mail à privacy@dribex.app.</p>
-<h2>Données supprimées</h2>
-<p>Boutique, annonces, messages, avis, favoris, abonnements, jetons, adhésions communautaires (messages anonymisés).</p>
-<h2>Données conservées</h2>
-<p>Compte anonymisé, obligations légales, sauvegardes (90 jours), conservation judiciaire.</p>
-""",
-        },
-        "ar": {
-            "title": "حذف الحساب",
-            "body": """
-<p>يمكنك حذف حساب Dribex في أي وقت. الحذف نهائي.</p>
-<h2>كيفية الحذف</h2>
-<p>الإعدادات → حذف الحساب، أو <code>DELETE /auth/me</code>، أو privacy@dribex.app.</p>
-<h2>ما نحذفه</h2>
-<p>المتجر، القوائم، الرسائل، التقييمات، المفضلة، الاشتراكات، عضويات المجتمع (رسائلك تُجهّل).</p>
-<h2>ما نحتفظ به</h2>
-<p>سجل حساب مجهّل، سجلات قانونية/ضريبية، نسخ احتياطية (90 يوماً)، حجز قانوني.</p>
-""",
-        },
-    },
-    "seller-terms": {
-        "en": {
-            "title": "Seller Terms",
-            "body": """
-<p>These Seller Terms apply when you create a seller account or storefront on Dribex. They supplement the Terms of Service and Marketplace Rules.</p>
-<h2>1. Eligibility</h2>
-<p>Sellers must be at least 16, provide accurate business information, comply with Moroccan law, and maintain a verified email address.</p>
-<h2>2. Listings and storefront</h2>
-<p>You are responsible for truthful descriptions, pricing, availability, images, and lawful products or services. Dribex may remove listings that violate policies.</p>
-<h2>3. Verification</h2>
-<p>Verification badges reflect review status only — not a guarantee of quality, safety, or legality.</p>
-<h2>4. Transactions</h2>
-<p>Payments between buyers and sellers generally occur off-platform unless Dribex later enables in-app billing. You are responsible for taxes, receipts, and customer service for your sales.</p>
-<h2>5. Reviews and conduct</h2>
-<p>Do not manipulate reviews, harass users, or post misleading content. Dribex may suspend seller accounts for policy violations.</p>
-<h2>6. Contact</h2>
-<p><a href="mailto:sellers@dribex.ma">sellers@dribex.ma</a></p>
-""",
-        },
-        "fr": {
-            "title": "Conditions vendeur",
-            "body": """
-<p>Ces conditions s'appliquent lorsque vous créez un compte ou une vitrine vendeur sur Dribex, en complément des Conditions d'utilisation.</p>
-<h2>1. Éligibilité</h2>
-<p>Informations exactes, conformité à la loi marocaine, e-mail vérifié, âge minimum 16 ans.</p>
-<h2>2. Annonces</h2>
-<p>Descriptions, prix et images véridiques. Dribex peut retirer les annonces non conformes.</p>
-<h2>3. Transactions</h2>
-<p>Paiements généralement hors plateforme. Vous êtes responsable des taxes et du service client.</p>
-<h2>4. Contact</h2>
-<p><a href="mailto:sellers@dribex.ma">sellers@dribex.ma</a></p>
-""",
-        },
-        "ar": {
-            "title": "شروط البائع",
-            "body": """
-<p>تنطبق شروط البائع عند إنشاء حساب أو متجر على Dribex، بالإضافة إلى شروط الاستخدام.</p>
-<h2>1. الأهلية</h2>
-<p>معلومات دقيقة، الامتثال للقانون المغربي، بريد إلكتروني موثّق، الحد الأدنى للعمر 16 سنة.</p>
-<h2>2. القوائم</h2>
-<p>أوصاف وأسعار وصور صحيحة. يجوز لـ Dribex إزالة القوائم المخالفة.</p>
-<h2>3. المعاملات</h2>
-<p>المدفوعات غالباً خارج المنصة. أنت مسؤول عن الضرائب وخدمة العملاء.</p>
-<h2>4. التواصل</h2>
-<p><a href="mailto:sellers@dribex.ma">sellers@dribex.ma</a></p>
-""",
-        },
-    },
-    "community-guidelines": {
-        "en": {
-            "title": "Community Guidelines",
-            "body": """
-<p>These guidelines keep Dribex trustworthy and respectful for buyers, sellers, and neighbors.</p>
-<h2>Be honest</h2>
-<ul><li>Provide accurate business information and pricing</li><li>Write reviews based on real experiences</li><li>Do not impersonate others</li></ul>
-<h2>Be respectful</h2>
-<ul><li>No harassment, hate speech, or threats</li><li>Disagree without attacking people</li></ul>
-<h2>Be safe</h2>
-<ul><li>Do not promote scams, fraud, or prohibited items</li><li>Report suspicious listings and messages</li><li>Meet safely for offline transactions</li></ul>
-<h2>Marketplace integrity</h2>
-<ul><li>No fake listings or review manipulation</li><li>No spam or abusive messaging</li><li>Follow channel rules in city and marketplace communities</li></ul>
-""",
-        },
-        "fr": {
-            "title": "Règles de la communauté",
-            "body": """
-<p>Ces règles maintiennent une communauté fiable et respectueuse sur Dribex.</p>
-<h2>Honnêteté</h2>
-<ul><li>Informations et prix exacts</li><li>Avis basés sur une expérience réelle</li></ul>
-<h2>Respect</h2>
-<ul><li>Pas de harcèlement ni discours haineux</li></ul>
-<h2>Sécurité</h2>
-<ul><li>Signalez arnaques et contenus interdits</li><li>Pas de faux avis ni spam</li></ul>
-""",
-        },
-        "ar": {
-            "title": "إرشادات المجتمع",
-            "body": """
-<p>تحافظ هذه الإرشادات على ثقة واحترام مجتمع Dribex.</p>
-<h2>الصدق</h2>
-<ul><li>معلومات وأسعار دقيقة</li><li>تقييمات مبنية على تجربة حقيقية</li></ul>
-<h2>الاحترام</h2>
-<ul><li>لا تحرش ولا خطاب كراهية</li></ul>
-<h2>السلامة</h2>
-<ul><li>أبلغ عن الاحتيال والمحتوى المحظور</li><li>لا قوائم مزيفة ولا رسائل مزعجة</li></ul>
-""",
-        },
-    },
-    "legal-notice": {
-        "en": {
-            "title": "Legal Notice",
-            "body": """
-<p><strong>Dribex</strong> is a local discovery and marketplace platform for Morocco (Android, iOS, and Web).</p>
-<h2>Contact</h2>
-<ul><li>Support: <a href="mailto:support@dribex.ma">support@dribex.ma</a></li><li>Legal: <a href="mailto:legal@dribex.ma">legal@dribex.ma</a></li><li>Privacy: <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></li></ul>
-<h2>Publisher</h2>
-<div class="note">Insert registered legal entity name and physical address before publication.</div>
-<p>Kingdom of Morocco</p>
-""",
-        },
-        "fr": {
-            "title": "Mentions légales",
-            "body": """
-<p><strong>Dribex</strong> est une plateforme locale de découverte et de marketplace au Maroc.</p>
-<h2>Contact</h2>
-<ul><li>Support : <a href="mailto:support@dribex.ma">support@dribex.ma</a></li><li>Juridique : <a href="mailto:legal@dribex.ma">legal@dribex.ma</a></li></ul>
-""",
-        },
-        "ar": {
-            "title": "إشعار قانوني",
-            "body": """
-<p><strong>Dribex</strong> منصة اكتشاف وسوق محلية في المغرب.</p>
-<h2>التواصل</h2>
-<ul><li>الدعم: <a href="mailto:support@dribex.ma">support@dribex.ma</a></li><li>القانوني: <a href="mailto:legal@dribex.ma">legal@dribex.ma</a></li></ul>
-""",
-        },
-    },
-    "open-source-licenses": {
-        "en": {
-            "title": "Open Source Licenses",
-            "body": """
-<p>Dribex mobile uses open-source software. Major dependencies include:</p>
-<ul>
-<li>Flutter SDK — BSD-3-Clause</li>
-<li>flutter_riverpod — MIT</li>
-<li>go_router — BSD-3-Clause</li>
-<li>google_maps_flutter — BSD-3-Clause</li>
-<li>http — BSD-3-Clause</li>
-<li>cached_network_image — MIT</li>
-<li>url_launcher — BSD-3-Clause</li>
-<li>geolocator — MIT</li>
-<li>shared_preferences — BSD-3-Clause</li>
-<li>flutter_secure_storage — BSD-3-Clause</li>
-<li>sentry_flutter — MIT</li>
-<li>google_fonts — Apache-2.0</li>
-<li>web_socket_channel — BSD-3-Clause</li>
-</ul>
-<p>Full license texts are available from each package publisher. This list may change between app releases.</p>
-""",
-        },
-        "fr": {
-            "title": "Licences open source",
-            "body": """
-<p>L'application Dribex utilise des logiciels open source, notamment Flutter, Riverpod, go_router, Google Maps Flutter, http, geolocator et d'autres bibliothèques listées dans le projet.</p>
-<p>Les textes complets des licences sont disponibles auprès de chaque éditeur de package.</p>
-""",
-        },
-        "ar": {
-            "title": "تراخيص المصدر المفتوح",
-            "body": """
-<p>يستخدم تطبيق Dribex برمجيات مفتوحة المصدر، بما في ذلك Flutter وRiverpod وgo_router وخرائط Google ومكتبات أخرى مدرجة في المشروع.</p>
-<p>نصوص التراخيص الكاملة متوفرة لدى ناشر كل حزمة.</p>
-""",
-        },
-    },
-}
+
+def _load_yaml(path: Path) -> dict:
+    if yaml is None:
+        raise SystemExit("PyYAML required: pip install pyyaml")
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
-def page(lang: str, doc: str, content: dict[str, str]) -> str:
+def _build_vars(entity: dict) -> dict[str, str]:
+    platform = entity.get("platform", {})
+    ent = entity.get("entity", {})
+    contacts = entity.get("contacts", {})
+    urls = entity.get("urls", {})
+    version = entity.get("version", {})
+    targets = entity.get("response_targets", {})
+    platforms = platform.get("platforms", [])
+
+    return {
+        "platform_name": platform.get("name", "Dribex"),
+        "platform_description": platform.get("description", ""),
+        "platform_list": ", ".join(platforms),
+        "legal_name": ent.get("legal_name", ""),
+        "trading_name": ent.get("trading_name", "Dribex"),
+        "address_line_1": ent.get("address_line_1", ""),
+        "city": ent.get("city", ""),
+        "postal_code": ent.get("postal_code", ""),
+        "country": ent.get("country", "Morocco"),
+        "registration_number": ent.get("registration_number", ""),
+        "cndp_status": ent.get("cndp_status", ""),
+        "jurisdiction": platform.get("jurisdiction", "Kingdom of Morocco"),
+        "governing_law": platform.get("governing_law", "laws of the Kingdom of Morocco"),
+        "minimum_age": str(platform.get("minimum_age", 16)),
+        "privacy_email": contacts.get("privacy", ""),
+        "dpo_email": contacts.get("dpo", ""),
+        "support_email": contacts.get("support", ""),
+        "legal_email": contacts.get("legal", ""),
+        "sellers_email": contacts.get("sellers", ""),
+        "billing_email": contacts.get("billing", ""),
+        "safety_email": contacts.get("safety", ""),
+        "copyright_email": contacts.get("copyright", ""),
+        "security_email": contacts.get("security", ""),
+        "accessibility_email": contacts.get("accessibility", ""),
+        "enterprise_email": contacts.get("enterprise", ""),
+        "website_url": urls.get("website", ""),
+        "app_url": urls.get("app", ""),
+        "package_version": version.get("package", "2.0.0"),
+        "effective_date": version.get("effective_date", ""),
+        "last_updated": version.get("last_updated", ""),
+        "support_response_days": str(targets.get("general_support_days", 2)),
+        "privacy_response_days": str(targets.get("privacy_request_days", 30)),
+        "security_response_days": str(targets.get("security_ack_days", 3)),
+        "copyright_response_days": str(targets.get("copyright_days", 5)),
+        "safety_response_min": str(targets.get("safety_hours_min", 24)),
+        "safety_response_max": str(targets.get("safety_hours_max", 72)),
+    }
+
+
+def _substitute(text: str, variables: dict[str, str]) -> str:
+    def repl(match: re.Match[str]) -> str:
+        key = match.group(1)
+        return variables.get(key, match.group(0))
+
+    return re.sub(r"\{\{(\w+)\}\}", repl, text)
+
+
+def _inline_md(text: str) -> str:
+    text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+    text = re.sub(
+        r"\[([^\]]+)\]\(([^)]+)\)",
+        r'<a href="\2">\1</a>',
+        text,
+    )
+    return text
+
+
+def _markdown_to_html(md: str, variables: dict[str, str]) -> tuple[str, str]:
+    md = _substitute(md, variables)
+    title = "Dribex"
+    if md.startswith("---"):
+        _, front, rest = md.split("---", 2)
+        for line in front.strip().splitlines():
+            if line.startswith("title:"):
+                title = line.split(":", 1)[1].strip()
+        md = rest.strip()
+
+    html_parts: list[str] = []
+    lines = md.splitlines()
+    i = 0
+    in_table = False
+    table_rows: list[str] = []
+
+    def flush_table() -> None:
+        nonlocal in_table, table_rows
+        if not table_rows:
+            return
+        html_parts.append("<table>")
+        for ri, row in enumerate(table_rows):
+            cells = [c.strip() for c in row.strip("|").split("|")]
+            tag = "th" if ri == 0 else "td"
+            html_parts.append("<tr>" + "".join(f"<{tag}>{_inline_md(c)}</{tag}>" for c in cells) + "</tr>")
+        html_parts.append("</table>")
+        table_rows = []
+        in_table = False
+
+    while i < len(lines):
+        line = lines[i].rstrip()
+        if not line.strip():
+            i += 1
+            continue
+        if line.startswith("|"):
+            in_table = True
+            table_rows.append(line)
+            i += 1
+            continue
+        if in_table:
+            flush_table()
+
+        if line.startswith("## "):
+            html_parts.append(f"<h2>{_inline_md(line[3:].strip())}</h2>")
+        elif line.startswith("> "):
+            note_lines = [line[2:]]
+            i += 1
+            while i < len(lines) and lines[i].startswith("> "):
+                note_lines.append(lines[i][2:])
+                i += 1
+            html_parts.append(f'<div class="note">{_inline_md(" ".join(note_lines))}</div>')
+            continue
+        elif line.startswith("- "):
+            html_parts.append("<ul>")
+            while i < len(lines) and lines[i].startswith("- "):
+                html_parts.append(f"<li>{_inline_md(lines[i][2:].strip())}</li>")
+                i += 1
+            html_parts.append("</ul>")
+            continue
+        elif re.match(r"^\d+\.\s", line):
+            html_parts.append("<ol>")
+            while i < len(lines) and re.match(r"^\d+\.\s", lines[i]):
+                item = re.sub(r"^\d+\.\s*", "", lines[i]).strip()
+                html_parts.append(f"<li>{_inline_md(item)}</li>")
+                i += 1
+            html_parts.append("</ol>")
+            continue
+        else:
+            para = line
+            i += 1
+            while i < len(lines) and lines[i].strip() and not lines[i].startswith(("#", ">", "-", "|")) and not re.match(r"^\d+\.\s", lines[i]):
+                para += " " + lines[i].strip()
+                i += 1
+            html_parts.append(f"<p>{_inline_md(para)}</p>")
+            continue
+        i += 1
+
+    if in_table:
+        flush_table()
+
+    return title, "\n".join(html_parts)
+
+
+def _page(
+    lang: str,
+    slug: str,
+    title: str,
+    body: str,
+    variables: dict[str, str],
+    related: list[tuple[str, str]],
+) -> str:
     rtl = ' dir="rtl"' if lang == "ar" else ""
-    lang_attr = lang
-    links = []
+    lang_links = []
     for code, label in [("en", "English"), ("fr", "Français"), ("ar", "العربية")]:
         if code != lang:
-            links.append(f'<a href="/legal/{code}/{doc}">{label}</a>')
-    nav = " · ".join(links)
-    other_docs = {
-        "privacy": [("terms", "Terms"), ("cookies", "Cookies"), ("account-deletion", "Account deletion")],
-        "terms": [("privacy", "Privacy"), ("cookies", "Cookies")],
-        "cookies": [("privacy", "Privacy")],
-        "account-deletion": [("privacy", "Privacy")],
-    }
-    doc_links = []
-    for slug, label in other_docs.get(doc, []):
-        doc_links.append(f'<a href="/legal/{lang}/{slug}">{label}</a>')
-    doc_nav = " · ".join(doc_links)
+            lang_links.append(f'<a href="/legal/{code}/{slug}">{label}</a>')
+    doc_links = [f'<a href="/legal/{lang}/{s}">{label}</a>' for s, label in related]
+
+    meta = (
+        f'{variables["platform_name"]} · Version {variables["package_version"]} · '
+        f'Effective {variables["effective_date"]} · Last updated {variables["last_updated"]}'
+    )
 
     return f"""<!DOCTYPE html>
-<html lang="{lang_attr}"{rtl}>
+<html lang="{lang}"{rtl}>
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>{content["title"]} — Dribex</title>
+<title>{title} — {variables["platform_name"]}</title>
 <style>{CSS}</style>
 </head>
 <body>
 <div class="wrap">
 <header>
-<h1>{content["title"]}</h1>
-<p class="meta">Dribex · Version {VERSION} · Effective {EFFECTIVE} · Last updated {UPDATED}</p>
-<p class="lang-nav">{nav}</p>
+<h1>{title}</h1>
+<p class="meta">{meta}</p>
+<p class="lang-nav">{" · ".join(lang_links)}</p>
 </header>
 <main>
-{content["body"]}
+{body}
 </main>
 <footer>
-<p>{doc_nav}</p>
-<p>© Dribex · <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
+<p class="doc-nav">{" · ".join(doc_links)}</p>
+<p>© {variables["platform_name"]} · <a href="mailto:{variables["privacy_email"]}">{variables["privacy_email"]}</a></p>
 </footer>
 </div>
 </body>
@@ -500,12 +247,71 @@ def page(lang: str, doc: str, content: dict[str, str]) -> str:
 
 
 def main() -> None:
-    for doc, langs in DOCS.items():
-        for lang, content in langs.items():
-            out = ROOT / lang / f"{doc}.html"
+    entity = _load_yaml(CONFIG)
+    manifest = _load_yaml(MANIFEST)
+    variables = _build_vars(entity)
+    languages = manifest.get("languages", ["en", "fr", "ar"])
+
+    related_labels = {
+        "privacy": "Privacy",
+        "terms": "Terms",
+        "cookies": "Cookies",
+        "seller-terms": "Seller Terms",
+        "community-guidelines": "Community",
+        "account-deletion": "Account deletion",
+        "subscription-terms": "Subscriptions",
+        "legal-notice": "Legal notice",
+        "open-source-licenses": "Open source",
+    }
+
+    public_manifest = {
+        "package_version": manifest.get("package_version"),
+        "effective_date": manifest.get("effective_date"),
+        "last_updated": manifest.get("last_updated"),
+        "languages": languages,
+        "documents": [],
+    }
+
+    for doc in manifest.get("documents", []):
+        slug = doc["slug"]
+        content_dir = CONTENT / slug
+        related = []
+        for rel_slug in doc.get("related", []):
+            label = related_labels.get(rel_slug, rel_slug.replace("-", " ").title())
+            related.append((rel_slug, label))
+
+        if doc.get("status") == "published":
+            public_manifest["documents"].append(
+                {
+                    "id": doc.get("id"),
+                    "slug": slug,
+                    "version": doc.get("version"),
+                    "effective_date": doc.get("effective_date"),
+                    "title": doc.get("title", {}),
+                    "summary": doc.get("summary"),
+                    "consent_required": doc.get("consent_required"),
+                    "related": doc.get("related", []),
+                }
+            )
+
+        for lang in languages:
+            src = content_dir / f"{lang}.md"
+            if not src.is_file():
+                src = content_dir / "en.md"
+            if not src.is_file():
+                print(f"skip missing {slug}/{lang}")
+                continue
+            title, body = _markdown_to_html(src.read_text(encoding="utf-8"), variables)
+            out = OUTPUT / lang / f"{slug}.html"
             out.parent.mkdir(parents=True, exist_ok=True)
-            out.write_text(page(lang, doc, content), encoding="utf-8")
+            out.write_text(_page(lang, slug, title, body, variables, related), encoding="utf-8")
             print(f"wrote {out}")
+
+    manifest_out = OUTPUT / "manifest.json"
+    import json
+
+    manifest_out.write_text(json.dumps(public_manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"wrote {manifest_out}")
 
 
 if __name__ == "__main__":

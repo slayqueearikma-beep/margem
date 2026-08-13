@@ -12,6 +12,7 @@ import '../../core/utils/friendly_errors.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../l10n/app_localizations.dart';
+import '../legal/legal_config.dart';
 
 final subscriptionPlansProvider =
     FutureProvider.autoDispose<List<SubscriptionPlanModel>>((ref) {
@@ -97,11 +98,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
   }
 
   Future<void> _contactSupport() async {
-    final uri = Uri(
-      scheme: 'mailto',
-      path: 'support@dribex.ma',
-      queryParameters: {'subject': 'Dribex Premium'},
-    );
+    final uri = LegalConfig.supportMailto(subject: 'Dribex Premium');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }

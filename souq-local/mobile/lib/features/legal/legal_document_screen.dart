@@ -169,17 +169,55 @@ class _DocumentBlock extends StatelessWidget {
             ],
           ),
         ),
+      _BlockKind.tableRow => _LegalTableRow(cells: block.cells),
     };
   }
 }
 
-enum _BlockKind { heading, paragraph, note, bullet }
+class _LegalTableRow extends StatelessWidget {
+  const _LegalTableRow({required this.cells});
+
+  final List<String> cells;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.xs,
+        horizontal: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < cells.length; i++)
+            Expanded(
+              flex: i == 0 ? 2 : 3,
+              child: Text(
+                cells[i],
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontWeight: i == 0 ? FontWeight.w600 : FontWeight.normal,
+                  height: 1.4,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+enum _BlockKind { heading, paragraph, note, bullet, tableRow }
 
 class _Block {
-  const _Block(this.kind, this.text);
+  const _Block(this.kind, this.text, {this.cells = const []});
 
   final _BlockKind kind;
   final String text;
+  final List<String> cells;
 }
 
 class _LegalDocumentContent {
@@ -200,7 +238,7 @@ class _LegalDocumentContent {
 
     final blocks = <_Block>[];
     final tokenPattern = RegExp(
-      r'<h2[^>]*>.*?</h2>|<div class="note"[^>]*>.*?</div>|<p[^>]*>.*?</p>|<li[^>]*>.*?</li>',
+      r'<h2[^>]*>.*?</h2>|<div class="note"[^>]*>.*?</div>|<table>.*?</table>|<p[^>]*>.*?</p>|<li[^>]*>.*?</li>',
       dotAll: true,
     );
 
@@ -210,6 +248,20 @@ class _LegalDocumentContent {
         blocks.add(_Block(_BlockKind.heading, _stripTags(chunk)));
       } else if (chunk.contains('class="note"')) {
         blocks.add(_Block(_BlockKind.note, _stripTags(chunk)));
+      } else if (chunk.startsWith('<table')) {
+        final rowPattern = RegExp(r'<tr>(.*?)</tr>', dotAll: true);
+        for (final rowMatch in rowPattern.allMatches(chunk)) {
+          final rowHtml = rowMatch.group(1) ?? '';
+          final cellPattern = RegExp(r'<t[hd][^>]*>(.*?)</t[hd]>', dotAll: true);
+          final cells = cellPattern
+              .allMatches(rowHtml)
+              .map((m) => _decode(_stripTags(m.group(1) ?? '')))
+              .where((c) => c.isNotEmpty)
+              .toList();
+          if (cells.isNotEmpty) {
+            blocks.add(_Block(_BlockKind.tableRow, '', cells: cells));
+          }
+        }
       } else if (chunk.startsWith('<li')) {
         blocks.add(_Block(_BlockKind.bullet, _stripTags(chunk)));
       } else {

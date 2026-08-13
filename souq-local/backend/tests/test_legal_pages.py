@@ -17,6 +17,7 @@ async def test_legal_privacy_en(client: AsyncClient):
     assert res.status_code == 200
     assert "text/html" in res.headers.get("content-type", "")
     assert "Privacy Policy" in res.text
+    assert "Version 2.0.0" in res.text
 
 
 @pytest.mark.asyncio
@@ -25,6 +26,24 @@ async def test_legal_privacy_ar_rtl(client: AsyncClient):
     assert res.status_code == 200
     assert 'dir="rtl"' in res.text
     assert "سياسة الخصوصية" in res.text
+
+
+@pytest.mark.asyncio
+async def test_legal_subscription_terms(client: AsyncClient):
+    res = await client.get("/legal/en/subscription-terms")
+    assert res.status_code == 200
+    assert "Subscription" in res.text
+
+
+@pytest.mark.asyncio
+async def test_legal_manifest(client: AsyncClient):
+    res = await client.get("/legal/manifest")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["package_version"] == "2.0.0"
+    slugs = {doc["slug"] for doc in body["documents"]}
+    assert "privacy" in slugs
+    assert "subscription-terms" in slugs
 
 
 @pytest.mark.asyncio

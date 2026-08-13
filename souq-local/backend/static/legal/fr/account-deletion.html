@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Suppression de compte — Dribex</title>
+<title>Suppression de compte et droits relatifs aux données — Dribex</title>
 <style>
 :root { --text:#1a1a2e; --muted:#5c5c7a; --border:#e8e8f0; --accent:#6b5ce7; --bg:#faf9f7; }
 * { box-sizing: border-box; }
@@ -15,37 +15,74 @@ h1 { font-size: 1.75rem; margin: 0 0 .5rem; letter-spacing: -0.02em; }
 .meta { color: var(--muted); font-size: .9rem; }
 h2 { font-size: 1.15rem; margin: 2rem 0 .75rem; color: var(--text); }
 p, li { font-size: .98rem; }
-ul { padding-inline-start: 1.25rem; }
+ul, ol { padding-inline-start: 1.25rem; }
 table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 1rem 0; }
 th, td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: start; vertical-align: top; }
 th { background: #f3f2ff; }
-.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; }
+.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; margin: 1rem 0; }
 footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
 .lang-nav { margin-top: .75rem; font-size: .88rem; }
 .lang-nav a { color: var(--accent); margin-inline-end: .75rem; }
+.doc-nav a { color: var(--accent); margin-inline-end: .75rem; }
 [dir="rtl"] body { text-align: right; }
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
-<h1>Suppression de compte</h1>
-<p class="meta">Dribex · Version 1.1.0 · Effective August 1, 2026 · Last updated August 10, 2026</p>
+<h1>Suppression de compte et droits relatifs aux données</h1>
+<p class="meta">Dribex · Version 2.0.0 · Effective 2026-08-13 · Last updated 2026-08-13</p>
 <p class="lang-nav"><a href="/legal/en/account-deletion">English</a> · <a href="/legal/ar/account-deletion">العربية</a></p>
 </header>
 <main>
-
-<p>Vous pouvez supprimer votre compte à tout moment. Action irréversible.</p>
-<h2>Comment supprimer</h2>
-<p>Application → Paramètres → Supprimer le compte, ou <code>DELETE /auth/me</code>, ou e-mail à privacy@dribex.app.</p>
-<h2>Données supprimées</h2>
-<p>Boutique, annonces, messages, avis, favoris, abonnements, jetons, adhésions communautaires (messages anonymisés).</p>
-<h2>Données conservées</h2>
-<p>Compte anonymisé, obligations légales, sauvegardes (90 jours), conservation judiciaire.</p>
-
+<div class="note"><strong>Avertissement :</strong> La suppression de compte est définitive et ne peut être annulée une fois le traitement terminé.</div>
+<h2>1. Vos droits relatifs aux données</h2>
+<p>Selon la loi applicable, vous pouvez demander l'accès, la rectification, l'export, la limitation ou la suppression de vos informations personnelles. Ce document explique comment exercer ces droits sur Dribex.</p>
+<h2>2. Exporter vos données</h2>
+<p>Les utilisateurs connectés peuvent exporter une copie des informations de leur compte dans <strong>Paramètres → Vos données → Exporter</strong>. Vous pouvez également demander un export par e-mail à <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> depuis votre adresse enregistrée. Nous pouvons vérifier votre identité avant de répondre.</p>
+<h2>3. Corriger vos données</h2>
+<p>Mettez à jour les champs de profil dans l'application lorsque disponibles. Pour d'autres corrections, contactez <a href="mailto:privacy@dribex.app">privacy@dribex.app</a> avec les détails.</p>
+<h2>4. Supprimer votre compte</h2>
+<p>Vous pouvez supprimer votre compte à tout moment :</p>
+<ol>
+<li><strong>Dans l'application :</strong> Paramètres → Vos données → Supprimer le compte → confirmer avec votre mot de passe</li>
+<li><strong>Par e-mail :</strong> Envoyez une demande de suppression depuis votre e-mail enregistré à <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></li>
+</ol>
+<p>Les favoris invités et préférences locales stockés uniquement sur votre appareil sont supprimés lorsque vous effacez les données de l'application ou la désinstallez.</p>
+<h2>5. Ce que nous supprimons ou anonymisons</h2>
+<p>Après confirmation de la suppression, nous retirons ou anonymisons généralement :</p>
+<ul>
+<li>Vitrines, produits, services et catégories vendeur</li>
+<li>Messages et conversations acheteur–vendeur</li>
+<li>Avis que vous avez rédigés ; avis sur votre entreprise (si vous étiez vendeur)</li>
+<li>Favoris, abonnements, recherches enregistrées, notifications et souscriptions</li>
+<li>Adhésions communautaires ; vos messages communautaires sont anonymisés</li>
+<li>Jetons d'authentification et paramètres d'authentification multifacteur</li>
+</ul>
+<h2>6. Ce que nous pouvons conserver</h2>
+<p>Nous pouvons conserver des informations limitées lorsque la loi l'exige ou le permet, notamment :</p>
+<ul>
+<li>Un enregistrement de compte anonymisé pour prévenir les abus de réinscription</li>
+<li>Dossiers de facturation, fiscalité ou facturation (généralement jusqu'à sept ans lorsque requis)</li>
+<li>Journaux de sécurité, de prévention de la fraude et d'audit administratif</li>
+<li>Copies de sauvegarde pour une période limitée (généralement jusqu'à quatre-vingt-dix jours)</li>
+<li>Données soumises à une mesure légale ou à un litige en cours</li>
+</ul>
+<h2>7. Délai de traitement</h2>
+<p>Nous visons à achever la suppression dans un délai raisonnable après vérification. Certains systèmes peuvent nécessiter un délai supplémentaire pour purger les sauvegardes.</p>
+<h2>8. Avant de supprimer</h2>
+<p>Exportez toute information que vous souhaitez conserver. La suppression n'annule pas automatiquement les obligations hors plateforme envers d'autres utilisateurs ou tiers.</p>
+<h2>9. Contact</h2>
+<table>
+<tr><th>Objet</th><th>Contact</th></tr>
+<tr><td>-------</td><td>---------</td></tr>
+<tr><td>Confidentialité et suppression</td><td><a href="mailto:privacy@dribex.app">privacy@dribex.app</a></td></tr>
+<tr><td>DPO</td><td><a href="mailto:dpo@dribex.app">dpo@dribex.app</a></td></tr>
+</table>
+<p>Consultez également notre Politique de confidentialité pour des informations plus larges sur la conservation et le traitement.</p>
 </main>
 <footer>
-<p><a href="/legal/fr/privacy">Privacy</a></p>
+<p class="doc-nav"><a href="/legal/fr/privacy">Privacy</a></p>
 <p>© Dribex · <a href="mailto:privacy@dribex.app">privacy@dribex.app</a></p>
 </footer>
 </div>

@@ -600,6 +600,7 @@ abstract class AppStrings {
   String get termsOfService;
   String get cookiePolicy;
   String get accountDeletionPolicy;
+  String get subscriptionTerms;
   String get dataExport;
   String get contactSupport;
   String get signupTermsAcknowledgment;

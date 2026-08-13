@@ -1338,6 +1338,9 @@ class AppStringsAr extends AppStringsEn {
   String get accountDeletionPolicy => 'حذف الحساب';
 
   @override
+  String get subscriptionTerms => 'شروط الاشتراك والفوترة';
+
+  @override
   String get dataExport => 'تصدير بياناتي';
 
   @override

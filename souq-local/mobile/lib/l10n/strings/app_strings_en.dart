@@ -1336,6 +1336,9 @@ class AppStringsEn extends AppStrings {
   String get accountDeletionPolicy => 'Account deletion';
 
   @override
+  String get subscriptionTerms => 'Subscription & billing terms';
+
+  @override
   String get dataExport => 'Export my data';
 
   @override

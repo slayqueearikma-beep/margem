@@ -14,6 +14,7 @@ import '../../core/utils/friendly_errors.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
+import 'legal_config.dart';
 import 'delete_account_flow.dart';
 import 'legal_document_screen.dart';
 import 'legal_documents.dart';
@@ -52,11 +53,7 @@ class _YourDataScreenState extends ConsumerState<YourDataScreen> {
   }
 
   Future<void> _requestCorrection() async {
-    final uri = Uri(
-      scheme: 'mailto',
-      path: 'privacy@dribex.app',
-      queryParameters: {'subject': 'Data correction request'},
-    );
+    final uri = LegalConfig.privacyMailto(subject: 'Data correction request');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }

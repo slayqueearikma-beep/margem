@@ -1,15 +1,27 @@
-"""Serve localized legal documents (privacy, terms) as static HTML."""
+"""Serve localized legal documents as static HTML."""
 
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 router = APIRouter(tags=["legal"])
 
 _LEGAL_ROOT = Path(__file__).resolve().parents[2] / "static" / "legal"
+_MANIFEST_PATH = _LEGAL_ROOT / "manifest.json"
 _SUPPORTED = {"en", "fr", "ar"}
-_DOCS = {"privacy", "terms", "cookies", "account-deletion", "seller-terms", "community-guidelines", "legal-notice", "open-source-licenses"}
+
+
+def _load_manifest() -> dict:
+    if not _MANIFEST_PATH.is_file():
+        return {"documents": []}
+    return json.loads(_MANIFEST_PATH.read_text(encoding="utf-8"))
+
+
+def _document_slugs() -> set[str]:
+    manifest = _load_manifest()
+    return {doc["slug"] for doc in manifest.get("documents", []) if doc.get("slug")}
 
 
 def _pick_language(request: Request, explicit: str | None = None) -> str:
@@ -30,9 +42,16 @@ def _legal_file(lang: str, doc: str) -> Path:
     return path
 
 
+@router.get("/legal/manifest")
+async def legal_manifest():
+    """Public registry of served legal documents (stable ids, versions, titles)."""
+    return JSONResponse(_load_manifest())
+
+
 @router.get("/legal/{lang}/{doc}")
 async def legal_document(lang: str, doc: str):
-    if lang not in _SUPPORTED or doc not in _DOCS:
+    docs = _document_slugs()
+    if lang not in _SUPPORTED or doc not in docs:
         raise HTTPException(status_code=404, detail="Not found")
     path = _legal_file(lang, doc)
     if not path.is_file():

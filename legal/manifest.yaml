@@ -1,0 +1,185 @@
+# Legal document registry — single source of truth for served in-app documents.
+# Each document has a stable slug used by the API and mobile app.
+# Never delete archived versions; add new version entries and preserve prior content under versions/.
+
+package_version: "2.0.0"
+effective_date: "2026-08-13"
+last_updated: "2026-08-13"
+
+languages:
+  - en
+  - fr
+  - ar
+
+# Stable document identifiers (used in routes: GET /legal/{lang}/{slug})
+documents:
+  - id: privacy_policy
+    slug: privacy
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: "1.1.0"
+    title:
+      en: Privacy Policy
+      fr: Politique de confidentialité
+      ar: سياسة الخصوصية
+    summary: How we collect, use, retain, and protect personal data.
+    consent_required: false
+    notify_on_change: true
+    related:
+      - cookies
+      - account-deletion
+      - legal-notice
+
+  - id: terms_of_service
+    slug: terms
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: "1.1.0"
+    title:
+      en: Terms of Service
+      fr: Conditions d'utilisation
+      ar: شروط الاستخدام
+    summary: Core agreement for all users, including buyer rules and platform use.
+    consent_required: true
+    notify_on_change: true
+    related:
+      - privacy
+      - seller-terms
+      - community-guidelines
+
+  - id: cookie_policy
+    slug: cookies
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: "1.1.0"
+    title:
+      en: Cookie Policy
+      fr: Politique des cookies
+      ar: سياسة ملفات تعريف الارتباط
+    summary: Cookies on the website and local storage in mobile apps.
+    consent_required: conditional
+    notify_on_change: true
+    related:
+      - privacy
+
+  - id: seller_terms
+    slug: seller-terms
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: "1.1.0"
+    title:
+      en: Seller Terms
+      fr: Conditions vendeur
+      ar: شروط البائع
+    summary: Additional terms for sellers, storefronts, and marketplace listings.
+    consent_required: true
+    notify_on_change: true
+    related:
+      - terms
+      - community-guidelines
+
+  - id: community_guidelines
+    slug: community-guidelines
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: "1.1.0"
+    title:
+      en: Community Guidelines
+      fr: Règles de la communauté
+      ar: إرشادات المجتمع
+    summary: Conduct rules for messaging, reviews, and community features.
+    consent_required: false
+    notify_on_change: true
+    related:
+      - terms
+      - seller-terms
+
+  - id: account_deletion
+    slug: account-deletion
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: "1.1.0"
+    title:
+      en: Account Deletion & Data Rights
+      fr: Suppression de compte et droits sur les données
+      ar: حذف الحساب وحقوق البيانات
+    summary: How to delete your account, export data, and what we retain.
+    consent_required: false
+    notify_on_change: true
+    related:
+      - privacy
+
+  - id: subscription_terms
+    slug: subscription-terms
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: null
+    title:
+      en: Subscription & Billing Terms
+      fr: Conditions d'abonnement et de facturation
+      ar: شروط الاشتراك والفوترة
+    summary: Premium memberships, billing methods, refunds, and cancellations.
+    consent_required: true
+    notify_on_change: true
+    related:
+      - terms
+      - seller-terms
+
+  - id: legal_notice
+    slug: legal-notice
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: "1.1.0"
+    title:
+      en: Legal Notice
+      fr: Mentions légales
+      ar: إشعار قانوني
+    summary: Publisher identity, contact matrix, and amendment notices.
+    consent_required: false
+    notify_on_change: true
+    related:
+      - privacy
+      - terms
+
+  - id: open_source_licenses
+    slug: open-source-licenses
+    status: published
+    version: "2.0.0"
+    effective_date: "2026-08-13"
+    previous_version: "1.1.0"
+    title:
+      en: Open Source Licenses
+      fr: Licences open source
+      ar: تراخيص المصدر المفتوح
+    summary: Third-party open-source software used in the mobile app.
+    consent_required: false
+    notify_on_change: false
+    related: []
+
+# Supplementary reference policies (not served in-app; for counsel and future publication)
+reference_policies:
+  location: reference/
+  note: >
+    Detailed policies under legal/terms, legal/privacy, legal/marketplace,
+    legal/trust-safety, legal/premium, legal/security, and legal/disclaimers
+    are maintained as reference material. They may be published or merged into
+    served documents when a feature launches or counsel directs.
+
+change_history:
+  - version: "2.0.0"
+    date: "2026-08-13"
+    summary: >
+      Modular legal content system; removed implementation-specific language;
+      consolidated served documents; added subscription terms; centralized config.
+  - version: "1.1.0"
+    date: "2026-08-10"
+    summary: Initial in-app legal pages generated from embedded Python strings.
+    archived_at: versions/1.1.0/

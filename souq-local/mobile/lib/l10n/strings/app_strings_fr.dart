@@ -1330,6 +1330,9 @@ class AppStringsFr extends AppStringsEn {
   String get accountDeletionPolicy => 'Suppression de compte';
 
   @override
+  String get subscriptionTerms => 'Conditions d\'abonnement et de facturation';
+
+  @override
   String get dataExport => 'Exporter mes données';
 
   @override

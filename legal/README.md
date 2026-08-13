@@ -1,135 +1,87 @@
 # Dribex Legal & Compliance Package
 
 **Platform:** Dribex — local discovery and marketplace platform for Morocco  
-**Domains:** [dribex.ma](https://dribex.ma) · [dribex.app](https://dribex.app) · [api.dribex.ma](https://api.dribex.ma)  
-**Effective Date:** August 1, 2026  
-**Last Updated:** August 5, 2026
+**Package version:** 2.0.0  
+**Effective date:** 2026-08-13
 
-This folder contains the production-ready legal and compliance documentation for Dribex across Android, iOS, and Web.
-
----
-
-## Document Index
-
-### Core Legal
-
-| Document | Path |
-|----------|------|
-| Contact Information | [contact.md](contact.md) |
-| Terms of Service | [terms/terms-of-service.md](terms/terms-of-service.md) |
-| Terms and Conditions | [terms/terms-and-conditions.md](terms/terms-and-conditions.md) |
-| Governing Law | [terms/governing-law.md](terms/governing-law.md) |
-| Limitation of Liability | [terms/limitation-of-liability.md](terms/limitation-of-liability.md) |
-| Warranty Disclaimer | [terms/warranty-disclaimer.md](terms/warranty-disclaimer.md) |
-| Indemnification | [terms/indemnification.md](terms/indemnification.md) |
-| Dispute Resolution | [terms/dispute-resolution.md](terms/dispute-resolution.md) |
-
-### Privacy & Data
-
-| Document | Path |
-|----------|------|
-| Privacy Policy | [privacy/privacy-policy.md](privacy/privacy-policy.md) |
-| Cookie Policy | [privacy/cookie-policy.md](privacy/cookie-policy.md) |
-| Data Retention Policy | [privacy/data-retention-policy.md](privacy/data-retention-policy.md) |
-| Data Deletion Policy | [privacy/data-deletion-policy.md](privacy/data-deletion-policy.md) |
-| Account Deletion Policy | [privacy/account-deletion-policy.md](privacy/account-deletion-policy.md) |
-| Children's Privacy Policy | [privacy/children-privacy-policy.md](privacy/children-privacy-policy.md) |
-| Third-Party Services Disclosure | [privacy/third-party-services.md](privacy/third-party-services.md) |
-| Communications Policy | [privacy/communications-policy.md](privacy/communications-policy.md) |
-| Email & Notification Policy | [privacy/email-notification-policy.md](privacy/email-notification-policy.md) |
-| AI Usage Disclosure | [privacy/ai-usage-disclosure.md](privacy/ai-usage-disclosure.md) |
-
-### User Conduct & Community
-
-| Document | Path |
-|----------|------|
-| Acceptable Use Policy | [terms/acceptable-use-policy.md](terms/acceptable-use-policy.md) |
-| Community Guidelines | [terms/community-guidelines.md](terms/community-guidelines.md) |
-| City Community Chat | Covered in [Community Guidelines](terms/community-guidelines.md) and [User Generated Content Policy](marketplace/user-generated-content-policy.md) |
-| User Generated Content Policy | [marketplace/user-generated-content-policy.md](marketplace/user-generated-content-policy.md) |
-
-### Marketplace
-
-| Document | Path |
-|----------|------|
-| Marketplace Rules | [marketplace/marketplace-rules.md](marketplace/marketplace-rules.md) |
-| Seller Terms | [marketplace/seller-terms.md](marketplace/seller-terms.md) |
-| Business Listing Policy | [marketplace/business-listing-policy.md](marketplace/business-listing-policy.md) |
-| Business Verification Policy | [marketplace/business-verification-policy.md](marketplace/business-verification-policy.md) |
-| Business Verification Standards | [marketplace/business-verification-standards.md](marketplace/business-verification-standards.md) |
-| Review & Rating Policy | [marketplace/review-rating-policy.md](marketplace/review-rating-policy.md) |
-| Payment Terms | [marketplace/payment-terms.md](marketplace/payment-terms.md) |
-
-### Trust & Safety
-
-| Document | Path |
-|----------|------|
-| Trust & Safety Policy | [trust-safety/trust-safety-policy.md](trust-safety/trust-safety-policy.md) |
-| Content Moderation Policy | [trust-safety/content-moderation-policy.md](trust-safety/content-moderation-policy.md) |
-| Prohibited Content Policy | [trust-safety/prohibited-content-policy.md](trust-safety/prohibited-content-policy.md) |
-| Fraud Prevention Policy | [trust-safety/fraud-prevention-policy.md](trust-safety/fraud-prevention-policy.md) |
-| Copyright & IP Policy | [trust-safety/copyright-ip-policy.md](trust-safety/copyright-ip-policy.md) |
-| DMCA-Style Takedown Policy | [trust-safety/dmca-takedown-policy.md](trust-safety/dmca-takedown-policy.md) |
-| Advertising Policy | [trust-safety/advertising-policy.md](trust-safety/advertising-policy.md) |
-
-### Premium & Subscriptions
-
-| Document | Path |
-|----------|------|
-| Subscription Terms | [premium/subscription-terms.md](premium/subscription-terms.md) |
-| Dribex Plus Membership Terms | [premium/buyer-plus-membership-terms.md](premium/buyer-plus-membership-terms.md) |
-| Seller Pro Membership Terms | [premium/premium-membership-terms.md](premium/premium-membership-terms.md) |
-| Enterprise Terms | [premium/enterprise-terms.md](premium/enterprise-terms.md) |
-| Refund Policy | [premium/refund-policy.md](premium/refund-policy.md) |
-
-### Security & Compliance
-
-| Document | Path |
-|----------|------|
-| Security Policy | [security/security-policy.md](security/security-policy.md) |
-| Responsible Disclosure Policy | [security/responsible-disclosure.md](security/responsible-disclosure.md) |
-| Accessibility Statement | [compliance/accessibility-statement.md](compliance/accessibility-statement.md) |
-
-### Category Disclaimers
-
-| Document | Path |
-|----------|------|
-| Professional Services Disclaimer | [disclaimers/professional-services-disclaimer.md](disclaimers/professional-services-disclaimer.md) |
-| Medical Information Disclaimer | [disclaimers/medical-information-disclaimer.md](disclaimers/medical-information-disclaimer.md) |
-| Automotive Listings Disclaimer | [disclaimers/automotive-listings-disclaimer.md](disclaimers/automotive-listings-disclaimer.md) |
-
-### Internal / Pre-Release
-
-| Document | Path |
-|----------|------|
-| Lawyer Review Notes | [compliance/lawyer-review-notes.md](compliance/lawyer-review-notes.md) |
+This folder is the **single source of truth** for legal content served in the app and on the web API.
 
 ---
 
-## Recommended Publication URLs
+## Architecture
 
-| Document | Suggested URL |
-|----------|---------------|
-| Privacy Policy | `https://dribex.app/privacy` |
-| Terms of Service | `https://dribex.app/terms` |
-| Cookie Policy | `https://dribex.app/cookies` |
-| All policies index | `https://dribex.app/legal` |
+```
+legal/
+├── config/entity.yaml          # Configurable entity, contacts, dates (edit here first)
+├── manifest.yaml               # Document registry, versions, consent flags, change history
+├── content/{slug}/{lang}.md    # Modular markdown source (en, fr, ar)
+├── versions/                   # Archived prior publication cycles (never overwrite)
+├── reference/                  # Supplementary policies (not served in-app today)
+│   ├── terms/ privacy/ marketplace/ trust-safety/ premium/ security/ disclaimers/
+└── README.md
+
+souq-local/backend/scripts/generate_legal_html.py  →  static/legal/{lang}/{slug}.html + manifest.json
+souq-local/mobile/lib/features/legal/legal_documents.dart  →  stable document ids
+```
+
+**Workflow:** Edit markdown or `entity.yaml` → run generator → commit HTML + manifest.json → deploy backend.
+
+```bash
+pip install pyyaml
+python souq-local/backend/scripts/generate_legal_html.py
+```
 
 ---
 
-## Regulatory Alignment
+## Served documents (in-app)
 
-These documents are drafted to align with:
+| Stable ID | Slug | Purpose |
+|-----------|------|---------|
+| `privacy_policy` | `privacy` | Privacy Policy |
+| `terms_of_service` | `terms` | Terms of Service (buyer rules, IP, liability, termination) |
+| `cookie_policy` | `cookies` | Cookie & local storage policy |
+| `seller_terms` | `seller-terms` | Seller / marketplace obligations |
+| `community_guidelines` | `community-guidelines` | Community conduct |
+| `account_deletion` | `account-deletion` | Deletion & data rights |
+| `subscription_terms` | `subscription-terms` | Premium billing, refunds, cancellations |
+| `legal_notice` | `legal-notice` | Publisher, contacts, amendments |
+| `open_source_licenses` | `open-source-licenses` | Mobile OSS notices |
 
-- **GDPR** (EU General Data Protection Regulation) — where applicable to users in the EEA
-- **CCPA/CPRA** (California) — where applicable to California residents
-- **Morocco Law 09-08** — relating to the protection of individuals with regard to the processing of personal data
-- **ISO/IEC 27001** — information security management principles
-- **SOC 2** — trust service criteria (security, availability, confidentiality)
-- **OWASP** — application security best practices
+API: `GET /legal/{lang}/{slug}` · `GET /legal/manifest`
 
 ---
 
-## Important Notice
+## Reference policies (not served in-app)
 
-These documents are a comprehensive starting point tailored to Dribex's current product architecture. **They do not constitute legal advice.** See [compliance/lawyer-review-notes.md](compliance/lawyer-review-notes.md) for clauses requiring review by licensed counsel before public release.
+Detailed policies under `terms/`, `privacy/`, `marketplace/`, `trust-safety/`, `premium/`, `security/`, and `disclaimers/` are maintained for counsel review and future publication. Merge into served documents when a feature launches or counsel directs — do not duplicate blindly.
+
+---
+
+## Updating legal content
+
+1. **Configurable facts** — edit `config/entity.yaml` (entity name, address, emails, dates).
+2. **Document text** — edit `content/{slug}/{lang}.md`.
+3. **Registry** — update `manifest.yaml` (version, effective date, change summary, status).
+4. **Archive** — copy prior version metadata under `versions/{version}/`; never delete historical records.
+5. **Regenerate** — run `generate_legal_html.py`.
+6. **Assess notice/consent** — use manifest `consent_required` and `notify_on_change` flags; obtain counsel guidance for material changes.
+
+Updating files alone does **not** automatically make changes legally binding. Follow applicable notice and consent requirements.
+
+---
+
+## Placeholders requiring business/legal confirmation
+
+- Registered legal entity name and address (`entity.yaml`)
+- Registration numbers (RC, ICE, etc.)
+- CNDP declaration/authorization status
+- DPO appointment (if required)
+- Certification claims (ISO, SOC, etc.) — do not publish unless confirmed
+
+See `compliance/lawyer-review-notes.md` and `LEGAL_COMPLIANCE_AUDIT.md` in the repository.
+
+---
+
+## Important notice
+
+These documents are a comprehensive starting point tailored to Dribex's product. **They do not constitute legal advice** and do not guarantee regulatory compliance without review by licensed counsel.
