@@ -223,13 +223,24 @@ def _request_id(request: Request) -> str:
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     from fastapi.encoders import jsonable_encoder
 
+    request_id = _request_id(request)
+    if settings.app_env in {"production", "prod"} and not settings.debug:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": "Validation error",
+                "request_id": request_id,
+            },
+            headers={"X-Request-ID": request_id},
+        )
+
     return JSONResponse(
         status_code=422,
         content={
             "detail": jsonable_encoder(exc.errors()),
-            "request_id": _request_id(request),
+            "request_id": request_id,
         },
-        headers={"X-Request-ID": _request_id(request)},
+        headers={"X-Request-ID": request_id},
     )
 
 

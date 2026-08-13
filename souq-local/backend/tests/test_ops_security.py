@@ -45,3 +45,40 @@ async def test_admin_ip_guard_allows_private_ip(client: AsyncClient, monkeypatch
     )
     # Still 401 without auth, but not blocked by IP guard.
     assert res.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_admin_ip_guard_blocks_community_admin_from_foreign_ip(
+    client: AsyncClient, monkeypatch
+):
+    monkeypatch.setattr(settings, "admin_ip_allowlist", ["192.168.0.0/16"])
+    res = await client.get(
+        "/community/admin/cities",
+        headers={"X-Forwarded-For": "8.8.8.8"},
+    )
+    assert res.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_admin_origin_guard_blocks_unlisted_origin(client: AsyncClient, monkeypatch):
+    monkeypatch.setattr(settings, "cors_origins", ["https://admin.example.com"])
+    res = await client.get(
+        "/admin/users",
+        headers={
+            "Origin": "https://evil.example.com",
+            "X-Forwarded-For": "127.0.0.1",
+        },
+    )
+    assert res.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_production_validation_errors_are_sanitized(client: AsyncClient, monkeypatch):
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "debug", False)
+    res = await client.post("/auth/login", json={"email": "not-an-email", "password": ""})
+    assert res.status_code == 422
+    body = res.json()
+    assert body["detail"] == "Validation error"
+    assert "request_id" in body
+    assert "errors" not in body

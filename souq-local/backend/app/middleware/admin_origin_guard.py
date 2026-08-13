@@ -5,14 +5,14 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.config import settings
+from app.middleware.admin_paths import is_admin_protected_path
 
 
 class AdminOriginGuardMiddleware(BaseHTTPMiddleware):
     """Reject cross-origin admin API calls unless Origin is in CORS_ORIGINS."""
 
     async def dispatch(self, request: Request, call_next):
-        path = request.url.path
-        if "/admin/" not in path:
+        if not is_admin_protected_path(request.url.path):
             return await call_next(request)
 
         origin = request.headers.get("origin")

@@ -10,15 +10,14 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from app.config import settings
+from app.middleware.admin_paths import is_admin_protected_path
 from app.services.client_ip import get_client_ip
 
 logger = logging.getLogger("margem.security")
 
-_ADMIN_MARKERS = ("/admin/",)
-
 
 def _is_admin_path(path: str) -> bool:
-    return any(marker in path for marker in _ADMIN_MARKERS)
+    return is_admin_protected_path(path)
 
 
 def _ip_permitted(ip: str, allowlist: list[str]) -> bool:
