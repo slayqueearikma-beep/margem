@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
+import '../utils/directional_ui.dart';
 import 'achievement_badges.dart';
 import 'network_image_view.dart';
 
@@ -533,11 +534,7 @@ class DashboardMenuTile extends StatelessWidget {
                   style: const TextStyle(fontSize: 10, color: Colors.white),
                 ),
               )
-            : Icon(
-                Directionality.of(context) == TextDirection.rtl
-                    ? Icons.chevron_left_rounded
-                    : Icons.chevron_right_rounded,
-              ),
+            : Icon(DirectionalUi.forwardChevron(context)),
       ),
     );
   }

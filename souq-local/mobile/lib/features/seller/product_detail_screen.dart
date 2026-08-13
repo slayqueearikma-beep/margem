@@ -9,6 +9,7 @@ import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/margem_app_bar.dart';
@@ -279,7 +280,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                               child: MarketSectionCard(
                                 title: l10n.seller,
                                 trailing: Icon(
-                                  Icons.chevron_right_rounded,
+                                  DirectionalUi.forwardChevron(context),
                                   color: context.colors.textSecondary,
                                 ),
                                 child: Row(

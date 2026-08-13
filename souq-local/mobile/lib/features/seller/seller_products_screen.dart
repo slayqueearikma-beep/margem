@@ -11,6 +11,7 @@ import '../../core/services/api_service.dart';
 import '../../core/services/upload_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -113,7 +114,7 @@ class SellerProductsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    trailing: const Icon(Icons.chevron_right_rounded),
+                    trailing: Icon(DirectionalUi.forwardChevron(context)),
                     onTap: () => context.push('/seller/products/${product.id}'),
                   ),
                 );

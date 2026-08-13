@@ -1381,6 +1381,9 @@ class AppStringsEn extends AppStrings {
   String get privacySectionTitle => 'Privacy';
 
   @override
+  String get legalSubsectionTitle => 'Legal';
+
+  @override
   String get privacySettingsIntro =>
       'Control optional preferences below. Some processing is required to run your account and keep the platform secure.';
 

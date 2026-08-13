@@ -18,6 +18,7 @@ import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
@@ -427,7 +428,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                           ),
                         ),
                         Icon(
-                          Icons.chevron_right_rounded,
+                          DirectionalUi.forwardChevron(context),
                           color: context.colors.textSecondary,
                         ),
                       ],

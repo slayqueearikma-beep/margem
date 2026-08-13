@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -520,8 +521,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             style: const TextStyle(fontWeight: FontWeight.w600)),
                         subtitle:
                             Text('${seller.city} · ${seller.averageRating} ★'),
-                        trailing: const Icon(Icons.chevron_right_rounded,
-                            color: AppColors.textSecondary),
+                        trailing: Icon(
+                          DirectionalUi.forwardChevron(context),
+                          color: AppColors.textSecondary,
+                        ),
                         onTap: () => context.push('/seller/${seller.id}'),
                       );
                     }

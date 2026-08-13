@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
+import '../utils/directional_ui.dart';
 import 'app_brand_logo.dart';
 
 class PrimaryButton extends StatelessWidget {
@@ -53,12 +54,24 @@ class PrimaryButton extends StatelessWidget {
                   Text(label),
                   if (trailingIcon != null) ...[
                     SizedBox(width: 8),
-                    Icon(trailingIcon, size: 20),
+                    Icon(_trailingIcon(context), size: 20),
                   ],
                 ],
               ),
       ),
     );
+  }
+
+  IconData _trailingIcon(BuildContext context) {
+    if (trailingIcon == Icons.arrow_forward_rounded ||
+        trailingIcon == Icons.arrow_forward_ios_rounded) {
+      return DirectionalUi.forwardArrow(context);
+    }
+    if (trailingIcon == Icons.chevron_right_rounded ||
+        trailingIcon == Icons.chevron_left_rounded) {
+      return DirectionalUi.forwardChevron(context);
+    }
+    return trailingIcon!;
   }
 }
 

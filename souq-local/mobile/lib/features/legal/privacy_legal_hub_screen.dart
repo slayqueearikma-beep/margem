@@ -61,7 +61,7 @@ class PrivacyLegalHubScreen extends StatelessWidget {
             onTap: () => context.push('/settings/privacy'),
           ),
           const SizedBox(height: AppSpacing.xl),
-          _SectionTitle(title: l10n.legalSectionTitle),
+          _SectionTitle(title: l10n.legalSubsectionTitle),
           _HubTile(
             icon: Icons.description_outlined,
             label: l10n.termsOfService,

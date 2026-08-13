@@ -104,7 +104,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get seller => 'بائع';
   @override
-  String get sellerSubtitle => 'أنشئ حضورك الرقمي واصل إلى المزيد من العملاء.';
+  String get sellerSubtitle => 'أنشئ حضورك الرقمي، واصل إلى المزيد من العملاء.';
   @override
   String get buyerBullet1 => 'اكتشف المتاجر القريبة';
   @override
@@ -165,7 +165,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get navServices => 'الخدمات';
   @override
-  String get navBookings => 'الحجوزات';
+  String get navBookings => 'الاستفسارات';
   @override
   String get navMore => 'المزيد';
   @override
@@ -177,7 +177,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get comingSoon => 'قريبًا';
   @override
-  String get upcomingBookings => 'الحجوزات القادمة';
+  String get upcomingBookings => 'الاستفسارات القادمة';
   @override
   String get viewAll => 'عرض الكل';
   @override
@@ -201,7 +201,7 @@ class AppStringsAr extends AppStringsEn {
       count > 0 ? 'ملغى ($count)' : 'ملغى';
   @override
   String get noBookingsYet =>
-      'لا توجد حجوزات بعد. ستظهر استفسارات العملاء هنا.';
+      'لا توجد استفسارات بعد. ستظهر طلبات العملاء هنا.';
   @override
   String get noBookingsInCategory => 'لا يوجد شيء في هذه الفئة بعد.';
   @override
@@ -239,7 +239,7 @@ class AppStringsAr extends AppStringsEn {
   String get searchConversations => 'البحث في المحادثات';
   @override
   String get noConversationsYet =>
-      'لا توجد محادثات بعد. راسل أي نشاط تجاري — بما في ذلك البائعين الآخرين.';
+      'لا توجد محادثات بعد. راسل أي محل — بما في ذلك البائعين الآخرين.';
   @override
   String get signInToMessage => 'سجّل الدخول لمراسلة أي شخص';
   @override
@@ -322,11 +322,11 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get pickupOnly => 'الاستلام من المتجر فقط';
   @override
-  String get searchFilters => 'الفلاتر';
+  String get searchFilters => 'التصفية';
   @override
   String get minRating => 'أدنى تقييم';
   @override
-  String get provider => 'المزوّدون';
+  String get provider => 'البائعون';
   @override
   String get productCategory => 'الفئة';
   @override
@@ -400,7 +400,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get accountSecurity => 'الحساب والأمان';
   @override
-  String get accountSecuritySub => 'كلمة المرور والمظهر وحذف الحساب';
+  String get accountSecuritySub => 'كلمة المرور والمظهر';
   @override
   String get notifications => 'الإشعارات';
   @override
@@ -479,7 +479,7 @@ class AppStringsAr extends AppStringsEn {
   String get noNotifications => 'لا توجد إشعارات جديدة';
   @override
   String get notificationsSubtitle =>
-      'تظهر هنا الاستفسارات والرسائل وتحديثات الاشتراك المميز والحساب.';
+      'تظهر هنا الاستفسارات والرسائل وتحديثات Dribex Plus والحساب.';
   @override
   String get appearance => 'المظهر';
   @override
@@ -616,7 +616,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get emailHint => 'you@example.com';
   @override
-  String get businessNameHint => 'مثال: Hana Chicken';
+  String get businessNameHint => 'مثال: مطعم الأصالة';
   @override
   String get ownerNameHint => 'اسمك الكامل';
   @override
@@ -658,7 +658,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get favorites => 'المفضلة';
   @override
-  String get premium => 'بريميوم';
+  String get premium => 'Dribex Plus';
   @override
   String get guestCartSignInHint =>
       'مفضلاتك محفوظة على هذا الجهاز. سجّل الدخول لمزامنتها مع حسابك.';
@@ -678,7 +678,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get addToWishlist => 'أضف إلى المفضلة';
   @override
-  String get addedToCart => 'تم تسجيل التواصل';
+  String get addedToCart => 'تم تسجيل اهتمامك';
   @override
   String get addedToWishlist => 'تمت الإضافة إلى المفضلة';
   @override
@@ -761,13 +761,13 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get cannotMessageOwnStore => 'لا يمكنك مراسلة متجرك الخاص.';
   @override
-  String get discoverBusinesses => 'اكتشف الأعمال';
+  String get discoverBusinesses => 'اكتشف المحلات';
   @override
   String get discoverBusinessesSub => 'تصفّح البائعين الآخرين وراسلهم مباشرة';
   @override
   String get findPeopleToMessage => 'ابحث عمّن تراسله';
   @override
-  String get becomeSeller => 'افتح واجهة متجر';
+  String get becomeSeller => 'افتح متجراً';
   @override
   String get becomeSellerSubtitle =>
       'احتفظ بنفس البريد وكلمة المرور. أضف عملك وبدّل إلى وضع البائع في أي وقت.';
@@ -780,7 +780,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get switchToBuyerMode => 'تصفّح كمشترٍ';
   @override
-  String get switchToBuyerModeSub => 'اكتشف الأعمال بنفس الحساب';
+  String get switchToBuyerModeSub => 'اكتشف المحلات بنفس الحساب';
   @override
   String get cannotReviewOwnStore => 'لا يمكنك تقييم متجرك الخاص.';
   @override
@@ -816,9 +816,9 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get sortNewest => 'الأحدث';
   @override
-  String get sortPriceLow => 'السعر ↑';
+  String get sortPriceLow => 'السعر: من الأقل';
   @override
-  String get sortPriceHigh => 'السعر ↓';
+  String get sortPriceHigh => 'السعر: من الأعلى';
   @override
   String get businessInformation => 'معلومات النشاط';
   @override
@@ -894,7 +894,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get total => 'الإجمالي';
   @override
-  String get paymentMethod => 'الدفع المقبول';
+  String get paymentMethod => 'طرق الدفع المقبولة';
   @override
   String get items => 'العناصر';
   @override
@@ -917,12 +917,12 @@ class AppStringsAr extends AppStringsEn {
   String get emptyFavoritesSubtitle =>
       'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
   @override
-  String get premiumActivated => 'تم تفعيل بريميوم';
+  String get premiumActivated => 'تم تفعيل Dribex Plus';
   @override
-  String get noPremiumPlans => 'لا توجد خطط بريميوم متاحة حالياً.';
+  String get noPremiumPlans => 'لا توجد خطط اشتراك متاحة حالياً.';
   @override
   String get premiumBillingUnavailable =>
-      'الاشتراك الذاتي غير مفعّل بعد. تواصل مع دعم Dribex أو اطلب من المسؤول منح البريميوم.';
+      'الاشتراك الذاتي غير مفعّل بعد. تواصل مع دعم Dribex أو اطلب من المسؤول تفعيل Dribex Plus.';
   @override
   String get premiumContactSupport => 'تواصل مع الدعم';
   @override
@@ -972,10 +972,10 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get signupOtpVerify => 'تحقق';
   @override
-  String get premiumTitle => 'نمّ عملك مع Dribex بريميوم';
+  String get premiumTitle => 'نمِّ عملك مع Dribex Plus';
   @override
   String get premiumSubtitle =>
-      'افتح ظهوراً أقوى وأدوات اكتشاف وتحليلات للملف.';
+      'احصل على ظهور أقوى وأدوات اكتشاف وتحليلات لمتجرك.';
   @override
   String activePlan(String name) => 'الخطة النشطة: $name';
   @override
@@ -1024,7 +1024,7 @@ class AppStringsAr extends AppStringsEn {
   String get resetPasswordValidation =>
       'أدخل الرمز وكلمة مرور لا تقل عن 8 أحرف.';
   @override
-  String get sendResetLink => 'إرسال رابط التعيين';
+  String get sendResetLink => 'إرسال رابط إعادة التعيين';
   @override
   String get resetLinkSent =>
       'إذا كان الحساب موجوداً، فقد تم إرسال رابط إعادة التعيين.';
@@ -1053,9 +1053,9 @@ class AppStringsAr extends AppStringsEn {
   String analyticsSummary(int profileViews, int contactClicks) =>
       '$profileViews مشاهدة · $contactClicks نقرة تواصل';
   @override
-  String get premiumActiveSub => 'خطة بريميوم نشطة';
+  String get premiumActiveSub => 'اشتراك Dribex Plus نشط';
   @override
-  String get premiumUpgradeSub => 'طوّر الظهور وأدوات الاكتشاف';
+  String get premiumUpgradeSub => 'طوّر ظهور متجرك وأدوات الاكتشاف';
   @override
   String get loading => 'جاري التحميل...';
   @override
@@ -1299,7 +1299,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get bundleBuilderSellerBreakdown => 'تفصيل البائعين';
   @override
-  String get bundleBuilderContactSeller => 'عرض البائع';
+  String get bundleBuilderContactSeller => 'تواصل مع البائع';
 
   @override
   String get marketplaceCommunityTitle => 'مجتمع السوق';
@@ -1321,6 +1321,9 @@ class AppStringsAr extends AppStringsEn {
 
   @override
   String get legalSectionTitle => 'القانون والخصوصية';
+
+  @override
+  String get legalSubsectionTitle => 'القانون';
 
   @override
   String get privacyPolicy => 'سياسة الخصوصية';
@@ -1374,7 +1377,7 @@ class AppStringsAr extends AppStringsEn {
 
   @override
   String get privacyLegalHubSubtitle =>
-      'السياسات والخصوصية وبياناتك';
+      'السياسات والخصوصية وإدارة بياناتك';
 
   @override
   String get privacySectionTitle => 'الخصوصية';
@@ -1388,14 +1391,14 @@ class AppStringsAr extends AppStringsEn {
 
   @override
   String get requiredDataProcessingBody =>
-      'نعالج تفاصيل حسابك وسجلات الأمان والمحتوى الذي تنشره لتقديم Dribex ومنع الاحتيال والامتثال القانوني. لا يمكن إيقاف ذلك أثناء استخدام الخدمة.';
+      'نعالج بيانات حسابك وسجلات الأمان والمحتوى الذي تنشره لتشغيل Dribex ومنع الاحتيال والامتثال للقوانين. لا يمكن إيقاف ذلك أثناء استخدام الخدمة.';
 
   @override
   String get optionalPreferences => 'تفضيلات اختيارية';
 
   @override
   String get locationAccessDescription =>
-      'يستخدم Dribex موقعك لمساعدتك على اكتشاف الأعمال القريبة عند استخدام الخريطة. يمكنك التحكم في ذلك من إعدادات الجهاز.';
+      'يستخدم Dribex موقعك لمساعدتك على اكتشاف المحلات القريبة عند استخدام الخريطة. يمكنك التحكم في ذلك من إعدادات الجهاز.';
 
   @override
   String get manageLocationPermission => 'إدارة إذن الموقع';
@@ -1430,7 +1433,7 @@ class AppStringsAr extends AppStringsEn {
 
   @override
   String get dataExportDescription =>
-      'تنزيل نسخة JSON من بياناتك إلى الحافظة.';
+      'تنزيل نسخة بصيغة JSON من بياناتك إلى الحافظة.';
 
   @override
   String get dataExportCopied =>
@@ -1448,7 +1451,7 @@ class AppStringsAr extends AppStringsEn {
 
   @override
   String get deleteAccountExplainer =>
-      'يحذف حسابك متجرك ورسائلك وملفك. قد نحتفظ بسجلات مطلوبة قانونياً.';
+      'يؤدي هذا إلى حذف حسابك ومتجرك ورسائلك وملفك الشخصي. قد نحتفظ بسجلات مطلوبة قانوناً.';
 
   @override
   String get signInToManageData =>
@@ -1484,7 +1487,7 @@ class AppStringsAr extends AppStringsEn {
 
   @override
   String get locationUsageNotice =>
-      'يستخدم Dribex موقعك لمساعدتك على اكتشاف الأعمال القريبة.';
+      'يستخدم Dribex موقعك لمساعدتك على اكتشاف المحلات القريبة.';
 
   @override
   String get connectionError =>

@@ -1375,6 +1375,9 @@ class AppStringsFr extends AppStringsEn {
   String get privacySectionTitle => 'Confidentialité';
 
   @override
+  String get legalSubsectionTitle => 'Mentions légales';
+
+  @override
   String get privacySettingsIntro =>
       'Gérez les préférences optionnelles ci-dessous. Certaines données sont nécessaires au fonctionnement du service.';
 

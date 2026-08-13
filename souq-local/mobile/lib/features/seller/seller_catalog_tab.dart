@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/service_card.dart';
@@ -317,7 +318,7 @@ class _ProductListCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded),
+              Icon(DirectionalUi.forwardChevron(context)),
             ],
           ),
         ),

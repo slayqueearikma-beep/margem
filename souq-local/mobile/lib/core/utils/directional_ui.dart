@@ -11,6 +11,10 @@ class DirectionalUi {
       ? Icons.chevron_left_rounded
       : Icons.chevron_right_rounded;
 
+  static IconData forwardArrow(BuildContext context) => isRtl(context)
+      ? Icons.arrow_back_rounded
+      : Icons.arrow_forward_rounded;
+
   static IconData backArrow(BuildContext context) => isRtl(context)
       ? Icons.arrow_forward_ios_rounded
       : Icons.arrow_back_ios_new_rounded;

@@ -614,6 +614,7 @@ abstract class AppStrings {
   String get privacyLegalHubIntro;
   String get privacyLegalHubSubtitle;
   String get privacySectionTitle;
+  String get legalSubsectionTitle;
   String get privacySettingsIntro;
   String get requiredDataProcessing;
   String get requiredDataProcessingBody;
