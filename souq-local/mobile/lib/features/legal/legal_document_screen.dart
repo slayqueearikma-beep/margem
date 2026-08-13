@@ -38,11 +38,11 @@ class _LegalDocumentScreenState extends ConsumerState<LegalDocumentScreen> {
     final url = AppConfig.legalDocumentUrl(widget.docSlug, lang);
     final response = await http
         .get(Uri.parse(url))
-        .timeout(AppConfig.requestTimeout);
+        .timeout(const Duration(seconds: 15));
     if (response.statusCode != 200) {
       throw ApiException(
+        'Failed to load document',
         statusCode: response.statusCode,
-        message: 'Failed to load document',
       );
     }
     final html = utf8.decode(response.bodyBytes);
@@ -209,6 +209,8 @@ class _LegalTableRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
 
 enum _BlockKind { heading, paragraph, note, bullet, tableRow }
 

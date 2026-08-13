@@ -13,7 +13,8 @@ class AuthLegalFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+    final style = (Theme.of(context).textTheme.bodySmall ?? const TextStyle())
+        .copyWith(
           color: context.colors.textTertiary,
           fontSize: 12,
           height: 1.4,
