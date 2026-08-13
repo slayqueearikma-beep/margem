@@ -17,6 +17,8 @@ from app.config import settings
 import app.database as database
 from app.limiter import limiter
 from app.logging_config import configure_logging
+from app.middleware.admin_ip_guard import AdminIpGuardMiddleware
+from app.middleware.admin_origin_guard import AdminOriginGuardMiddleware
 from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
@@ -89,6 +91,8 @@ app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(RequestSizeLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AdminOriginGuardMiddleware)
+app.add_middleware(AdminIpGuardMiddleware)
 
 if settings.allowed_hosts != ["*"]:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
@@ -134,13 +138,24 @@ def _request_id(request: Request) -> str:
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     from fastapi.encoders import jsonable_encoder
 
+    request_id = _request_id(request)
+    if settings.app_env in {"production", "prod"} and not settings.debug:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": "Validation error",
+                "request_id": request_id,
+            },
+            headers={"X-Request-ID": request_id},
+        )
+
     return JSONResponse(
         status_code=422,
         content={
             "detail": jsonable_encoder(exc.errors()),
-            "request_id": _request_id(request),
+            "request_id": request_id,
         },
-        headers={"X-Request-ID": _request_id(request)},
+        headers={"X-Request-ID": request_id},
     )
 
 

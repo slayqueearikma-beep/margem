@@ -32,7 +32,7 @@ from app.models import (
     VerificationStatus,
 )
 from app.services.notifications import notify_user
-from app.services.security import revoke_all_refresh_tokens
+from app.services.security import bump_token_version, revoke_all_refresh_tokens
 
 router = APIRouter(tags=["seller-ops"])
 
@@ -495,7 +495,9 @@ async def my_subscription(
 
 
 @router.post("/subscriptions/subscribe/{plan_code}", response_model=SubscriptionOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def subscribe(
+    request: Request,
     plan_code: str,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
@@ -612,6 +614,7 @@ async def admin_set_status(
         raise HTTPException(status_code=404, detail="User not found")
     target.status = status_value
     if status_value in {UserStatus.SUSPENDED, UserStatus.DELETED}:
+        bump_token_version(target)
         await revoke_all_refresh_tokens(session, target.id)
     session.add(
         AdminAuditLog(

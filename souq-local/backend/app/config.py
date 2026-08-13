@@ -76,6 +76,8 @@ class Settings(BaseSettings):
     auth_rate_limit: str = "30/minute"
     max_request_body_bytes: int = 1_048_576
     redis_url: str = ""
+    trusted_proxy_hops: int = 0
+    admin_ip_allowlist: list[str] = []
     allow_insecure_email_fallback: bool = False
 
     smtp_host: str = ""
@@ -108,7 +110,7 @@ class Settings(BaseSettings):
             return value.strip().strip('"').strip("'")
         return value
 
-    @field_validator("cors_origins", "allowed_hosts", mode="before")
+    @field_validator("cors_origins", "allowed_hosts", "admin_ip_allowlist", mode="before")
     @classmethod
     def parse_string_list(cls, value: Any) -> list[str]:
         if isinstance(value, str):
@@ -186,6 +188,11 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "PUBLIC_APP_URL must use HTTPS in production "
                     "(http is only allowed for localhost / private LAN IPs)"
+                )
+            if not self.admin_ip_allowlist:
+                raise ValueError(
+                    "ADMIN_IP_ALLOWLIST is required in production "
+                    "(comma-separated IPs or CIDR ranges permitted to call /admin/* APIs)"
                 )
         return self
 

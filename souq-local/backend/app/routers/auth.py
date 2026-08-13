@@ -26,9 +26,12 @@ from app.schemas import (
     UserRegisterFirebase,
 )
 from app.services.audit import log_security_event
+from app.services.client_ip import get_client_ip
 from app.services.email import email_service
+from app.services.login_lockout import clear_login_lockout, ensure_account_not_locked, record_failed_login
 from app.services.password_policy import validate_password_strength
 from app.services.security import (
+    bump_token_version,
     create_access_token,
     hash_password,
     issue_refresh_token,
@@ -118,7 +121,7 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
     ip = ""
     ua = ""
     if request is not None:
-        ip = request.client.host if request.client else ""
+        ip = get_client_ip(request)
         ua = (request.headers.get("user-agent") or "")[:255]
         device = (request.headers.get("x-device-name") or ua[:80] or "Device")[:120]
 
@@ -141,7 +144,7 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
     has_store = await user_has_seller_profile(session, user.id)
     await session.commit()
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(user.id, token_version=int(getattr(user, "token_version", 1) or 1)),
         refresh_token=refresh_token,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -205,11 +208,15 @@ async def login(
 ) -> TokenResponse:
     result = await session.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
+    client_ip = get_client_ip(request)
+    if user is not None:
+        await ensure_account_not_locked(user)
     if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
+        await record_failed_login(session, user, email=payload.email.lower())
         log_security_event(
             "login_failed",
             email=payload.email.lower(),
-            client=request.client.host if request.client else "unknown",
+            client=client_ip,
         )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     if user.status == UserStatus.SUSPENDED:
@@ -217,7 +224,8 @@ async def login(
     if user.status == UserStatus.DELETED:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
-    log_security_event("login_success", user_id=str(user.id))
+    await clear_login_lockout(session, user)
+    log_security_event("login_success", user_id=str(user.id), client=client_ip)
     return await _token_response(session, user, request)
 
 
@@ -252,7 +260,7 @@ async def refresh_tokens(
 
     has_store = await user_has_seller_profile(session, user.id)
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(user.id, token_version=int(getattr(user, "token_version", 1) or 1)),
         refresh_token=new_refresh,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -328,6 +336,7 @@ async def change_password(
             detail="New password must be different from the current password",
         )
     user.password_hash = hash_password(payload.new_password)
+    bump_token_version(user)
     await revoke_all_refresh_tokens(session, user.id)
     await session.commit()
     log_security_event("password_changed", user_id=str(user.id))
@@ -479,6 +488,7 @@ async def confirm_password_reset(
     if user is None:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
     user.password_hash = hash_password(payload.new_password)
+    bump_token_version(user)
     token.used_at = datetime.now(UTC)
     await revoke_all_refresh_tokens(session, user.id)
     await session.commit()
@@ -550,6 +560,7 @@ async def delete_account(
         await session.execute(sql_delete(model).where(column == user.id))
 
     await revoke_all_refresh_tokens(session, user.id)
+    bump_token_version(user)
     user.status = UserStatus.DELETED
     user.email = f"deleted+{user.id}@invalid.local"
     user.display_name = "Deleted user"

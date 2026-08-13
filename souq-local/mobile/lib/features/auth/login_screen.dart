@@ -10,7 +10,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
-import '../../core/widgets/error_dialog.dart';
+import '../../core/utils/friendly_errors.dart';
 import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -118,7 +118,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } on ApiException catch (e) {
       if (!mounted) return;
       await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: e.message);
+          title: l10n.somethingWentWrong,
+          message: friendlyErrorMessage(e, fallback: l10n.serverUnreachable));
     } catch (e) {
       if (!mounted) return;
       await showAppErrorDialog(context,

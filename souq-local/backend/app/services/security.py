@@ -31,17 +31,18 @@ def verify_password(plain_password: str, password_hash: str) -> bool:
     return pwd_context.verify(plain_password, password_hash)
 
 
-def create_access_token(user_id: UUID) -> str:
+def create_access_token(user_id: UUID, *, token_version: int = 1) -> str:
     expire = datetime.now(UTC) + timedelta(minutes=settings.jwt_access_expire_minutes)
     payload = {
         "sub": str(user_id),
         "exp": expire,
         "type": "access",
+        "tv": int(token_version),
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
-def decode_access_token(token: str) -> UUID | None:
+def decode_access_token(token: str) -> tuple[UUID, int] | None:
     try:
         payload = jwt.decode(
             token,
@@ -53,9 +54,14 @@ def decode_access_token(token: str) -> UUID | None:
         sub = payload.get("sub")
         if not sub:
             return None
-        return UUID(sub)
+        token_version = int(payload.get("tv", 1))
+        return UUID(sub), token_version
     except (InvalidTokenError, ValueError, TypeError):
         return None
+
+
+def bump_token_version(user) -> None:
+    user.token_version = int(getattr(user, "token_version", 1) or 1) + 1
 
 
 def _hash_refresh_token(token: str) -> str:

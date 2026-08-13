@@ -17,7 +17,7 @@ import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
-import '../../core/widgets/async_error_view.dart';
+import '../../core/utils/friendly_errors.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
@@ -451,7 +451,7 @@ class BuyerHomeScreen extends ConsumerWidget {
         await showAppErrorDialog(
           context,
           title: l10n.somethingWentWrong,
-          message: e.toString(),
+          message: friendlyErrorMessage(e, fallback: l10n.somethingWentWrong),
         );
       }
     }
@@ -1160,7 +1160,7 @@ class BuyerProfileScreen extends ConsumerWidget {
         await showAppErrorDialog(
           context,
           title: l10n.somethingWentWrong,
-          message: e.toString(),
+          message: friendlyErrorMessage(e, fallback: l10n.somethingWentWrong),
         );
       }
     }

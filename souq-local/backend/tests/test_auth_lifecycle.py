@@ -79,6 +79,7 @@ def test_production_allows_email_fallback_flag():
         allow_insecure_email_fallback=True,
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
+        admin_ip_allowlist=["127.0.0.1/32"],
     )
     assert settings.allow_insecure_email_fallback is True
 

@@ -35,20 +35,11 @@ async def prepare_database():
     )
 
     async with database.engine.begin() as conn:
-        # Drop legacy ecommerce tables that may still exist from older migrations
-        # before recreating the discovery-platform schema.
-        for table in (
-            "order_items",
-            "orders",
-            "cart_items",
-            "wishlist_items",
-            "buyer_addresses",
-            "coupons",
-        ):
-            await conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
-        await conn.execute(text("DROP TYPE IF EXISTS orderstatus CASCADE"))
-        await conn.execute(text("DROP TYPE IF EXISTS paymentstatus CASCADE"))
-        await conn.run_sync(Base.metadata.drop_all)
+        # Reset the public schema so leftover tables from other branches/migrations
+        # cannot block drop_all during test setup.
+        await conn.execute(text("DROP SCHEMA public CASCADE"))
+        await conn.execute(text("CREATE SCHEMA public"))
+        await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
         await conn.run_sync(Base.metadata.create_all)
 
     async with database.SessionLocal() as session:

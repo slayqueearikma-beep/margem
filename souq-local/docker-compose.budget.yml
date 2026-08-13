@@ -44,6 +44,8 @@ services:
       SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://margem.ma}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.margem.ma}
+      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-127.0.0.1/32}
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-0}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
       JWT_REFRESH_EXPIRE_DAYS: "7"
       RATE_LIMIT: ${RATE_LIMIT:-300/minute}

@@ -50,6 +50,7 @@ def test_production_accepts_rotated_secret():
         upload_token_secret="a-separate-production-upload-secret-32chars",
         cors_origins=["https://margem.ma"],
         allowed_hosts=["api.margem.ma"],
+        admin_ip_allowlist=["203.0.113.0/24"],
         azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
         smtp_host="smtp.example.com",
         public_app_url="https://margem.ma",
