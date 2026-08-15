@@ -6,6 +6,7 @@
 - `biber` pour la bibliographie
 - `latexmk` (recommandé)
 - `texlive-lang-french` pour le support français (babel)
+- Python 3 + `matplotlib` pour régénérer les figures
 
 ### Debian / Ubuntu
 
@@ -21,38 +22,42 @@ sudo apt install -y \
   texlive-pictures \
   texlive-fonts-recommended \
   texlive-lang-french
+pip install matplotlib
 ```
+
+## Figures
+
+Générer ou mettre à jour toutes les illustrations professionnelles :
+
+```bash
+python3 scripts/generate_figures.py
+```
+
+Les fichiers sont écrits dans `figures/` (PDF vectoriel + PNG pour les architectures). Le rapport utilise `\figureplaceholder` : si un fichier est absent, un cadre gris s'affiche à la place.
 
 ## Compilation
 
 ```bash
 cd mabrid-thesis
+python3 scripts/generate_figures.py   # recommandé avant build
 latexmk -C
 latexmk -pdf -interaction=nonstopmode main.tex
 ```
 
-Le fichier généré est **`main.pdf`** (environ 115--120 pages).
+Le fichier généré est **`main.pdf`** (environ **118 pages**, limite cible ≤ 120).
 
 ## Structure du rapport
 
 | Chapitre | Contenu |
 |----------|---------|
 | 1 | Vision commerciale MABRID |
-| 2 | Entrepreneuriat et stratégie de lancement (~15 p.) |
+| 2 | Entrepreneuriat et stratégie de lancement |
 | 3 | Gouvernance d'entreprise |
 | 4 | Architecture de sécurité entreprise |
-| 5 | Sécurisation technique de l'application MarGem (~15 p.) |
-| 6 | Gouvernance cloud Azure |
-| 7 | **Architecture technique et flux d'information** (~10 p., diagrammes TikZ + figures Azure/on-prem) |
-| 8--11 | Juridique, feuille de route, marketing, conclusion |
-
-## Figures
-
-Placer les images dans `figures/`. Fichiers inclus :
-- `architecture-azure-prod.png` — architecture cloud Azure
-- `architecture-onprem-ubuntu.png` — architecture serveur Ubuntu on-premise
-
-Des emplacements gris s'affichent tant que les autres fichiers PDF référencés sont absents.
+| 5 | Sécurisation technique de l'application MarGem |
+| 6 | Flux d'information et déploiement Azure / on-premise |
+| 7–10 | Cloud, juridique, feuille de route, marketing |
+| 11 | Conclusion |
 
 ## Dépannage
 
@@ -60,6 +65,6 @@ Des emplacements gris s'affichent tant que les autres fichiers PDF référencés
 |--------|----------|
 | `Unknown option 'french' for package babel` | `sudo apt install texlive-lang-french` |
 | `Bibliography string 'andothers' untranslated` | Installer `texlive-lang-french`, puis `latexmk -C && latexmk -pdf main.tex` |
-| Références `undefined` après clean | Normal au 1er passage ; relancer `latexmk` (ou `latexmk -C` puis rebuild complet) |
+| Références `undefined` après clean | Normal au 1er passage ; relancer `latexmk` |
 | `makeglossaries` manquant | `sudo apt install texlive-latex-extra` |
-| PDF incomplet (~96 p.) | Build interrompu ; relancer le cycle complet ci-dessus |
+| PDF > 120 pages | Réduire les annexes ou condenser un chapitre ; vérifier les figures surdimensionnées |
