@@ -1,7 +1,7 @@
 """Add marketplaces and per-marketplace category trees.
 
 Revision ID: 019
-Revises: 018
+Revises: 018b
 """
 
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 revision: str = "019"
-down_revision: Union[str, None] = "018"
+down_revision: Union[str, None] = "018b"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

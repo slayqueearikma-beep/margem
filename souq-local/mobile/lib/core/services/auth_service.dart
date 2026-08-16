@@ -192,8 +192,9 @@ class AuthService {
             return null;
           }
         }
-        return refreshed == false ? null : null;
+        return null;
       }
+      // Transient API errors should not block offline session restore.
       return null;
     } on Object {
       return null;

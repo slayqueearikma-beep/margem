@@ -689,6 +689,7 @@ async def subscribe(
 
 
 @router.post("/subscriptions/webhook/stripe", status_code=status.HTTP_200_OK)
+@limiter.exempt
 async def stripe_webhook(
     request: Request,
     session: AsyncSession = Depends(get_db),

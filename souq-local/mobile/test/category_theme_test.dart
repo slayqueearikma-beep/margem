@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:souq_local/core/models/models.dart';
 import 'package:souq_local/core/services/app_storage.dart';
-import 'package:souq_local/core/theme/app_colors.dart';
+import 'package:souq_local/core/theme/app_semantic_colors.dart';
 import 'package:souq_local/core/theme/app_theme.dart';
 import 'package:souq_local/core/widgets/app_brand_logo.dart';
 import 'package:souq_local/core/widgets/buyer_ui_components.dart';
@@ -47,7 +47,7 @@ void main() {
     );
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
-    expect(scaffold.backgroundColor, AppColors.darkBackground);
+    expect(scaffold.backgroundColor, AppSemanticColors.dark.surface);
   });
 
   testWidgets('BuyerScreenScaffold follows MaterialApp light theme', (tester) async {
@@ -63,7 +63,7 @@ void main() {
     );
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
-    expect(scaffold.backgroundColor, AppColors.cream);
+    expect(scaffold.backgroundColor, AppSemanticColors.light.surface);
   });
 
   testWidgets('BuyerShellHeader centers logo between balanced side slots', (tester) async {

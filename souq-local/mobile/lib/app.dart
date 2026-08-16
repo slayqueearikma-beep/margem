@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'core/config/app_config.dart';
 import 'core/models/models.dart';
 import 'core/navigation/app_back_handler.dart';
+import 'core/navigation/auth_route_guard.dart';
 import 'core/services/app_storage.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/locale_provider.dart';
@@ -70,6 +71,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final session =
           ProviderScope.containerOf(context).read(userSessionProvider);
       final path = state.matchedLocation;
+      final isAuthProtected = isAuthProtectedLocation(path);
+      final isAuthenticated = session != null && !session.isGuest;
+      if (isAuthProtected && !isAuthenticated) {
+        return '/login';
+      }
       final isSellerManagement = path == '/seller/dashboard' ||
           path.startsWith('/seller/products') ||
           path.startsWith('/seller/services') ||
@@ -79,19 +85,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings') ||
           path.startsWith('/seller/messages');
-      final isMarketplaceCommunity =
-          RegExp(r'^/marketplace/[^/]+/community').hasMatch(path);
-      final isAuthProtected = isSellerManagement ||
-          path == '/premium' ||
-          path == '/profile' ||
-          path == '/favorites' ||
-          path.startsWith('/messages') ||
-          path.startsWith('/community/channels') ||
-          isMarketplaceCommunity;
-      final isAuthenticated = session != null && !session.isGuest;
-      if (isAuthProtected && !isAuthenticated) {
-        return '/login';
-      }
       if (isSellerManagement &&
           isAuthenticated &&
           !session.hasSellerProfile &&

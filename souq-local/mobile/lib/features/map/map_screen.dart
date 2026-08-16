@@ -29,6 +29,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   late Future<_MapData> _mapFuture;
   String? _loadedCity;
   bool _locationEnabled = false;
+  bool _locationNoticeShown = false;
 
   @override
   void initState() {
@@ -37,21 +38,27 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _initLocation() async {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.locationUsageNotice),
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
     final granted = await LocationService.ensurePermission();
     if (mounted) setState(() => _locationEnabled = granted);
+  }
+
+  void _showLocationNoticeIfNeeded() {
+    if (_locationNoticeShown) return;
+    _locationNoticeShown = true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.locationUsageNotice),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showLocationNoticeIfNeeded();
+    });
     final city = ref.read(buyerCityProvider);
     if (_loadedCity != city) {
       _loadedCity = city;
