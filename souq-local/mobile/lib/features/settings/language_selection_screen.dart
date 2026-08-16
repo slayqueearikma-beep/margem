@@ -36,7 +36,7 @@ class LanguageSelectionScreen extends ConsumerStatefulWidget {
 
 class _LanguageSelectionScreenState
     extends ConsumerState<LanguageSelectionScreen> {
-  String _selected = 'en';
+  String _selected = AppStorage.defaultLanguageCode;
 
   @override
   void didChangeDependencies() {

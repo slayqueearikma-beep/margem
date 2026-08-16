@@ -130,6 +130,9 @@ class AppStorage {
   static const _sellerIdKey = 'seller_id';
   static const _languageCodeKey = 'language_code';
   static const _languageSelectedKey = 'language_selected';
+
+  /// Default UI language for first launch (Moroccan marketplace).
+  static const defaultLanguageCode = 'ar';
   static const _themeModeKey = 'theme_mode';
   static const _guestFavoritesKey = 'guest_favorite_items';
   static const _legacyGuestCartKey = 'guest_cart_items';
@@ -171,7 +174,8 @@ class AppStorage {
         : '/buyer/home';
   }
 
-  String get languageCode => _prefs.getString(_languageCodeKey) ?? 'en';
+  String get languageCode =>
+      _prefs.getString(_languageCodeKey) ?? defaultLanguageCode;
 
   Locale getLocale() => Locale(languageCode);
 
