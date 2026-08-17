@@ -743,51 +743,9 @@ async def export_my_data(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> dict:
-    from app.models import Favorite, Notification, SellerProfile, Subscription
+    from app.services.data_export import build_user_data_export
 
-    seller = (
-        await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-    ).scalar_one_or_none()
-    favorites = (
-        await session.execute(select(Favorite).where(Favorite.user_id == user.id).limit(500))
-    ).scalars().all()
-    notifications = (
-        await session.execute(select(Notification).where(Notification.user_id == user.id).limit(200))
-    ).scalars().all()
-    subscriptions = (
-        await session.execute(select(Subscription).where(Subscription.user_id == user.id))
-    ).scalars().all()
-
-    return {
-        "exported_at": datetime.now(UTC).isoformat(),
-        "user": {
-            "id": str(user.id),
-            "email": user.email,
-            "display_name": user.display_name,
-            "account_type": user.account_type.value,
-            "role": user.role.value,
-            "email_verified": user.email_verified_at is not None,
-            "created_at": user.created_at.isoformat(),
-        },
-        "seller_profile": (
-            {
-                "business_name": seller.business_name,
-                "city": seller.city,
-                "verification_status": seller.verification_status.value,
-            }
-            if seller
-            else None
-        ),
-        "favorites_count": len(favorites),
-        "notifications_count": len(notifications),
-        "subscriptions": [
-            {
-                "status": sub.status.value,
-                "period_end": sub.current_period_end.isoformat(),
-            }
-            for sub in subscriptions
-        ],
-    }
+    return await build_user_data_export(session, user)
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

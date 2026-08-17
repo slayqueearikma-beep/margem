@@ -560,6 +560,65 @@ class AdminAuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class PrivacyRequestType(str, enum.Enum):
+    ACCESS = "access"
+    RECTIFICATION = "rectification"
+    ERASURE = "erasure"
+    OPPOSITION = "opposition"
+    OTHER = "other"
+
+
+class PrivacyRequestStatus(str, enum.Enum):
+    PENDING = "pending"
+    IN_REVIEW = "in_review"
+    COMPLETED = "completed"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+
+
+privacy_request_type_enum = _enum(PrivacyRequestType, "privacyrequesttype")
+privacy_request_status_enum = _enum(PrivacyRequestStatus, "privacyrequeststatus")
+
+
+class PrivacyRequest(Base):
+    __tablename__ = "privacy_requests"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    request_type: Mapped[PrivacyRequestType] = mapped_column(privacy_request_type_enum, nullable=False)
+    status: Mapped[PrivacyRequestStatus] = mapped_column(
+        privacy_request_status_enum, default=PrivacyRequestStatus.PENDING
+    )
+    details: Mapped[str] = mapped_column(Text, default="")
+    resolution_notes: Mapped[str] = mapped_column(Text, default="")
+    reviewer_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ip_address: Mapped[str] = mapped_column(String(64), default="")
+    user_agent: Mapped[str] = mapped_column(String(512), default="")
+    audit_metadata: Mapped[dict] = mapped_column(JSONB, default=dict)
+
+
+class UserConsent(Base):
+    __tablename__ = "user_consents"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    consent_type: Mapped[str] = mapped_column(String(64), index=True)
+    purpose: Mapped[str] = mapped_column(String(255), default="")
+    granted: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    policy_version: Mapped[str] = mapped_column(String(32), default="")
+    language: Mapped[str] = mapped_column(String(8), default="en")
+    source: Mapped[str] = mapped_column(String(64), default="api")
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ip_address: Mapped[str] = mapped_column(String(64), default="")
+    user_agent: Mapped[str] = mapped_column(String(512), default="")
+
+
 class LegalAcceptance(Base):
     __tablename__ = "legal_acceptances"
     __table_args__ = (

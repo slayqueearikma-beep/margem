@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../core/services/api_service.dart';
+import '../../core/services/locale_provider.dart';
 import '../../core/services/privacy_preferences.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
@@ -60,6 +62,16 @@ class PrivacySettingsScreen extends ConsumerWidget {
               value: prefs.personalizedRecommendations,
               onChanged: (value) async {
                 await prefs.setPersonalizedRecommendations(value);
+                try {
+                  final locale = ref.read(localeProvider).languageCode;
+                  await ref.read(apiServiceProvider).updatePrivacyConsent(
+                        consentType: 'personalized_recommendations',
+                        granted: value,
+                        language: locale,
+                      );
+                } on ApiException {
+                  // Local preference retained; server sync retried on next toggle.
+                }
                 ref.invalidate(privacyPreferencesProvider);
               },
             ),
@@ -73,6 +85,16 @@ class PrivacySettingsScreen extends ConsumerWidget {
               value: prefs.marketingOptIn,
               onChanged: (value) async {
                 await prefs.setMarketingOptIn(value);
+                try {
+                  final locale = ref.read(localeProvider).languageCode;
+                  await ref.read(apiServiceProvider).updatePrivacyConsent(
+                        consentType: 'marketing_email',
+                        granted: value,
+                        language: locale,
+                      );
+                } on ApiException {
+                  // Local preference retained; server sync retried on next toggle.
+                }
                 ref.invalidate(privacyPreferencesProvider);
               },
             ),

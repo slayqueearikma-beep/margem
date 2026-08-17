@@ -52,6 +52,34 @@ class _YourDataScreenState extends ConsumerState<YourDataScreen> {
     }
   }
 
+  Future<void> _submitAccessRequest() async {
+    final l10n = context.l10n;
+    try {
+      final result = await ref.read(apiServiceProvider).submitPrivacyRequest(
+            requestType: 'access',
+            details: 'In-app access request via Your Data screen',
+          );
+      if (!mounted) return;
+      final status = result['status'] as String? ?? 'pending';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            status == 'completed'
+                ? l10n.dataExportDescription
+                : 'Privacy request submitted ($status)',
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: friendlyErrorMessage(e, l10n),
+      );
+    }
+  }
+
   Future<void> _requestCorrection() async {
     final uri = LegalConfig.privacyMailto(subject: 'Data correction request');
     if (await canLaunchUrl(uri)) {
@@ -109,6 +137,13 @@ class _YourDataScreenState extends ConsumerState<YourDataScreen> {
             title: l10n.dataExport,
             subtitle: l10n.dataExportDescription,
             onTap: _exporting ? null : _exportData,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          BuyerMenuTile(
+            icon: Icons.fact_check_outlined,
+            title: l10n.viewAccountInfo,
+            subtitle: l10n.requestDataCorrectionDescription,
+            onTap: _submitAccessRequest,
           ),
           if (_exporting)
             const Padding(

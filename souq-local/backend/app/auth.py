@@ -149,6 +149,8 @@ _LEGAL_ACCEPTANCE_EXEMPT_EXACT = (
     "/auth/mfa/login",
     "/legal/accept",
     "/legal/accept/status",
+    "/privacy/consents",
+    "/privacy/requests",
 )
 
 _LEGAL_ACCEPTANCE_EXEMPT_PREFIXES = (
@@ -157,6 +159,7 @@ _LEGAL_ACCEPTANCE_EXEMPT_PREFIXES = (
     "/auth/password-reset/",
     "/auth/mfa/",
     "/legal/",
+    "/privacy/",
 )
 
 
