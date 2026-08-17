@@ -8,6 +8,7 @@ void main() {
       expect(isLegalAcceptanceRequiredLocation('/buyer/home'), isTrue);
       expect(isLegalAcceptanceRequiredLocation('/seller/dashboard'), isTrue);
       expect(isLegalAcceptanceRequiredLocation('/profile'), isTrue);
+      expect(isLegalAcceptanceRequiredLocation('/product/seller-1/product-1'), isTrue);
     });
 
     test('allows legal acceptance and policy routes', () {

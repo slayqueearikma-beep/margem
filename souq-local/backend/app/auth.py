@@ -136,24 +136,34 @@ async def _enforce_account_state(user: User, session: AsyncSession) -> User:
     return user
 
 
-_LEGAL_ACCEPTANCE_EXEMPT_PATHS = (
+_LEGAL_ACCEPTANCE_EXEMPT_EXACT = (
     "/auth/me",
     "/auth/logout",
     "/auth/logout-all",
-    "/auth/sessions",
-    "/auth/me/password",
-    "/auth/me/export",
+    "/auth/refresh",
+    "/auth/register",
+    "/auth/login",
+    "/auth/register-firebase",
+    "/auth/signup/otp/send",
+    "/auth/signup/otp/verify",
+    "/auth/mfa/login",
     "/legal/accept",
     "/legal/accept/status",
 )
 
+_LEGAL_ACCEPTANCE_EXEMPT_PREFIXES = (
+    "/auth/sessions",
+    "/auth/verify-email/",
+    "/auth/password-reset/",
+    "/auth/mfa/",
+    "/legal/",
+)
+
 
 def _requires_legal_acceptance(path: str) -> bool:
-    if any(path == exempt or path.startswith(f"{exempt}/") for exempt in _LEGAL_ACCEPTANCE_EXEMPT_PATHS):
+    if path in _LEGAL_ACCEPTANCE_EXEMPT_EXACT:
         return False
-    if path.startswith("/auth/"):
-        return False
-    if path.startswith("/legal/"):
+    if any(path.startswith(prefix) for prefix in _LEGAL_ACCEPTANCE_EXEMPT_PREFIXES):
         return False
     return True
 

@@ -25,7 +25,7 @@ class AuthUser {
       displayName: json['display_name'] as String? ?? '',
       hasSellerProfile: json['has_seller_profile'] as bool? ?? false,
       legalAcceptanceComplete:
-          json['legal_acceptance_complete'] as bool? ?? true,
+          json['legal_acceptance_complete'] as bool? ?? false,
       pendingLegalPolicies:
           (json['pending_legal_policies'] as List<dynamic>? ?? const [])
               .map((item) => item as String)

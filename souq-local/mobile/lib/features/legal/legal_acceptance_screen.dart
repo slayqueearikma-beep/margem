@@ -70,6 +70,7 @@ class _LegalAcceptanceScreenState extends ConsumerState<LegalAcceptanceScreen> {
             language: copy.acceptanceLanguageCode,
           );
       ref.read(legalAcceptanceStatusProvider.notifier).state = updated;
+      await ref.read(appStorageProvider)?.setLegalAcceptanceComplete(updated.complete);
       if (!mounted) return;
 
       final session = ref.read(userSessionProvider);

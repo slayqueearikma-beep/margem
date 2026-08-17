@@ -164,6 +164,20 @@ async def test_favorites_follow_contact_and_messaging(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_guest_favorites_migrate_seller_only_without_product_id(client: AsyncClient):
+    _, seller_body, _product = await _create_seller_with_product(client)
+    buyer = await _register(client, "buyer")
+
+    migrated = await client.post(
+        "/favorites/migrate-guest",
+        headers=buyer["headers"],
+        json={"items": [{"seller_id": seller_body["id"]}]},
+    )
+    assert migrated.status_code == 200, migrated.text
+    assert any(item.get("seller_id") == seller_body["id"] for item in migrated.json())
+
+
+@pytest.mark.asyncio
 async def test_guest_favorites_migrate_and_report(client: AsyncClient):
     _, seller_body, product = await _create_seller_with_product(client)
     buyer = await _register(client, "buyer")

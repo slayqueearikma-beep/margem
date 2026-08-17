@@ -12,10 +12,15 @@ Future<String> resolveAuthenticatedDestination(
 ) async {
   try {
     final status = await refreshLegalAcceptanceStatus(ref);
+    await storage.setLegalAcceptanceComplete(status.complete);
     if (!status.complete) {
       return '/legal/accept';
     }
+    return storage.homeRouteFor(session);
   } catch (_) {
+    if (!storage.getLegalAcceptanceComplete()) {
+      return '/legal/accept';
+    }
     final cached = ref.read(legalAcceptanceStatusProvider);
     if (cached != null && !cached.complete) {
       return '/legal/accept';

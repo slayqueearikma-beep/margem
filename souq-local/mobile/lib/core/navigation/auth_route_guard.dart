@@ -35,20 +35,5 @@ bool isLegalAcceptanceExemptLocation(String path) {
 
 /// Main application routes that require current legal policy acceptance.
 bool isLegalAcceptanceRequiredLocation(String path) {
-  if (isLegalAcceptanceExemptLocation(path)) return false;
-  if (path == '/buyer/home' ||
-      path.startsWith('/seller/') ||
-      path == '/profile' ||
-      path == '/favorites' ||
-      path == '/search' ||
-      path == '/map' ||
-      path == '/bundle' ||
-      path == '/community' ||
-      path == '/premium' ||
-      path.startsWith('/messages') ||
-      path.startsWith('/marketplace/') ||
-      path.startsWith('/settings')) {
-    return true;
-  }
-  return false;
+  return !isLegalAcceptanceExemptLocation(path);
 }

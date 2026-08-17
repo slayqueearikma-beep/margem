@@ -81,9 +81,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       final legalStatus = container.read(legalAcceptanceStatusProvider);
       final authUser = container.read(authSessionProvider)?.user;
+      final storage = container.read(appStorageProvider);
       final needsLegalAcceptance = isAuthenticated &&
-          ((legalStatus != null && !legalStatus.complete) ||
-              (authUser != null && !authUser.legalAcceptanceComplete));
+          (legalStatus != null
+              ? !legalStatus.complete
+              : authUser != null
+                  ? !authUser.legalAcceptanceComplete
+                  : !(storage?.getLegalAcceptanceComplete() ?? false));
       if (needsLegalAcceptance &&
           isLegalAcceptanceRequiredLocation(path) &&
           path != '/legal/accept') {
@@ -94,7 +98,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           !needsLegalAcceptance) {
         final storage = container.read(appStorageProvider);
         if (storage != null) {
-          return storage.homeRouteFor(session!);
+          return storage.homeRouteFor(session);
         }
       }
       final isSellerManagement = path == '/seller/dashboard' ||
