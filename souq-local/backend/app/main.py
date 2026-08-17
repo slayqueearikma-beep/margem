@@ -32,6 +32,7 @@ from app.routers import (
     community,
     discovery,
     geography,
+    legal_acceptance,
     legal_pages,
     marketplace_admin,
     marketplace_community,
@@ -183,6 +184,7 @@ app.include_router(marketplace_community.router)
 app.include_router(marketplace_admin.router)
 app.include_router(bundles.router)
 app.include_router(geography.router)
+app.include_router(legal_acceptance.router)
 app.include_router(legal_pages.router)
 
 if settings.serve_embedded_admin and _admin_dashboard_dir is not None:

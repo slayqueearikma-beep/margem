@@ -12,6 +12,8 @@ import '../../core/models/auth_models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/navigation/post_auth_navigation.dart';
+import '../../core/services/legal_acceptance_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../l10n/app_localizations.dart';
@@ -249,9 +251,10 @@ class _SellerRegistrationScreenState
         await storage.saveAppMode(AppMode.seller);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
+        syncLegalAcceptanceFromAuthUser(ref, session.user);
 
         if (!mounted) return;
-        context.go('/seller/dashboard');
+        context.go(await resolveAuthenticatedDestination(ref, storage, userSession));
       });
     } on ApiException catch (e) {
       if (!mounted) return;

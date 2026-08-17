@@ -11,6 +11,8 @@ import '../../core/config/app_config.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/navigation/post_auth_navigation.dart';
+import '../../core/services/legal_acceptance_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -112,9 +114,10 @@ class _BuyerRegistrationScreenState
         await storage.saveAppMode(AppMode.buyer);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
+        syncLegalAcceptanceFromAuthUser(ref, session.user);
 
         if (!mounted) return;
-        context.go('/buyer/home');
+        context.go(await resolveAuthenticatedDestination(ref, storage, userSession));
       });
     } on ApiException catch (e) {
       if (!mounted) return;

@@ -177,6 +177,9 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
 
     user.last_login_at = datetime.now(UTC)
     has_store = await user_has_seller_profile(session, user.id)
+    from app.services.legal_acceptance import get_pending_policy_ids
+
+    pending = await get_pending_policy_ids(session, user.id)
     await session.commit()
     return TokenResponse(
         access_token=create_access_token(
@@ -186,7 +189,12 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
         ),
         refresh_token=refresh_token,
         expires_in=settings.jwt_access_expire_minutes * 60,
-        user=UserOut.from_user(user, has_seller_profile=has_store),
+        user=UserOut.from_user(
+            user,
+            has_seller_profile=has_store,
+            legal_acceptance_complete=not pending,
+            pending_legal_policies=pending,
+        ),
     )
 
 
@@ -348,6 +356,9 @@ async def refresh_tokens(
     from app.auth import user_has_seller_profile
 
     has_store = await user_has_seller_profile(session, user.id)
+    from app.services.legal_acceptance import get_pending_policy_ids
+
+    pending = await get_pending_policy_ids(session, user.id)
     return TokenResponse(
         access_token=create_access_token(
             user.id,
@@ -356,7 +367,12 @@ async def refresh_tokens(
         ),
         refresh_token=new_refresh,
         expires_in=settings.jwt_access_expire_minutes * 60,
-        user=UserOut.from_user(user, has_seller_profile=has_store),
+        user=UserOut.from_user(
+            user,
+            has_seller_profile=has_store,
+            legal_acceptance_complete=not pending,
+            pending_legal_policies=pending,
+        ),
     )
 
 
@@ -408,9 +424,16 @@ async def me(
     session: AsyncSession = Depends(get_db),
 ) -> UserOut:
     from app.auth import user_has_seller_profile
+    from app.services.legal_acceptance import get_pending_policy_ids
 
     has_store = await user_has_seller_profile(session, user.id)
-    return UserOut.from_user(user, has_seller_profile=has_store)
+    pending = await get_pending_policy_ids(session, user.id)
+    return UserOut.from_user(
+        user,
+        has_seller_profile=has_store,
+        legal_acceptance_complete=not pending,
+        pending_legal_policies=pending,
+    )
 
 
 @router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)

@@ -12,6 +12,7 @@ async def register_test_user(
     display_name: str = "Test User",
     phone: str = "+212600000000",
     channel: str = "email",
+    accept_policies: bool = True,
 ) -> dict:
     sent = await client.post(
         "/auth/signup/otp/send",
@@ -39,4 +40,20 @@ async def register_test_user(
         },
     )
     assert register.status_code == 201, register.text
-    return register.json()
+    body = register.json()
+    if accept_policies:
+        headers = {"Authorization": f"Bearer {body['access_token']}"}
+        accept = await client.post(
+            "/legal/accept",
+            headers=headers,
+            json={
+                "policies": [
+                    {"policy_id": "terms_of_service"},
+                    {"policy_id": "privacy_policy"},
+                ],
+                "language": "en",
+                "acknowledged": True,
+            },
+        )
+        assert accept.status_code == 200, accept.text
+    return body

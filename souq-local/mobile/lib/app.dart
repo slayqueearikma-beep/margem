@@ -9,6 +9,7 @@ import 'core/navigation/app_back_handler.dart';
 import 'core/navigation/auth_route_guard.dart';
 import 'core/services/app_storage.dart';
 import 'core/services/auth_service.dart';
+import 'core/services/legal_acceptance_service.dart';
 import 'core/services/locale_provider.dart';
 import 'core/services/theme_mode_provider.dart';
 import 'core/theme/app_theme.dart';
@@ -43,6 +44,7 @@ import 'features/seller/seller_reviews_screen.dart';
 import 'features/seller/seller_settings_screen.dart';
 import 'features/wishlist/wishlist_screen.dart';
 import 'features/settings/language_selection_screen.dart';
+import 'features/legal/legal_acceptance_screen.dart';
 import 'features/legal/account_settings_screen.dart';
 import 'features/legal/legal_document_screen.dart';
 import 'features/legal/privacy_legal_hub_screen.dart';
@@ -56,6 +58,7 @@ class _RouterRefreshListenable extends ChangeNotifier {
   _RouterRefreshListenable(Ref ref) {
     ref.listen(userSessionProvider, (_, __) => notifyListeners());
     ref.listen(authSessionProvider, (_, __) => notifyListeners());
+    ref.listen(legalAcceptanceStatusProvider, (_, __) => notifyListeners());
   }
 }
 
@@ -68,13 +71,31 @@ final routerProvider = Provider<GoRouter>((ref) {
     // Keep the page stack for Android system-back; only splash/auth flows
     // intentionally replace via context.go().
     redirect: (context, state) {
-      final session =
-          ProviderScope.containerOf(context).read(userSessionProvider);
+      final container = ProviderScope.containerOf(context);
+      final session = container.read(userSessionProvider);
       final path = state.matchedLocation;
       final isAuthProtected = isAuthProtectedLocation(path);
       final isAuthenticated = session != null && !session.isGuest;
       if (isAuthProtected && !isAuthenticated) {
         return '/login';
+      }
+      final legalStatus = container.read(legalAcceptanceStatusProvider);
+      final authUser = container.read(authSessionProvider)?.user;
+      final needsLegalAcceptance = isAuthenticated &&
+          ((legalStatus != null && !legalStatus.complete) ||
+              (authUser != null && !authUser.legalAcceptanceComplete));
+      if (needsLegalAcceptance &&
+          isLegalAcceptanceRequiredLocation(path) &&
+          path != '/legal/accept') {
+        return '/legal/accept';
+      }
+      if (path == '/legal/accept' &&
+          isAuthenticated &&
+          !needsLegalAcceptance) {
+        final storage = container.read(appStorageProvider);
+        if (storage != null) {
+          return storage.homeRouteFor(session!);
+        }
       }
       final isSellerManagement = path == '/seller/dashboard' ||
           path.startsWith('/seller/products') ||
@@ -95,6 +116,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
+      GoRoute(
+        path: '/legal/accept',
+        builder: (_, __) => const LegalAcceptanceScreen(),
+      ),
       GoRoute(
           path: '/language',
           builder: (_, __) => const LanguageSelectionScreen()),

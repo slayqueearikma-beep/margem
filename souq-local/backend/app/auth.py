@@ -1,7 +1,7 @@
 import secrets
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -136,13 +136,46 @@ async def _enforce_account_state(user: User, session: AsyncSession) -> User:
     return user
 
 
+_LEGAL_ACCEPTANCE_EXEMPT_PATHS = (
+    "/auth/me",
+    "/auth/logout",
+    "/auth/logout-all",
+    "/auth/sessions",
+    "/auth/me/password",
+    "/auth/me/export",
+    "/legal/accept",
+    "/legal/accept/status",
+)
+
+
+def _requires_legal_acceptance(path: str) -> bool:
+    if any(path == exempt or path.startswith(f"{exempt}/") for exempt in _LEGAL_ACCEPTANCE_EXEMPT_PATHS):
+        return False
+    if path.startswith("/auth/"):
+        return False
+    if path.startswith("/legal/"):
+        return False
+    return True
+
+
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     session: AsyncSession = Depends(get_db),
 ) -> User:
     user = await _resolve_user_from_credentials(credentials, session, required=True)
     assert user is not None
-    return await _enforce_account_state(user, session)
+    user = await _enforce_account_state(user, session)
+    if _requires_legal_acceptance(request.url.path):
+        from app.services.legal_acceptance import get_pending_policy_ids
+
+        pending = await get_pending_policy_ids(session, user.id)
+        if pending:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="legal_acceptance_required",
+            )
+    return user
 
 
 async def get_current_user_optional(

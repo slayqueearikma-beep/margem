@@ -5,6 +5,8 @@ class AuthUser {
     required this.accountType,
     required this.displayName,
     this.hasSellerProfile = false,
+    this.legalAcceptanceComplete = true,
+    this.pendingLegalPolicies = const [],
   });
 
   final String id;
@@ -12,6 +14,8 @@ class AuthUser {
   final String accountType;
   final String displayName;
   final bool hasSellerProfile;
+  final bool legalAcceptanceComplete;
+  final List<String> pendingLegalPolicies;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -20,6 +24,12 @@ class AuthUser {
       accountType: json['account_type'] as String,
       displayName: json['display_name'] as String? ?? '',
       hasSellerProfile: json['has_seller_profile'] as bool? ?? false,
+      legalAcceptanceComplete:
+          json['legal_acceptance_complete'] as bool? ?? true,
+      pendingLegalPolicies:
+          (json['pending_legal_policies'] as List<dynamic>? ?? const [])
+              .map((item) => item as String)
+              .toList(),
     );
   }
 

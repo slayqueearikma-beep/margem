@@ -122,12 +122,21 @@ class UserOut(BaseModel):
     status: str = "active"
     mfa_enabled: bool = False
     has_seller_profile: bool = False
+    legal_acceptance_complete: bool = True
+    pending_legal_policies: list[str] = Field(default_factory=list)
     created_at: datetime
 
     model_config = {"from_attributes": True}
 
     @classmethod
-    def from_user(cls, user, *, has_seller_profile: bool = False) -> "UserOut":
+    def from_user(
+        cls,
+        user,
+        *,
+        has_seller_profile: bool = False,
+        legal_acceptance_complete: bool = True,
+        pending_legal_policies: list[str] | None = None,
+    ) -> "UserOut":
         return cls(
             id=user.id,
             email=user.email,
@@ -141,6 +150,8 @@ class UserOut(BaseModel):
             status=getattr(user, "status", None).value if getattr(user, "status", None) else "active",
             mfa_enabled=bool(getattr(user, "mfa_enabled", False)),
             has_seller_profile=has_seller_profile,
+            legal_acceptance_complete=legal_acceptance_complete,
+            pending_legal_policies=pending_legal_policies or [],
             created_at=user.created_at,
         )
 

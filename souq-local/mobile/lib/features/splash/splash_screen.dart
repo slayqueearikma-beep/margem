@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/navigation/post_auth_navigation.dart';
+import '../../core/services/legal_acceptance_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -69,6 +71,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     var restored = await ref.read(authServiceProvider).restoreAuthSession();
     if (restored != null) {
       ref.read(authSessionProvider.notifier).state = restored;
+      syncLegalAcceptanceFromAuthUser(ref, restored.user);
     }
 
     final session = storage.getSession();
@@ -101,7 +104,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       await storage.saveSession(hydrated);
       ref.read(userSessionProvider.notifier).state = hydrated;
       if (mounted) {
-        context.go(storage.homeRouteFor(hydrated));
+        context.go(
+          await resolveAuthenticatedDestination(ref, storage, hydrated),
+        );
       }
       return;
     }

@@ -17,3 +17,38 @@ bool isAuthProtectedLocation(String path) {
       path.startsWith('/community/channels') ||
       isMarketplaceCommunity;
 }
+
+/// Routes reachable before mandatory legal policy acceptance.
+bool isLegalAcceptanceExemptLocation(String path) {
+  if (path == '/legal/accept') return true;
+  if (path.startsWith('/legal/')) return true;
+  if (path.startsWith('/settings/privacy-legal')) return true;
+  if (path == '/splash' ||
+      path == '/login' ||
+      path.startsWith('/onboarding') ||
+      path == '/verify-email' ||
+      path == '/forgot-password') {
+    return true;
+  }
+  return false;
+}
+
+/// Main application routes that require current legal policy acceptance.
+bool isLegalAcceptanceRequiredLocation(String path) {
+  if (isLegalAcceptanceExemptLocation(path)) return false;
+  if (path == '/buyer/home' ||
+      path.startsWith('/seller/') ||
+      path == '/profile' ||
+      path == '/favorites' ||
+      path == '/search' ||
+      path == '/map' ||
+      path == '/bundle' ||
+      path == '/community' ||
+      path == '/premium' ||
+      path.startsWith('/messages') ||
+      path.startsWith('/marketplace/') ||
+      path.startsWith('/settings')) {
+    return true;
+  }
+  return false;
+}
