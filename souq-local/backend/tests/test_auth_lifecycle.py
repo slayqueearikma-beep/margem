@@ -192,6 +192,8 @@ async def test_delete_account_removes_seller_storefront(client: AsyncClient):
             "whatsapp_number": "+212600000066",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert profile.status_code == 201, profile.text
@@ -222,7 +224,11 @@ async def test_subscribe_premium_blocked_in_production(client: AsyncClient, monk
 
     user = await _register(client, "buyer")
     monkeypatch.setattr(settings, "app_env", "production")
-    res = await client.post("/subscriptions/subscribe/buyer_premium", headers=user["headers"])
+    res = await client.post(
+        "/subscriptions/subscribe/buyer_premium",
+        headers=user["headers"],
+        json={"subscription_terms_accepted": True},
+    )
     assert res.status_code == 503
     assert "billing" in res.json()["detail"].lower() or "provider" in res.json()["detail"].lower() or "admin" in res.json()["detail"].lower()
 

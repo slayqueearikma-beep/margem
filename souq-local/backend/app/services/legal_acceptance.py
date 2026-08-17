@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -18,9 +19,13 @@ from app.models import LegalAcceptance
 _MANIFEST_PATH = (
     Path(__file__).resolve().parents[2] / "static" / "legal" / "manifest.json"
 )
+_STATIC_LEGAL_ROOT = _MANIFEST_PATH.parent
 
 # Policies that must be accepted before using the authenticated application.
 ONBOARDING_POLICY_IDS: tuple[str, ...] = ("terms_of_service", "privacy_policy")
+
+# Additional agreements recorded at contextual flows (seller onboarding, checkout).
+CONTEXTUAL_POLICY_IDS: tuple[str, ...] = ("seller_terms", "subscription_terms")
 
 _ACCEPTANCE_LANGUAGES = {"en", "fr"}
 
@@ -71,6 +76,21 @@ def normalize_acceptance_language(language: str) -> str:
     return code
 
 
+def document_hash_for_policy(policy_id: str, *, language: str = "en") -> str:
+    """SHA-256 of the published HTML document (integrity evidence under DOC Art. 417-1)."""
+    docs = _documents_by_id()
+    doc = docs.get(policy_id)
+    if doc is None:
+        return ""
+    slug = str(doc.get("slug", ""))
+    lang = normalize_acceptance_language(language)
+    for candidate in (lang, "en", "fr"):
+        path = _STATIC_LEGAL_ROOT / candidate / f"{slug}.html"
+        if path.is_file():
+            return hashlib.sha256(path.read_bytes()).hexdigest()
+    return ""
+
+
 async def get_user_acceptances(
     session: AsyncSession, user_id: UUID
 ) -> dict[str, str]:
@@ -107,16 +127,23 @@ async def record_policy_acceptances(
     language: str,
     ip_address: str = "",
     user_agent: str = "",
+    source: str = "legal_accept",
+    authentication_method: str = "bearer_session",
+    session_reference: str = "",
+    allow_contextual: bool = False,
 ) -> list[str]:
     """Record acceptances for the current manifest versions. Returns accepted policy ids."""
     docs = _documents_by_id()
     required = {p.policy_id: p for p in get_required_onboarding_policies()}
+    allowed = set(required.keys())
+    if allow_contextual:
+        allowed |= set(CONTEXTUAL_POLICY_IDS)
     normalized_lang = normalize_acceptance_language(language)
     now = datetime.now(UTC)
     accepted_ids: list[str] = []
 
     for policy_id in policy_ids:
-        if policy_id not in required:
+        if policy_id not in allowed:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unknown or non-required policy: {policy_id}",
@@ -133,6 +160,7 @@ async def record_policy_acceptances(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Policy version missing for {policy_id}",
             )
+        doc_hash = document_hash_for_policy(policy_id, language=normalized_lang)
 
         stmt = (
             insert(LegalAcceptance)
@@ -144,6 +172,10 @@ async def record_policy_acceptances(
                 accepted_at=now,
                 ip_address=ip_address[:64],
                 user_agent=user_agent[:512],
+                document_hash=doc_hash,
+                authentication_method=authentication_method[:32],
+                source=source[:64],
+                session_reference=session_reference[:128],
             )
             .on_conflict_do_nothing(
                 index_elements=["user_id", "policy_id", "policy_version"]
@@ -166,6 +198,9 @@ def build_acceptance_status(
             "policy_id": policy.policy_id,
             "policy_version": accepted_versions[policy.policy_id],
             "slug": policy.slug,
+            "document_hash": document_hash_for_policy(
+                policy.policy_id, language="en"
+            ),
         }
         for policy in required
         if policy.policy_id in accepted_versions

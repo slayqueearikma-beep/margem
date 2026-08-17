@@ -17,6 +17,7 @@ from app.models import (
     Review,
     SellerProfile,
     Subscription,
+    SubscriptionAgreementRecord,
     User,
     UserConsent,
 )
@@ -43,6 +44,11 @@ async def build_user_data_export(session: AsyncSession, user: User) -> dict:
     ).scalars().all()
     legal_acceptances = (
         await session.execute(select(LegalAcceptance).where(LegalAcceptance.user_id == user.id))
+    ).scalars().all()
+    subscription_agreements = (
+        await session.execute(
+            select(SubscriptionAgreementRecord).where(SubscriptionAgreementRecord.user_id == user.id)
+        )
     ).scalars().all()
     consents = (
         await session.execute(
@@ -138,8 +144,24 @@ async def build_user_data_export(session: AsyncSession, user: User) -> dict:
                 "policy_version": row.policy_version,
                 "language": row.language,
                 "accepted_at": row.accepted_at.isoformat(),
+                "document_hash": row.document_hash,
+                "source": row.source,
+                "authentication_method": row.authentication_method,
             }
             for row in legal_acceptances
+        ],
+        "subscription_agreements": [
+            {
+                "plan_code": row.plan_code,
+                "plan_price_mad": float(row.plan_price_mad),
+                "billing_period_days": row.billing_period_days,
+                "policy_id": row.policy_id,
+                "policy_version": row.policy_version,
+                "document_hash": row.document_hash,
+                "accepted_at": row.accepted_at.isoformat(),
+                "provider_reference": row.provider_reference,
+            }
+            for row in subscription_agreements
         ],
         "consents": [
             {

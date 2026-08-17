@@ -13,6 +13,8 @@ import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../l10n/app_localizations.dart';
 import '../legal/legal_config.dart';
+import '../legal/legal_documents.dart';
+import '../legal/legal_document_screen.dart';
 
 final subscriptionPlansProvider =
     FutureProvider.autoDispose<List<SubscriptionPlanModel>>((ref) {
@@ -39,12 +41,19 @@ class PremiumScreen extends ConsumerStatefulWidget {
 
 class _PremiumScreenState extends ConsumerState<PremiumScreen> {
   String? _subscribingCode;
+  bool _subscriptionTermsAccepted = false;
 
   Future<void> _subscribe(SubscriptionPlanModel plan) async {
     final l10n = context.l10n;
     final session = ref.read(userSessionProvider);
     if (session == null || session.isGuest) {
       context.push('/login');
+      return;
+    }
+    if (!_subscriptionTermsAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.completeRequiredStep)),
+      );
       return;
     }
 
@@ -56,7 +65,12 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
 
     setState(() => _subscribingCode = plan.code);
     try {
-      final result = await apiServiceProvider.checkoutSubscription(plan.code);
+      final locale = Localizations.localeOf(context).languageCode;
+      final result = await apiServiceProvider.checkoutSubscription(
+        plan.code,
+        subscriptionTermsAccepted: true,
+        acceptanceLanguage: locale,
+      );
       if (!mounted) return;
 
       if (result.activated) {
@@ -144,6 +158,37 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                   activePlanName: active?.plan.displayName,
                   isGuest: session == null || session.isGuest,
                 ),
+                if (session != null && !session.isGuest) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  CheckboxListTile(
+                    value: _subscriptionTermsAccepted,
+                    onChanged: (value) =>
+                        setState(() => _subscriptionTermsAccepted = value ?? false),
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text('${l10n.signupTermsPrefix} '),
+                        InkWell(
+                          onTap: () => openLegalDocument(
+                            context,
+                            LegalDocumentId.subscriptionTerms,
+                          ),
+                          child: Text(
+                            l10n.subscriptionTerms,
+                            style: TextStyle(
+                              color: context.colors.primary,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                        Text(l10n.signupTermsSuffix),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.md),
                 ...plans.map(
                   (plan) => _PlanCard(

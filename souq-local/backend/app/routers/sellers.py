@@ -276,11 +276,14 @@ async def get_my_dashboard(
 @router.post("", response_model=SellerDetail, status_code=status.HTTP_201_CREATED)
 async def create_seller(
     payload: SellerCreate,
+    request: Request,
     user: User = Depends(require_verified_email),
     session: AsyncSession = Depends(get_db),
 ) -> SellerProfile:
     """Create a storefront on the current account (buyer can upgrade in place)."""
     from app.models import AccountType, UserRole
+    from app.services.client_ip import get_client_ip
+    from app.services.electronic_acceptance import record_seller_agreement_acceptance
 
     existing = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
     if existing.scalar_one_or_none():
@@ -320,6 +323,13 @@ async def create_seller(
     # Dual-mode: keep one identity; mark account as seller-capable.
     user.account_type = AccountType.PROVIDER
     user.role = UserRole.PROVIDER
+    await record_seller_agreement_acceptance(
+        session,
+        user_id=user.id,
+        language=payload.acceptance_language,
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("user-agent", ""),
+    )
     await session.commit()
     return await _load_seller_detail(session, seller.id)
 

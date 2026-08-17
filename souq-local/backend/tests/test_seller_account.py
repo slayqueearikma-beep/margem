@@ -34,6 +34,8 @@ async def _create_seller(client: AsyncClient, token: str, name: str = "My Shop")
                 "days": {"Mon": True, "Tue": True, "Wed": True, "Thu": True, "Fri": True, "Sat": True, "Sun": False},
                 "open": "09:00",
                 "close": "21:00",
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
             },
             "category_ids": [],
         },

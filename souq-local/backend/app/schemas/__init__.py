@@ -467,6 +467,15 @@ class SellerCreate(BaseModel):
     delivery_methods: list[str] = Field(default_factory=lambda: ["in_store"])
     service_areas: list[str] = Field(default_factory=list)
     category_ids: list[UUID] = Field(default_factory=list)
+    seller_terms_acknowledged: bool = False
+    acceptance_language: str = Field(default="en", max_length=8)
+
+    @field_validator("seller_terms_acknowledged")
+    @classmethod
+    def require_seller_terms(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("seller_terms_acknowledged must be true")
+        return value
 
     @field_validator("city")
     @classmethod

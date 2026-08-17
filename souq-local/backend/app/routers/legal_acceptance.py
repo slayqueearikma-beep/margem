@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import get_current_user
 from app.database import get_db
 from app.models import User
+from app.services.client_ip import get_client_ip
 from app.services.legal_acceptance import (
     build_acceptance_status,
     get_pending_policy_ids,
@@ -76,7 +77,7 @@ async def accept_legal_policies(
             detail="All required policies must be accepted together",
         )
 
-    client_ip = request.client.host if request.client else ""
+    client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
 
     await record_policy_acceptances(
@@ -86,6 +87,8 @@ async def accept_legal_policies(
         language=payload.language,
         ip_address=client_ip,
         user_agent=user_agent,
+        source="onboarding_legal_accept",
+        authentication_method="bearer_session",
     )
     await session.commit()
 

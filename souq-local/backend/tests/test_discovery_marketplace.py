@@ -54,6 +54,8 @@ async def _create_seller_with_product(client: AsyncClient) -> tuple[dict, dict, 
             "payment_methods": ["cash", "bank_transfer"],
             "delivery_methods": ["in_store", "local_delivery"],
             "website_url": "https://example.com",
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert profile.status_code == 201, profile.text
@@ -265,7 +267,11 @@ async def test_subscribe_premium_visibility(client: AsyncClient):
     assert plans.status_code == 200
     assert len(plans.json()) >= 1
     code = plans.json()[-1]["code"]
-    sub = await client.post(f"/subscriptions/subscribe/{code}", headers=seller["headers"])
+    sub = await client.post(
+        f"/subscriptions/subscribe/{code}",
+        headers=seller["headers"],
+        json={"subscription_terms_accepted": True},
+    )
     assert sub.status_code == 201, sub.text
     me = await client.get("/auth/me", headers=seller["headers"])
     assert me.status_code == 200

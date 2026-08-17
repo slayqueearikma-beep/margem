@@ -64,6 +64,8 @@ async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
             "whatsapp_number": "+212600000088",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert created.status_code == 201, created.text
@@ -98,6 +100,8 @@ async def test_seller_can_review_another_business(client: AsyncClient):
             "whatsapp_number": "+212600000091",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert store_a.status_code == 201, store_a.text
@@ -116,6 +120,8 @@ async def test_seller_can_review_another_business(client: AsyncClient):
             "whatsapp_number": "+212600000092",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert store_b.status_code == 201, store_b.text

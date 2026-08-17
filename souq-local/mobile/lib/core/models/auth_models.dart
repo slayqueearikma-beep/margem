@@ -111,6 +111,8 @@ class SellerCreatePayload {
     this.logoImageUrl = '',
     this.openingHours,
     this.categoryIds = const [],
+    this.sellerTermsAcknowledged = false,
+    this.acceptanceLanguage = 'en',
   });
 
   final String businessName;
@@ -124,6 +126,8 @@ class SellerCreatePayload {
   final String logoImageUrl;
   final Map<String, dynamic>? openingHours;
   final List<String> categoryIds;
+  final bool sellerTermsAcknowledged;
+  final String acceptanceLanguage;
 
   Map<String, dynamic> toJson() => {
         'business_name': businessName,
@@ -137,6 +141,8 @@ class SellerCreatePayload {
         'logo_image_url': logoImageUrl,
         if (openingHours != null) 'opening_hours': openingHours,
         'category_ids': categoryIds,
+        'seller_terms_acknowledged': sellerTermsAcknowledged,
+        'acceptance_language': acceptanceLanguage,
       };
 }
 

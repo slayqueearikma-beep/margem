@@ -21,6 +21,8 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../features/legal/signup_terms_footer.dart';
+import '../legal/legal_documents.dart';
+import '../legal/legal_document_screen.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/models/city_model.dart';
 import '../../core/providers/city_providers.dart';
@@ -42,6 +44,7 @@ class _SellerRegistrationScreenState
   static const _totalSteps = 5;
   int _step = 1;
   bool _loading = false;
+  bool _sellerTermsAccepted = false;
 
   // Step 1
   final _businessNameController = TextEditingController();
@@ -133,6 +136,11 @@ class _SellerRegistrationScreenState
           .showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
       return;
     }
+    if (_step == _totalSteps && !_sellerTermsAccepted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
+      return;
+    }
     if (_step < _totalSteps) {
       setState(() => _step++);
     } else {
@@ -190,6 +198,7 @@ class _SellerRegistrationScreenState
           logoUrl = await uploader.uploadImage(_logoImage!);
         }
 
+        final locale = Localizations.localeOf(context).languageCode;
         final seller = await apiServiceProvider.createSeller(
           SellerCreatePayload(
             businessName: _businessNameController.text.trim(),
@@ -209,6 +218,8 @@ class _SellerRegistrationScreenState
                   '${_closeTime.hour.toString().padLeft(2, '0')}:${_closeTime.minute.toString().padLeft(2, '0')}',
             },
             categoryIds: categoryId != null ? [categoryId] : [],
+            sellerTermsAcknowledged: true,
+            acceptanceLanguage: locale,
           ),
         );
         final sellerId = seller.id;
@@ -288,10 +299,40 @@ class _SellerRegistrationScreenState
           if (_step == _totalSteps) ...[
             const SignupTermsFooter(),
             const SizedBox(height: AppSpacing.sm),
+            CheckboxListTile(
+              value: _sellerTermsAccepted,
+              onChanged: _loading
+                  ? null
+                  : (value) => setState(() => _sellerTermsAccepted = value ?? false),
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text('${l10n.signupTermsPrefix} '),
+                  InkWell(
+                    onTap: () =>
+                        openLegalDocument(context, LegalDocumentId.sellerTerms),
+                    child: Text(
+                      l10n.sellerTerms,
+                      style: TextStyle(
+                        color: context.colors.primary,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                  Text(l10n.signupTermsSuffix),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
           ],
           PrimaryButton(
             label: _step == _totalSteps ? l10n.submitCreateAccount : l10n.next,
-            onPressed: _next,
+            onPressed: (_step == _totalSteps && !_sellerTermsAccepted) || _loading
+                ? null
+                : _next,
             isLoading: _loading,
           ),
           if (_step < _totalSteps)

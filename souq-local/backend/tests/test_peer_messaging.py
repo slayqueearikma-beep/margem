@@ -51,6 +51,8 @@ async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
             "whatsapp_number": "+212600000077",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert res.status_code == 201, res.text

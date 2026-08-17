@@ -35,6 +35,8 @@ async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
             "phone": "+212600000010",
             "cover_image_url": "",
             "category_ids": [],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert created.status_code == 201, created.text

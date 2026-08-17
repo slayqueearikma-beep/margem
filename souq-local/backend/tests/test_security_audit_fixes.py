@@ -104,7 +104,11 @@ async def test_manual_billing_blocked_on_staging(client: AsyncClient, monkeypatc
     monkeypatch.setattr(settings, "allow_manual_billing", False)
     monkeypatch.setattr(settings, "stripe_secret_key", "")
     headers = {"Authorization": f"Bearer {user['access_token']}"}
-    res = await client.post("/subscriptions/subscribe/buyer_premium", headers=headers)
+    res = await client.post(
+        "/subscriptions/subscribe/buyer_premium",
+        headers=headers,
+        json={"subscription_terms_accepted": True},
+    )
     assert res.status_code == 503
 
 

@@ -44,6 +44,8 @@ async def _register_seller(client: AsyncClient, business_name: str) -> tuple[dic
             "whatsapp_number": "+212600000011",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert profile.status_code == 201, profile.text

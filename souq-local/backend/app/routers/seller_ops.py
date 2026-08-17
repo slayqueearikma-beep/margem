@@ -130,6 +130,15 @@ class BillingStatusOut(BaseModel):
 class CheckoutRequest(BaseModel):
     success_url: str = Field(default="margem://premium/success", max_length=500)
     cancel_url: str = Field(default="margem://premium/cancel", max_length=500)
+    subscription_terms_accepted: bool = False
+    acceptance_language: str = Field(default="en", max_length=8)
+
+    @field_validator("subscription_terms_accepted")
+    @classmethod
+    def require_subscription_terms(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("subscription_terms_accepted must be true")
+        return value
 
 
 class CheckoutOut(BaseModel):
@@ -538,10 +547,13 @@ async def billing_status() -> BillingStatusOut:
 async def checkout_plan(
     plan_code: str,
     payload: CheckoutRequest,
+    request: Request,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> CheckoutOut:
     from app.config import settings
+    from app.services.client_ip import get_client_ip
+    from app.services.electronic_acceptance import record_subscription_agreement_acceptance
     from app.services.stripe_billing import (
         activate_subscription,
         billing_self_serve_enabled,
@@ -565,6 +577,9 @@ async def checkout_plan(
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
 
+    client_ip = get_client_ip(request)
+    user_agent = request.headers.get("user-agent", "")
+
     if settings.app_env in {"production", "prod"} and settings.stripe_secret_key.strip():
         checkout_url = await create_checkout_session(
             session,
@@ -573,6 +588,16 @@ async def checkout_plan(
             success_url=payload.success_url,
             cancel_url=payload.cancel_url,
         )
+        await record_subscription_agreement_acceptance(
+            session,
+            user=user,
+            plan=plan,
+            language=payload.acceptance_language,
+            ip_address=client_ip,
+            user_agent=user_agent,
+            provider_reference="stripe_checkout_pending",
+        )
+        await session.commit()
         return CheckoutOut(checkout_url=checkout_url)
 
     if not manual_billing_allowed():
@@ -587,6 +612,16 @@ async def checkout_plan(
         plan_code=plan.code,
         provider="manual",
         provider_reference=f"manual-{uuid4().hex[:12]}",
+    )
+    await record_subscription_agreement_acceptance(
+        session,
+        user=user,
+        plan=plan,
+        language=payload.acceptance_language,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        provider_reference=subscription.provider_reference or "",
+        subscription_id=subscription.id,
     )
     if user.account_type.value == "provider" or plan.code.startswith("seller"):
         seller = (
@@ -621,10 +656,14 @@ async def checkout_plan(
 @router.post("/subscriptions/subscribe/{plan_code}", response_model=SubscriptionOut, status_code=status.HTTP_201_CREATED)
 async def subscribe(
     plan_code: str,
+    payload: CheckoutRequest,
+    request: Request,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut:
     """Legacy manual activation — prefer /subscriptions/checkout in production."""
+    from app.services.client_ip import get_client_ip
+    from app.services.electronic_acceptance import record_subscription_agreement_acceptance
     from app.services.stripe_billing import (
         activate_subscription,
         billing_self_serve_enabled,
@@ -652,12 +691,25 @@ async def subscribe(
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
 
+    client_ip = get_client_ip(request)
+    user_agent = request.headers.get("user-agent", "")
+
     subscription = await activate_subscription(
         session,
         user_id=user.id,
         plan_code=plan.code,
         provider="manual",
         provider_reference=f"manual-{uuid4().hex[:12]}",
+    )
+    await record_subscription_agreement_acceptance(
+        session,
+        user=user,
+        plan=plan,
+        language=payload.acceptance_language,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        provider_reference=subscription.provider_reference or "",
+        subscription_id=subscription.id,
     )
 
     if user.account_type.value == "provider" or plan.code.startswith("seller"):
@@ -722,11 +774,19 @@ async def stripe_webhook(
         if user_id and plan_code:
             from uuid import UUID
 
+            from app.services.electronic_acceptance import link_subscription_agreement_to_checkout
+
             subscription = await fulfill_checkout_session(
                 session,
                 checkout_session_id=str(data.get("id", "")),
                 user_id=UUID(user_id),
                 plan_code=str(plan_code),
+            )
+            await link_subscription_agreement_to_checkout(
+                session,
+                user_id=UUID(user_id),
+                subscription_id=subscription.id,
+                provider_reference=str(data.get("id", "")),
             )
             user = await session.get(User, UUID(user_id))
             if user is not None:

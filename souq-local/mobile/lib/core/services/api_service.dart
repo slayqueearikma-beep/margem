@@ -1228,12 +1228,18 @@ class ApiService {
     return BillingStatusModel.fromJson(data);
   }
 
-  Future<BillingCheckoutResult> checkoutSubscription(String planCode) async {
+  Future<BillingCheckoutResult> checkoutSubscription(
+    String planCode, {
+    required bool subscriptionTermsAccepted,
+    String acceptanceLanguage = 'en',
+  }) async {
     final data = await postJson(
       '/subscriptions/checkout/$planCode',
       {
         'success_url': 'margem://premium/success',
         'cancel_url': 'margem://premium/cancel',
+        'subscription_terms_accepted': subscriptionTermsAccepted,
+        'acceptance_language': acceptanceLanguage,
       },
       auth: true,
     );

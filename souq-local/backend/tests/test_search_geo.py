@@ -46,6 +46,8 @@ async def _create_seller(
             "whatsapp_number": "+212600000001",
             "payment_methods": ["cash"],
             "delivery_methods": ["pickup"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert profile.status_code == 201, profile.text

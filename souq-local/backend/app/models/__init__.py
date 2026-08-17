@@ -619,6 +619,28 @@ class UserConsent(Base):
     user_agent: Mapped[str] = mapped_column(String(512), default="")
 
 
+class SubscriptionAgreementRecord(Base):
+    __tablename__ = "subscription_agreement_records"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    subscription_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("subscriptions.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    plan_code: Mapped[str] = mapped_column(String(40))
+    plan_price_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False))
+    billing_period_days: Mapped[int] = mapped_column(Integer)
+    policy_id: Mapped[str] = mapped_column(String(64), default="subscription_terms")
+    policy_version: Mapped[str] = mapped_column(String(32))
+    document_hash: Mapped[str] = mapped_column(String(64), default="")
+    language: Mapped[str] = mapped_column(String(8), default="en")
+    accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ip_address: Mapped[str] = mapped_column(String(64), default="")
+    user_agent: Mapped[str] = mapped_column(String(512), default="")
+    authentication_method: Mapped[str] = mapped_column(String(32), default="bearer_session")
+    provider_reference: Mapped[str] = mapped_column(String(120), default="")
+
+
 class LegalAcceptance(Base):
     __tablename__ = "legal_acceptances"
     __table_args__ = (
@@ -638,6 +660,10 @@ class LegalAcceptance(Base):
     accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     ip_address: Mapped[str] = mapped_column(String(64), default="")
     user_agent: Mapped[str] = mapped_column(String(512), default="")
+    document_hash: Mapped[str] = mapped_column(String(64), default="")
+    authentication_method: Mapped[str] = mapped_column(String(32), default="bearer_session")
+    source: Mapped[str] = mapped_column(String(64), default="legal_accept")
+    session_reference: Mapped[str] = mapped_column(String(128), default="")
 
 
 # Re-export community models for Alembic metadata and imports.
