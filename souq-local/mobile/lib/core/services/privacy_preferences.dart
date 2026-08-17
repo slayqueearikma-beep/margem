@@ -14,7 +14,7 @@ class PrivacyPreferences {
   bool get marketingOptIn => _prefs.getBool(_marketingKey) ?? false;
 
   bool get personalizedRecommendations =>
-      _prefs.getBool(_personalizedRecsKey) ?? true;
+      _prefs.getBool(_personalizedRecsKey) ?? false;
 
   Future<void> setMarketingOptIn(bool value) =>
       _prefs.setBool(_marketingKey, value);

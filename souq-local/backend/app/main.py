@@ -37,6 +37,7 @@ from app.routers import (
     marketplace_admin,
     marketplace_community,
     marketplaces,
+    privacy,
     search,
     seller_ops,
     sellers,
@@ -186,6 +187,7 @@ app.include_router(bundles.router)
 app.include_router(geography.router)
 app.include_router(legal_acceptance.router)
 app.include_router(legal_pages.router)
+app.include_router(privacy.router)
 
 if settings.serve_embedded_admin and _admin_dashboard_dir is not None:
     app.mount(

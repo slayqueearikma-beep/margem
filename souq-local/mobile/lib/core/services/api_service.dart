@@ -229,6 +229,14 @@ class ApiService {
     return _send(() => _client.post(uri, headers: headers, body: body));
   }
 
+  Future<http.Response> _put(
+    Uri uri, {
+    Map<String, String>? headers,
+    Object? body,
+  }) {
+    return _send(() => _client.put(uri, headers: headers, body: body));
+  }
+
   Future<http.Response> _request(
     Future<http.Response> Function() send, {
     required bool auth,
@@ -411,6 +419,43 @@ class ApiService {
 
   Future<Map<String, dynamic>> exportMyData() async {
     return getJson('/auth/me/export', auth: true);
+  }
+
+  Future<void> updatePrivacyConsent({
+    required String consentType,
+    required bool granted,
+    String language = 'en',
+  }) async {
+    final response = await _request(
+      () => _put(
+        _uri('/privacy/consents/$consentType'),
+        headers: _jsonHeaders(auth: true),
+        body: jsonEncode({'granted': granted, 'language': language}),
+      ),
+      auth: true,
+    );
+    _ensureSuccess(response);
+  }
+
+  Future<Map<String, dynamic>> submitPrivacyRequest({
+    required String requestType,
+    String details = '',
+  }) async {
+    final response = await _request(
+      () => _post(
+        _uri('/privacy/requests'),
+        headers: _jsonHeaders(auth: true),
+        body: jsonEncode({'request_type': requestType, 'details': details}),
+      ),
+      auth: true,
+    );
+    _ensureSuccess(response);
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchPrivacyRequests() async {
+    final data = await getJsonList('/privacy/requests', auth: true);
+    return data.cast<Map<String, dynamic>>();
   }
 
   Future<List<AuthDeviceSession>> fetchAuthSessions() async {
