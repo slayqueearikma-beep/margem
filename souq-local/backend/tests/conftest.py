@@ -26,7 +26,7 @@ async def prepare_database():
     """Recreate the async engine per test so connections bind to the active event loop."""
     import app.database as database
     from app.config import settings
-    from app.models import Base, SubscriptionPlan
+    from app.models import AdvertisingPackage, Base, SubscriptionPlan
     from uuid import uuid4
 
     await database.engine.dispose()
@@ -39,6 +39,11 @@ async def prepare_database():
 
     async with database.engine.begin() as conn:
         for table in (
+            "subscription_agreement_records",
+            "advertising_campaigns",
+            "dribex_service_payments",
+            "payment_webhook_events",
+            "advertising_packages",
             "order_items",
             "orders",
             "cart_items",
@@ -59,6 +64,8 @@ async def prepare_database():
             await conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS orderstatus CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS paymentstatus CASCADE"))
+        await conn.execute(text("DROP TYPE IF EXISTS platformpaymentstatus CASCADE"))
+        await conn.execute(text("DROP TYPE IF EXISTS advertisingcampaignstatus CASCADE"))
         await conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
         await conn.execute(text("CREATE SCHEMA public"))
         await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
@@ -72,8 +79,9 @@ async def prepare_database():
                 )
             )
         ).scalars().all()
+        seed_rows: list[object] = []
         if not existing:
-            session.add_all(
+            seed_rows.extend(
                 [
                     SubscriptionPlan(
                         id=uuid4(),
@@ -95,6 +103,27 @@ async def prepare_database():
                     ),
                 ]
             )
+        existing_packages = (
+            await session.execute(
+                select(AdvertisingPackage.code).where(
+                    AdvertisingPackage.code == "sponsored_listing_7d"
+                )
+            )
+        ).scalar_one_or_none()
+        if existing_packages is None:
+            seed_rows.append(
+                AdvertisingPackage(
+                    id=uuid4(),
+                    code="sponsored_listing_7d",
+                    name="Sponsored listing (7 days)",
+                    description="Promote storefront",
+                    placement_type="sponsored_listing",
+                    price_mad=149,
+                    duration_days=7,
+                )
+            )
+        if seed_rows:
+            session.add_all(seed_rows)
             await session.commit()
 
         from app.services.community_chat import ensure_all_city_communities

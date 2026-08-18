@@ -362,6 +362,9 @@ abstract class AppStrings {
   String get enterValidPrice;
   String get minPriceExceedsMax;
   String get acceptedPaymentMethods;
+  String get discoveryPlatformNotice;
+  String get offPlatformPaymentNotice;
+  String get dribexServicePaymentNotice;
   String get contactSeller;
   String get messageBusiness;
   String get cannotMessageOwnStore;

@@ -27,6 +27,7 @@ from app.middleware.security import SecurityHeadersMiddleware
 from app.models import Marketplace, SubscriptionPlan
 from app.routers import (
     auth,
+    billing,
     bundles,
     catalog,
     community,
@@ -192,6 +193,7 @@ if settings.effective_storage_provider == "selfhosted":
 app.include_router(discovery.router)
 app.include_router(search.router)
 app.include_router(seller_ops.router)
+app.include_router(billing.router)
 app.include_router(community.router)
 app.include_router(marketplaces.router)
 app.include_router(marketplace_community.router)

@@ -12,6 +12,7 @@ import '../../core/theme/theme_context.dart';
 import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/discovery_platform_notice.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/widgets/marketplace_actions.dart';
@@ -251,7 +252,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     fontWeight: FontWeight.w800,
                                   ),
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: AppSpacing.md),
+                            DiscoveryPlatformNotice(message: l10n.discoveryPlatformNotice),
+                            const SizedBox(height: 10),
                             Row(
                               children: [
                                 RatingBarIndicator(
@@ -381,7 +384,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     .titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w800),
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 6),
+                              Text(
+                                l10n.offPlatformPaymentNotice,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: context.colors.textSecondary,
+                                      height: 1.35,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,

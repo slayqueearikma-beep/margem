@@ -753,7 +753,16 @@ class AppStringsAr extends AppStringsEn {
   String get minPriceExceedsMax =>
       'لا يمكن أن يتجاوز الحد الأدنى للسعر الحد الأقصى';
   @override
-  String get acceptedPaymentMethods => 'طرق الدفع المقبولة';
+  String get acceptedPaymentMethods => 'يقبل البائع (خارج Dribex)';
+  @override
+  String get discoveryPlatformNotice =>
+      'Dribex يساعدك على اكتشاف البائعين المحليين. أي عملية شراء تتم مباشرة مع البائع — Dribex لا تعالج ولا تحتفظ ولا توزّع مدفوعات المنتجات.';
+  @override
+  String get offPlatformPaymentNotice =>
+      'طرق الدفع أدناه يقبلها البائع خارج Dribex. تدفع للبائع مباشرة وليس لـ Dribex.';
+  @override
+  String get dribexServicePaymentNotice =>
+      'رسوم Premium والإعلانات تُدفع لـ Dribex مقابل خدمات المنصة فقط — وليس مقابل منتجات البائعين.';
   @override
   String get contactSeller => 'تواصل مع البائع';
   @override

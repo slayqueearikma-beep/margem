@@ -152,6 +152,8 @@ class Settings(BaseSettings):
         "Casablanca",
     ]
 
+    # Platform billing only — never buyer↔seller marketplace checkout.
+    payment_provider: str = "manual"
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
     stripe_currency: str = "mad"
@@ -171,6 +173,16 @@ class Settings(BaseSettings):
         cleaned = aliases.get(cleaned, cleaned)
         if cleaned not in {"selfhosted", "azure", "local"}:
             raise ValueError("STORAGE_PROVIDER must be 'selfhosted', 'azure', or 'local'")
+        return cleaned
+
+    @field_validator("payment_provider", mode="before")
+    @classmethod
+    def normalize_payment_provider(cls, value: Any) -> str:
+        if value is None or value == "":
+            return "manual"
+        cleaned = str(value).strip().lower()
+        if cleaned not in {"manual", "stripe", "none"}:
+            raise ValueError("PAYMENT_PROVIDER must be 'manual', 'stripe', or 'none'")
         return cleaned
 
     @field_validator("storage_backend", mode="before")
@@ -302,6 +314,11 @@ class Settings(BaseSettings):
                     "ADMIN_IP_ALLOWLIST is required in production — "
                     "admin APIs must not be reachable from any IP"
                 )
+            if self.payment_provider == "stripe":
+                if not self.stripe_secret_key or not self.stripe_webhook_secret:
+                    raise ValueError(
+                        "STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are required when PAYMENT_PROVIDER=stripe"
+                    )
         if self.auth_dev_bypass and self.app_env not in {"development", "dev"}:
             raise ValueError("AUTH_DEV_BYPASS is only allowed when APP_ENV is development or dev")
         return self

@@ -19,11 +19,17 @@ logger = logging.getLogger("margem.billing")
 
 
 def billing_self_serve_enabled() -> bool:
+    if settings.payment_provider == "none":
+        return False
     if settings.app_env in {"production", "prod"}:
-        return bool(settings.stripe_secret_key.strip())
-    if settings.stripe_secret_key.strip():
+        return settings.payment_provider == "stripe" and bool(settings.stripe_secret_key.strip())
+    if settings.payment_provider == "stripe" and settings.stripe_secret_key.strip():
         return True
-    return settings.allow_manual_billing and settings.app_env in {"development", "dev", "test"}
+    return (
+        settings.payment_provider == "manual"
+        and settings.allow_manual_billing
+        and settings.app_env in {"development", "dev", "test"}
+    )
 
 
 def manual_billing_allowed() -> bool:

@@ -12,6 +12,7 @@ import '../../core/theme/theme_context.dart';
 import '../../core/widgets/achievement_badges.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/discovery_platform_notice.dart';
 import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../core/widgets/margem_app_bar.dart';
@@ -313,7 +314,9 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _SellerHeader(seller: seller, l10n: l10n),
-                    SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.md),
+                    DiscoveryPlatformNotice(message: l10n.discoveryPlatformNotice),
+                    const SizedBox(height: AppSpacing.lg),
                     if (seller.description.trim().isNotEmpty) ...[
                       Text(
                         seller.description,

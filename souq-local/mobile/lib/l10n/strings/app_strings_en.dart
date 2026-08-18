@@ -751,8 +751,16 @@ class AppStringsEn extends AppStrings {
   @override
   String get minPriceExceedsMax => 'Minimum price cannot exceed maximum price';
   @override
-  String get acceptedPaymentMethods => 'Accepted payment methods';
+  String get acceptedPaymentMethods => 'Seller accepts (off Dribex)';
   @override
+  String get discoveryPlatformNotice =>
+      'Dribex helps you discover local sellers. Any purchase happens directly with the seller — Dribex does not process, hold, or distribute product payments.';
+  @override
+  String get offPlatformPaymentNotice =>
+      'Payment methods listed below are accepted by the seller outside Dribex. You pay the seller directly, not Dribex.';
+  @override
+  String get dribexServicePaymentNotice =>
+      'Premium and advertising fees are paid to Dribex for platform services only — not for products sold by sellers.';
   @override
   String get contactSeller => 'Contact seller';
   @override

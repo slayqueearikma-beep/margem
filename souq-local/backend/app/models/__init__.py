@@ -55,6 +55,21 @@ class SubscriptionStatus(str, enum.Enum):
     EXPIRED = "expired"
 
 
+class PlatformPaymentStatus(str, enum.Enum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    REFUNDED = "refunded"
+
+
+class AdvertisingCampaignStatus(str, enum.Enum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    CANCELLED = "cancelled"
+
+
 class VerificationStatus(str, enum.Enum):
     UNVERIFIED = "unverified"
     PENDING = "pending"
@@ -78,6 +93,8 @@ user_status_enum = _enum(UserStatus, "userstatus")
 user_role_enum = _enum(UserRole, "userrole")
 pricing_type_enum = _enum(PricingType, "pricingtype")
 subscription_status_enum = _enum(SubscriptionStatus, "subscriptionstatus")
+platform_payment_status_enum = _enum(PlatformPaymentStatus, "platformpaymentstatus")
+advertising_campaign_status_enum = _enum(AdvertisingCampaignStatus, "advertisingcampaignstatus")
 verification_status_enum = _enum(VerificationStatus, "verificationstatus")
 
 
@@ -547,6 +564,82 @@ class Subscription(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     plan: Mapped[SubscriptionPlan] = relationship()
+
+
+class DribexServicePayment(Base):
+    """Payment TO Dribex for Dribex-owned services (subscriptions, advertising).
+
+    Never used for buyer↔seller product purchases.
+    """
+
+    __tablename__ = "dribex_service_payments"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    seller_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("seller_profiles.id", ondelete="SET NULL"), nullable=True
+    )
+    service_type: Mapped[str] = mapped_column(String(32))
+    service_code: Mapped[str] = mapped_column(String(64))
+    amount_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False))
+    currency: Mapped[str] = mapped_column(String(8), default="mad")
+    status: Mapped[PlatformPaymentStatus] = mapped_column(
+        platform_payment_status_enum, default=PlatformPaymentStatus.PENDING
+    )
+    provider: Mapped[str] = mapped_column(String(40), default="manual")
+    provider_reference: Mapped[str] = mapped_column(String(160), default="")
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class PaymentWebhookEvent(Base):
+    __tablename__ = "payment_webhook_events"
+    __table_args__ = (UniqueConstraint("provider", "event_id", name="uq_payment_webhook_provider_event"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider: Mapped[str] = mapped_column(String(40))
+    event_id: Mapped[str] = mapped_column(String(160))
+    payload_hash: Mapped[str] = mapped_column(String(64))
+    processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AdvertisingPackage(Base):
+    __tablename__ = "advertising_packages"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    code: Mapped[str] = mapped_column(String(64), unique=True)
+    name: Mapped[str] = mapped_column(String(120))
+    description: Mapped[str] = mapped_column(Text, default="")
+    placement_type: Mapped[str] = mapped_column(String(40))
+    price_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False))
+    duration_days: Mapped[int] = mapped_column(Integer)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AdvertisingCampaign(Base):
+    __tablename__ = "advertising_campaigns"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id", ondelete="CASCADE"), index=True)
+    product_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("products.id", ondelete="SET NULL"), nullable=True
+    )
+    package_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("advertising_packages.id"))
+    payment_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("dribex_service_payments.id", ondelete="SET NULL"), nullable=True
+    )
+    status: Mapped[AdvertisingCampaignStatus] = mapped_column(
+        advertising_campaign_status_enum, default=AdvertisingCampaignStatus.PENDING
+    )
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    package: Mapped[AdvertisingPackage] = relationship()
 
 
 class AdminAuditLog(Base):

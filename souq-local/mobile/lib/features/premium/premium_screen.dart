@@ -9,6 +9,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/utils/friendly_errors.dart';
+import '../../core/widgets/discovery_platform_notice.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../l10n/app_localizations.dart';
@@ -264,6 +265,8 @@ class _HeroCard extends StatelessWidget {
               height: 1.35,
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          DiscoveryPlatformNotice(message: l10n.dribexServicePaymentNotice),
           if (activePlanName != null) ...[
             const SizedBox(height: AppSpacing.md),
             Container(
