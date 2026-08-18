@@ -362,6 +362,12 @@ class Settings(BaseSettings):
         return self
 
     @property
+    def effective_allow_manual_billing(self) -> bool:
+        if self.allow_manual_billing:
+            return True
+        return self.app_env in {"development", "dev", "test"} and self.payment_provider == "manual"
+
+    @property
     def naps_extra_request_fields(self) -> dict[str, Any]:
         import json
 

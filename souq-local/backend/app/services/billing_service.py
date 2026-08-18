@@ -13,19 +13,11 @@ def billing_self_serve_enabled() -> bool:
         return settings.payment_provider == "naps" and settings.naps_configured
     if settings.payment_provider == "naps" and settings.naps_configured:
         return True
-    return (
-        settings.payment_provider == "manual"
-        and settings.allow_manual_billing
-        and settings.app_env in {"development", "dev", "test"}
-    )
+    return settings.payment_provider == "manual" and settings.effective_allow_manual_billing
 
 
 def manual_billing_allowed() -> bool:
-    return (
-        settings.payment_provider == "manual"
-        and settings.allow_manual_billing
-        and settings.app_env in {"development", "dev", "test"}
-    )
+    return settings.payment_provider == "manual" and settings.effective_allow_manual_billing
 
 
 def production_payment_provider_name() -> str:
