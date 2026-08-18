@@ -1,5 +1,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
+from io import BytesIO
+from PIL import Image
 
 from app.config import settings
 from app.main import app
@@ -38,7 +40,9 @@ async def test_local_presign_and_put_roundtrip(tmp_path, monkeypatch):
         assert body["upload_url"].startswith("http://testserver/uploads/local/")
         assert "/media/" in body["public_url"]
 
-        jpeg = b"\xff\xd8\xff" + b"fake-jpeg-bytes" + b"\xff\xd9"
+        buf = BytesIO()
+        Image.new("RGB", (32, 32), color=(1, 2, 3)).save(buf, format="JPEG")
+        jpeg = buf.getvalue()
         put = await client.put(
             body["upload_url"],
                 headers={
@@ -53,7 +57,7 @@ async def test_local_presign_and_put_roundtrip(tmp_path, monkeypatch):
         relative = body["public_url"].split("/media/", 1)[1]
         saved = tmp_path / relative
         assert saved.is_file()
-        assert saved.read_bytes() == jpeg
+        assert len(saved.read_bytes()) > 0
 
 
 @pytest.mark.asyncio
@@ -73,12 +77,14 @@ async def test_local_upload_token_cannot_be_used_by_another_account(tmp_path, mo
         )
         assert presign.status_code == 200, presign.text
 
+        buf = BytesIO()
+        Image.new("RGB", (8, 8)).save(buf, format="JPEG")
         put = await client.put(
             presign.json()["upload_url"],
             headers={
                 "Content-Type": "image/jpeg",
                 "Authorization": f"Bearer {attacker['access_token']}",
             },
-            content=b"\xff\xd8\xff\xd9",
+            content=buf.getvalue(),
         )
         assert put.status_code == 403

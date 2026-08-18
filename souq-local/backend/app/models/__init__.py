@@ -101,6 +101,7 @@ class User(Base):
     token_version: Mapped[int] = mapped_column(Integer, default=0)
     failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0)
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    profile_photo_url: Mapped[str] = mapped_column(String(512), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     seller_profile: Mapped["SellerProfile | None"] = relationship(back_populates="user", uselist=False)
@@ -639,6 +640,21 @@ class SubscriptionAgreementRecord(Base):
     user_agent: Mapped[str] = mapped_column(String(512), default="")
     authentication_method: Mapped[str] = mapped_column(String(32), default="bearer_session")
     provider_reference: Mapped[str] = mapped_column(String(120), default="")
+
+
+class UserMediaObject(Base):
+    __tablename__ = "user_media_objects"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    blob_key: Mapped[str] = mapped_column(String(512), unique=True, index=True)
+    public_url: Mapped[str] = mapped_column(String(512), default="")
+    purpose: Mapped[str] = mapped_column(String(40))
+    content_type: Mapped[str] = mapped_column(String(64), default="")
+    bytes_size: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(24), default="active")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class LegalAcceptance(Base):

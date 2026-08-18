@@ -53,6 +53,20 @@ activities:
     storage: "{user_id}/{uuid}-filename" in object storage
     legal_basis_candidate: contract / legitimate interest — LAWYER REVIEW REQUIRED
 
+  - id: buyer_profile_photo
+    data:
+      - buyer profile photograph (NOT biometric)
+    purpose: Optional account profile identification/display
+    note: No facial recognition or biometric processing; EXIF stripped on upload
+    classification: Personal data (Art. 1 §1) — NOT sensitive/biometric (Art. 1 §3)
+    storage:
+      - users.profile_photo_url
+      - user_media_objects table
+      - object storage prefix {user_id}/
+    legal_basis_candidate: contract / pre-contractual (Art. 4(b)) — LAWYER REVIEW REQUIRED
+    consent_required: not assumed — counsel to confirm for public display scope
+    retention: Active account; deleted on profile removal or account deletion workflow; backups per documented policy
+
   - id: peer_messaging
     data:
       - message body

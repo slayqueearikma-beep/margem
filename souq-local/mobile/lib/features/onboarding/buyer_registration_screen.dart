@@ -23,6 +23,7 @@ import '../../core/providers/city_providers.dart';
 import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/widgets/signup_verification_dialogs.dart';
+import '../../core/services/upload_service.dart';
 import '../../l10n/app_localizations.dart';
 
 class BuyerRegistrationScreen extends ConsumerStatefulWidget {
@@ -90,6 +91,11 @@ class _BuyerRegistrationScreenState
 
         final prefs = await ref.read(sharedPreferencesProvider.future);
         await auth.persistToken(prefs);
+
+        if (_profileImage != null) {
+          final photoUrl = await ref.read(uploadServiceProvider).uploadImage(_profileImage!);
+          await apiServiceProvider.updateProfilePhoto(photoUrl);
+        }
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {

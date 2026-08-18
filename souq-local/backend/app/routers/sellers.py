@@ -106,6 +106,7 @@ def _validate_owner_media(url: str, user_id: UUID) -> str:
             owner_user_id=user_id,
             container=settings.azure_storage_container,
             public_api_url=settings.public_api_url,
+            minio_public_url=settings.minio_public_url or None,
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
@@ -377,9 +378,19 @@ async def update_seller(
     opening_hours = data.pop("opening_hours", None)
 
     if "cover_image_url" in data:
-        data["cover_image_url"] = _validate_owner_media(data["cover_image_url"] or "", user.id)
+        new_cover = _validate_owner_media(data["cover_image_url"] or "", user.id)
+        if new_cover != seller.cover_image_url:
+            from app.services.media_registry import supersede_media_url
+
+            await supersede_media_url(session, user_id=user.id, old_url=seller.cover_image_url)
+        data["cover_image_url"] = new_cover
     if "logo_image_url" in data:
-        data["logo_image_url"] = _validate_owner_media(data["logo_image_url"] or "", user.id)
+        new_logo = _validate_owner_media(data["logo_image_url"] or "", user.id)
+        if new_logo != seller.logo_image_url:
+            from app.services.media_registry import supersede_media_url
+
+            await supersede_media_url(session, user_id=user.id, old_url=seller.logo_image_url)
+        data["logo_image_url"] = new_logo
     for url_field in ("website_url", "instagram_url", "facebook_url", "tiktok_url"):
         if url_field in data and data[url_field] is not None:
             data[url_field] = _validate_optional_http_url(data[url_field] or "", field=url_field)

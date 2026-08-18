@@ -122,6 +122,7 @@ class UserOut(BaseModel):
     status: str = "active"
     mfa_enabled: bool = False
     has_seller_profile: bool = False
+    profile_photo_url: str = ""
     legal_acceptance_complete: bool = True
     pending_legal_policies: list[str] = Field(default_factory=list)
     created_at: datetime
@@ -150,6 +151,7 @@ class UserOut(BaseModel):
             status=getattr(user, "status", None).value if getattr(user, "status", None) else "active",
             mfa_enabled=bool(getattr(user, "mfa_enabled", False)),
             has_seller_profile=has_seller_profile,
+            profile_photo_url=getattr(user, "profile_photo_url", "") or "",
             legal_acceptance_complete=legal_acceptance_complete,
             pending_legal_policies=pending_legal_policies or [],
             created_at=user.created_at,
@@ -675,3 +677,7 @@ class PresignRequest(BaseModel):
 class PresignResponse(BaseModel):
     upload_url: str
     public_url: str
+
+
+class ProfilePhotoUpdate(BaseModel):
+    profile_photo_url: str = Field(max_length=512)

@@ -69,3 +69,23 @@ def validate_minio_public_url(url: str, *, owner_user_id: UUID | None = None) ->
         if len(parts) < 3 or parts[1] != str(owner_user_id):
             raise ValueError("Media URL does not belong to this user")
     return value
+
+
+def delete_object(blob_key: str) -> bool:
+    client = _client()
+    bucket = settings.minio_bucket
+    try:
+        client.remove_object(bucket, blob_key)
+        return True
+    except Exception:
+        return False
+
+
+def delete_prefix(prefix: str) -> int:
+    client = _client()
+    bucket = settings.minio_bucket
+    count = 0
+    for obj in client.list_objects(bucket, prefix=prefix, recursive=True):
+        client.remove_object(bucket, obj.object_name)
+        count += 1
+    return count

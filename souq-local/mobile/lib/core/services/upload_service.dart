@@ -91,6 +91,14 @@ class UploadService {
       );
     }
 
+    if (!isLocalApiUpload) {
+      await _api.postJson(
+        '/uploads/validate',
+        {'public_url': publicUrl, 'content_type': contentType},
+        auth: true,
+      );
+    }
+
     return publicUrl;
   }
 

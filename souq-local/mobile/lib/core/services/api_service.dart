@@ -148,6 +148,24 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> putJson(
+    String path,
+    Map<String, dynamic> body, {
+    bool auth = false,
+  }) async {
+    final response = await _request(
+      () => _client.put(
+        _uri(path),
+        headers: _jsonHeaders(auth: auth),
+        body: jsonEncode(body),
+      ),
+      auth: auth,
+    );
+    _ensureSuccess(response);
+    if (response.body.isEmpty) return {};
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> getJson(String path, {bool auth = false}) async {
     final response = await _request(
       () => _get(_uri(path), headers: auth ? _authHeaders : null),
@@ -419,6 +437,18 @@ class ApiService {
 
   Future<Map<String, dynamic>> exportMyData() async {
     return getJson('/auth/me/export', auth: true);
+  }
+
+  Future<void> updateProfilePhoto(String profilePhotoUrl) async {
+    await putJson(
+      '/auth/me/profile-photo',
+      {'profile_photo_url': profilePhotoUrl},
+      auth: true,
+    );
+  }
+
+  Future<void> deleteProfilePhoto() async {
+    await deletePath('/auth/me/profile-photo', auth: true);
   }
 
   Future<void> updatePrivacyConsent({

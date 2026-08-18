@@ -25,6 +25,7 @@ from app.schemas import (
     MfaDisableRequest,
     MfaEnrollOut,
     MfaLoginRequest,
+    ProfilePhotoUpdate,
     RefreshRequest,
     SignupOtpSendRequest,
     SignupOtpSendResponse,
@@ -457,6 +458,71 @@ async def change_password(
     log_security_event("password_changed", user_id=str(user.id))
 
 
+@router.put("/me/profile-photo", response_model=UserOut)
+@limiter.limit("20/minute")
+async def update_profile_photo(
+    request: Request,
+    payload: ProfilePhotoUpdate,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> UserOut:
+    from app.auth import user_has_seller_profile
+    from app.services.legal_acceptance import get_pending_policy_ids
+    from app.services.media_registry import register_media_object, supersede_media_url
+    from app.services.upload_security import validate_media_url
+
+    try:
+        validated = validate_media_url(
+            payload.profile_photo_url,
+            owner_user_id=user.id,
+            container=settings.azure_storage_container,
+            public_api_url=settings.public_api_url,
+            minio_public_url=settings.minio_public_url or None,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    if validated != (user.profile_photo_url or ""):
+        if user.profile_photo_url:
+            await supersede_media_url(session, user_id=user.id, old_url=user.profile_photo_url)
+        user.profile_photo_url = validated
+        if validated:
+            await register_media_object(
+                session,
+                user_id=user.id,
+                public_url=validated,
+                purpose="profile_photo",
+            )
+        log_security_event("profile_photo_updated", user_id=str(user.id))
+
+    await session.commit()
+    await session.refresh(user)
+    pending = await get_pending_policy_ids(session, user.id)
+    has_store = await user_has_seller_profile(session, user.id)
+    return UserOut.from_user(
+        user,
+        has_seller_profile=has_store,
+        legal_acceptance_complete=not pending,
+        pending_legal_policies=pending,
+    )
+
+
+@router.delete("/me/profile-photo", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("20/minute")
+async def delete_profile_photo(
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    from app.services.media_registry import supersede_media_url
+
+    if user.profile_photo_url:
+        await supersede_media_url(session, user_id=user.id, old_url=user.profile_photo_url)
+        user.profile_photo_url = ""
+        await session.commit()
+        log_security_event("profile_photo_deleted", user_id=str(user.id))
+
+
 @router.post("/logout-all", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(settings.auth_rate_limit)
 async def logout_all(
@@ -871,11 +937,20 @@ async def delete_account(
     user.email = f"deleted+{user.id}@invalid.local"
     user.display_name = "Deleted user"
     user.phone = ""
+    user.profile_photo_url = ""
     user.password_hash = None
     user.firebase_uid = f"deleted-{user.id}"
     user.email_verified_at = None
     user.mfa_enabled = False
     user.is_premium = False
     user.premium_until = None
+
+    from app.services.media_lifecycle import delete_all_user_media, log_media_event
+    from app.services.media_registry import mark_user_media_deleted
+
+    await mark_user_media_deleted(session, user.id)
     await session.commit()
+
+    purged = await delete_all_user_media(user.id)
+    log_media_event("profile_photo_deleted", user_id=user.id, purpose="account_deletion", detail=f"count={purged}")
     log_security_event("account_deleted", user_id=str(user.id))

@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from app.config import settings
+
 logger = logging.getLogger("margem.storage")
 
 
@@ -74,3 +76,34 @@ async def ensure_blob_container(container_client: Any) -> None:
             getattr(container_client, "container_name", "?"),
             type(exc).__name__,
         )
+
+
+async def delete_blob(blob_key: str) -> bool:
+    from azure.storage.blob.aio import BlobServiceClient
+
+    conn = (settings.azure_storage_connection_string or "").strip().strip('"').strip("'")
+    if not conn:
+        return False
+    async with BlobServiceClient.from_connection_string(conn) as client:
+        container = client.get_container_client(settings.azure_storage_container)
+        blob = container.get_blob_client(blob_key)
+        try:
+            await blob.delete_blob()
+            return True
+        except Exception:
+            return False
+
+
+async def delete_prefix(prefix: str) -> int:
+    from azure.storage.blob.aio import BlobServiceClient
+
+    conn = (settings.azure_storage_connection_string or "").strip().strip('"').strip("'")
+    if not conn:
+        return 0
+    count = 0
+    async with BlobServiceClient.from_connection_string(conn) as client:
+        container = client.get_container_client(settings.azure_storage_container)
+        async for blob in container.list_blobs(name_starts_with=prefix):
+            await container.delete_blob(blob.name)
+            count += 1
+    return count

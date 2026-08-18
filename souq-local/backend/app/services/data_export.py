@@ -72,6 +72,7 @@ async def build_user_data_export(session: AsyncSession, user: User) -> dict:
             "email": user.email,
             "display_name": user.display_name,
             "phone": user.phone,
+            "profile_photo_url": getattr(user, "profile_photo_url", "") or "",
             "account_type": user.account_type.value,
             "role": user.role.value,
             "status": user.status.value,
