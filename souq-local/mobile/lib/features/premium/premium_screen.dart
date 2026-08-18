@@ -33,6 +33,13 @@ final billingStatusProvider = FutureProvider.autoDispose<BillingStatusModel>((re
   return apiServiceProvider.fetchBillingStatus();
 });
 
+final myPlatformPaymentsProvider =
+    FutureProvider.autoDispose<List<PlatformPaymentModel>>((ref) {
+  final session = ref.watch(userSessionProvider);
+  if (session == null || session.isGuest) return Future.value(const []);
+  return apiServiceProvider.fetchMyPlatformPayments();
+});
+
 class PremiumScreen extends ConsumerStatefulWidget {
   const PremiumScreen({super.key});
 
@@ -92,6 +99,9 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
               SnackBar(content: Text(l10n.premiumCheckoutOpened)),
             );
           }
+          if (result.paymentId != null) {
+            await _pollPaymentConfirmation(result.paymentId!);
+          }
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.premiumCheckoutFailed)),
@@ -109,6 +119,36 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
       }
     } finally {
       if (mounted) setState(() => _subscribingCode = null);
+    }
+  }
+
+  Future<void> _pollPaymentConfirmation(String paymentId) async {
+    final l10n = context.l10n;
+    for (var attempt = 0; attempt < 12; attempt++) {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      try {
+        final payment = await apiServiceProvider.fetchPlatformPayment(paymentId);
+        if (payment.status == 'success') {
+          ref.invalidate(mySubscriptionProvider);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.premiumActivated)),
+            );
+          }
+          return;
+        }
+        if (payment.status == 'failed' || payment.status == 'cancelled') {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.premiumCheckoutFailed)),
+            );
+          }
+          return;
+        }
+      } on ApiException {
+        // Keep polling while payment is pending.
+      }
     }
   }
 
@@ -201,6 +241,10 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                     onContactSupport: _contactSupport,
                   ),
                 ),
+                if (session != null && !session.isGuest) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  _PaymentHistorySection(),
+                ],
               ],
             ),
           );
@@ -301,6 +345,35 @@ class _HeroCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _PaymentHistorySection extends ConsumerWidget {
+  const _PaymentHistorySection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final paymentsAsync = ref.watch(myPlatformPaymentsProvider);
+    return paymentsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (payments) {
+        if (payments.isEmpty) return const SizedBox.shrink();
+        return MarketSectionCard(
+          title: l10n.premium,
+          child: Column(
+            children: payments.take(5).map((payment) {
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text('${payment.serviceCode} · ${payment.amountMad.toStringAsFixed(0)} ${payment.currency}'),
+                subtitle: Text('${payment.status} · ${payment.provider}'),
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 }

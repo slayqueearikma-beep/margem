@@ -103,7 +103,7 @@ async def link_subscription_agreement_to_checkout(
     """Attach fulfilled subscription to the pending checkout agreement record."""
     if not provider_reference:
         return
-    pending_ref = "stripe_checkout_pending"
+    pending_ref = "naps_checkout_pending"
     row = (
         await session.execute(
             select(SubscriptionAgreementRecord)

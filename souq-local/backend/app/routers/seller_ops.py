@@ -144,6 +144,8 @@ class CheckoutRequest(BaseModel):
 class CheckoutOut(BaseModel):
     checkout_url: str | None = None
     activated: bool = False
+    payment_id: UUID | None = None
+    provider: str | None = None
     subscription: SubscriptionOut | None = None
 
 
@@ -534,12 +536,12 @@ async def my_subscription(
 @router.get("/subscriptions/billing/status", response_model=BillingStatusOut)
 async def billing_status() -> BillingStatusOut:
     from app.config import settings
-    from app.services.stripe_billing import billing_self_serve_enabled
+    from app.services.billing_service import billing_self_serve_enabled
 
     enabled = billing_self_serve_enabled()
     provider: str | None = None
     if enabled:
-        provider = "stripe" if settings.stripe_secret_key.strip() else "manual"
+        provider = settings.payment_provider
     return BillingStatusOut(self_serve_enabled=enabled, provider=provider)
 
 
@@ -552,20 +554,16 @@ async def checkout_plan(
     session: AsyncSession = Depends(get_db),
 ) -> CheckoutOut:
     from app.config import settings
+    from app.services.billing_service import billing_self_serve_enabled
     from app.services.client_ip import get_client_ip
     from app.services.electronic_acceptance import record_subscription_agreement_acceptance
-    from app.services.stripe_billing import (
-        activate_subscription,
-        billing_self_serve_enabled,
-        create_checkout_session,
-        manual_billing_allowed,
-    )
+    from app.services.platform_billing import create_subscription_checkout
 
     if not billing_self_serve_enabled():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
-                "Self-serve premium activation is disabled until a billing provider is configured. "
+                "Self-serve premium activation is disabled until NAPS billing is configured. "
                 "Contact support or use an admin grant."
             ),
         )
@@ -580,39 +578,17 @@ async def checkout_plan(
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
 
-    if settings.app_env in {"production", "prod"} and settings.stripe_secret_key.strip():
-        checkout_url = await create_checkout_session(
+    try:
+        payment, checkout = await create_subscription_checkout(
             session,
             user=user,
-            plan=plan,
-            success_url=payload.success_url,
-            cancel_url=payload.cancel_url,
+            plan_code=plan.code,
+            success_url=payload.success_url or f"{settings.public_app_url.rstrip('/')}/premium?paid=1",
+            cancel_url=payload.cancel_url or f"{settings.public_app_url.rstrip('/')}/premium?cancelled=1",
         )
-        await record_subscription_agreement_acceptance(
-            session,
-            user=user,
-            plan=plan,
-            language=payload.acceptance_language,
-            ip_address=client_ip,
-            user_agent=user_agent,
-            provider_reference="stripe_checkout_pending",
-        )
-        await session.commit()
-        return CheckoutOut(checkout_url=checkout_url)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    if not manual_billing_allowed():
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Billing is not available in this environment. Configure Stripe or contact support.",
-        )
-
-    subscription = await activate_subscription(
-        session,
-        user_id=user.id,
-        plan_code=plan.code,
-        provider="manual",
-        provider_reference=f"manual-{uuid4().hex[:12]}",
-    )
     await record_subscription_agreement_acceptance(
         session,
         user=user,
@@ -620,31 +596,30 @@ async def checkout_plan(
         language=payload.acceptance_language,
         ip_address=client_ip,
         user_agent=user_agent,
-        provider_reference=subscription.provider_reference or "",
-        subscription_id=subscription.id,
-    )
-    if user.account_type.value == "provider" or plan.code.startswith("seller"):
-        seller = (
-            await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-        ).scalar_one_or_none()
-        if seller:
-            seller.is_premium = True
-
-    await notify_user(
-        session,
-        user_id=user.id,
-        title="Premium activated",
-        body=f"{plan.name} is now active — enjoy higher visibility",
-        kind="premium",
-        data={"plan_code": plan.code},
+        provider_reference=payment.provider_reference or "",
     )
     await session.commit()
-    subscription.plan = plan
+
+    if checkout.checkout_url:
+        return CheckoutOut(checkout_url=checkout.checkout_url, payment_id=payment.id, provider=checkout.provider)
+
+    sub_result = await session.execute(
+        select(Subscription)
+        .options(selectinload(Subscription.plan))
+        .where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
+        .order_by(Subscription.created_at.desc())
+        .limit(1)
+    )
+    subscription = sub_result.scalar_one_or_none()
+    if subscription is None:
+        raise HTTPException(status_code=500, detail="Subscription activation failed")
     return CheckoutOut(
         activated=True,
+        payment_id=payment.id,
+        provider=checkout.provider,
         subscription=SubscriptionOut(
             id=subscription.id,
-            plan=PlanOut.model_validate(plan),
+            plan=PlanOut.model_validate(subscription.plan),
             status=subscription.status,
             current_period_start=subscription.current_period_start,
             current_period_end=subscription.current_period_end,
@@ -661,46 +636,46 @@ async def subscribe(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut:
-    """Legacy manual activation — prefer /subscriptions/checkout in production."""
+    """Legacy dev-only activation — prefer POST /billing/checkout/subscription/{plan_code}."""
+    from app.config import settings
+    from app.services.billing_service import billing_self_serve_enabled, manual_billing_allowed
     from app.services.client_ip import get_client_ip
     from app.services.electronic_acceptance import record_subscription_agreement_acceptance
-    from app.services.stripe_billing import (
-        activate_subscription,
-        billing_self_serve_enabled,
-        manual_billing_allowed,
-    )
+    from app.services.platform_billing import create_subscription_checkout
 
-    if not billing_self_serve_enabled():
+    if settings.app_env in {"production", "prod", "staging"}:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=(
-                "Self-serve premium activation is disabled until a billing provider is configured. "
-                "Contact support or use an admin grant."
-            ),
+            detail="Use /billing/checkout/subscription/{plan_code} with NAPS in production.",
         )
-    if not manual_billing_allowed():
+    if not billing_self_serve_enabled() or not manual_billing_allowed():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Manual billing is disabled in this environment. Use checkout with Stripe.",
+            detail="Manual billing is disabled. Configure PAYMENT_PROVIDER=manual for local development.",
         )
 
-    result = await session.execute(
-        select(SubscriptionPlan).where(SubscriptionPlan.code == plan_code, SubscriptionPlan.is_active.is_(True))
-    )
-    plan = result.scalar_one_or_none()
+    plan = (
+        await session.execute(
+            select(SubscriptionPlan).where(SubscriptionPlan.code == plan_code, SubscriptionPlan.is_active.is_(True))
+        )
+    ).scalar_one_or_none()
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
 
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
 
-    subscription = await activate_subscription(
-        session,
-        user_id=user.id,
-        plan_code=plan.code,
-        provider="manual",
-        provider_reference=f"manual-{uuid4().hex[:12]}",
-    )
+    try:
+        payment, _checkout = await create_subscription_checkout(
+            session,
+            user=user,
+            plan_code=plan_code,
+            success_url=f"{settings.public_app_url.rstrip('/')}/premium?paid=1",
+            cancel_url=f"{settings.public_app_url.rstrip('/')}/premium?cancelled=1",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
     await record_subscription_agreement_acceptance(
         session,
         user=user,
@@ -708,106 +683,28 @@ async def subscribe(
         language=payload.acceptance_language,
         ip_address=client_ip,
         user_agent=user_agent,
-        provider_reference=subscription.provider_reference or "",
-        subscription_id=subscription.id,
-    )
-
-    if user.account_type.value == "provider" or plan.code.startswith("seller"):
-        seller = (
-            await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-        ).scalar_one_or_none()
-        if seller:
-            seller.is_premium = True
-
-    await notify_user(
-        session,
-        user_id=user.id,
-        title="Premium activated",
-        body=f"{plan.name} is now active — enjoy higher visibility",
-        kind="premium",
-        data={"plan_code": plan.code},
+        provider_reference=payment.provider_reference or "",
     )
     await session.commit()
-    await session.refresh(subscription)
-    subscription.plan = plan
+
+    sub_result = await session.execute(
+        select(Subscription)
+        .options(selectinload(Subscription.plan))
+        .where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
+        .order_by(Subscription.created_at.desc())
+        .limit(1)
+    )
+    subscription = sub_result.scalar_one_or_none()
+    if subscription is None:
+        raise HTTPException(status_code=500, detail="Subscription activation failed")
     return SubscriptionOut(
         id=subscription.id,
-        plan=PlanOut.model_validate(plan),
+        plan=PlanOut.model_validate(subscription.plan),
         status=subscription.status,
         current_period_start=subscription.current_period_start,
         current_period_end=subscription.current_period_end,
         provider=subscription.provider,
     )
-
-
-@router.post("/subscriptions/webhook/stripe", status_code=status.HTTP_200_OK)
-@limiter.exempt
-async def stripe_webhook(
-    request: Request,
-    session: AsyncSession = Depends(get_db),
-) -> dict[str, str]:
-    import stripe
-
-    from app.config import settings
-    from app.services.stripe_billing import fulfill_checkout_session
-
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature", "")
-    secret = settings.stripe_webhook_secret.strip()
-    if not secret:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Webhook not configured")
-
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, secret)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid payload") from exc
-    except stripe.error.SignatureVerificationError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature") from exc
-
-    if event["type"] in {"checkout.session.completed", "checkout.session.async_payment_succeeded"}:
-        data = event["data"]["object"]
-        if data.get("payment_status") != "paid":
-            return {"status": "ignored"}
-        metadata = data.get("metadata") or {}
-        user_id = metadata.get("user_id")
-        plan_code = metadata.get("plan_code")
-        if user_id and plan_code:
-            from uuid import UUID
-
-            from app.services.electronic_acceptance import link_subscription_agreement_to_checkout
-
-            subscription = await fulfill_checkout_session(
-                session,
-                checkout_session_id=str(data.get("id", "")),
-                user_id=UUID(user_id),
-                plan_code=str(plan_code),
-            )
-            await link_subscription_agreement_to_checkout(
-                session,
-                user_id=UUID(user_id),
-                subscription_id=subscription.id,
-                provider_reference=str(data.get("id", "")),
-            )
-            user = await session.get(User, UUID(user_id))
-            if user is not None:
-                plan = await session.get(SubscriptionPlan, subscription.plan_id)
-                if plan and (user.account_type.value == "provider" or plan.code.startswith("seller")):
-                    seller = (
-                        await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-                    ).scalar_one_or_none()
-                    if seller:
-                        seller.is_premium = True
-                await notify_user(
-                    session,
-                    user_id=user.id,
-                    title="Premium activated",
-                    body=f"{plan.name if plan else 'Premium'} is now active",
-                    kind="premium",
-                    data={"plan_code": plan_code},
-                )
-            await session.commit()
-
-    return {"status": "ok"}
 
 
 @router.get("/admin/users", response_model=AdminUserListOut)
