@@ -101,13 +101,19 @@ class Settings(BaseSettings):
 
     azure_storage_connection_string: str = ""
     azure_storage_container: str = "margem-media"
-    # azure = Blob SAS; local = API disk; minio = S3-compatible on-prem object store.
+    # Active provider: selfhosted (MinIO), azure, or local (dev/tests).
+    # STORAGE_BACKEND is deprecated — kept for backward compatibility only.
+    storage_provider: str = "selfhosted"
     storage_backend: str = "azure"
     local_media_root: str = "./data/media"
     minio_endpoint: str = ""
     minio_access_key: str = ""
     minio_secret_key: str = ""
     minio_bucket: str = "margem-media"
+    minio_bucket_profiles: str = "dribex-profiles"
+    minio_bucket_products: str = "dribex-products"
+    minio_bucket_listings: str = "dribex-listings"
+    minio_bucket_private: str = "dribex-private"
     minio_public_url: str = ""
     minio_region: str = ""
     max_upload_bytes: int = 8_388_608
@@ -150,6 +156,23 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = ""
     stripe_currency: str = "mad"
 
+    @field_validator("storage_provider", mode="before")
+    @classmethod
+    def normalize_storage_provider(cls, value: Any) -> str:
+        if value is None or value == "":
+            return "selfhosted"
+        cleaned = str(value).strip().lower()
+        aliases = {
+            "minio": "selfhosted",
+            "s3": "selfhosted",
+            "self-hosted": "selfhosted",
+            "self_hosted": "selfhosted",
+        }
+        cleaned = aliases.get(cleaned, cleaned)
+        if cleaned not in {"selfhosted", "azure", "local"}:
+            raise ValueError("STORAGE_PROVIDER must be 'selfhosted', 'azure', or 'local'")
+        return cleaned
+
     @field_validator("storage_backend", mode="before")
     @classmethod
     def normalize_storage_backend(cls, value: Any) -> str:
@@ -159,6 +182,18 @@ class Settings(BaseSettings):
         if cleaned not in {"azure", "local", "minio"}:
             raise ValueError("STORAGE_BACKEND must be 'azure', 'local', or 'minio'")
         return cleaned
+
+    @property
+    def effective_storage_provider(self) -> str:
+        """Resolve the single active storage provider at runtime."""
+        explicit = (self.storage_provider or "").strip().lower()
+        if explicit:
+            return explicit
+        if self.storage_backend == "minio":
+            return "selfhosted"
+        if self.storage_backend == "local":
+            return "local"
+        return "azure"
 
     @field_validator("azure_storage_connection_string", "azure_storage_container", "local_media_root", mode="before")
     @classmethod
@@ -214,7 +249,8 @@ class Settings(BaseSettings):
                 raise ValueError("MFA_ENCRYPTION_KEY must be at least 32 characters in production")
             if self.mfa_encryption_key == self.jwt_secret_key:
                 raise ValueError("MFA_ENCRYPTION_KEY must differ from JWT_SECRET_KEY in production")
-            if self.storage_backend == "local":
+            provider = self.effective_storage_provider
+            if provider == "local":
                 if not self.upload_token_secret or len(self.upload_token_secret) < 32:
                     raise ValueError("UPLOAD_TOKEN_SECRET must be at least 32 characters in production")
                 if self.upload_token_secret == self.jwt_secret_key:
@@ -223,15 +259,20 @@ class Settings(BaseSettings):
                 raise ValueError("CORS_ORIGINS must not include '*' in production")
             if "*" in self.allowed_hosts:
                 raise ValueError("ALLOWED_HOSTS must not include '*' in production")
-            if self.storage_backend == "azure" and not self.azure_storage_connection_string:
-                raise ValueError("AZURE_STORAGE_CONNECTION_STRING is required in production when STORAGE_BACKEND=azure")
-            if self.storage_backend == "minio":
+            if provider == "azure" and not self.azure_storage_connection_string:
+                raise ValueError(
+                    "AZURE_STORAGE_CONNECTION_STRING is required in production when STORAGE_PROVIDER=azure"
+                )
+            if provider == "selfhosted":
                 if not self.minio_endpoint or not self.minio_access_key or not self.minio_secret_key:
-                    raise ValueError("MINIO_ENDPOINT, MINIO_ACCESS_KEY, and MINIO_SECRET_KEY are required when STORAGE_BACKEND=minio")
-                if not self.minio_public_url:
-                    raise ValueError("MINIO_PUBLIC_URL is required when STORAGE_BACKEND=minio")
-            if self.storage_backend == "local" and not self.public_api_url:
-                raise ValueError("PUBLIC_API_URL is required in production when STORAGE_BACKEND=local")
+                    raise ValueError(
+                        "MINIO_ENDPOINT, MINIO_ACCESS_KEY, and MINIO_SECRET_KEY are required "
+                        "when STORAGE_PROVIDER=selfhosted"
+                    )
+                if not self.public_api_url:
+                    raise ValueError("PUBLIC_API_URL is required in production when STORAGE_PROVIDER=selfhosted")
+            if provider == "local" and not self.public_api_url:
+                raise ValueError("PUBLIC_API_URL is required in production when STORAGE_PROVIDER=local")
             if not self.smtp_host and not self.allow_insecure_email_fallback:
                 raise ValueError(
                     "SMTP_HOST is required in production (set ALLOW_INSECURE_EMAIL_FALLBACK=true "

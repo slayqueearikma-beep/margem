@@ -37,6 +37,7 @@ from app.routers import (
     marketplace_admin,
     marketplace_community,
     marketplaces,
+    media,
     privacy,
     search,
     seller_ops,
@@ -130,6 +131,16 @@ async def lifespan(app: FastAPI):
         await ensure_default_cities(session)
         await ensure_all_city_communities(session)
 
+    if settings.effective_storage_provider == "selfhosted":
+        try:
+            from app.services.minio_storage import ensure_buckets
+
+            ensure_buckets()
+        except Exception:
+            import logging
+
+            logging.getLogger("margem.storage").exception("minio_bucket_init_failed")
+
     yield
     await database.engine.dispose()
 
@@ -176,6 +187,8 @@ app.include_router(auth.router)
 app.include_router(catalog.router)
 app.include_router(sellers.router)
 app.include_router(uploads.router)
+if settings.effective_storage_provider == "selfhosted":
+    app.include_router(media.router)
 app.include_router(discovery.router)
 app.include_router(search.router)
 app.include_router(seller_ops.router)
@@ -196,11 +209,11 @@ if settings.serve_embedded_admin and _admin_dashboard_dir is not None:
         name="admin-dashboard",
     )
 
-if settings.storage_backend == "local":
+if settings.effective_storage_provider == "local":
     app.mount(
         "/media",
         StaticFiles(directory=str(media_root())),
-        name="media",
+        name="media-local",
     )
 
 _brand_dir = Path(__file__).resolve().parents[1] / "static" / "brand"
@@ -292,7 +305,7 @@ async def ready(request: Request):
     if db_ok:
         checks["database"] = "ok"
 
-    if settings.storage_backend == "local":
+    if settings.effective_storage_provider == "local":
         media_status = "ok"
         try:
             root = media_root()

@@ -786,12 +786,14 @@ class _ProfileHeader extends StatelessWidget {
     required this.displayName,
     required this.subtitle,
     required this.isGuest,
+    this.profilePhotoUrl = '',
     this.membershipLabel,
   });
 
   final String displayName;
   final String subtitle;
   final bool isGuest;
+  final String profilePhotoUrl;
   final String? membershipLabel;
 
   @override
@@ -800,6 +802,7 @@ class _ProfileHeader extends StatelessWidget {
     final initial = displayName.isNotEmpty
         ? displayName.substring(0, 1).toUpperCase()
         : '?';
+    final photoUrl = profilePhotoUrl.trim();
 
     return Column(
       children: [
@@ -819,17 +822,25 @@ class _ProfileHeader extends StatelessWidget {
                   color: context.colors.border,
                   width: 1,
                 ),
+                image: photoUrl.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(photoUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
               alignment: Alignment.center,
-              child: Text(
-                initial,
-                style: TextStyle(
-                  fontSize: 34,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
-                  color: isDark ? Colors.white : context.colors.primary,
-                ),
-              ),
+              child: photoUrl.isEmpty
+                  ? Text(
+                      initial,
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
+                        color: isDark ? Colors.white : context.colors.primary,
+                      ),
+                    )
+                  : null,
             ),
             if (!isGuest)
               Positioned(
@@ -907,6 +918,7 @@ class BuyerProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
+    final authSession = ref.watch(authSessionProvider);
     final isGuest = session == null || session.isGuest;
     final hasSellerProfile = session?.hasSellerProfile ?? false;
     final displayName = (session?.name.trim().isNotEmpty ?? false)
@@ -925,6 +937,7 @@ class BuyerProfileScreen extends ConsumerWidget {
               displayName: displayName,
               subtitle: subtitle,
               isGuest: isGuest,
+              profilePhotoUrl: authSession?.user.profilePhotoUrl ?? '',
               membershipLabel: isGuest ? null : l10n.margemMember,
             ),
             const SizedBox(height: AppSpacing.lg),

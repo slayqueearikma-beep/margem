@@ -3,95 +3,92 @@
 from __future__ import annotations
 
 import logging
-from urllib.parse import unquote, urlparse
 from uuid import UUID
 
 from app.config import settings
 
 logger = logging.getLogger("margem.storage")
 
-_AZURE_HOST_SUFFIX = ".blob.core.windows.net"
+_USER_PREFIXES = (
+    "profiles/{user_id}/",
+    "products/{user_id}/",
+    "listings/{user_id}/",
+    "private/{user_id}/",
+    "uploads/{user_id}/",
+    "{user_id}/",  # legacy layout
+)
 
 
 def blob_key_from_media_url(url: str) -> str | None:
-    """Extract `{user_id}/{uuid}-file` blob key from a stored media URL."""
-    value = (url or "").strip()
-    if not value:
-        return None
-    parsed = urlparse(value)
-    path = unquote(parsed.path or "")
-    parts = [p for p in path.split("/") if p]
+    """Extract object key from a stored media URL (legacy helper)."""
+    from app.services.media_urls import blob_key_from_media_url as _extract
 
-    if settings.public_api_url:
-        base = urlparse(settings.public_api_url.rstrip("/"))
-        if (parsed.hostname or "").lower() == (base.hostname or "").lower() and path.startswith("/media/"):
-            if len(parts) >= 3 and parts[0] == "media":
-                return "/".join(parts[1:])
+    return _extract(url)
 
-    if settings.minio_public_url:
-        allowed = urlparse(settings.minio_public_url.rstrip("/"))
-        bucket = settings.minio_bucket.strip("/")
-        if (parsed.scheme, parsed.netloc) == (allowed.scheme, allowed.netloc):
-            prefix = f"/{bucket}/"
-            if path.startswith(prefix):
-                rest = path[len(prefix) :]
-                return rest.lstrip("/") or None
 
-    host = (parsed.hostname or "").lower()
-    if host.endswith(_AZURE_HOST_SUFFIX):
-        container = settings.azure_storage_container
-        if len(parts) >= 2 and parts[0] == container:
-            return "/".join(parts[1:])
-    return None
+def _bucket_for_object_key(provider, blob_key: str) -> str:
+    from app.services.storage_provider import StoragePurpose
+
+    if provider.name == "azure":
+        return settings.azure_storage_container
+    if provider.name == "local":
+        return "local"
+    purpose_prefixes = {
+        "profiles/": StoragePurpose.PROFILE,
+        "products/": StoragePurpose.PRODUCT,
+        "listings/": StoragePurpose.LISTING,
+        "private/": StoragePurpose.PRIVATE,
+        "uploads/": StoragePurpose.GENERAL,
+    }
+    for prefix, purpose in purpose_prefixes.items():
+        if blob_key.startswith(prefix):
+            return provider.bucket_for(purpose)
+    return settings.minio_bucket_private
 
 
 async def delete_media_url(url: str) -> bool:
-    key = blob_key_from_media_url(url)
-    if not key:
+    from app.services.storage_provider import get_storage_provider
+
+    provider = get_storage_provider()
+    parsed = provider.parse_object_ref(url)
+    if not parsed:
         logger.warning("media_delete_skipped unparseable_url")
         return False
-    return await delete_blob_key(key)
+    bucket, object_key = parsed
+    return await provider.delete_object(bucket=bucket, object_key=object_key)
 
 
 async def delete_blob_key(blob_key: str) -> bool:
+    from app.services.storage_provider import get_storage_provider
+
     if not blob_key or ".." in blob_key or blob_key.startswith("/"):
         return False
-    backend = settings.storage_backend
+    provider = get_storage_provider()
+    bucket = _bucket_for_object_key(provider, blob_key)
     try:
-        if backend == "local":
-            from app.services.local_storage import delete_local_blob
-
-            return delete_local_blob(blob_key)
-        if backend == "minio":
-            from app.services.minio_storage import delete_object
-
-            return delete_object(blob_key)
-        from app.services.azure_storage import delete_blob
-
-        return await delete_blob(blob_key)
+        return await provider.delete_object(bucket=bucket, object_key=blob_key)
     except Exception:
-        logger.exception("media_delete_failed blob_key=%s backend=%s", blob_key, backend)
+        logger.exception("media_delete_failed blob_key=%s provider=%s", blob_key, provider.name)
         return False
 
 
 async def delete_all_user_media(user_id: UUID) -> int:
-    """Delete every object stored under `{user_id}/` prefix (idempotent)."""
-    prefix = f"{user_id}/"
-    backend = settings.storage_backend
+    """Delete every object stored under user prefixes (idempotent)."""
+    from app.services.minio_storage import all_buckets
+    from app.services.storage_provider import get_storage_provider
+
+    provider = get_storage_provider()
     deleted = 0
+    prefixes = [pattern.format(user_id=user_id) for pattern in _USER_PREFIXES]
     try:
-        if backend == "local":
-            from app.services.local_storage import delete_user_prefix
-
-            deleted = delete_user_prefix(prefix)
-        elif backend == "minio":
-            from app.services.minio_storage import delete_prefix
-
-            deleted = delete_prefix(prefix)
+        if provider.name == "selfhosted":
+            for bucket in all_buckets():
+                for prefix in prefixes:
+                    deleted += await provider.delete_prefix(bucket=bucket, prefix=prefix)
         else:
-            from app.services.azure_storage import delete_prefix
-
-            deleted = await delete_prefix(prefix)
+            bucket = settings.azure_storage_container if provider.name == "azure" else "local"
+            for prefix in prefixes:
+                deleted += await provider.delete_prefix(bucket=bucket, prefix=prefix)
     except Exception:
         logger.exception("user_media_purge_failed user_id=%s", user_id)
     if deleted:

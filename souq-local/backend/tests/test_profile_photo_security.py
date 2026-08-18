@@ -21,9 +21,13 @@ pytestmark = pytest.mark.usefixtures("prepare_database")
 
 @pytest.fixture
 async def client(tmp_path, monkeypatch):
+    from app.services.storage_provider import reset_storage_provider_cache
+
+    monkeypatch.setattr(settings, "storage_provider", "local")
     monkeypatch.setattr(settings, "storage_backend", "local")
     monkeypatch.setattr(settings, "local_media_root", str(tmp_path))
     monkeypatch.setattr(settings, "public_api_url", "http://test")
+    reset_storage_provider_cache()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac

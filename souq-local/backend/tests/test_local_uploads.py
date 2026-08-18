@@ -21,9 +21,13 @@ async def _register(client: AsyncClient, email: str) -> dict:
 
 @pytest.mark.asyncio
 async def test_local_presign_and_put_roundtrip(tmp_path, monkeypatch):
+    from app.services.storage_provider import reset_storage_provider_cache
+
+    monkeypatch.setattr(settings, "storage_provider", "local")
     monkeypatch.setattr(settings, "storage_backend", "local")
     monkeypatch.setattr(settings, "local_media_root", str(tmp_path))
     monkeypatch.setattr(settings, "public_api_url", "http://testserver")
+    reset_storage_provider_cache()
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
@@ -62,9 +66,13 @@ async def test_local_presign_and_put_roundtrip(tmp_path, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_local_upload_token_cannot_be_used_by_another_account(tmp_path, monkeypatch):
+    from app.services.storage_provider import reset_storage_provider_cache
+
+    monkeypatch.setattr(settings, "storage_provider", "local")
     monkeypatch.setattr(settings, "storage_backend", "local")
     monkeypatch.setattr(settings, "local_media_root", str(tmp_path))
     monkeypatch.setattr(settings, "public_api_url", "http://testserver")
+    reset_storage_provider_cache()
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:

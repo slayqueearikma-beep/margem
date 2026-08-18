@@ -4,6 +4,7 @@ class AuthUser {
     required this.email,
     required this.accountType,
     required this.displayName,
+    this.profilePhotoUrl = '',
     this.hasSellerProfile = false,
     this.legalAcceptanceComplete = true,
     this.pendingLegalPolicies = const [],
@@ -13,6 +14,7 @@ class AuthUser {
   final String email;
   final String accountType;
   final String displayName;
+  final String profilePhotoUrl;
   final bool hasSellerProfile;
   final bool legalAcceptanceComplete;
   final List<String> pendingLegalPolicies;
@@ -23,6 +25,7 @@ class AuthUser {
       email: json['email'] as String,
       accountType: json['account_type'] as String,
       displayName: json['display_name'] as String? ?? '',
+      profilePhotoUrl: json['profile_photo_url'] as String? ?? '',
       hasSellerProfile: json['has_seller_profile'] as bool? ?? false,
       legalAcceptanceComplete:
           json['legal_acceptance_complete'] as bool? ?? false,

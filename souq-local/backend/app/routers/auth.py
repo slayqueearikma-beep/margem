@@ -469,16 +469,11 @@ async def update_profile_photo(
     from app.auth import user_has_seller_profile
     from app.services.legal_acceptance import get_pending_policy_ids
     from app.services.media_registry import register_media_object, supersede_media_url
-    from app.services.upload_security import validate_media_url
+    from app.services.storage_provider import get_storage_provider
 
+    provider = get_storage_provider()
     try:
-        validated = validate_media_url(
-            payload.profile_photo_url,
-            owner_user_id=user.id,
-            container=settings.azure_storage_container,
-            public_api_url=settings.public_api_url,
-            minio_public_url=settings.minio_public_url or None,
-        )
+        validated = provider.validate_owner_url(payload.profile_photo_url, owner_user_id=user.id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 

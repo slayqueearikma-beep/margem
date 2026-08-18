@@ -107,3 +107,41 @@ async def delete_prefix(prefix: str) -> int:
             await container.delete_blob(blob.name)
             count += 1
     return count
+
+
+async def presign_upload(
+    *,
+    user_id,
+    object_key: str,
+    content_type: str,
+) -> tuple[str, str]:
+    """Return (upload_url, public_url) for a direct-to-Azure PUT."""
+    from datetime import datetime, timedelta, timezone
+
+    from azure.storage.blob import BlobSasPermissions, generate_blob_sas
+    from azure.storage.blob.aio import BlobServiceClient
+
+    conn = (settings.azure_storage_connection_string or "").strip().strip('"').strip("'")
+    if not conn:
+        raise ValueError("AZURE_STORAGE_CONNECTION_STRING is not configured")
+
+    async with BlobServiceClient.from_connection_string(conn) as client:
+        container = client.get_container_client(settings.azure_storage_container)
+        await ensure_blob_container(container)
+        blob_client = container.get_blob_client(object_key)
+
+        account_name = client.account_name
+        if not account_name:
+            raise ValueError("Storage account name missing from connection string")
+        account_key = extract_azure_account_key(client.credential)
+
+        sas_write = generate_blob_sas(
+            account_name=account_name,
+            container_name=settings.azure_storage_container,
+            blob_name=object_key,
+            account_key=account_key,
+            permission=BlobSasPermissions(write=True, create=True),
+            expiry=datetime.now(timezone.utc) + timedelta(minutes=15),
+        )
+        logger.info("storage_upload_presigned provider=azure key=%s", object_key)
+        return f"{blob_client.url}?{sas_write}", blob_client.url

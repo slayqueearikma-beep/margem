@@ -672,6 +672,7 @@ class WarningZoneOut(BaseModel):
 class PresignRequest(BaseModel):
     filename: str
     content_type: str = "image/jpeg"
+    purpose: str = "general"
 
 
 class PresignResponse(BaseModel):

@@ -45,7 +45,7 @@ from app.services.community_moderation import (
 from app.services.text_search import escape_ilike
 from app.services.community_trust import sender_profile
 from app.services.notifications import notify_user
-from app.services.upload_security import validate_media_url
+from app.services.storage_provider import get_storage_provider
 
 
 def _escape_ilike(value: str) -> str:
@@ -54,14 +54,9 @@ def _escape_ilike(value: str) -> str:
 
 def _validate_attachments(attachments: list[CommunityAttachmentIn], *, owner_user_id: UUID) -> list[dict]:
     validated: list[dict] = []
+    provider = get_storage_provider()
     for attachment in attachments:
-        validate_media_url(
-            attachment.url,
-            owner_user_id=owner_user_id,
-            container=settings.azure_storage_container,
-            public_api_url=settings.public_api_url if settings.storage_backend == "local" else None,
-            minio_public_url=settings.minio_public_url if settings.storage_backend == "minio" else None,
-        )
+        provider.validate_owner_url(attachment.url, owner_user_id=owner_user_id)
         validated.append(attachment.model_dump())
     return validated
 

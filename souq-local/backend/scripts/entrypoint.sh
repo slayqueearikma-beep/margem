@@ -41,7 +41,7 @@ echo "Running database migrations..."
 python /app/scripts/normalize_env_lists.py
 alembic upgrade head
 
-if [ "${STORAGE_BACKEND:-local}" = "local" ]; then
+if [ "${STORAGE_PROVIDER:-selfhosted}" = "local" ] || [ "${STORAGE_BACKEND:-}" = "local" ]; then
   MEDIA_DIR="${LOCAL_MEDIA_ROOT:-/data/media}"
   if ! python - <<'PY'
 import os

@@ -37,8 +37,6 @@ from app.services.ratings import (
 )
 from app.services.reviews import get_review_eligibility
 from app.services.marketplace_scope import resolve_marketplace_id
-from app.services.upload_security import validate_media_url
-
 router = APIRouter(prefix="/sellers", tags=["sellers"])
 
 _MAX_PAGE_SIZE = 100
@@ -100,14 +98,10 @@ async def _seller_for_user(user: User, session: AsyncSession) -> SellerProfile:
 
 
 def _validate_owner_media(url: str, user_id: UUID) -> str:
+    from app.services.storage_provider import get_storage_provider
+
     try:
-        return validate_media_url(
-            url or "",
-            owner_user_id=user_id,
-            container=settings.azure_storage_container,
-            public_api_url=settings.public_api_url,
-            minio_public_url=settings.minio_public_url or None,
-        )
+        return get_storage_provider().validate_owner_url(url or "", owner_user_id=user_id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 

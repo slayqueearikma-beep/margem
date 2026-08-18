@@ -13,6 +13,7 @@ os.environ["SIGNUP_OTP_VERIFY_RATE_LIMIT"] = "1000/minute"
 os.environ["AUTH_DEV_BYPASS"] = "false"
 os.environ["DEBUG"] = "false"
 os.environ["ALLOW_MANUAL_BILLING"] = "true"
+os.environ.setdefault("STORAGE_PROVIDER", "local")
 
 import pytest_asyncio
 from sqlalchemy import select, text
