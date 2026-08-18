@@ -79,7 +79,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local"
 
     auth_dev_bypass: bool = False
-    # When false, non-production hosts cannot activate premium without Stripe.
+    # When false, non-production hosts cannot activate premium without NAPS/manual billing.
     allow_manual_billing: bool = False
     # In production, verified email is required before creating a storefront,
     # messaging users, or creating reputation signals.
@@ -154,9 +154,31 @@ class Settings(BaseSettings):
 
     # Platform billing only — never buyer↔seller marketplace checkout.
     payment_provider: str = "manual"
-    stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
-    stripe_currency: str = "mad"
+    payment_currency: str = "mad"
+
+    # NAPS ePay — sole production payment provider (Morocco)
+    naps_environment: str = "sandbox"
+    naps_merchant_id: str = ""
+    naps_api_key: str = ""
+    naps_secret_key: str = ""
+    naps_webhook_secret: str = ""
+    naps_api_key_header: str = "X-API-Key"
+    naps_epay_payment_init_url: str = ""
+    naps_epay_payment_status_url: str = ""
+    naps_request_signing_enabled: bool = True
+    naps_response_payment_id_path: str = "payment_id"
+    naps_response_redirect_url_path: str = "redirect_url"
+    naps_response_status_path: str = "status"
+    naps_response_amount_path: str = "amount"
+    naps_response_currency_path: str = "currency"
+    naps_webhook_event_id_field: str = "event_id"
+    naps_webhook_status_field: str = "status"
+    naps_webhook_payment_id_field: str = "payment_id"
+    naps_webhook_amount_field: str = "amount"
+    naps_webhook_currency_field: str = "currency"
+    naps_webhook_signature_header: str = "X-NAPS-Signature"
+    naps_webhook_success_statuses: CommaSeparatedList = ["success", "paid", "completed"]
+    naps_extra_request_fields_json: str = "{}"
 
     @field_validator("storage_provider", mode="before")
     @classmethod
@@ -181,8 +203,18 @@ class Settings(BaseSettings):
         if value is None or value == "":
             return "manual"
         cleaned = str(value).strip().lower()
-        if cleaned not in {"manual", "stripe", "none"}:
-            raise ValueError("PAYMENT_PROVIDER must be 'manual', 'stripe', or 'none'")
+        if cleaned not in {"manual", "naps", "none"}:
+            raise ValueError("PAYMENT_PROVIDER must be 'manual', 'naps', or 'none'")
+        return cleaned
+
+    @field_validator("naps_environment", mode="before")
+    @classmethod
+    def normalize_naps_environment(cls, value: Any) -> str:
+        if value is None or value == "":
+            return "sandbox"
+        cleaned = str(value).strip().lower()
+        if cleaned not in {"sandbox", "production"}:
+            raise ValueError("NAPS_ENVIRONMENT must be 'sandbox' or 'production'")
         return cleaned
 
     @field_validator("storage_backend", mode="before")
@@ -314,14 +346,46 @@ class Settings(BaseSettings):
                     "ADMIN_IP_ALLOWLIST is required in production — "
                     "admin APIs must not be reachable from any IP"
                 )
-            if self.payment_provider == "stripe":
-                if not self.stripe_secret_key or not self.stripe_webhook_secret:
+            if self.payment_provider == "naps" and self.app_env in {"production", "prod"}:
+                missing = self.naps_missing_config_fields()
+                if missing:
                     raise ValueError(
-                        "STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are required when PAYMENT_PROVIDER=stripe"
+                        "NAPS ePay configuration incomplete for production: "
+                        + ", ".join(missing)
                     )
+            if self.payment_provider == "manual" and self.app_env in {"production", "prod"}:
+                raise ValueError(
+                    "PAYMENT_PROVIDER=manual is not allowed in production. Use PAYMENT_PROVIDER=naps."
+                )
         if self.auth_dev_bypass and self.app_env not in {"development", "dev"}:
             raise ValueError("AUTH_DEV_BYPASS is only allowed when APP_ENV is development or dev")
         return self
+
+    @property
+    def naps_extra_request_fields(self) -> dict[str, Any]:
+        import json
+
+        raw = (self.naps_extra_request_fields_json or "{}").strip()
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+
+    @property
+    def naps_configured(self) -> bool:
+        return not self.naps_missing_config_fields()
+
+    def naps_missing_config_fields(self) -> list[str]:
+        required = {
+            "NAPS_MERCHANT_ID": self.naps_merchant_id.strip(),
+            "NAPS_SECRET_KEY": self.naps_secret_key.strip(),
+            "NAPS_EPAY_PAYMENT_INIT_URL": self.naps_epay_payment_init_url.strip(),
+            "NAPS_WEBHOOK_SECRET": self.naps_webhook_secret.strip(),
+        }
+        if self.naps_environment == "production":
+            required["NAPS_API_KEY"] = self.naps_api_key.strip()
+        return [name for name, value in required.items() if not value]
 
 
 settings = Settings()

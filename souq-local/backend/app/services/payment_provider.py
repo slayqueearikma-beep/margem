@@ -82,10 +82,10 @@ def get_payment_provider() -> PaymentProvider:
         return _provider_cache
     from app.config import settings
 
-    if settings.payment_provider == "stripe":
-        from app.services.stripe_payment_provider import StripePaymentProvider
+    if settings.payment_provider == "naps":
+        from app.services.naps_payment_provider import NapsPaymentProvider
 
-        _provider_cache = StripePaymentProvider()
+        _provider_cache = NapsPaymentProvider()
     elif settings.payment_provider == "none":
         from app.services.manual_payment_provider import DisabledPaymentProvider
 

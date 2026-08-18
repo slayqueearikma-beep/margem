@@ -57,7 +57,7 @@ async def create_subscription_checkout(
         service_type="subscription",
         service_code=plan.code,
         amount_mad=float(plan.price_mad),
-        currency=settings.stripe_currency,
+        currency=settings.payment_currency,
         status=PlatformPaymentStatus.PENDING,
         provider=settings.payment_provider,
         metadata_={"plan_name": plan.name},
@@ -71,7 +71,7 @@ async def create_subscription_checkout(
         user_id=user.id,
         plan_code=plan.code,
         amount_mad=float(plan.price_mad),
-        currency=settings.stripe_currency,
+        currency=settings.payment_currency,
         success_url=success_url,
         cancel_url=cancel_url,
     )
@@ -79,6 +79,7 @@ async def create_subscription_checkout(
     payment.provider_reference = checkout.provider_reference
     if checkout.status == "success":
         payment.status = PlatformPaymentStatus.SUCCESS
+        payment.paid_at = datetime.now(UTC)
         await activate_subscription_for_payment(session, payment=payment, user=user, plan=plan)
     await session.commit()
     await session.refresh(payment)
@@ -124,7 +125,7 @@ async def create_advertising_checkout(
         service_type="advertising",
         service_code=package.code,
         amount_mad=float(package.price_mad),
-        currency=settings.stripe_currency,
+        currency=settings.payment_currency,
         status=PlatformPaymentStatus.PENDING,
         provider=settings.payment_provider,
         metadata_={
@@ -151,7 +152,7 @@ async def create_advertising_checkout(
         user_id=user.id,
         package_code=package.code,
         amount_mad=float(package.price_mad),
-        currency=settings.stripe_currency,
+        currency=settings.payment_currency,
         success_url=success_url,
         cancel_url=cancel_url,
         metadata={"seller_id": str(seller.id), "product_id": str(product_id) if product_id else ""},
@@ -160,6 +161,7 @@ async def create_advertising_checkout(
     payment.provider_reference = checkout.provider_reference
     if checkout.status == "success":
         payment.status = PlatformPaymentStatus.SUCCESS
+        payment.paid_at = datetime.now(UTC)
         await activate_advertising_campaign(session, campaign=campaign, package=package, payment=payment)
     await session.commit()
     await session.refresh(payment)
@@ -297,7 +299,7 @@ async def process_provider_webhook(
         )
     )
 
-    if verified.event_type not in {"checkout.session.completed", "payment_intent.succeeded"}:
+    if verified.event_type not in settings.naps_webhook_success_statuses:
         await session.commit()
         return True
 
@@ -320,6 +322,7 @@ async def process_provider_webhook(
 
     payment.status = PlatformPaymentStatus.SUCCESS
     payment.provider_reference = verified.provider_reference or payment.provider_reference
+    payment.paid_at = datetime.now(UTC)
 
     user = (await session.execute(select(User).where(User.id == payment.user_id))).scalar_one_or_none()
     if user is None:

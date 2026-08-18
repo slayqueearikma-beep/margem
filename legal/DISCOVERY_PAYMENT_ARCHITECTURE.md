@@ -9,7 +9,7 @@ It describes what existed, what changed, and what remains regulated.
 |-------|----------------|
 | Marketplace checkout | Built in migration `006_marketplace_production` (`orders`, `cart_items`, `payment_status`, coupons) |
 | Removal | Migration `007_discovery_platform` **dropped** all ecommerce tables and enums |
-| Stripe | **Never integrated** — no SDK, no Connect, no webhooks in codebase |
+| Stripe | **Removed** — was optional; fully migrated to NAPS |
 | Subscriptions | Manual dev activation (`provider=manual`); blocked in production; admin grant |
 | Seller payouts | **Never existed** |
 | Mobile checkout | **Never existed** — legacy l10n strings remapped to “Contact seller” / “Favorites” |

@@ -19,5 +19,4 @@ redis==5.2.1
 pyotp==2.9.0
 cryptography==50.0.0
 minio==7.2.15
-stripe==11.4.1
 Pillow==11.1.0

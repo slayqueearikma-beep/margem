@@ -1053,22 +1053,69 @@ class BillingCheckoutResult {
   const BillingCheckoutResult({
     this.checkoutUrl,
     this.activated = false,
+    this.paymentId,
+    this.provider,
     this.subscription,
   });
 
   final String? checkoutUrl;
   final bool activated;
+  final String? paymentId;
+  final String? provider;
   final SubscriptionModel? subscription;
 
   factory BillingCheckoutResult.fromJson(Map<String, dynamic> json) {
     return BillingCheckoutResult(
       checkoutUrl: json['checkout_url'] as String?,
       activated: json['activated'] as bool? ?? false,
+      paymentId: json['payment_id'] as String?,
+      provider: json['provider'] as String?,
       subscription: json['subscription'] is Map<String, dynamic>
           ? SubscriptionModel.fromJson(
               json['subscription'] as Map<String, dynamic>,
             )
           : null,
+    );
+  }
+}
+
+class PlatformPaymentModel {
+  const PlatformPaymentModel({
+    required this.id,
+    required this.serviceType,
+    required this.serviceCode,
+    required this.amountMad,
+    required this.currency,
+    required this.status,
+    required this.provider,
+    required this.providerReference,
+    required this.createdAt,
+    this.paidAt,
+  });
+
+  final String id;
+  final String serviceType;
+  final String serviceCode;
+  final double amountMad;
+  final String currency;
+  final String status;
+  final String provider;
+  final String providerReference;
+  final String createdAt;
+  final String? paidAt;
+
+  factory PlatformPaymentModel.fromJson(Map<String, dynamic> json) {
+    return PlatformPaymentModel(
+      id: json['id'] as String,
+      serviceType: json['service_type'] as String? ?? '',
+      serviceCode: json['service_code'] as String? ?? '',
+      amountMad: (json['amount_mad'] as num?)?.toDouble() ?? 0,
+      currency: (json['currency'] as String? ?? 'mad').toUpperCase(),
+      status: json['status'] as String? ?? 'pending',
+      provider: json['provider'] as String? ?? '',
+      providerReference: json['provider_reference'] as String? ?? '',
+      createdAt: json['created_at'] as String? ?? '',
+      paidAt: json['paid_at'] as String?,
     );
   }
 }

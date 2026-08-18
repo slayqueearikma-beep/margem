@@ -102,7 +102,8 @@ async def test_manual_billing_blocked_on_staging(client: AsyncClient, monkeypatc
     )
     monkeypatch.setattr(settings, "app_env", "staging")
     monkeypatch.setattr(settings, "allow_manual_billing", False)
-    monkeypatch.setattr(settings, "stripe_secret_key", "")
+    monkeypatch.setattr(settings, "payment_provider", "naps")
+    monkeypatch.setattr(settings, "naps_merchant_id", "")
     headers = {"Authorization": f"Bearer {user['access_token']}"}
     res = await client.post(
         "/subscriptions/subscribe/buyer_premium",

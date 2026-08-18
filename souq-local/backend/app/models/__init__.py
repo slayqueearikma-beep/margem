@@ -560,7 +560,8 @@ class Subscription(Base):
     current_period_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     current_period_end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     provider: Mapped[str] = mapped_column(String(40), default="manual")
-    provider_reference: Mapped[str] = mapped_column(String(120), default="")
+    provider_reference: Mapped[str] = mapped_column(String(160), default="")
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     plan: Mapped[SubscriptionPlan] = relationship()
@@ -589,6 +590,8 @@ class DribexServicePayment(Base):
     provider: Mapped[str] = mapped_column(String(40), default="manual")
     provider_reference: Mapped[str] = mapped_column(String(160), default="")
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    refunded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -640,6 +643,7 @@ class AdvertisingCampaign(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     package: Mapped[AdvertisingPackage] = relationship()
+    payment: Mapped["DribexServicePayment | None"] = relationship()
 
 
 class AdminAuditLog(Base):

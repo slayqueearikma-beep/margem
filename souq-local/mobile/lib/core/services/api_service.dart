@@ -1276,6 +1276,20 @@ class ApiService {
     return BillingCheckoutResult.fromJson(data);
   }
 
+  Future<List<PlatformPaymentModel>> fetchMyPlatformPayments() async {
+    final data = await getJson('/billing/payments/me', auth: true);
+    if (data is! List) return const [];
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(PlatformPaymentModel.fromJson)
+        .toList();
+  }
+
+  Future<PlatformPaymentModel> fetchPlatformPayment(String paymentId) async {
+    final data = await getJson('/billing/payments/$paymentId', auth: true);
+    return PlatformPaymentModel.fromJson(data as Map<String, dynamic>);
+  }
+
   Future<void> requestPasswordReset(String email) {
     return postVoid('/auth/password-reset/request', {'email': email},
         auth: false);
