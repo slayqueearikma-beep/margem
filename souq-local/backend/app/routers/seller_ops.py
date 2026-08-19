@@ -120,6 +120,8 @@ class SubscriptionOut(BaseModel):
     current_period_start: datetime
     current_period_end: datetime
     provider: str
+    cancelled_at: datetime | None = None
+    cancel_at_period_end: bool = False
 
 
 class BillingStatusOut(BaseModel):
@@ -530,6 +532,8 @@ async def my_subscription(
         current_period_start=sub.current_period_start,
         current_period_end=sub.current_period_end,
         provider=sub.provider,
+        cancelled_at=sub.cancelled_at,
+        cancel_at_period_end=sub.cancelled_at is not None,
     )
 
 

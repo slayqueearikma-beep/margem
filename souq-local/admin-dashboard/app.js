@@ -17,6 +17,7 @@ const state = {
   usersPage: 1,
   usersPageSize: 50,
   staffRole: "",
+  reports: [],
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -101,8 +102,10 @@ function switchView(view) {
   $("#view-marketplaces").classList.toggle("hidden", view !== "marketplaces");
   $("#view-categories").classList.toggle("hidden", view !== "categories");
   $("#view-users").classList.toggle("hidden", view !== "users");
+  $("#view-reports").classList.toggle("hidden", view !== "reports");
   if (view === "categories") loadCategoryMarketplaceOptions();
   if (view === "users") loadUsers().catch((e) => toast(e.message, true));
+  if (view === "reports") loadReports().catch((e) => toast(e.message, true));
 }
 
 function formatDate(value) {
@@ -123,6 +126,40 @@ function statusPillClass(status) {
   if (value === "suspended") return "suspended";
   if (value === "deleted") return "deleted";
   return "active";
+}
+
+async function loadReports() {
+  const status = $("#reports-status-filter").value;
+  const params = new URLSearchParams({ limit: "100" });
+  if (status) params.set("status_filter", status);
+  const rows = await api(`/admin/discovery/reports?${params.toString()}`);
+  state.reports = rows || [];
+  renderReports();
+}
+
+function renderReports() {
+  const tbody = $("#reports-tbody");
+  tbody.innerHTML = "";
+  if (!state.reports.length) {
+    $("#reports-empty").classList.remove("hidden");
+    return;
+  }
+  $("#reports-empty").classList.add("hidden");
+  for (const report of state.reports) {
+    const tr = document.createElement("tr");
+    const target = report.seller_id || report.product_id || report.reported_user_id || "—";
+    tr.innerHTML = `
+      <td>${formatDate(report.created_at)}</td>
+      <td>${report.reason}</td>
+      <td><span class="pill ${report.status}">${report.status}</span></td>
+      <td class="mono">${target}</td>
+      <td class="actions">
+        <button type="button" class="btn ghost sm" data-report-action="review" data-id="${report.id}">Review</button>
+        <button type="button" class="btn ghost sm" data-report-action="resolve" data-id="${report.id}">Resolve</button>
+        <button type="button" class="btn ghost sm" data-report-action="reject" data-id="${report.id}">Reject</button>
+      </td>`;
+    tbody.appendChild(tr);
+  }
 }
 
 async function loadUsers() {
@@ -674,6 +711,27 @@ function bindEvents() {
   $("#refresh-users-btn").onclick = () => {
     state.usersPage = 1;
     loadUsers().catch((e) => toast(e.message, true));
+  };
+  $("#refresh-reports-btn").onclick = () => loadReports().catch((e) => toast(e.message, true));
+  $("#reports-status-filter").onchange = () => loadReports().catch((e) => toast(e.message, true));
+  $("#reports-tbody").onclick = async (event) => {
+    const btn = event.target.closest("[data-report-action]");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const action = btn.dataset.reportAction;
+    const statusMap = { review: "under_review", resolve: "resolved", reject: "rejected" };
+    const status = statusMap[action];
+    if (!status) return;
+    try {
+      await api(`/admin/discovery/reports/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status, resolution_notes: `Marked ${status} from admin dashboard` }),
+      });
+      toast(`Report ${status.replace("_", " ")}`);
+      await loadReports();
+    } catch (err) {
+      toast(err.message, true);
+    }
   };
   $("#users-search").oninput = debounce(() => {
     state.usersPage = 1;

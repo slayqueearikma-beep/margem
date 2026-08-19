@@ -34,6 +34,7 @@ from app.schemas import (
     UserOut,
     UserRegister,
     UserRegisterFirebase,
+    UserSelfUpdate,
 )
 from app.services.audit import log_security_event
 from app.services.client_ip import get_client_ip
@@ -437,6 +438,48 @@ async def me(
     )
 
 
+@router.patch("/me", response_model=UserOut)
+@limiter.limit(settings.auth_rate_limit)
+async def update_me(
+    request: Request,
+    payload: UserSelfUpdate,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> UserOut:
+    from app.auth import user_has_seller_profile
+    from app.services.legal_acceptance import get_pending_policy_ids
+
+    updates = payload.model_dump(exclude_unset=True)
+    extra = set(updates.keys()) - {"display_name", "phone"}
+    if extra:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Fields not allowed: {', '.join(sorted(extra))}",
+        )
+    if not updates:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+
+    if "display_name" in updates and updates["display_name"] is not None:
+        name = updates["display_name"].strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="display_name cannot be empty")
+        user.display_name = name[:120]
+    if "phone" in updates:
+        user.phone = (updates["phone"] or "").strip()[:32]
+
+    await session.commit()
+    await session.refresh(user)
+    log_security_event("profile_updated", user_id=str(user.id), fields=",".join(sorted(updates.keys())))
+    has_store = await user_has_seller_profile(session, user.id)
+    pending = await get_pending_policy_ids(session, user.id)
+    return UserOut.from_user(
+        user,
+        has_seller_profile=has_store,
+        legal_acceptance_complete=not pending,
+        pending_legal_policies=pending,
+    )
+
+
 @router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(settings.auth_rate_limit)
 async def change_password(
@@ -820,132 +863,7 @@ async def delete_account(
     if not user.password_hash or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
 
-    from sqlalchemy import delete as sql_delete, update
+    from app.services.account_deletion import delete_user_account
 
-    from app.models import (
-        AuthToken,
-        Conversation,
-        Favorite,
-        Message,
-        MfaFactor,
-        MfaRecoveryCode,
-        Notification,
-        RecentlyViewed,
-        Review,
-        SavedSearch,
-        SellerFollow,
-        Subscription,
-        UserBlock,
-    )
-    from app.models.community import (
-        CommunityMembership,
-        CommunityMessage,
-        CommunityReaction,
-        CommunityReport,
-        CommunityUserBlock,
-        CommunityUserMute,
-    )
-    from app.models.community import (
-        CommunityMembership,
-        CommunityMessage,
-        CommunityMessageStatus,
-        CommunityReaction,
-        CommunityReport,
-    )
-
-    seller = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-    profile = seller.scalar_one_or_none()
-
-    # Remove message history the user authored, then any peer conversations they belong to.
-    await session.execute(sql_delete(Message).where(Message.sender_id == user.id))
-    peer_conversations = (
-        await session.execute(
-            select(Conversation.id).where(
-                (Conversation.participant_a_id == user.id) | (Conversation.participant_b_id == user.id)
-            )
-        )
-    ).scalars().all()
-    if peer_conversations:
-        await session.execute(sql_delete(Message).where(Message.conversation_id.in_(peer_conversations)))
-        await session.execute(sql_delete(Conversation).where(Conversation.id.in_(peer_conversations)))
-
-    # Community chat: remove authored content and membership links (soft-delete keeps user row).
-    user_messages = (
-        await session.execute(select(CommunityMessage.id).where(CommunityMessage.sender_id == user.id))
-    ).scalars().all()
-    if user_messages:
-        await session.execute(sql_delete(CommunityReaction).where(CommunityReaction.message_id.in_(user_messages)))
-        await session.execute(sql_delete(CommunityReport).where(CommunityReport.message_id.in_(user_messages)))
-    await session.execute(sql_delete(CommunityReport).where(CommunityReport.reporter_id == user.id))
-    await session.execute(sql_delete(CommunityMembership).where(CommunityMembership.user_id == user.id))
-    await session.execute(sql_delete(CommunityUserBlock).where(CommunityUserBlock.blocker_id == user.id))
-    await session.execute(sql_delete(CommunityUserBlock).where(CommunityUserBlock.blocked_id == user.id))
-    await session.execute(sql_delete(CommunityUserMute).where(CommunityUserMute.muter_id == user.id))
-    await session.execute(sql_delete(CommunityUserMute).where(CommunityUserMute.muted_id == user.id))
-    await session.execute(sql_delete(UserBlock).where(UserBlock.blocker_id == user.id))
-    await session.execute(sql_delete(UserBlock).where(UserBlock.blocked_id == user.id))
-
-    if profile is not None:
-        from app.models import Product, SellerCategory, Service
-
-        # Clear association + owned rows before deleting the storefront (no ON DELETE CASCADE).
-        await session.execute(sql_delete(SellerCategory).where(SellerCategory.seller_id == profile.id))
-        await session.execute(sql_delete(Product).where(Product.seller_id == profile.id))
-        await session.execute(sql_delete(Service).where(Service.seller_id == profile.id))
-        await session.execute(sql_delete(Review).where(Review.seller_id == profile.id))
-        await session.delete(profile)
-
-    for model, column in (
-        (Favorite, Favorite.user_id),
-        (SellerFollow, SellerFollow.user_id),
-        (SavedSearch, SavedSearch.user_id),
-        (RecentlyViewed, RecentlyViewed.user_id),
-        (Notification, Notification.user_id),
-        (Subscription, Subscription.user_id),
-        (AuthToken, AuthToken.user_id),
-        (Review, Review.buyer_id),
-        (MfaFactor, MfaFactor.user_id),
-        (MfaRecoveryCode, MfaRecoveryCode.user_id),
-        (CommunityMembership, CommunityMembership.user_id),
-        (CommunityReaction, CommunityReaction.user_id),
-        (CommunityReport, CommunityReport.reporter_id),
-    ):
-        await session.execute(sql_delete(model).where(column == user.id))
-
-    # Anonymize community messages instead of hard-deleting (preserves thread structure).
-    await session.execute(
-        update(CommunityMessage)
-        .where(CommunityMessage.sender_id == user.id)
-        .values(
-            body="[deleted]",
-            attachments=[],
-            mentions=[],
-            hashtags=[],
-            status=CommunityMessageStatus.DELETED,
-            deleted_at=datetime.now(UTC),
-            deleted_by_id=user.id,
-        )
-    )
-
-    await revoke_all_refresh_tokens(session, user.id)
-    user.status = UserStatus.DELETED
-    user.email = f"deleted+{user.id}@invalid.local"
-    user.display_name = "Deleted user"
-    user.phone = ""
-    user.profile_photo_url = ""
-    user.password_hash = None
-    user.firebase_uid = f"deleted-{user.id}"
-    user.email_verified_at = None
-    user.mfa_enabled = False
-    user.is_premium = False
-    user.premium_until = None
-
-    from app.services.media_lifecycle import delete_all_user_media, log_media_event
-    from app.services.media_registry import mark_user_media_deleted
-
-    await mark_user_media_deleted(session, user.id)
+    await delete_user_account(session, user)
     await session.commit()
-
-    purged = await delete_all_user_media(user.id)
-    log_media_event("profile_photo_deleted", user_id=user.id, purpose="account_deletion", detail=f"count={purged}")
-    log_security_event("account_deleted", user_id=str(user.id))

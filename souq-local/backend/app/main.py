@@ -26,6 +26,7 @@ from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.models import Marketplace, SubscriptionPlan
 from app.routers import (
+    admin_moderation,
     auth,
     billing,
     bundles,
@@ -203,6 +204,7 @@ app.include_router(geography.router)
 app.include_router(legal_acceptance.router)
 app.include_router(legal_pages.router)
 app.include_router(privacy.router)
+app.include_router(admin_moderation.router)
 
 if settings.serve_embedded_admin and _admin_dashboard_dir is not None:
     app.mount(

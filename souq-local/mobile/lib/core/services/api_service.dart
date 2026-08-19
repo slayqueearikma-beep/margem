@@ -1276,6 +1276,20 @@ class ApiService {
     return BillingCheckoutResult.fromJson(data);
   }
 
+  Future<void> cancelSubscription() async {
+    await postVoid('/billing/subscriptions/me/cancel', const {}, auth: true);
+  }
+
+  Future<Map<String, dynamic>> updateMyProfile({
+    String? displayName,
+    String? phone,
+  }) async {
+    final body = <String, dynamic>{};
+    if (displayName != null) body['display_name'] = displayName;
+    if (phone != null) body['phone'] = phone;
+    return patchJson('/auth/me', body, auth: true);
+  }
+
   Future<List<PlatformPaymentModel>> fetchMyPlatformPayments() async {
     final data = await getJsonList('/billing/payments/me', auth: true);
     return data

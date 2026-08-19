@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/services/api_service.dart';
@@ -49,6 +48,28 @@ class _YourDataScreenState extends ConsumerState<YourDataScreen> {
       );
     } finally {
       if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _submitErasureRequest() async {
+    final l10n = context.l10n;
+    try {
+      final result = await apiServiceProvider.submitPrivacyRequest(
+        requestType: 'erasure',
+        details: 'In-app erasure request via Your Data screen',
+      );
+      if (!mounted) return;
+      final status = result['status'] as String? ?? 'pending';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erasure request submitted ($status)')),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: friendlyErrorMessage(e, l10n),
+      );
     }
   }
 
@@ -165,6 +186,14 @@ class _YourDataScreenState extends ConsumerState<YourDataScreen> {
                 openLegalDocument(context, LegalDocumentId.accountDeletion),
           ),
           const SizedBox(height: AppSpacing.lg),
+          BuyerMenuTile(
+            icon: Icons.delete_forever_outlined,
+            title: l10n.requestAccountErasure,
+            subtitle: l10n.requestAccountErasureDescription,
+            destructive: true,
+            onTap: _submitErasureRequest,
+          ),
+          const SizedBox(height: AppSpacing.sm),
           BuyerMenuTile(
             icon: Icons.delete_forever_outlined,
             title: l10n.deleteAccount,

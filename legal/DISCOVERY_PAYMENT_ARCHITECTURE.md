@@ -28,8 +28,8 @@ Historical buyer→Dribex→seller flow was removed before this redesign. No Str
         Buyers/Sellers        Seller pays Dribex
               │                       │
               │                       ▼
-              │                PaymentProvider
-              │                  (manual | stripe | none)
+              │                NAPS (production)
+              │                  (manual dev only)
               │                       │
               │                       ▼
               │                     Dribex
@@ -45,13 +45,13 @@ Historical buyer→Dribex→seller flow was removed before this redesign. No Str
 
 | Provider | Purpose |
 |----------|---------|
-| `manual` (default dev) | Immediate activation for local testing — records `dribex_service_payments` |
-| `stripe` (optional) | Hosted Checkout for **Dribex service fees only** — no Connect/transfers |
+| `naps` (production) | NAPS ePay hosted payment for Dribex service fees |
+| `manual` (dev/test only) | Immediate activation for local testing — blocked in production |
 | `none` | Billing disabled |
 
-Configuration: `PAYMENT_PROVIDER`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+Configuration: see `legal/NAPS_PAYMENT_MIGRATION.md` and `.env.example`
 
-**Moroccan entity note:** Stripe availability for a Morocco-incorporated company must be verified with Stripe and applicable regulators before production. The abstraction allows a Moroccan-authorized PSP to be added without rewriting business logic.
+**Moroccan entity note:** NAPS merchant affiliation and official API documentation are required before production. Recurring billing, refunds, and cancellation follow NAPS merchant contract once documented.
 
 ## 3. Removed marketplace-payment components
 
@@ -136,8 +136,8 @@ See also `legal/DATA_RESIDENCY_AUDIT.md` (if present). Payment data sent externa
 
 ## 12. Production-readiness risks
 
-1. **Payment provider not configured in production** — self-serve premium/advertising returns 503 until `PAYMENT_PROVIDER=stripe` (or a Moroccan PSP adapter) is wired.
-2. **Stripe + Morocco** — legal/technical eligibility must be confirmed before go-live.
+1. **Payment provider not configured in production** — self-serve premium/advertising returns 503 until `PAYMENT_PROVIDER=naps` is configured with merchant credentials.
+2. **NAPS merchant onboarding** — legal/technical eligibility and official API documentation must be confirmed before go-live.
 3. **Advertising campaign expiry** — scheduled job to expire campaigns and reset `is_featured` not yet implemented.
 4. **Refunds** — `refunded` status exists; automated refund flow not implemented.
 5. **Legal copy** — mobile disclaimers are product UX, not legal advice; terms/privacy should be updated by counsel.

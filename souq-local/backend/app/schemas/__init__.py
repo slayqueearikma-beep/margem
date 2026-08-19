@@ -594,6 +594,13 @@ class SellerDashboardStats(BaseModel):
     is_active: bool
 
 
+class UserSelfUpdate(BaseModel):
+    """Allowlisted buyer profile fields — never role, billing, or trust flags."""
+
+    display_name: str | None = Field(default=None, max_length=120)
+    phone: str | None = Field(default=None, max_length=32)
+
+
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(min_length=1, max_length=128)
     new_password: str = Field(min_length=8, max_length=128)

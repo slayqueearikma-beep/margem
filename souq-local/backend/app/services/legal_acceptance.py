@@ -27,7 +27,7 @@ ONBOARDING_POLICY_IDS: tuple[str, ...] = ("terms_of_service", "privacy_policy")
 # Additional agreements recorded at contextual flows (seller onboarding, checkout).
 CONTEXTUAL_POLICY_IDS: tuple[str, ...] = ("seller_terms", "subscription_terms")
 
-_ACCEPTANCE_LANGUAGES = {"en", "fr"}
+_ACCEPTANCE_LANGUAGES = {"en", "fr", "ar"}
 
 
 @dataclass(frozen=True)

@@ -1489,6 +1489,30 @@ class AppStringsEn extends AppStrings {
   String get helpAndSupportTitle => 'Help & Support';
 
   @override
+  String get subscriptionManagementTitle => 'Your subscription';
+
+  @override
+  String get subscriptionRenewsUntil => 'Access until';
+
+  @override
+  String get cancelSubscriptionTitle => 'Cancel subscription';
+
+  @override
+  String get cancelSubscriptionBody =>
+      'Premium stays active until the end of the current billing period. You will not be charged again after cancellation.';
+
+  @override
+  String get cancelSubscriptionScheduled =>
+      'Cancellation scheduled — Premium remains active until the period ends.';
+
+  @override
+  String get requestAccountErasure => 'Request account erasure';
+
+  @override
+  String get requestAccountErasureDescription =>
+      'Submit a formal erasure request for staff review (separate from immediate in-app deletion).';
+
+  @override
   String get signupTermsPrefix => 'By continuing, you agree to the ';
 
   @override

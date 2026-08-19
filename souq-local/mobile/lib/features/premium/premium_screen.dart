@@ -51,6 +51,39 @@ class PremiumScreen extends ConsumerStatefulWidget {
 class _PremiumScreenState extends ConsumerState<PremiumScreen> {
   String? _subscribingCode;
   bool _subscriptionTermsAccepted = false;
+  bool _cancelling = false;
+
+  Future<void> _cancelSubscription() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.cancelSubscriptionTitle),
+        content: Text(l10n.cancelSubscriptionBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.confirm)),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _cancelling = true);
+    try {
+      await apiServiceProvider.cancelSubscription();
+      ref.invalidate(mySubscriptionProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.cancelSubscriptionScheduled)),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyErrorMessage(e, l10n))),
+      );
+    } finally {
+      if (mounted) setState(() => _cancelling = false);
+    }
+  }
 
   Future<void> _subscribe(SubscriptionPlanModel plan) async {
     final l10n = context.l10n;
@@ -242,6 +275,14 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                     onContactSupport: _contactSupport,
                   ),
                 ),
+                if (session != null && !session.isGuest && active != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  _SubscriptionManagementCard(
+                    subscription: active,
+                    cancelling: _cancelling,
+                    onCancel: active.cancelAtPeriodEnd ? null : _cancelSubscription,
+                  ),
+                ],
                 if (session != null && !session.isGuest) ...[
                   const SizedBox(height: AppSpacing.lg),
                   _PaymentHistorySection(),
@@ -342,6 +383,59 @@ class _HeroCard extends StatelessWidget {
               onPressed: () => context.push('/login'),
               icon: const Icon(Icons.login_rounded),
               label: Text(l10n.signInToSubscribe),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SubscriptionManagementCard extends StatelessWidget {
+  const _SubscriptionManagementCard({
+    required this.subscription,
+    required this.cancelling,
+    required this.onCancel,
+  });
+
+  final SubscriptionModel subscription;
+  final bool cancelling;
+  final VoidCallback? onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return MarketSectionCard(
+      title: l10n.subscriptionManagementTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${subscription.plan.displayName} · ${subscription.status}',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${l10n.subscriptionRenewsUntil}: ${subscription.currentPeriodEnd}',
+            style: TextStyle(color: context.colors.textSecondary),
+          ),
+          if (subscription.cancelAtPeriodEnd) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.cancelSubscriptionScheduled,
+              style: TextStyle(color: context.colors.textSecondary),
+            ),
+          ] else if (onCancel != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton(
+              onPressed: cancelling ? null : onCancel,
+              child: cancelling
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.cancelSubscriptionTitle),
             ),
           ],
         ],

@@ -1483,6 +1483,30 @@ class AppStringsFr extends AppStringsEn {
   String get helpAndSupportTitle => 'Aide et support';
 
   @override
+  String get subscriptionManagementTitle => 'Votre abonnement';
+
+  @override
+  String get subscriptionRenewsUntil => 'Accès jusqu’au';
+
+  @override
+  String get cancelSubscriptionTitle => 'Annuler l’abonnement';
+
+  @override
+  String get cancelSubscriptionBody =>
+      'Premium reste actif jusqu’à la fin de la période en cours. Aucun nouveau prélèvement ne sera effectué.';
+
+  @override
+  String get cancelSubscriptionScheduled =>
+      'Annulation programmée — Premium reste actif jusqu’à la fin de la période.';
+
+  @override
+  String get requestAccountErasure => 'Demander l’effacement du compte';
+
+  @override
+  String get requestAccountErasureDescription =>
+      'Soumettre une demande d’effacement pour examen (distincte de la suppression immédiate).';
+
+  @override
   String get signupTermsPrefix => 'En continuant, vous acceptez les ';
 
   @override

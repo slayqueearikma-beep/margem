@@ -25,7 +25,7 @@ void main() {
       final ar = LegalAcceptanceCopy.forLanguageCode('ar');
       expect(en.title, 'Before you continue');
       expect(ar.title, 'Before you continue');
-      expect(ar.acceptanceLanguageCode, 'en');
+      expect(ar.acceptanceLanguageCode, 'ar');
     });
 
     test('uses French for fr locale', () {

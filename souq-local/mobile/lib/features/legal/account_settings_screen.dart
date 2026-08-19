@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/services/app_storage.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/theme_context.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../l10n/app_localizations.dart';
 import 'legal_config.dart';
@@ -55,9 +55,9 @@ class AccountSettingsScreen extends ConsumerWidget {
             children: [
               BuyerMenuTile(
                 icon: Icons.notifications_outlined,
-                title: l10n.privacySettings,
+                title: l10n.notificationsSectionTitle,
                 subtitle: l10n.notificationsSectionSubtitle,
-                onTap: () => context.push('/settings/privacy'),
+                onTap: () => Geolocator.openAppSettings(),
               ),
             ],
           ),

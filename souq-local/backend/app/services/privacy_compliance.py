@@ -109,6 +109,21 @@ async def create_privacy_request(
     ip_address: str,
     user_agent: str,
 ) -> PrivacyRequest:
+    if request_type == PrivacyRequestType.ERASURE:
+        existing = (
+            await session.execute(
+                select(PrivacyRequest).where(
+                    PrivacyRequest.user_id == user_id,
+                    PrivacyRequest.request_type == PrivacyRequestType.ERASURE,
+                    PrivacyRequest.status.in_(
+                        [PrivacyRequestStatus.PENDING, PrivacyRequestStatus.IN_REVIEW]
+                    ),
+                )
+            )
+        ).scalar_one_or_none()
+        if existing is not None:
+            return existing
+
     now = datetime.now(UTC)
     request = PrivacyRequest(
         user_id=user_id,

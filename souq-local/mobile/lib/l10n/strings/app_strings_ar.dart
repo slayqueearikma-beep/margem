@@ -1489,6 +1489,30 @@ class AppStringsAr extends AppStringsEn {
   String get helpAndSupportTitle => 'المساعدة والدعم';
 
   @override
+  String get subscriptionManagementTitle => 'اشتراكك';
+
+  @override
+  String get subscriptionRenewsUntil => 'الوصول حتى';
+
+  @override
+  String get cancelSubscriptionTitle => 'إلغاء الاشتراك';
+
+  @override
+  String get cancelSubscriptionBody =>
+      'يبقى Premium نشطًا حتى نهاية فترة الفوترة الحالية. لن يتم تحصيل رسوم جديدة بعد الإلغاء.';
+
+  @override
+  String get cancelSubscriptionScheduled =>
+      'تم جدولة الإلغاء — يبقى Premium نشطًا حتى نهاية الفترة.';
+
+  @override
+  String get requestAccountErasure => 'طلب حذف الحساب';
+
+  @override
+  String get requestAccountErasureDescription =>
+      'تقديم طلب رسمي للحذف لمراجعته (منفصل عن الحذف الفوري من التطبيق).';
+
+  @override
   String get signupTermsPrefix => 'بالمتابعة، فإنك توافق على ';
 
   @override

@@ -646,6 +646,13 @@ abstract class AppStrings {
   String get notificationsSectionSubtitle;
   String get privacyAndSecurityTitle;
   String get helpAndSupportTitle;
+  String get subscriptionManagementTitle;
+  String get subscriptionRenewsUntil;
+  String get cancelSubscriptionTitle;
+  String get cancelSubscriptionBody;
+  String get cancelSubscriptionScheduled;
+  String get requestAccountErasure;
+  String get requestAccountErasureDescription;
   String get signupTermsPrefix;
   String get signupTermsMiddle;
   String get signupTermsSuffix;

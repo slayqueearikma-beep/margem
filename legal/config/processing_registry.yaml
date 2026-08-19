@@ -123,7 +123,7 @@ activities:
   - id: premium_billing
     data:
       - subscription status
-      - Stripe reference (when enabled)
+      - NAPS payment reference (when enabled)
     purpose: Premium subscription billing
     legal_basis_candidate: contract + legal/tax retention — LAWYER REVIEW REQUIRED
     retention: Up to 7 years per account-deletion policy — counsel to confirm

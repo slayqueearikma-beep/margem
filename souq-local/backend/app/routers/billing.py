@@ -27,6 +27,7 @@ from app.models import (
     User,
 )
 from app.services.billing_service import billing_self_serve_enabled
+from app.services.audit import log_security_event
 from app.services.platform_billing import (
     create_advertising_checkout,
     create_subscription_checkout,
@@ -251,20 +252,25 @@ async def cancel_my_subscription(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> None:
-    """Cancel premium at period end. NAPS recurring cancellation requires merchant API docs."""
+    """Cancel premium at period end. Access continues until current_period_end."""
     sub = (
         await session.execute(
             select(Subscription)
-            .where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
+            .where(
+                Subscription.user_id == user.id,
+                Subscription.status == SubscriptionStatus.ACTIVE,
+            )
             .order_by(Subscription.created_at.desc())
             .limit(1)
         )
     ).scalar_one_or_none()
     if sub is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No active subscription")
-    sub.status = SubscriptionStatus.CANCELED
+    if sub.cancelled_at is not None:
+        return  # idempotent — already scheduled for cancellation
     sub.cancelled_at = datetime.now(UTC)
     await session.commit()
+    log_security_event("subscription_cancelled", user_id=str(user.id), subscription_id=str(sub.id))
 
 
 @router.post("/webhooks/{provider_name}", status_code=status.HTTP_204_NO_CONTENT)

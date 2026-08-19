@@ -1010,6 +1010,8 @@ class SubscriptionModel {
     required this.currentPeriodStart,
     required this.currentPeriodEnd,
     required this.provider,
+    this.cancelledAt,
+    this.cancelAtPeriodEnd = false,
   });
 
   final String id;
@@ -1018,6 +1020,8 @@ class SubscriptionModel {
   final String currentPeriodStart;
   final String currentPeriodEnd;
   final String provider;
+  final String? cancelledAt;
+  final bool cancelAtPeriodEnd;
 
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionModel(
@@ -1028,6 +1032,8 @@ class SubscriptionModel {
       currentPeriodStart: json['current_period_start'] as String? ?? '',
       currentPeriodEnd: json['current_period_end'] as String? ?? '',
       provider: json['provider'] as String? ?? '',
+      cancelledAt: json['cancelled_at'] as String?,
+      cancelAtPeriodEnd: json['cancel_at_period_end'] as bool? ?? false,
     );
   }
 }

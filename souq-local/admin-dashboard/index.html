@@ -47,6 +47,7 @@
         <button type="button" class="tab active" data-view="marketplaces">Marketplaces</button>
         <button type="button" class="tab" data-view="categories">Categories</button>
         <button type="button" class="tab" data-view="users">Users</button>
+        <button type="button" class="tab" data-view="reports">Reports</button>
       </nav>
       <button type="button" id="logout-btn" class="btn ghost">Sign out</button>
     </header>
@@ -183,6 +184,40 @@
         </div>
         <p id="users-empty" class="empty-state hidden">No users match your filters.</p>
         <div class="pagination" id="users-pagination"></div>
+      </section>
+
+      <section id="view-reports" class="view hidden">
+        <div class="view-header">
+          <div>
+            <h2>Discovery reports</h2>
+            <p class="muted">User reports on sellers, listings, and profiles</p>
+          </div>
+          <button type="button" id="refresh-reports-btn" class="btn ghost">Refresh</button>
+        </div>
+        <div class="toolbar">
+          <select id="reports-status-filter">
+            <option value="">All statuses</option>
+            <option value="open">Open</option>
+            <option value="under_review">Under review</option>
+            <option value="resolved">Resolved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Created</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Target</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reports-tbody"></tbody>
+          </table>
+        </div>
+        <p id="reports-empty" class="empty-state hidden">No reports in this queue.</p>
       </section>
     </main>
   </div>
