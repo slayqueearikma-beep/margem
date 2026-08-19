@@ -14,6 +14,12 @@ COMPOSE_FILE="$ROOT/docker-compose.home.yml"
 RUN_FLUTTER=true
 DOCKER_BUILD=""
 
+# JDK 17 for Flutter/Android builds (no manual export needed).
+if [[ -f "$ROOT/mobile/scripts/ensure_java17_env.sh" ]]; then
+  # shellcheck disable=SC1091
+  source "$ROOT/mobile/scripts/ensure_java17_env.sh" || true
+fi
+
 for arg in "$@"; do
   case "$arg" in
     --api-only) RUN_FLUTTER=false ;;

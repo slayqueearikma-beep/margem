@@ -22,6 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 MOBILE = ROOT / "mobile"
 LAB_DIR = ROOT / ".lab"
+ENSURE_JAVA = MOBILE / "scripts" / "ensure_java17_env.sh"
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -51,7 +52,13 @@ def wait_for_health(seconds: int = 90) -> bool:
     return False
 
 
+def ensure_java_env() -> None:
+    if ENSURE_JAVA.is_file():
+        subprocess.run(["bash", "-c", f"source '{ENSURE_JAVA}'"], check=False)
+
+
 def start_flutter(api_url: str, device_id: str | None) -> None:
+    ensure_java_env()
     flutter = "flutter"
     args = [flutter, "run", f"--dart-define=API_BASE_URL={api_url}"]
     if device_id:
@@ -75,6 +82,7 @@ def main() -> int:
     parser.add_argument("-d", "--device", default="", help="Flutter device id")
     args = parser.parse_args()
 
+    ensure_java_env()
     LAB_DIR.mkdir(exist_ok=True)
 
     print("\n=== Dribex Lab — starting ===\n")

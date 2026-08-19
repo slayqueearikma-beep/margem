@@ -1277,8 +1277,7 @@ class ApiService {
   }
 
   Future<List<PlatformPaymentModel>> fetchMyPlatformPayments() async {
-    final data = await getJson('/billing/payments/me', auth: true);
-    if (data is! List) return const [];
+    final data = await getJsonList('/billing/payments/me', auth: true);
     return data
         .whereType<Map<String, dynamic>>()
         .map(PlatformPaymentModel.fromJson)

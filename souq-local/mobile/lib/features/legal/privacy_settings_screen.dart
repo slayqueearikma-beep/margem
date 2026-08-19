@@ -64,7 +64,7 @@ class PrivacySettingsScreen extends ConsumerWidget {
                 await prefs.setPersonalizedRecommendations(value);
                 try {
                   final locale = ref.read(localeProvider).languageCode;
-                  await ref.read(apiServiceProvider).updatePrivacyConsent(
+                  await apiServiceProvider.updatePrivacyConsent(
                         consentType: 'personalized_recommendations',
                         granted: value,
                         language: locale,
@@ -87,7 +87,7 @@ class PrivacySettingsScreen extends ConsumerWidget {
                 await prefs.setMarketingOptIn(value);
                 try {
                   final locale = ref.read(localeProvider).languageCode;
-                  await ref.read(apiServiceProvider).updatePrivacyConsent(
+                  await apiServiceProvider.updatePrivacyConsent(
                         consentType: 'marketing_email',
                         granted: value,
                         language: locale,

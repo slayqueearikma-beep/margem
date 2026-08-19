@@ -55,7 +55,7 @@ class _YourDataScreenState extends ConsumerState<YourDataScreen> {
   Future<void> _submitAccessRequest() async {
     final l10n = context.l10n;
     try {
-      final result = await ref.read(apiServiceProvider).submitPrivacyRequest(
+      final result = await apiServiceProvider.submitPrivacyRequest(
             requestType: 'access',
             details: 'In-app access request via Your Data screen',
           );
