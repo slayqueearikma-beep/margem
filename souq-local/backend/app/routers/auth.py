@@ -860,7 +860,10 @@ async def delete_account(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> None:
-    if not user.password_hash or not verify_password(payload.password, user.password_hash):
+    if not user.password_hash:
+        if payload.confirmation.strip() != "DELETE":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="confirmation must be DELETE")
+    elif not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
 
     from app.services.account_deletion import delete_user_account

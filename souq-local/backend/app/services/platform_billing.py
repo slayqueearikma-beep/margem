@@ -309,11 +309,24 @@ async def process_provider_webhook(
         return True
 
     payment = (
-        await session.execute(select(DribexServicePayment).where(DribexServicePayment.id == UUID(payment_id_raw)))
+        await session.execute(
+            select(DribexServicePayment)
+            .where(DribexServicePayment.id == UUID(payment_id_raw))
+            .with_for_update()
+        )
     ).scalar_one_or_none()
     if payment is None:
         await session.commit()
         return False
+
+    if payment.status == PlatformPaymentStatus.SUCCESS:
+        await session.commit()
+        logger.info(
+            "payment_webhook_already_processed payment_id=%s event_id=%s",
+            payment.id,
+            verified.event_id,
+        )
+        return True
 
     if verified.amount_mad is not None and abs(float(payment.amount_mad) - float(verified.amount_mad)) > 0.01:
         await mark_payment_failed(session, payment, reason="amount_mismatch")

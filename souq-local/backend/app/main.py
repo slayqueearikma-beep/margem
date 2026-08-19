@@ -39,6 +39,7 @@ from app.routers import (
     marketplace_admin,
     marketplace_community,
     marketplaces,
+    local_media,
     media,
     privacy,
     search,
@@ -215,11 +216,7 @@ if settings.serve_embedded_admin and _admin_dashboard_dir is not None:
     )
 
 if settings.effective_storage_provider == "local":
-    app.mount(
-        "/media",
-        StaticFiles(directory=str(media_root())),
-        name="media-local",
-    )
+    app.include_router(local_media.router)
 
 _brand_dir = Path(__file__).resolve().parents[1] / "static" / "brand"
 if _brand_dir.is_dir():

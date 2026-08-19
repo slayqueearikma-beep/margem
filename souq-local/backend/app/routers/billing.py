@@ -111,11 +111,15 @@ class AdminCampaignOut(BaseModel):
 
 
 def _default_success_url(custom: str) -> str:
-    return custom.strip() or f"{settings.public_app_url.rstrip('/')}/premium?paid=1"
+    from app.services.media_access import validate_checkout_redirect_url
+
+    return validate_checkout_redirect_url(custom, default_suffix="/premium?paid=1")
 
 
 def _default_cancel_url(custom: str) -> str:
-    return custom.strip() or f"{settings.public_app_url.rstrip('/')}/premium?cancelled=1"
+    from app.services.media_access import validate_checkout_redirect_url
+
+    return validate_checkout_redirect_url(custom, default_suffix="/premium?cancelled=1")
 
 
 def _payment_out(row: DribexServicePayment) -> PlatformPaymentOut:

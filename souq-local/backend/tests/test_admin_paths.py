@@ -14,6 +14,11 @@ def test_admin_paths_include_community_moderation():
     assert is_admin_protected_path("/community/admin/cities/casablanca")
 
 
+def test_admin_paths_include_billing_admin():
+    assert is_admin_protected_path("/billing/admin/payments")
+    assert is_admin_protected_path("/billing/admin/subscriptions")
+
+
 def test_admin_paths_ignore_public_routes():
     assert not is_admin_protected_path("/community/cities")
     assert not is_admin_protected_path("/auth/login")

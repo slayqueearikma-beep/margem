@@ -200,7 +200,7 @@ class LogoutRequest(BaseModel):
 
 
 class DeleteAccountRequest(BaseModel):
-    password: str = Field(min_length=1, max_length=128)
+    password: str = Field(default="", max_length=128)
     confirmation: str = Field(description="Must equal DELETE")
 
     @field_validator("confirmation")

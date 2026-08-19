@@ -6,6 +6,8 @@ def is_admin_protected_path(path: str) -> bool:
     normalized = (path.split("?", 1)[0]).rstrip("/") or "/"
     if normalized == "/admin" or normalized.startswith("/admin/"):
         return True
+    if normalized == "/billing/admin" or normalized.startswith("/billing/admin/"):
+        return True
     # Community and marketplace moderation consoles live outside /admin/*.
     if "/community/admin" in normalized:
         return True

@@ -32,6 +32,7 @@ from app.models import (
     VerificationStatus,
 )
 from app.services.notifications import notify_user
+from app.services.media_access import validate_checkout_redirect_url
 from app.services.security import revoke_all_refresh_tokens
 
 router = APIRouter(tags=["seller-ops"])
@@ -587,8 +588,14 @@ async def checkout_plan(
             session,
             user=user,
             plan_code=plan.code,
-            success_url=payload.success_url or f"{settings.public_app_url.rstrip('/')}/premium?paid=1",
-            cancel_url=payload.cancel_url or f"{settings.public_app_url.rstrip('/')}/premium?cancelled=1",
+            success_url=validate_checkout_redirect_url(
+                payload.success_url,
+                default_suffix="/premium?paid=1",
+            ),
+            cancel_url=validate_checkout_redirect_url(
+                payload.cancel_url,
+                default_suffix="/premium?cancelled=1",
+            ),
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
@@ -769,9 +776,14 @@ async def admin_set_status(
     target = await session.get(User, user_id)
     if target is None:
         raise HTTPException(status_code=404, detail="User not found")
-    target.status = status_value
-    if status_value in {UserStatus.SUSPENDED, UserStatus.DELETED}:
-        await revoke_all_refresh_tokens(session, target.id)
+    if status_value == UserStatus.DELETED:
+        from app.services.account_deletion import delete_user_account
+
+        await delete_user_account(session, target)
+    else:
+        target.status = status_value
+        if status_value == UserStatus.SUSPENDED:
+            await revoke_all_refresh_tokens(session, target.id)
     session.add(
         AdminAuditLog(
             id=uuid4(),

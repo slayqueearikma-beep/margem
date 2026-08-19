@@ -11,19 +11,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import (
     AuthToken,
     Conversation,
+    DribexServicePayment,
     Favorite,
+    LegalAcceptance,
     Message,
     MfaFactor,
     MfaRecoveryCode,
     Notification,
+    PrivacyRequest,
     RecentlyViewed,
     Review,
     SavedSearch,
     SellerFollow,
     SellerProfile,
     Subscription,
+    SubscriptionAgreementRecord,
     User,
     UserBlock,
+    UserConsent,
     UserStatus,
 )
 from app.models.community import (
@@ -143,8 +148,18 @@ async def delete_user_account(session: AsyncSession, user: User) -> None:
         (MarketplaceCommunityMembership, MarketplaceCommunityMembership.user_id),
         (MarketplaceCommunityReaction, MarketplaceCommunityReaction.user_id),
         (MarketplaceCommunityReport, MarketplaceCommunityReport.reporter_id),
+        (LegalAcceptance, LegalAcceptance.user_id),
+        (UserConsent, UserConsent.user_id),
+        (PrivacyRequest, PrivacyRequest.user_id),
+        (SubscriptionAgreementRecord, SubscriptionAgreementRecord.user_id),
     ):
         await session.execute(sql_delete(model).where(column == user.id))
+
+    await session.execute(
+        update(DribexServicePayment)
+        .where(DribexServicePayment.user_id == user.id)
+        .values(metadata_={"anonymized": True})
+    )
 
     await session.execute(
         update(CommunityMessage)

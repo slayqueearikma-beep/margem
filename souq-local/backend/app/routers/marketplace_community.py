@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import get_current_user, get_current_user_optional, require_staff, require_verified_email, resolve_user_from_access_token
+from app.auth import get_current_user, get_current_user_optional, require_staff, require_verified_email, resolve_user_from_access_token, _enforce_staff_mfa
 from app.database import get_db
 from app.limiter import limiter
 from app.models import User
@@ -207,6 +207,8 @@ async def delete_marketplace_community_message(
     is_mod = user.role in {UserRole.ADMIN, UserRole.SUPPORT}
     if message.sender_id != user.id and not is_mod:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
+    if is_mod and message.sender_id != user.id:
+        _enforce_staff_mfa(user)
     message.status = MarketplaceMessageStatus.DELETED
     message.deleted_at = datetime.now(UTC)
     message.deleted_by_id = user.id

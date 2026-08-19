@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import get_current_user, get_current_user_optional, require_admin, require_verified_email
+from app.auth import get_current_user, get_current_user_optional, require_admin, require_verified_email, _enforce_staff_mfa
 from app.database import get_db
 from app.limiter import limiter
 from app.models import User
@@ -321,6 +321,8 @@ async def delete_message(
     is_staff = user.role.value in {"admin", "support"}
     if not is_owner and not is_staff:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
+    if is_staff and not is_owner:
+        _enforce_staff_mfa(user)
 
     message.status = CommunityMessageStatus.DELETED
     message.deleted_at = datetime.now(UTC)
