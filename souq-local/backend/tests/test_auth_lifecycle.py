@@ -12,6 +12,7 @@ from app.config import Settings
 from app.main import app
 from app.models import AuthToken, SellerProfile, User, UserStatus
 from tests.auth_helpers import register_test_user
+from tests.settings_helpers import _PROD_NAPS
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -61,6 +62,7 @@ def test_production_requires_smtp_host():
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=["10.0.0.0/8"],
+            **_PROD_NAPS,
         )
 
 
@@ -83,6 +85,7 @@ def test_production_allows_email_fallback_flag():
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
         admin_ip_allowlist=["10.0.0.0/8"],
+        **_PROD_NAPS,
     )
     assert settings.allow_insecure_email_fallback is True
 
@@ -106,6 +109,7 @@ def test_production_rejects_http_public_urls():
             public_app_url="https://margem.ma",
             public_api_url="http://api.margem.ma",
             admin_ip_allowlist=["10.0.0.0/8"],
+            **_PROD_NAPS,
         )
 
 

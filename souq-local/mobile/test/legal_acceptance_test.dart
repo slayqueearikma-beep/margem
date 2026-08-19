@@ -20,11 +20,11 @@ void main() {
   });
 
   group('LegalAcceptanceCopy', () {
-    test('uses English for en and ar locales', () {
+    test('uses English for en and Arabic for ar locale', () {
       final en = LegalAcceptanceCopy.forLanguageCode('en');
       final ar = LegalAcceptanceCopy.forLanguageCode('ar');
       expect(en.title, 'Before you continue');
-      expect(ar.title, 'Before you continue');
+      expect(ar.title, 'قبل المتابعة');
       expect(ar.acceptanceLanguageCode, 'ar');
     });
 

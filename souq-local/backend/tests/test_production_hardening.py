@@ -5,6 +5,8 @@ from pydantic import ValidationError
 
 from app.config import Settings
 
+from tests.settings_helpers import _PROD_NAPS
+
 _PROD_ADMIN_IP = ["10.0.0.0/8"]
 
 
@@ -37,6 +39,7 @@ def test_production_rejects_default_jwt_secret():
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=_PROD_ADMIN_IP,
             **_PROD_AZURE,
+            **_PROD_NAPS,
         )
 
 
@@ -55,6 +58,7 @@ def test_production_rejects_debug_true():
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=_PROD_ADMIN_IP,
             **_PROD_AZURE,
+            **_PROD_NAPS,
         )
 
 
@@ -74,6 +78,7 @@ def test_production_accepts_rotated_secret():
         public_api_url="https://api.margem.ma",
         admin_ip_allowlist=_PROD_ADMIN_IP,
         **_PROD_AZURE,
+        **_PROD_NAPS,
     )
     assert settings.app_env == "production"
 
@@ -95,6 +100,7 @@ def test_production_rejects_placeholder_secrets():
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=_PROD_ADMIN_IP,
             **_PROD_AZURE,
+            **_PROD_NAPS,
         )
 
 
@@ -115,6 +121,7 @@ def test_production_rejects_missing_admin_ip_allowlist():
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=[],
             **_PROD_AZURE,
+            **_PROD_NAPS,
         )
 
 
@@ -135,6 +142,7 @@ def test_production_rejects_shared_mfa_key():
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=_PROD_ADMIN_IP,
             **_PROD_AZURE,
+            **_PROD_NAPS,
         )
 
 

@@ -4,7 +4,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = "014_discovery_payment_architecture"
+revision = "014_disc_payments"
 down_revision = "029"
 branch_labels = None
 depends_on = None

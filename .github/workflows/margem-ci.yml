@@ -84,12 +84,18 @@ jobs:
               upload_token_secret="ci-upload-token-secret-key-32chars-min",
               cors_origins=["https://margem.ma"],
               allowed_hosts=["api.margem.ma"],
+              storage_provider="azure",
               azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
               smtp_host="smtp.example.com",
               public_app_url="https://margem.ma",
               public_api_url="https://api.margem.ma",
               mfa_encryption_key="ci-mfa-encryption-key-32chars-minimum",
               admin_ip_allowlist=["203.0.113.0/24"],
+              payment_provider="naps",
+              naps_merchant_id="ci-merchant",
+              naps_secret_key="ci-naps-secret-key-32chars-minimum",
+              naps_epay_payment_init_url="https://naps.example.com/init",
+              naps_webhook_secret="ci-naps-webhook-secret-32chars-min",
           )
           try:
               Settings(
