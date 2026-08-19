@@ -149,6 +149,8 @@ _LEGAL_ACCEPTANCE_EXEMPT_EXACT = (
     "/auth/mfa/login",
     "/legal/accept",
     "/legal/accept/status",
+    "/auth/legal/accept",
+    "/auth/legal/accept/status",
     "/privacy/consents",
     "/privacy/requests",
 )

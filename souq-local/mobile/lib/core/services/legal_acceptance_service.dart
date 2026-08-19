@@ -14,7 +14,7 @@ class LegalAcceptanceService {
   final ApiService _api;
 
   Future<LegalAcceptanceStatus> fetchStatus() async {
-    final data = await _api.getJson('/legal/accept/status', auth: true);
+    final data = await _api.getJson('/auth/legal/accept/status', auth: true);
     return LegalAcceptanceStatus.fromJson(data);
   }
 
@@ -23,7 +23,7 @@ class LegalAcceptanceService {
     required String language,
   }) async {
     final data = await _api.postJson(
-      '/legal/accept',
+      '/auth/legal/accept',
       {
         'policies': policyIds.map((id) => {'policy_id': id}).toList(),
         'language': language,

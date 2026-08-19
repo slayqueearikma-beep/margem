@@ -19,6 +19,7 @@ from app.services.legal_acceptance import (
 )
 
 router = APIRouter(prefix="/legal", tags=["legal"])
+auth_legal_router = APIRouter(prefix="/auth/legal", tags=["legal"])
 
 
 class PolicyAcceptanceItem(BaseModel):
@@ -46,6 +47,7 @@ class LegalAcceptanceStatusOut(BaseModel):
 
 
 @router.get("/accept/status", response_model=LegalAcceptanceStatusOut)
+@auth_legal_router.get("/accept/status", response_model=LegalAcceptanceStatusOut)
 async def legal_acceptance_status(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
@@ -57,6 +59,7 @@ async def legal_acceptance_status(
 
 
 @router.post("/accept", response_model=LegalAcceptanceStatusOut)
+@auth_legal_router.post("/accept", response_model=LegalAcceptanceStatusOut)
 async def accept_legal_policies(
     payload: LegalAcceptRequest,
     request: Request,
