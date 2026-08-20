@@ -134,7 +134,7 @@ async def lifespan(app: FastAPI):
         await ensure_default_cities(session)
         await ensure_all_city_communities(session)
 
-    if settings.effective_storage_provider == "selfhosted":
+    if settings.effective_storage_provider == "selfhosted" and settings.minio_endpoint:
         try:
             from app.services.minio_storage import ensure_buckets
 

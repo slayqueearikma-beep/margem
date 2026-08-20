@@ -30,6 +30,13 @@ def test_default_provider_is_selfhosted(monkeypatch):
     assert settings.storage_provider == "selfhosted"
 
 
+def test_storage_backend_local_used_when_provider_unset(monkeypatch):
+    monkeypatch.delenv("STORAGE_PROVIDER", raising=False)
+    settings = Settings(_env_file=None, storage_provider="", storage_backend="local")
+    assert settings.storage_provider == ""
+    assert settings.effective_storage_provider == "local"
+
+
 def test_storage_backend_minio_maps_to_selfhosted():
     settings = Settings(_env_file=None, storage_provider="minio")
     assert settings.effective_storage_provider == "selfhosted"

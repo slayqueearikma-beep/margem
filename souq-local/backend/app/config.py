@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     azure_storage_container: str = "margem-media"
     # Active provider: selfhosted (MinIO), azure, or local (dev/tests).
     # STORAGE_BACKEND is deprecated — kept for backward compatibility only.
-    storage_provider: str = "selfhosted"
+    storage_provider: str = ""
     storage_backend: str = "azure"
     local_media_root: str = "./data/media"
     minio_endpoint: str = ""
@@ -184,7 +184,7 @@ class Settings(BaseSettings):
     @classmethod
     def normalize_storage_provider(cls, value: Any) -> str:
         if value is None or value == "":
-            return "selfhosted"
+            return ""
         cleaned = str(value).strip().lower()
         aliases = {
             "minio": "selfhosted",
