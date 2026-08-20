@@ -291,6 +291,7 @@ MARGEM_PROFILE=home ./scripts/docker-admin.sh diagnose
 
 | Log message | Fix |
 |-------------|-----|
+| `password authentication failed for user "margemadmin"` | `.env.home` password changed but the Postgres volume still has the old one. Run `./scripts/reset_home_db_password.sh` then restart API. |
 | `Settings validation failed` / `MFA_ENCRYPTION_KEY must differ` | Generate three **different** secrets with `openssl rand -hex 32`. Set `APP_ENV=development` for LAN home. |
 | `Alembic migration failed` / `Can't locate revision` | `git pull origin cursor/final-integration-ee43` then rebuild: `docker compose -f docker-compose.home.yml --env-file .env.home up -d --build api` |
 | `Media directory not writable` | `docker run --rm --user root -v souq-local_margem_home_media:/data alpine sh -c "chown -R 999:999 /data && chmod -R u+rwX /data"` |

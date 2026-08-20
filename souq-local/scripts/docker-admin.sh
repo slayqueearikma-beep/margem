@@ -26,6 +26,7 @@ Usage:
   ./scripts/docker-admin.sh logs            Follow API logs
   ./scripts/docker-admin.sh check-admin     Verify admin dashboard on :8080
   ./scripts/docker-admin.sh diagnose        Troubleshoot API startup / healthcheck
+  ./scripts/reset_home_db_password.sh       Sync DB password with .env.home
   ./scripts/docker-admin.sh psql            Open Postgres shell
   ./scripts/docker-admin.sh list-users      List all accounts in the database
   ./scripts/docker-admin.sh promote-admin <email>   Grant admin role to a user

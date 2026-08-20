@@ -46,6 +46,21 @@ else
   yellow "Container ${API_CONTAINER} not found."
 fi
 
+section "Database password (.env.home vs volume)"
+POSTGRES_PASSWORD="$(grep -E '^POSTGRES_PASSWORD=' "$ENV_FILE" | tail -n1 | cut -d= -f2- | sed 's/^["'\'']//;s/["'\'']$//' || true)"
+if [[ -n "${POSTGRES_PASSWORD:-}" ]] && docker inspect margem-home-db >/dev/null 2>&1; then
+  if docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" margem-home-db \
+    psql -h 127.0.0.1 -U margemadmin -d margem -c "SELECT 1" >/dev/null 2>&1; then
+    green "POSTGRES_PASSWORD in .env.home matches the database"
+  else
+    red "POSTGRES_PASSWORD in .env.home does NOT match the database volume"
+    yellow "Fix: ./scripts/reset_home_db_password.sh"
+    yellow "Or restore the old password in .env.home if you still know it."
+  fi
+else
+  yellow "Skipped DB password check (postgres container down or password unset)."
+fi
+
 section "Last 80 lines of API logs"
 docker logs "$API_CONTAINER" --tail 80 2>&1 || yellow "No logs available."
 
