@@ -137,6 +137,7 @@ class AppStorage {
   static const _guestFavoritesKey = 'guest_favorite_items';
   static const _legacyGuestCartKey = 'guest_cart_items';
   static const _marketplaceSlugKey = 'buyer_marketplace_slug';
+  static const _legalAcceptanceCompleteKey = 'legal_acceptance_complete';
 
   String? getMarketplaceSlug() => _prefs.getString(_marketplaceSlugKey);
 
@@ -206,6 +207,12 @@ class AppStorage {
 
   Future<void> completeOnboarding() =>
       _prefs.setBool(_onboardingCompleteKey, true);
+
+  bool getLegalAcceptanceComplete() =>
+      _prefs.getBool(_legalAcceptanceCompleteKey) ?? false;
+
+  Future<void> setLegalAcceptanceComplete(bool complete) =>
+      _prefs.setBool(_legalAcceptanceCompleteKey, complete);
 
   String? getSelectedCity() => _prefs.getString(_userCityKey);
 
@@ -277,6 +284,7 @@ class AppStorage {
     await _prefs.remove(_userCityKey);
     await _prefs.remove(_businessNameKey);
     await _prefs.remove(_sellerIdKey);
+    await _prefs.remove(_legalAcceptanceCompleteKey);
   }
 
   List<GuestFavoriteItem> getGuestFavoriteItems() {

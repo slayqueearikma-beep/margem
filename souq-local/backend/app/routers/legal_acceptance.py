@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import get_current_user
 from app.database import get_db
 from app.models import User
+from app.services.client_ip import get_client_ip
 from app.services.legal_acceptance import (
     build_acceptance_status,
     get_pending_policy_ids,
@@ -18,6 +19,7 @@ from app.services.legal_acceptance import (
 )
 
 router = APIRouter(prefix="/legal", tags=["legal"])
+auth_legal_router = APIRouter(prefix="/auth/legal", tags=["legal"])
 
 
 class PolicyAcceptanceItem(BaseModel):
@@ -45,6 +47,7 @@ class LegalAcceptanceStatusOut(BaseModel):
 
 
 @router.get("/accept/status", response_model=LegalAcceptanceStatusOut)
+@auth_legal_router.get("/accept/status", response_model=LegalAcceptanceStatusOut)
 async def legal_acceptance_status(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
@@ -56,6 +59,7 @@ async def legal_acceptance_status(
 
 
 @router.post("/accept", response_model=LegalAcceptanceStatusOut)
+@auth_legal_router.post("/accept", response_model=LegalAcceptanceStatusOut)
 async def accept_legal_policies(
     payload: LegalAcceptRequest,
     request: Request,
@@ -68,15 +72,25 @@ async def accept_legal_policies(
             detail="Explicit acknowledgement is required",
         )
 
-    required_ids = {p.policy_id for p in get_required_onboarding_policies()}
+    pending_ids = await get_pending_policy_ids(session, user.id)
     submitted_ids = [item.policy_id for item in payload.policies]
-    if set(submitted_ids) != required_ids:
+    submitted_set = set(submitted_ids)
+
+    if not pending_ids:
+        accepted = await get_user_acceptances(session, user.id)
+        status_payload = build_acceptance_status(
+            accepted_versions=accepted,
+            pending_ids=[],
+        )
+        return LegalAcceptanceStatusOut(**status_payload)
+
+    if submitted_set != set(pending_ids):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="All required policies must be accepted together",
+            detail="All pending policies must be accepted together",
         )
 
-    client_ip = request.client.host if request.client else ""
+    client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
 
     await record_policy_acceptances(

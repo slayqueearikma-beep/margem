@@ -118,3 +118,41 @@ async def test_accept_requires_acknowledgement(client: AsyncClient):
         },
     )
     assert response.status_code == 422
+
+
+async def test_auth_legal_accept_routes(client: AsyncClient):
+    auth = await _register(client)
+
+    status = await client.get("/auth/legal/accept/status", headers=auth["headers"])
+    assert status.status_code == 200
+    assert status.json()["complete"] is False
+
+    accept = await client.post(
+        "/auth/legal/accept",
+        headers=auth["headers"],
+        json={
+            "policies": [
+                {"policy_id": "terms_of_service"},
+                {"policy_id": "privacy_policy"},
+            ],
+            "language": "en",
+            "acknowledged": True,
+        },
+    )
+    assert accept.status_code == 200
+    assert accept.json()["complete"] is True
+
+
+async def test_accept_rejects_partial_pending_set(client: AsyncClient):
+    auth = await _register(client)
+    response = await client.post(
+        "/legal/accept",
+        headers=auth["headers"],
+        json={
+            "policies": [{"policy_id": "terms_of_service"}],
+            "language": "en",
+            "acknowledged": True,
+        },
+    )
+    assert response.status_code == 400
+    assert "pending" in response.json()["detail"].lower()

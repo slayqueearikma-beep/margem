@@ -23,8 +23,8 @@ void main() {
       final en = LegalAcceptanceCopy.forLanguageCode('en');
       final ar = LegalAcceptanceCopy.forLanguageCode('ar');
       expect(en.title, 'Before you continue');
-      expect(ar.title, 'Before you continue');
-      expect(ar.acceptanceLanguageCode, 'en');
+      expect(ar.title, 'قبل المتابعة');
+      expect(ar.acceptanceLanguageCode, 'ar');
     });
 
     test('uses French for fr locale', () {

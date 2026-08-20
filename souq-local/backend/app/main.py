@@ -185,6 +185,7 @@ app.include_router(marketplace_admin.router)
 app.include_router(bundles.router)
 app.include_router(geography.router)
 app.include_router(legal_acceptance.router)
+app.include_router(legal_acceptance.auth_legal_router)
 app.include_router(legal_pages.router)
 
 if settings.serve_embedded_admin and _admin_dashboard_dir is not None:
