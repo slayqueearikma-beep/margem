@@ -72,12 +72,22 @@ async def accept_legal_policies(
             detail="Explicit acknowledgement is required",
         )
 
-    required_ids = {p.policy_id for p in get_required_onboarding_policies()}
+    pending_ids = await get_pending_policy_ids(session, user.id)
     submitted_ids = [item.policy_id for item in payload.policies]
-    if set(submitted_ids) != required_ids:
+    submitted_set = set(submitted_ids)
+
+    if not pending_ids:
+        accepted = await get_user_acceptances(session, user.id)
+        status_payload = build_acceptance_status(
+            accepted_versions=accepted,
+            pending_ids=[],
+        )
+        return LegalAcceptanceStatusOut(**status_payload)
+
+    if submitted_set != set(pending_ids):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="All required policies must be accepted together",
+            detail="All pending policies must be accepted together",
         )
 
     client_ip = get_client_ip(request)
