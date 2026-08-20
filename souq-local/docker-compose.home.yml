@@ -30,7 +30,7 @@ services:
     ports:
       - "${API_PORT:-8000}:8000"
     environment:
-      APP_ENV: production
+      APP_ENV: ${APP_ENV:-development}
       DEBUG: "false"
       AUTH_DEV_BYPASS: "false"
       DATABASE_URL: postgresql+asyncpg://margemadmin:${POSTGRES_PASSWORD}@postgres:5432/margem
@@ -47,7 +47,7 @@ services:
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-}
+      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
       TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-0}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -55,7 +55,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-Dribex <noreply@dribex.ma>}
       # Home LAN servers often have no SMTP; tokens are logged server-side only.
-      ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-false}
+      ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-true}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
