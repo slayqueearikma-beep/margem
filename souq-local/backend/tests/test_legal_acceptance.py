@@ -121,10 +121,7 @@ async def test_accept_requires_acknowledgement(client: AsyncClient):
 
 
 async def test_auth_legal_accept_routes(client: AsyncClient):
-<<<<<<< HEAD
     """Mobile clients POST to /auth/legal/* to avoid static /legal/{lang}/{doc} clashes."""
-=======
->>>>>>> c16ed55 (Fix legal acceptance document load and 400 accept errors)
     auth = await _register(client)
 
     status = await client.get("/auth/legal/accept/status", headers=auth["headers"])
@@ -145,8 +142,6 @@ async def test_auth_legal_accept_routes(client: AsyncClient):
     )
     assert accept.status_code == 200
     assert accept.json()["complete"] is True
-<<<<<<< HEAD
-=======
 
 
 async def test_accept_rejects_partial_pending_set(client: AsyncClient):
@@ -162,4 +157,3 @@ async def test_accept_rejects_partial_pending_set(client: AsyncClient):
     )
     assert response.status_code == 400
     assert "pending" in response.json()["detail"].lower()
->>>>>>> c16ed55 (Fix legal acceptance document load and 400 accept errors)

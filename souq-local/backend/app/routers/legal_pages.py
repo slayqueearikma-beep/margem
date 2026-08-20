@@ -48,7 +48,7 @@ async def legal_manifest():
     return JSONResponse(_load_manifest())
 
 
-@router.get("/legal/{lang}/{doc}")
+@router.api_route("/legal/{lang}/{doc}", methods=["GET", "HEAD"])
 async def legal_document(lang: str, doc: str):
     docs = _document_slugs()
     if lang not in _SUPPORTED or doc not in docs:

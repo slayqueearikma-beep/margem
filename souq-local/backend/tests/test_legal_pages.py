@@ -21,6 +21,14 @@ async def test_legal_privacy_en(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_legal_document_head(client: AsyncClient):
+    res = await client.head("/legal/en/terms")
+    assert res.status_code == 200
+    assert "text/html" in res.headers.get("content-type", "")
+    assert not res.content
+
+
+@pytest.mark.asyncio
 async def test_legal_privacy_ar_rtl(client: AsyncClient):
     res = await client.get("/legal/ar/privacy")
     assert res.status_code == 200
