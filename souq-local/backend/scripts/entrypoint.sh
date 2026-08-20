@@ -37,9 +37,32 @@ async def wait_for_db(timeout_s: int = 60) -> None:
 asyncio.run(wait_for_db())
 PY
 
+echo "Validating application settings..."
+if ! python - <<'PY'
+import sys
+
+try:
+    from app.config import settings
+except Exception as exc:  # noqa: BLE001
+    print(f"Settings validation failed: {exc}", file=sys.stderr)
+    sys.exit(1)
+
+print(
+    f"Settings OK (app_env={settings.app_env}, "
+    f"storage={settings.effective_storage_provider})"
+)
+PY
+then
+  echo "Fix environment variables in .env.home — see validate_home_env.py on the host." >&2
+  exit 1
+fi
+
 echo "Running database migrations..."
 python /app/scripts/normalize_env_lists.py
-alembic upgrade head
+if ! alembic upgrade head; then
+  echo "Alembic migration failed — check logs above for revision/schema errors." >&2
+  exit 1
+fi
 
 if [ "${STORAGE_PROVIDER:-selfhosted}" = "local" ] || [ "${STORAGE_BACKEND:-}" = "local" ]; then
   MEDIA_DIR="${LOCAL_MEDIA_ROOT:-/data/media}"

@@ -268,6 +268,50 @@ flutter run --dart-define=API_BASE_URL=http://100.x.x.x:8000
 | `start_lab.ps1` | $0 | No (dev only) | LAN only |
 | `start_azure_budget.ps1` | ~$15-25 | Yes | Public IP |
 
+## Troubleshooting home API (`margem-home-api` Error)
+
+Docker Compose marks the API as **Error** when the container exits or never passes the
+`/ready` healthcheck (~5 minutes). The database can be healthy while the API still fails.
+
+**Step 1 — get the real error:**
+
+```bash
+cd ~/MarGem/souq-local
+docker logs margem-home-api --tail 100
+```
+
+Or use the diagnostic script:
+
+```bash
+chmod +x scripts/diagnose_home_api.sh
+MARGEM_PROFILE=home ./scripts/docker-admin.sh diagnose
+```
+
+**Step 2 — match the log message:**
+
+| Log message | Fix |
+|-------------|-----|
+| `Settings validation failed` / `MFA_ENCRYPTION_KEY must differ` | Generate three **different** secrets with `openssl rand -hex 32`. Set `APP_ENV=development` for LAN home. |
+| `Alembic migration failed` / `Can't locate revision` | `git pull origin cursor/final-integration-ee43` then rebuild: `docker compose -f docker-compose.home.yml --env-file .env.home up -d --build api` |
+| `Media directory not writable` | `docker run --rm --user root -v souq-local_margem_home_media:/data alpine sh -c "chown -R 999:999 /data && chmod -R u+rwX /data"` |
+| `MINIO_ENDPOINT is not configured` | Set `STORAGE_PROVIDER=local` and `STORAGE_BACKEND=local` in `.env.home` |
+| `PAYMENT_PROVIDER=manual is not allowed in production` | Set `APP_ENV=development` in `.env.home` (home LAN default) |
+
+**Step 3 — verify endpoints:**
+
+```bash
+curl http://127.0.0.1:8000/health    # database only
+curl http://127.0.0.1:8000/ready     # must be 200 for Docker healthcheck
+```
+
+If `/health` works but `/ready` returns 503, check the JSON body for `"schema": "missing"` or `"media": "error"`.
+
+**Start API only (skip admin dependency):**
+
+```bash
+docker compose -f docker-compose.home.yml --env-file .env.home up -d --no-deps api
+```
+
 ## Keep laptop awake (Linux)
 
 ```bash
