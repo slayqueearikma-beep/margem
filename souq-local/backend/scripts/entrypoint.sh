@@ -54,12 +54,23 @@ try:
         fh.write("ok")
     os.remove(probe)
 except OSError as exc:
+    uid = os.getuid()
+    gid = os.getgid()
     print(f"Media directory not writable: {root} ({exc})", file=sys.stderr)
+    print(
+        "Fix volume ownership from the host (volume name is usually souq-local_margem_home_media):",
+        file=sys.stderr,
+    )
+    print(
+        f'  docker run --rm --user root -v souq-local_margem_home_media:/data alpine '
+        f'sh -c "chown -R {uid}:{gid} /data && chmod -R u+rwX /data"',
+        file=sys.stderr,
+    )
     sys.exit(1)
 print(f"Media directory OK: {root}")
 PY
   then
-    echo "Local media storage is not writable — check volume permissions." >&2
+    echo "Local media storage is not writable — see the chown command printed above." >&2
     exit 1
   fi
 fi
