@@ -87,7 +87,7 @@ def _load_icon(full: Image.Image) -> Image.Image:
     return _extract_icon_from_lockup(full)
 
 
-def _square_icon(img: Image.Image, size: int, *, scale: float = 0.78) -> Image.Image:
+def _square_icon(img: Image.Image, size: int, *, scale: float = 0.88) -> Image.Image:
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     logo = img.copy()
     logo.thumbnail((int(size * scale), int(size * scale)), Image.Resampling.LANCZOS)
@@ -108,7 +108,7 @@ def _fit_lockup(img: Image.Image, width: int) -> Image.Image:
 
 
 def _adaptive_foreground(img: Image.Image, size: int) -> Image.Image:
-    return _square_icon(img, size, scale=0.62)
+    return _square_icon(img, size, scale=0.72)
 
 
 def main() -> None:
@@ -124,9 +124,9 @@ def main() -> None:
     assets = ROOT / "mobile" / "assets" / "images"
     assets.mkdir(parents=True, exist_ok=True)
 
-    icon_master = icon.copy()
-    icon_master.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
-    icon_master.save(assets / "margem_logo.png", optimize=True)
+    _square_icon(icon, 512, scale=0.92).save(assets / "margem_logo.png", optimize=True)
+    _square_icon(icon, 1024, scale=0.92).save(assets / "margem_logo@2x.png", optimize=True)
+    _square_icon(icon, 1536, scale=0.92).save(assets / "margem_logo@3x.png", optimize=True)
 
     full_master = _fit_lockup(full.convert("RGBA"), 1024)
     full_master.save(assets / "margem_logo_full.png", optimize=True)
@@ -234,6 +234,7 @@ def main() -> None:
         "site.webmanifest",
     ):
         shutil.copy2(brand / name, static / name)
+    icon_master = _square_icon(icon, 1024, scale=0.92)
     icon_master.save(static / "margem_logo.png", optimize=True)
     full_master.save(static / "margem_logo_full.png", optimize=True)
     icon_source = "margem_logo_icon.png" if SRC_ICON.exists() else "margem_logo.png (cropped)"

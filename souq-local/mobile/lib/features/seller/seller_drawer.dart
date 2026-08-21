@@ -38,8 +38,8 @@ class SellerDrawer extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppBrandLogo.forContext(
-                    AppBrandContext.compactBranding,
-                    size: AppBrandSizes.drawerHeader,
+                    AppBrandContext.settingsBranding,
+                    includeClearSpace: false,
                   ),
                   SizedBox(height: 16),
                   if (profile != null)

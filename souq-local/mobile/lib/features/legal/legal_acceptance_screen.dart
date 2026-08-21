@@ -156,8 +156,8 @@ class _LegalAcceptanceScreenState extends ConsumerState<LegalAcceptanceScreen> {
                         children: [
                           Center(
                             child: AppBrandLogo.forContext(
-                              AppBrandContext.compactBranding,
-                              size: AppBrandSizes.settingsBranding,
+                              AppBrandContext.settingsBranding,
+                              includeClearSpace: false,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.lg),

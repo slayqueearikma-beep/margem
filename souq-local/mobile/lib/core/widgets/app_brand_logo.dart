@@ -20,6 +20,11 @@ enum AppLogoTier {
 class AppLogoLayout {
   AppLogoLayout._();
 
+  /// Uniform scale applied to the raster mark inside its layout box.
+  /// Compensates for transparent margins in PNG assets (BoxFit.contain letterboxing)
+  /// without changing aspect ratio or recoloring the artwork.
+  static const double markFillScale = 1.22;
+
   static double sizeFor(BuildContext context, AppLogoTier tier) {
     final width = MediaQuery.sizeOf(context).width;
     final isTablet = width >= 600;
@@ -28,22 +33,22 @@ class AppLogoLayout {
 
     return switch (tier) {
       AppLogoTier.splash => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 228.0,
-          (_, _, true) => 188.0,
-          (_, true, _) => 216.0,
-          _ => 204.0,
+          (true, _, _) => 280.0,
+          (_, _, true) => 228.0,
+          (_, true, _) => 264.0,
+          _ => 248.0,
         },
       AppLogoTier.header => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 136.0,
-          (_, _, true) => 84.0,
-          (_, true, _) => 104.0,
-          _ => 96.0,
+          (true, _, _) => 168.0,
+          (_, _, true) => 108.0,
+          (_, true, _) => 128.0,
+          _ => 120.0,
         },
       AppLogoTier.compact => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 40.0,
-          (_, _, true) => 28.0,
-          (_, true, _) => 36.0,
-          _ => 32.0,
+          (true, _, _) => 52.0,
+          (_, _, true) => 40.0,
+          (_, true, _) => 48.0,
+          _ => 44.0,
         },
     };
   }
@@ -61,14 +66,14 @@ class AppLogoLayout {
 class AppBrandSizes {
   AppBrandSizes._();
 
-  static const double splash = 164;
-  static const double authHeader = 88;
-  static const double onboardingHeader = 88;
-  static const double settingsBranding = 88;
-  static const double emptyState = 88;
-  static const double drawerHeader = 36;
-  static const double compact = 32;
-  static const double compactSmall = 28;
+  static const double splash = 248;
+  static const double authHeader = 120;
+  static const double onboardingHeader = 120;
+  static const double settingsBranding = 120;
+  static const double emptyState = 120;
+  static const double drawerHeader = 48;
+  static const double compact = 44;
+  static const double compactSmall = 40;
   static const double clearSpace = 8;
   static const double clearSpaceHero = 16;
 
@@ -251,12 +256,33 @@ class AppBrandLogo extends StatelessWidget {
         : AppBrandSizes.clearSpace;
   }
 
+  double _resolveDisplaySize(BuildContext context) {
+    if (width != null || height != null) {
+      return width ?? height ?? iconSize;
+    }
+
+    if (tier != null) {
+      return AppLogoLayout.sizeFor(context, tier!);
+    }
+
+    if (brandContext != null) {
+      final defaultForContext = _defaultSizeFor(brandContext!);
+      if (iconSize != defaultForContext) {
+        return iconSize;
+      }
+      final mappedTier = _resolvedTier;
+      if (mappedTier != null) {
+        return AppLogoLayout.sizeFor(context, mappedTier);
+      }
+    }
+
+    return iconSize;
+  }
+
   @override
   Widget build(BuildContext context) {
     final resolvedTier = _resolvedTier;
-    final resolvedSize = resolvedTier != null
-        ? AppLogoLayout.sizeFor(context, resolvedTier)
-        : iconSize;
+    final resolvedSize = _resolveDisplaySize(context);
     final clearSpace = resolvedTier != null
         ? _clearSpaceForTier(resolvedTier)
         : (includeClearSpace ? AppBrandSizes.clearSpace : 0);
@@ -352,11 +378,18 @@ class _LogoMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    return _LogoImage(
-      asset: AppBrandLogo._iconAsset1x,
-      assetCandidates: AppBrandLogo._iconAssetCandidatesForDpr(dpr),
+    final renderSize = size * AppLogoLayout.markFillScale;
+    return SizedBox(
       width: size,
       height: size,
+      child: Center(
+        child: _LogoImage(
+          asset: AppBrandLogo._iconAsset1x,
+          assetCandidates: AppBrandLogo._iconAssetCandidatesForDpr(dpr),
+          width: renderSize,
+          height: renderSize,
+        ),
+      ),
     );
   }
 }
