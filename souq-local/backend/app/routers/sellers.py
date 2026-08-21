@@ -12,7 +12,7 @@ from app.config import settings
 from app.data.marketplace_constants import LAUNCH_CITY
 from app.database import get_db
 from app.limiter import limiter
-from app.models import Category, Product, Review, SellerFollow, SellerProfile, Service, User
+from app.models import Category, Product, Review, SellerFollow, SellerProfile, SellerVideo, Service, User
 from app.schemas import (
     MapPin,
     ProductCreate,
@@ -29,7 +29,10 @@ from app.schemas import (
     ServiceCreate,
     ServiceOut,
     ServiceUpdate,
+    VideoCreate,
+    VideoOut,
 )
+from app.services.premium import apply_seller_premium_expiry, is_premium_active
 from app.services.ratings import (
     overall_from_categories,
     refresh_seller_ratings,
@@ -117,6 +120,19 @@ def _validate_optional_http_url(url: str, *, field: str) -> str:
         return _validate_http_url(url or "", field_name=field)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+def _require_premium_seller(user: User, seller: SellerProfile) -> None:
+    apply_seller_premium_expiry(seller, persist=False)
+    active = is_premium_active(
+        is_premium=bool(user.is_premium or seller.is_premium),
+        premium_until=user.premium_until,
+    )
+    if not active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Premium membership is required to publish videos",
+        )
 
 
 def _public_product_visible(product: Product) -> bool:
@@ -468,6 +484,49 @@ async def add_service(
     await session.commit()
     await session.refresh(service)
     return service
+
+
+@router.post("/{seller_id}/videos", response_model=VideoOut, status_code=status.HTTP_201_CREATED)
+async def add_video(
+    seller_id: UUID,
+    payload: VideoCreate,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> SellerVideo:
+    seller = await _owned_seller(seller_id, user, session)
+    _require_premium_seller(user, seller)
+
+    from app.services.video_validation import (
+        assert_video_duration_from_url,
+        validate_video_duration_seconds,
+    )
+
+    try:
+        validate_video_duration_seconds(payload.duration_seconds)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    video_url = _validate_owner_media(payload.video_url, user.id)
+    try:
+        measured = await assert_video_duration_from_url(
+            public_url=video_url,
+            owner_user_id=user.id,
+            content_type=payload.content_type,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    video = SellerVideo(
+        seller_id=seller_id,
+        video_url=video_url,
+        duration_seconds=measured,
+        title=(payload.title or "").strip(),
+        caption=(payload.caption or "").strip(),
+    )
+    session.add(video)
+    await session.commit()
+    await session.refresh(video)
+    return video
 
 
 @router.patch("/{seller_id}/products/{product_id}", response_model=ProductOut)

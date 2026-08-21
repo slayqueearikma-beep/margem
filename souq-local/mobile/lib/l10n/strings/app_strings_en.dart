@@ -449,6 +449,40 @@ class AppStringsEn extends AppStrings {
   @override
   String get addService => 'Add service';
   @override
+  String get addVideo => 'Add video';
+  @override
+  String get addVideoSub =>
+      'Share a short video (under 1 minute) to showcase your business.';
+  @override
+  String get createVideo => 'Create a video';
+  @override
+  String get createVideoSub => 'Record a new video with your camera';
+  @override
+  String get selectVideo => 'Select a video';
+  @override
+  String get selectVideoSub => 'Choose an existing video from your gallery';
+  @override
+  String get videoTooLong =>
+      'This video must be less than 1 minute. Please choose or record a shorter clip.';
+  @override
+  String get videoLoadFailed => 'Could not load this video. Try another file.';
+  @override
+  String get videoPublished => 'Video published';
+  @override
+  String get premiumRequiredTitle => 'Premium required';
+  @override
+  String get premiumRequiredForVideo =>
+      'Video uploads are available on Premium seller plans.';
+  @override
+  String get upgradeToPremium => 'Upgrade to Premium';
+  @override
+  String get retakeVideo => 'Retake';
+  @override
+  String get chooseAnotherVideo => 'Choose another';
+  @override
+  String get cameraPermissionDenied =>
+      'Camera access is required to record a video.';
+  @override
   String get editService => 'Edit service';
   @override
   String get deleteService => 'Delete service';

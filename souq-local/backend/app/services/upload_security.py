@@ -62,9 +62,38 @@ def sanitize_upload_filename(filename: str) -> str:
     return name[:_MAX_FILENAME_LENGTH]
 
 
+_ALLOWED_CONTENT_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+}
+
+_ALLOWED_VIDEO_CONTENT_TYPES = {
+    "video/mp4",
+    "video/quicktime",
+}
+
+
 def validate_upload_content_type(content_type: str) -> None:
-    if content_type not in _ALLOWED_CONTENT_TYPES:
+    if content_type not in _ALLOWED_CONTENT_TYPES and content_type not in _ALLOWED_VIDEO_CONTENT_TYPES:
         raise ValueError(f"Unsupported content type: {content_type}")
+
+
+def is_video_content_type(content_type: str) -> bool:
+    return content_type in _ALLOWED_VIDEO_CONTENT_TYPES
+
+
+def validate_video_bytes(data: bytes, content_type: str) -> None:
+    ct = content_type.split(";")[0].strip().lower()
+    if ct == "video/mp4":
+        valid = len(data) >= 12 and data[4:8] == b"ftyp"
+    elif ct == "video/quicktime":
+        valid = len(data) >= 12 and data[4:8] in {b"ftyp", b"moov", b"mdat"}
+    else:
+        valid = False
+    if not valid:
+        raise ValueError("Upload bytes do not match the declared video type")
 
 
 def validate_image_bytes(data: bytes, content_type: str) -> None:

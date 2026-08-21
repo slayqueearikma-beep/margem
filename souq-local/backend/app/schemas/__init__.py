@@ -682,6 +682,27 @@ class PresignRequest(BaseModel):
     purpose: str = "general"
 
 
+class VideoCreate(BaseModel):
+    video_url: str = Field(min_length=1, max_length=512)
+    duration_seconds: float = Field(ge=0, lt=60)
+    title: str = Field(default="", max_length=160)
+    caption: str = Field(default="", max_length=2000)
+    content_type: str = Field(default="video/mp4", max_length=64)
+
+
+class VideoOut(BaseModel):
+    id: UUID
+    seller_id: UUID
+    video_url: str
+    duration_seconds: float
+    title: str
+    caption: str
+    is_active: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class PresignResponse(BaseModel):
     upload_url: str
     public_url: str

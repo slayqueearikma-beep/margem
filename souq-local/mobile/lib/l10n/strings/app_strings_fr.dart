@@ -457,6 +457,42 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get addService => 'Ajouter un service';
   @override
+  String get addVideo => 'Ajouter une vidéo';
+  @override
+  String get addVideoSub =>
+      'Partagez une courte vidéo (moins d’1 minute) pour présenter votre activité.';
+  @override
+  String get createVideo => 'Créer une vidéo';
+  @override
+  String get createVideoSub => 'Enregistrer une nouvelle vidéo avec la caméra';
+  @override
+  String get selectVideo => 'Choisir une vidéo';
+  @override
+  String get selectVideoSub =>
+      'Sélectionner une vidéo existante dans la galerie';
+  @override
+  String get videoTooLong =>
+      'La vidéo doit durer moins d’1 minute. Choisissez ou enregistrez un clip plus court.';
+  @override
+  String get videoLoadFailed =>
+      'Impossible de charger cette vidéo. Essayez un autre fichier.';
+  @override
+  String get videoPublished => 'Vidéo publiée';
+  @override
+  String get premiumRequiredTitle => 'Premium requis';
+  @override
+  String get premiumRequiredForVideo =>
+      'Les vidéos sont réservées aux vendeurs Premium.';
+  @override
+  String get upgradeToPremium => 'Passer à Premium';
+  @override
+  String get retakeVideo => 'Reprendre';
+  @override
+  String get chooseAnotherVideo => 'Choisir une autre';
+  @override
+  String get cameraPermissionDenied =>
+      'L’accès à la caméra est requis pour enregistrer une vidéo.';
+  @override
   String get editService => 'Modifier le service';
   @override
   String get deleteService => 'Supprimer le service';

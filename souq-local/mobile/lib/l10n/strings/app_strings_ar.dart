@@ -446,6 +446,40 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get addService => 'إضافة خدمة';
   @override
+  String get addVideo => 'إضافة فيديو';
+  @override
+  String get addVideoSub =>
+      'شارك فيديو قصيراً (أقل من دقيقة) لعرض نشاطك التجاري.';
+  @override
+  String get createVideo => 'إنشاء فيديو';
+  @override
+  String get createVideoSub => 'سجّل فيديو جديداً باستخدام الكاميرا';
+  @override
+  String get selectVideo => 'اختيار فيديو';
+  @override
+  String get selectVideoSub => 'اختر فيديو موجوداً من المعرض أو الملفات';
+  @override
+  String get videoTooLong =>
+      'يجب أن يكون الفيديو أقل من دقيقة واحدة. اختر أو سجّل مقطعاً أقصر.';
+  @override
+  String get videoLoadFailed => 'تعذّر تحميل هذا الفيديو. جرّب ملفاً آخر.';
+  @override
+  String get videoPublished => 'تم نشر الفيديو';
+  @override
+  String get premiumRequiredTitle => 'يتطلب Premium';
+  @override
+  String get premiumRequiredForVideo =>
+      'رفع الفيديو متاح لبائعي Premium فقط.';
+  @override
+  String get upgradeToPremium => 'الترقية إلى Premium';
+  @override
+  String get retakeVideo => 'إعادة التسجيل';
+  @override
+  String get chooseAnotherVideo => 'اختيار آخر';
+  @override
+  String get cameraPermissionDenied =>
+      'يلزم الوصول إلى الكاميرا لتسجيل فيديو.';
+  @override
   String get editService => 'تعديل الخدمة';
   @override
   String get deleteService => 'حذف الخدمة';

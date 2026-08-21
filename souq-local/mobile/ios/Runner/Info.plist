@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Dribex uses the camera to record short seller videos.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Dribex uses the microphone when recording seller videos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Dribex lets you choose videos from your library to publish on your storefront.</string>
 </dict>
 </plist>

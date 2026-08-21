@@ -271,6 +271,7 @@ class SellerProfile(Base):
     )
     products: Mapped[list["Product"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
     services: Mapped[list["Service"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
+    videos: Mapped[list["SellerVideo"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
     reviews: Mapped[list["Review"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
 
 
@@ -325,6 +326,21 @@ class Service(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     seller: Mapped[SellerProfile] = relationship(back_populates="services")
+
+
+class SellerVideo(Base):
+    __tablename__ = "seller_videos"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id"), index=True)
+    video_url: Mapped[str] = mapped_column(String(512), default="")
+    duration_seconds: Mapped[float] = mapped_column(Numeric(8, 3, asdecimal=False))
+    title: Mapped[str] = mapped_column(String(160), default="")
+    caption: Mapped[str] = mapped_column(Text, default="")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    seller: Mapped[SellerProfile] = relationship(back_populates="videos")
 
 
 class Review(Base):

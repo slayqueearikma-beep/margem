@@ -73,6 +73,7 @@ def owner_user_id_from_object_key(object_key: str) -> str | None:
         "profiles",
         "products",
         "listings",
+        "videos",
         "private",
         "uploads",
     }:

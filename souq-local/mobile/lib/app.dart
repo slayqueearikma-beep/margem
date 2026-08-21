@@ -34,6 +34,8 @@ import 'features/search/search_screen.dart';
 import 'features/seller/product_detail_screen.dart';
 import 'features/seller/seller_catalog_screen.dart';
 import 'features/seller/seller_add_service_wizard.dart';
+import 'features/seller/seller_add_video_screen.dart';
+import 'features/seller/seller_video_record_screen.dart';
 import 'features/seller/seller_analytics_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
@@ -269,6 +271,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/seller/services/:serviceId',
         builder: (_, state) => SellerServiceEditorScreen(
             serviceId: state.pathParameters['serviceId']),
+      ),
+      GoRoute(
+        path: '/seller/videos/new',
+        builder: (_, __) => const SellerAddVideoScreen(),
+      ),
+      GoRoute(
+        path: '/seller/videos/record',
+        builder: (_, __) => const SellerVideoRecordScreen(),
       ),
       GoRoute(
           path: '/seller/analytics',

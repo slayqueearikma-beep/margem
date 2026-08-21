@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/navigation/app_back_handler.dart';
 import '../../core/widgets/margem_app_bar.dart';
+import '../../core/widgets/premium_ribbon_badge.dart';
 import '../../l10n/app_localizations.dart';
+import 'seller_account_provider.dart';
 import 'seller_bookings_tab.dart';
 import 'seller_catalog_tab.dart';
 import 'seller_dashboard_tab.dart';
@@ -16,8 +18,12 @@ import 'seller_navigation.dart';
 class SellerShell extends ConsumerWidget {
   const SellerShell({super.key});
 
-  void _showAddSheet(BuildContext context) {
+  void _showAddSheet(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final account = ref.read(sellerAccountProvider).valueOrNull;
+    final isPremium = account != null &&
+        (account.stats.isPremium || account.profile.isPremium);
+
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -45,9 +51,56 @@ class SellerShell extends ConsumerWidget {
                   context.push('/seller/products/new');
                 },
               ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.videocam_outlined),
+                    title: Text(l10n.addVideo),
+                    subtitle: Text(l10n.addVideoSub),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      if (!isPremium) {
+                        _showPremiumRequiredDialog(context);
+                        return;
+                      }
+                      context.push('/seller/videos/new');
+                    },
+                  ),
+                  const Positioned(
+                    top: 4,
+                    right: 4,
+                    child: PremiumRibbonBadge(),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showPremiumRequiredDialog(BuildContext context) {
+    final l10n = context.l10n;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.premiumRequiredTitle),
+        content: Text(l10n.premiumRequiredForVideo),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.push('/premium');
+            },
+            child: Text(l10n.upgradeToPremium),
+          ),
+        ],
       ),
     );
   }
@@ -84,7 +137,7 @@ class SellerShell extends ConsumerWidget {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => _showAddSheet(context),
+          onPressed: () => _showAddSheet(context, ref),
           child: const Icon(Icons.add_rounded, size: 30),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
