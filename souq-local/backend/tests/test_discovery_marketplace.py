@@ -194,6 +194,7 @@ async def test_guest_favorites_migrate_and_report(client: AsyncClient):
 
     report = await client.post(
         "/reports",
+        headers=buyer["headers"],
         json={
             "seller_id": seller_body["id"],
             "reason": "spam",
@@ -205,11 +206,22 @@ async def test_guest_favorites_migrate_and_report(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_report_rejects_unknown_seller(client: AsyncClient):
+    buyer = await _register(client, "buyer")
+    report = await client.post(
+        "/reports",
+        headers=buyer["headers"],
+        json={"seller_id": str(uuid4()), "reason": "spam", "details": "x"},
+    )
+    assert report.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_report_requires_authentication(client: AsyncClient):
     report = await client.post(
         "/reports",
         json={"seller_id": str(uuid4()), "reason": "spam", "details": "x"},
     )
-    assert report.status_code == 404
+    assert report.status_code == 401
 
 
 @pytest.mark.asyncio

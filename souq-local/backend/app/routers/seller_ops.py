@@ -718,6 +718,10 @@ async def subscribe(
     )
 
 
+def _escape_ilike(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 @router.get("/admin/users", response_model=AdminUserListOut)
 async def admin_list_users(
     user: User = Depends(require_staff),
@@ -732,8 +736,13 @@ async def admin_list_users(
 ) -> AdminUserListOut:
     stmt = select(User)
     if q:
-        like = f"%{q.strip()}%"
-        stmt = stmt.where(or_(User.email.ilike(like), User.display_name.ilike(like)))
+        like = f"%{_escape_ilike(q.strip())}%"
+        stmt = stmt.where(
+            or_(
+                User.email.ilike(like, escape="\\"),
+                User.display_name.ilike(like, escape="\\"),
+            )
+        )
     if role is not None:
         stmt = stmt.where(User.role == UserRole(role))
     if status_filter is not None:

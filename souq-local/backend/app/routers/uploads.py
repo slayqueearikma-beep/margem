@@ -221,6 +221,7 @@ async def validate_uploaded_video(
     request: Request,
     payload: ValidateVideoUploadRequest,
     user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ) -> dict:
     """Server-side video duration validation after direct-to-storage upload."""
     try:
@@ -240,6 +241,18 @@ async def validate_uploaded_video(
 
     provider = get_storage_provider()
     provider.log_event("storage_upload_success", user_id=user.id, detail="video_validated")
+
+    from app.services.media_registry import register_media_object
+
+    await register_media_object(
+        session,
+        user_id=user.id,
+        public_url=payload.public_url,
+        purpose="video_upload",
+        content_type=payload.content_type,
+        bytes_size=0,
+    )
+    await session.commit()
     return {"status": "valid", "duration_seconds": measured}
 
 

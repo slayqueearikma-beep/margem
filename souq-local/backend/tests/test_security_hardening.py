@@ -61,7 +61,11 @@ async def test_mfa_enrollment_and_login_flow(client: AsyncClient):
 
     enroll = await client.post("/auth/mfa/enroll", headers=headers)
     assert enroll.status_code == 200, enroll.text
-    secret = enroll.json()["secret"]
+    body = enroll.json()
+    assert "secret" not in body
+    from urllib.parse import parse_qs, urlparse
+
+    secret = parse_qs(urlparse(body["otpauth_uri"]).query)["secret"][0]
 
     code = pyotp.TOTP(secret).now()
     confirm = await client.post("/auth/mfa/confirm", headers=headers, json={"code": code})
