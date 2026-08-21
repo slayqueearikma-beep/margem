@@ -583,7 +583,7 @@ class _SellerHeader extends StatelessWidget {
                   ),
                   if (seller.verificationStatus == 'verified')
                     const Icon(Icons.verified_rounded,
-                        color: Colors.blue, size: 22),
+                        color: AppColors.verified, size: 22),
                   if (seller.isPremium)
                     const Padding(
                       padding: EdgeInsets.only(left: 4),

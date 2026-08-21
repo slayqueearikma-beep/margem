@@ -12,6 +12,7 @@ import '../../core/services/upload_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/margem_components.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -320,6 +321,20 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         children: [
+          if (!widget.isEditing) ...[
+            MarGemStepProgress(currentStep: 1, totalSteps: 7),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Add Photos',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.tapToUpload,
+              style: const TextStyle(color: AppColors.textTertiary),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
           GestureDetector(
             onTap: _loading ? null : _pickImage,
             child: AspectRatio(

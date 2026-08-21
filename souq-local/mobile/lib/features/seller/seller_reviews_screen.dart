@@ -5,6 +5,7 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/margem_components.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
@@ -188,13 +189,14 @@ class SellerNotificationsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.notifications),
+        centerTitle: true,
         actions: [
-          TextButton(
+          IconButton(
             onPressed: () async {
               await apiServiceProvider.markAllNotificationsRead();
               ref.invalidate(notificationsProvider);
             },
-            child: Text(l10n.markAllRead),
+            icon: const Icon(Icons.settings_outlined),
           ),
         ],
       ),
@@ -236,43 +238,29 @@ class SellerNotificationsScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(notificationsProvider),
             child: ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-              itemCount: items.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenHorizontal,
+              ),
+              itemCount: items.length + 1,
+              separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, index) {
-                final item = items[index];
-                return Card(
-                  child: ListTile(
-                    onTap: item.isRead
-                        ? null
-                        : () async {
-                            await apiServiceProvider
-                                .markNotificationRead(item.id);
-                            ref.invalidate(notificationsProvider);
-                          },
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.12),
-                      child: Icon(_notificationIcon(item.kind),
-                          color: AppColors.primary),
-                    ),
-                    title: Text(
-                      item.title,
-                      style: TextStyle(
-                          fontWeight:
-                              item.isRead ? FontWeight.w500 : FontWeight.w800),
-                    ),
-                    subtitle: Text(
-                      item.body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: item.isRead
-                        ? null
-                        : const Icon(Icons.circle,
-                            size: 10, color: AppColors.primary),
-                  ),
+                if (index == 0) {
+                  return const MarGemSectionLabel(label: 'Today');
+                }
+                final item = items[index - 1];
+                return MarGemNotificationTile(
+                  title: item.title,
+                  body: item.body,
+                  timeLabel: _formatTime(item.createdAt),
+                  icon: _notificationIcon(item.kind),
+                  isUnread: !item.isRead,
+                  onTap: item.isRead
+                      ? null
+                      : () async {
+                          await apiServiceProvider
+                              .markNotificationRead(item.id);
+                          ref.invalidate(notificationsProvider);
+                        },
                 );
               },
             ),
@@ -290,5 +278,20 @@ class SellerNotificationsScreen extends ConsumerWidget {
       'verification' => Icons.verified_outlined,
       _ => Icons.notifications_none_rounded,
     };
+  }
+
+  String _formatTime(String raw) {
+    final parsed = DateTime.tryParse(raw)?.toLocal();
+    if (parsed == null) return '';
+    final now = DateTime.now();
+    final sameDay = parsed.year == now.year &&
+        parsed.month == now.month &&
+        parsed.day == now.day;
+    if (sameDay) {
+      final h = parsed.hour.toString().padLeft(2, '0');
+      final m = parsed.minute.toString().padLeft(2, '0');
+      return '$h:$m';
+    }
+    return '${parsed.day}/${parsed.month}';
   }
 }
