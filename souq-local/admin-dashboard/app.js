@@ -137,6 +137,27 @@ async function loadReports() {
   renderReports();
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function safeHttpUrl(url, fallback = "") {
+  if (!url) return fallback;
+  try {
+    const parsed = new URL(String(url));
+    if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+      return parsed.href;
+    }
+  } catch (_) {
+    /* ignore */
+  }
+  return fallback;
+}
+
 function renderReports() {
   const tbody = $("#reports-tbody");
   tbody.innerHTML = "";
@@ -147,11 +168,13 @@ function renderReports() {
   $("#reports-empty").classList.add("hidden");
   for (const report of state.reports) {
     const tr = document.createElement("tr");
-    const target = report.seller_id || report.product_id || report.reported_user_id || "—";
+    const target = escapeHtml(
+      String(report.seller_id || report.product_id || report.reported_user_id || "—")
+    );
     tr.innerHTML = `
       <td>${formatDate(report.created_at)}</td>
-      <td>${report.reason}</td>
-      <td><span class="pill ${report.status}">${report.status}</span></td>
+      <td>${escapeHtml(report.reason || "")}</td>
+      <td><span class="pill ${escapeHtml(report.status || "")}">${escapeHtml(report.status || "")}</span></td>
       <td class="mono">${target}</td>
       <td class="actions">
         <button type="button" class="btn ghost sm" data-report-action="review" data-id="${report.id}">Review</button>
@@ -242,14 +265,6 @@ function renderUsersPagination() {
       loadUsers().catch((e) => toast(e.message, true));
     }
   };
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
 
 function buildOpeningHoursFields(hours = {}) {
@@ -354,7 +369,7 @@ function renderMarketplaceTable(data) {
     tr.innerHTML = `
       <td>
         <div class="mp-cell">
-          <img class="mp-logo" src="${mp.logo_image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Crect fill='%23f3ebe2' width='44' height='44' rx='12'/%3E%3C/svg%3E"}" alt="" />
+          <img class="mp-logo" src="${safeHttpUrl(mp.logo_image_url, "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Crect fill='%23f3ebe2' width='44' height='44' rx='12'/%3E%3C/svg%3E")}" alt="" />
           <div>
             <strong>${escapeHtml(mp.name)}</strong><br />
             <span class="muted">${escapeHtml(mp.slug)}</span>
@@ -403,14 +418,6 @@ function renderPagination(data) {
       loadMarketplaces().catch((e) => toast(e.message, true));
     };
   });
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }
 
 function openMarketplaceDialog(mp = null) {
@@ -476,7 +483,7 @@ function openPreview(mp) {
     .map(([day, cfg]) => `<li><strong>${day}</strong>: ${cfg.closed ? "Closed" : `${cfg.open} – ${cfg.close}`}</li>`)
     .join("");
   $("#preview-body").innerHTML = `
-    ${mp.cover_image_url ? `<img class="preview-cover" src="${mp.cover_image_url}" alt="" />` : ""}
+    ${mp.cover_image_url ? `<img class="preview-cover" src="${safeHttpUrl(mp.cover_image_url)}" alt="" />` : ""}
     <div class="preview-head">
       ${mp.logo_image_url ? `<img class="preview-logo" src="${mp.logo_image_url}" alt="" />` : ""}
       <div>

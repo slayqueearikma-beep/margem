@@ -8,6 +8,21 @@ from sqlalchemy import func, literal
 
 EARTH_RADIUS_KM = 6371.0
 
+# Inclusive WGS84 bounds for Morocco (mainland + southern provinces).
+MOROCCO_LAT_MIN = 20.5
+MOROCCO_LAT_MAX = 36.5
+MOROCCO_LNG_MIN = -17.5
+MOROCCO_LNG_MAX = -0.5
+
+
+def validate_morocco_coordinates(latitude: float, longitude: float) -> None:
+    """Reject coordinates outside Morocco — do not trust client map picks blindly."""
+    if not (
+        MOROCCO_LAT_MIN <= latitude <= MOROCCO_LAT_MAX
+        and MOROCCO_LNG_MIN <= longitude <= MOROCCO_LNG_MAX
+    ):
+        raise ValueError("Coordinates must be within Morocco")
+
 
 def haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     """Great-circle distance in kilometers between two WGS84 points."""

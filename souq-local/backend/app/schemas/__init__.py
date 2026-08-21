@@ -10,15 +10,14 @@ from app.services.service_pricing import PricingModel, normalize_service_pricing
 
 
 def _validate_http_url(value: str, *, field_name: str = "url") -> str:
+    from app.services.url_security import reject_private_or_internal_url
+
     cleaned = value.strip()
     if not cleaned:
         return ""
-    parsed = urlparse(cleaned)
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-        raise ValueError(f"{field_name} must be an absolute http(s) URL")
     if len(cleaned) > 2048:
         raise ValueError(f"{field_name} is too long")
-    return cleaned
+    return reject_private_or_internal_url(cleaned, field_name=field_name)
 
 
 def _validate_media_urls(urls: list[str]) -> list[str]:
@@ -169,7 +168,6 @@ class TokenResponse(BaseModel):
 
 
 class MfaEnrollOut(BaseModel):
-    secret: str
     otpauth_uri: str
 
 

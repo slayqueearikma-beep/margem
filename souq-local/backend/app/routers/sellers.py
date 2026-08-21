@@ -109,6 +109,43 @@ def _validate_owner_media(url: str, user_id: UUID) -> str:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
+async def _validate_owner_media_registered(
+    session: AsyncSession,
+    url: str,
+    user_id: UUID,
+) -> str:
+    from app.services.media_registry import require_registered_media
+
+    validated = _validate_owner_media(url, user_id)
+    if validated:
+        try:
+            await require_registered_media(session, user_id=user_id, public_url=validated)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return validated
+
+
+async def _validate_owner_media_list_registered(
+    session: AsyncSession,
+    urls: list[str],
+    user_id: UUID,
+) -> list[str]:
+    result: list[str] = []
+    for u in urls:
+        if u and str(u).strip():
+            result.append(await _validate_owner_media_registered(session, u, user_id))
+    return result
+
+
+def _validate_morocco_coordinates(latitude: float, longitude: float) -> None:
+    from app.services.geo import validate_morocco_coordinates
+
+    try:
+        validate_morocco_coordinates(latitude, longitude)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
 def _validate_owner_media_list(urls: list[str], user_id: UUID) -> list[str]:
     return [_validate_owner_media(u, user_id) for u in urls if u and str(u).strip()]
 
@@ -305,8 +342,9 @@ async def create_seller(
         result = await session.execute(select(Category).where(Category.id.in_(payload.category_ids)))
         categories = list(result.scalars().all())
 
-    cover = _validate_owner_media(payload.cover_image_url, user.id)
-    logo = _validate_owner_media(payload.logo_image_url, user.id)
+    cover = await _validate_owner_media_registered(session, payload.cover_image_url, user.id)
+    logo = await _validate_owner_media_registered(session, payload.logo_image_url, user.id)
+    _validate_morocco_coordinates(payload.latitude, payload.longitude)
 
     seller = SellerProfile(
         user_id=user.id,
@@ -388,19 +426,25 @@ async def update_seller(
     opening_hours = data.pop("opening_hours", None)
 
     if "cover_image_url" in data:
-        new_cover = _validate_owner_media(data["cover_image_url"] or "", user.id)
+        new_cover = await _validate_owner_media_registered(session, data["cover_image_url"] or "", user.id)
         if new_cover != seller.cover_image_url:
             from app.services.media_registry import supersede_media_url
 
             await supersede_media_url(session, user_id=user.id, old_url=seller.cover_image_url)
         data["cover_image_url"] = new_cover
     if "logo_image_url" in data:
-        new_logo = _validate_owner_media(data["logo_image_url"] or "", user.id)
+        new_logo = await _validate_owner_media_registered(session, data["logo_image_url"] or "", user.id)
         if new_logo != seller.logo_image_url:
             from app.services.media_registry import supersede_media_url
 
             await supersede_media_url(session, user_id=user.id, old_url=seller.logo_image_url)
         data["logo_image_url"] = new_logo
+    if "latitude" in data and "longitude" in data and data["latitude"] is not None and data["longitude"] is not None:
+        _validate_morocco_coordinates(float(data["latitude"]), float(data["longitude"]))
+    elif "latitude" in data and data["latitude"] is not None:
+        _validate_morocco_coordinates(float(data["latitude"]), float(seller.longitude))
+    elif "longitude" in data and data["longitude"] is not None:
+        _validate_morocco_coordinates(float(seller.latitude), float(data["longitude"]))
     for url_field in ("website_url", "instagram_url", "facebook_url", "tiktok_url"):
         if url_field in data and data[url_field] is not None:
             data[url_field] = _validate_optional_http_url(data[url_field] or "", field=url_field)
@@ -427,11 +471,15 @@ async def add_product(
 ) -> Product:
     await _owned_seller(seller_id, user, session)
 
-    image_url = _validate_owner_media(payload.image_url, user.id)
+    image_url = await _validate_owner_media_registered(session, payload.image_url, user.id)
     product_data = payload.model_dump(exclude={"pricing_type", "price_mad"})
     product_data["image_url"] = image_url
-    product_data["media_urls"] = _validate_owner_media_list(list(payload.media_urls or []), user.id)
-    product_data["video_url"] = _validate_owner_media(payload.video_url or "", user.id)
+    product_data["media_urls"] = await _validate_owner_media_list_registered(
+        session, list(payload.media_urls or []), user.id
+    )
+    product_data["video_url"] = await _validate_owner_media_registered(
+        session, payload.video_url or "", user.id
+    )
     if payload.is_featured and not user.is_premium:
         product_data["is_featured"] = False
     product = Product(seller_id=seller_id, **product_data)
@@ -462,7 +510,7 @@ async def add_service(
 ) -> Service:
     await _owned_seller(seller_id, user, session)
 
-    image_url = _validate_owner_media(payload.image_url, user.id)
+    image_url = await _validate_owner_media_registered(session, payload.image_url, user.id)
     from app.services.service_pricing import normalize_service_pricing
 
     pricing = normalize_service_pricing(payload.model_dump())
@@ -506,7 +554,7 @@ async def add_video(
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    video_url = _validate_owner_media(payload.video_url, user.id)
+    video_url = await _validate_owner_media_registered(session, payload.video_url, user.id)
     try:
         measured = await assert_video_duration_from_url(
             public_url=video_url,
@@ -544,11 +592,13 @@ async def update_product(
 
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
-        data["image_url"] = _validate_owner_media(data["image_url"] or "", user.id)
+        data["image_url"] = await _validate_owner_media_registered(session, data["image_url"] or "", user.id)
     if "media_urls" in data and data["media_urls"] is not None:
-        data["media_urls"] = _validate_owner_media_list(list(data["media_urls"] or []), user.id)
+        data["media_urls"] = await _validate_owner_media_list_registered(
+            session, list(data["media_urls"] or []), user.id
+        )
     if "video_url" in data:
-        data["video_url"] = _validate_owner_media(data["video_url"] or "", user.id)
+        data["video_url"] = await _validate_owner_media_registered(session, data["video_url"] or "", user.id)
     if data.get("is_featured") is True and not user.is_premium:
         data["is_featured"] = False
 
@@ -630,7 +680,7 @@ async def update_service(
 
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
-        data["image_url"] = _validate_owner_media(data["image_url"] or "", user.id)
+        data["image_url"] = await _validate_owner_media_registered(session, data["image_url"] or "", user.id)
 
     pricing_keys = {"pricing_model", "price_mad", "price_min_mad", "price_max_mad", "price_negotiable"}
     if pricing_keys.intersection(data):

@@ -511,7 +511,7 @@ async def update_profile_photo(
 ) -> UserOut:
     from app.auth import user_has_seller_profile
     from app.services.legal_acceptance import get_pending_policy_ids
-    from app.services.media_registry import register_media_object, supersede_media_url
+    from app.services.media_registry import register_media_object, require_registered_media, supersede_media_url
     from app.services.storage_provider import get_storage_provider
 
     provider = get_storage_provider()
@@ -519,6 +519,12 @@ async def update_profile_photo(
         validated = provider.validate_owner_url(payload.profile_photo_url, owner_user_id=user.id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    if validated:
+        try:
+            await require_registered_media(session, user_id=user.id, public_url=validated)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     if validated != (user.profile_photo_url or ""):
         if user.profile_photo_url:
@@ -804,7 +810,7 @@ async def enroll_mfa(
         await session.commit()
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return MfaEnrollOut(secret=secret, otpauth_uri=uri)
+    return MfaEnrollOut(otpauth_uri=uri)
 
 
 @router.post("/mfa/confirm", response_model=MfaConfirmOut)

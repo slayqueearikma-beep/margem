@@ -72,6 +72,33 @@ async def supersede_media_url(session: AsyncSession, *, user_id: UUID, old_url: 
     log_media_event("profile_photo_replaced", user_id=user_id, detail=blob_key or "")
 
 
+async def require_registered_media(
+    session: AsyncSession,
+    *,
+    user_id: UUID,
+    public_url: str,
+) -> None:
+    """Ensure media was uploaded and server-validated before attaching to listings."""
+    cleaned = (public_url or "").strip()
+    if not cleaned:
+        return
+    blob_key = blob_key_from_media_url(cleaned)
+    if not blob_key:
+        raise ValueError("Invalid media URL")
+    row = await session.scalar(
+        select(UserMediaObject).where(
+            UserMediaObject.user_id == user_id,
+            UserMediaObject.blob_key == blob_key,
+            UserMediaObject.status == "active",
+        )
+    )
+    if row is None:
+        raise ValueError(
+            "Media must be uploaded and validated before use. "
+            "Complete the upload validation step first."
+        )
+
+
 async def mark_user_media_deleted(session: AsyncSession, user_id: UUID) -> None:
     await session.execute(
         update(UserMediaObject)
