@@ -3,7 +3,11 @@
 
 Sources:
   brand/margem_logo.png       — full lockup (icon + wordmark + tagline)
-  brand/margem_logo_icon.png  — icon only (map pin + gem), optional but preferred
+  brand/margem_logo_icon.png  — optional app-icon tile for launcher/favicons only
+
+In-app assets (mobile/assets/images/margem_logo*.png) always use a transparent
+mark extracted from the lockup. If margem_logo_icon.png contains a baked purple
+app-icon background, it is skipped for in-app use automatically.
 """
 
 from __future__ import annotations
@@ -17,10 +21,38 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC_FULL = ROOT / "brand" / "margem_logo.png"
 SRC_ICON = ROOT / "brand" / "margem_logo_icon.png"
 WHITE_THRESHOLD = 245
+# App-icon purple fill baked into margem_logo_icon.png (not for in-app headers).
+_APP_ICON_PURPLE = ((32, 16, 80), (48, 16, 80), (32, 16, 64))
 
 
 def _is_background_pixel(r: int, g: int, b: int) -> bool:
     return r >= WHITE_THRESHOLD and g >= WHITE_THRESHOLD and b >= WHITE_THRESHOLD
+
+
+def _is_app_icon_background_pixel(r: int, g: int, b: int) -> bool:
+    if _is_background_pixel(r, g, b):
+        return True
+    for pr, pg, pb in _APP_ICON_PURPLE:
+        if abs(r - pr) <= 20 and abs(g - pg) <= 12 and abs(b - pb) <= 20:
+            return True
+    return False
+
+
+def _has_baked_app_icon_background(img: Image.Image, *, min_ratio: float = 0.12) -> bool:
+    """True when the PNG is an app-icon tile (purple rounded square), not a transparent mark."""
+    rgba = img.convert("RGBA")
+    pixels = rgba.load()
+    width, height = rgba.size
+    total = width * height
+    if total == 0:
+        return False
+    purple = 0
+    for y in range(height):
+        for x in range(width):
+            r, g, b, a = pixels[x, y]
+            if a > 128 and _is_app_icon_background_pixel(r, g, b) and not _is_background_pixel(r, g, b):
+                purple += 1
+    return (purple / total) >= min_ratio
 
 
 def _content_bbox(img: Image.Image) -> tuple[int, int, int, int]:
@@ -70,21 +102,42 @@ def _extract_icon_from_lockup(full: Image.Image) -> Image.Image:
     return _strip_white_background(top.crop(_content_bbox(top)))
 
 
-def _load_icon(full: Image.Image) -> Image.Image:
+def _load_transparent_mark(full: Image.Image) -> Image.Image:
+    """In-app logo: transparent mark only (navbar, login, splash).
+
+    Never use margem_logo_icon.png when it is an Android/iOS app-icon tile with a
+    baked purple background — that produces the opaque square seen in headers.
+    """
     if SRC_ICON.exists():
-        icon = Image.open(SRC_ICON).convert("RGBA")
-        if icon.mode == "RGBA":
-            # Honour transparency; only strip near-white opaque pixels.
-            pixels = icon.load()
-            for y in range(icon.height):
-                for x in range(icon.width):
+        candidate = Image.open(SRC_ICON).convert("RGBA")
+        candidate = _trim_margins(candidate, padding=8)
+        if not _has_baked_app_icon_background(candidate):
+            pixels = candidate.load()
+            for y in range(candidate.height):
+                for x in range(candidate.width):
                     r, g, b, a = pixels[x, y]
                     if a > 0 and _is_background_pixel(r, g, b):
                         pixels[x, y] = (255, 255, 255, 0)
-        else:
-            icon = _strip_white_background(icon)
-        return _trim_margins(icon.convert("RGBA"), padding=8)
+            return candidate
+        print(
+            "Note: margem_logo_icon.png is an app-icon tile (opaque background); "
+            "using transparent mark extracted from margem_logo.png lockup instead."
+        )
     return _extract_icon_from_lockup(full)
+
+
+def _load_launcher_icon(full: Image.Image) -> Image.Image:
+    """Launcher / favicon: may keep the app-icon purple tile when available."""
+    if SRC_ICON.exists():
+        icon = Image.open(SRC_ICON).convert("RGBA")
+        pixels = icon.load()
+        for y in range(icon.height):
+            for x in range(icon.width):
+                r, g, b, a = pixels[x, y]
+                if a > 0 and _is_background_pixel(r, g, b):
+                    pixels[x, y] = (255, 255, 255, 0)
+        return _trim_margins(icon, padding=8)
+    return _load_transparent_mark(full)
 
 
 def _square_icon(img: Image.Image, size: int, *, scale: float = 0.88) -> Image.Image:
@@ -119,14 +172,15 @@ def main() -> None:
         )
 
     full = _trim_margins(Image.open(SRC_FULL).convert("RGB"))
-    icon = _load_icon(full)
+    mark = _load_transparent_mark(full)
+    launcher = _load_launcher_icon(full)
 
     assets = ROOT / "mobile" / "assets" / "images"
     assets.mkdir(parents=True, exist_ok=True)
 
-    _square_icon(icon, 512, scale=0.92).save(assets / "margem_logo.png", optimize=True)
-    _square_icon(icon, 1024, scale=0.92).save(assets / "margem_logo@2x.png", optimize=True)
-    _square_icon(icon, 1536, scale=0.92).save(assets / "margem_logo@3x.png", optimize=True)
+    _square_icon(mark, 512, scale=0.92).save(assets / "margem_logo.png", optimize=True)
+    _square_icon(mark, 1024, scale=0.92).save(assets / "margem_logo@2x.png", optimize=True)
+    _square_icon(mark, 1536, scale=0.92).save(assets / "margem_logo@3x.png", optimize=True)
 
     full_master = _fit_lockup(full.convert("RGBA"), 1024)
     full_master.save(assets / "margem_logo_full.png", optimize=True)
@@ -141,8 +195,8 @@ def main() -> None:
     }.items():
         out = res / folder
         out.mkdir(parents=True, exist_ok=True)
-        _square_icon(icon, size).save(out / "ic_launcher.png", optimize=True)
-        _adaptive_foreground(icon, size).save(out / "ic_launcher_foreground.png", optimize=True)
+        _square_icon(launcher, size).save(out / "ic_launcher.png", optimize=True)
+        _adaptive_foreground(launcher, size).save(out / "ic_launcher_foreground.png", optimize=True)
 
     adaptive_dir = res / "mipmap-anydpi-v26"
     adaptive_dir.mkdir(parents=True, exist_ok=True)
@@ -170,7 +224,7 @@ def main() -> None:
 
     splash_dir = res / "drawable"
     splash_dir.mkdir(parents=True, exist_ok=True)
-    _square_icon(icon, 400).save(splash_dir / "splash_logo.png", optimize=True)
+    _square_icon(mark, 400).save(splash_dir / "splash_logo.png", optimize=True)
 
     brand = ROOT / "brand"
     brand.mkdir(parents=True, exist_ok=True)
@@ -182,7 +236,7 @@ def main() -> None:
         ("icon-192.png", 192),
         ("icon-512.png", 512),
     ]:
-        _square_icon(icon, dim).save(brand / name, optimize=True)
+        _square_icon(launcher, dim).save(brand / name, optimize=True)
 
     og = Image.new("RGBA", (1200, 630), (255, 255, 255, 255))
     og_logo = _fit_lockup(full.convert("RGBA"), 420)
@@ -190,7 +244,7 @@ def main() -> None:
     og.save(brand / "og-image.png", optimize=True)
 
     ico_sizes = [16, 32, 48]
-    ico_imgs = [_square_icon(icon, s) for s in ico_sizes]
+    ico_imgs = [_square_icon(launcher, s) for s in ico_sizes]
     ico_imgs[0].save(brand / "favicon.ico", format="ICO", sizes=[(s, s) for s in ico_sizes])
 
     manifest = brand / "site.webmanifest"
@@ -234,11 +288,15 @@ def main() -> None:
         "site.webmanifest",
     ):
         shutil.copy2(brand / name, static / name)
-    icon_master = _square_icon(icon, 1024, scale=0.92)
-    icon_master.save(static / "margem_logo.png", optimize=True)
+    mark_master = _square_icon(mark, 1024, scale=0.92)
+    mark_master.save(static / "margem_logo.png", optimize=True)
     full_master.save(static / "margem_logo_full.png", optimize=True)
-    icon_source = "margem_logo_icon.png" if SRC_ICON.exists() else "margem_logo.png (cropped)"
-    print(f"Brand assets regenerated (icon from {icon_source}).")
+    mark_source = (
+        "margem_logo_icon.png"
+        if SRC_ICON.exists() and not _has_baked_app_icon_background(Image.open(SRC_ICON))
+        else "margem_logo.png lockup (transparent mark)"
+    )
+    print(f"Brand assets regenerated (in-app mark from {mark_source}).")
 
 
 if __name__ == "__main__":
