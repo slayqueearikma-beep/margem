@@ -386,6 +386,14 @@ class _MarGemAppState extends ConsumerState<MarGemApp>
       darkTheme: AppTheme.dark(languageCode: locale.languageCode),
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
+      localeResolutionCallback: (deviceLocale, supportedLocales) {
+        for (final supported in supportedLocales) {
+          if (supported.languageCode == locale.languageCode) {
+            return supported;
+          }
+        }
+        return const Locale(AppStorage.defaultLanguageCode);
+      },
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

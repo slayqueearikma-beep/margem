@@ -26,8 +26,8 @@ class LegalDocumentContent {
   final String meta;
   final List<LegalBlock> blocks;
 
-  static Future<LegalDocumentContent> fetch(String docSlug, String languageCode) async {
-    final url = AppConfig.legalDocumentUrl(docSlug, languageCode);
+  static Future<LegalDocumentContent> fetch(String docSlug) async {
+    final url = AppConfig.legalDocumentUrl(docSlug);
     final response = await http
         .get(Uri.parse(url))
         .timeout(const Duration(seconds: 15));

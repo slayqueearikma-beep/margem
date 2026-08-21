@@ -1261,7 +1261,7 @@ class ApiService {
   Future<BillingCheckoutResult> checkoutSubscription(
     String planCode, {
     required bool subscriptionTermsAccepted,
-    String acceptanceLanguage = 'en',
+    String acceptanceLanguage = 'fr',
   }) async {
     final data = await postJson(
       '/subscriptions/checkout/$planCode',

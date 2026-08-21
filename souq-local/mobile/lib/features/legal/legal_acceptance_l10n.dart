@@ -1,8 +1,10 @@
-/// English, French, and Arabic copy for the mandatory legal acceptance popup.
+/// English, French, and Arabic UI copy for the mandatory legal acceptance popup.
+/// Legal document HTML is always French — see [LegalConfig.authoritativeLanguageCode].
 class LegalAcceptanceCopy {
   const LegalAcceptanceCopy({
     required this.title,
     required this.description,
+    required this.legalContentNotice,
     required this.checkboxLabel,
     required this.acceptButton,
     required this.termsLabel,
@@ -14,6 +16,8 @@ class LegalAcceptanceCopy {
 
   final String title;
   final String description;
+  /// Shown when UI locale differs from the French legal text.
+  final String legalContentNotice;
   final String checkboxLabel;
   final String acceptButton;
   final String termsLabel;
@@ -29,6 +33,7 @@ class LegalAcceptanceCopy {
           title: 'Avant de continuer',
           description:
               'En continuant, vous reconnaissez avoir lu et accepté nos Conditions d’utilisation et notre Politique de confidentialité.',
+          legalContentNotice: '',
           checkboxLabel:
               'J’ai lu et j’accepte les Conditions d’utilisation et la Politique de confidentialité.',
           acceptButton: 'J’accepte',
@@ -42,20 +47,24 @@ class LegalAcceptanceCopy {
         return const LegalAcceptanceCopy(
           title: 'قبل المتابعة',
           description:
-              'بالمتابعة، تؤكد أنك قرأت ووافقت على شروط الاستخدام وسياسة الخصوصية.',
+              'للمتابعة، يجب قراءة الوثائق القانونية أدناه والموافقة عليها.',
+          legalContentNotice:
+              'الوثائق القانونية المعروضة باللغة الفرنسية وهي النسخة المعتمدة والملزمة.',
           checkboxLabel: 'قرأت وأوافق على شروط الاستخدام وسياسة الخصوصية.',
           acceptButton: 'أوافق',
           termsLabel: 'شروط الاستخدام',
           privacyLabel: 'سياسة الخصوصية',
           errorTitle: 'تعذر حفظ موافقتك',
           retry: 'إعادة المحاولة',
-          acceptanceLanguageCode: 'ar',
+          acceptanceLanguageCode: 'fr',
         );
       default:
         return const LegalAcceptanceCopy(
           title: 'Before you continue',
           description:
-              'By continuing, you acknowledge that you have read and agree to our Terms of Service and Privacy Policy.',
+              'To continue, read the legal documents below and accept them.',
+          legalContentNotice:
+              'Legal documents are shown in French — the authoritative binding versions.',
           checkboxLabel:
               'I have read and agree to the Terms of Service and Privacy Policy.',
           acceptButton: 'I Accept',
@@ -63,7 +72,7 @@ class LegalAcceptanceCopy {
           privacyLabel: 'Privacy Policy',
           errorTitle: 'Could not save your acceptance',
           retry: 'Retry',
-          acceptanceLanguageCode: 'en',
+          acceptanceLanguageCode: 'fr',
         );
     }
   }

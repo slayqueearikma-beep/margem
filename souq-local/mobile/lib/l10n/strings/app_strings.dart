@@ -667,10 +667,12 @@ abstract class AppStrings {
     switch (languageCode) {
       case 'fr':
         return AppStringsFr();
+      case 'en':
+        return AppStringsEn();
       case 'ar':
         return AppStringsAr();
       default:
-        return AppStringsEn();
+        return AppStringsAr();
     }
   }
 

@@ -12,6 +12,7 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
+import '../legal/legal_config.dart';
 import '../legal/legal_documents.dart';
 import '../legal/legal_document_screen.dart';
 
@@ -76,7 +77,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
           longitude: coords.longitude,
           phone: _phone.text.trim(),
           sellerTermsAcknowledged: true,
-          acceptanceLanguage: locale,
+          acceptanceLanguage: LegalConfig.authoritativeLanguageCode,
         ),
       );
       final storage = ref.read(appStorageProvider);

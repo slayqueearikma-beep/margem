@@ -70,13 +70,13 @@ def get_required_onboarding_policies() -> list[RequiredPolicy]:
 
 
 def normalize_acceptance_language(language: str) -> str:
-    code = (language or "en").strip().lower().split("-")[0]
+    code = (language or "fr").strip().lower().split("-")[0]
     if code not in _ACCEPTANCE_LANGUAGES:
-        return "en"
+        return "fr"
     return code
 
 
-def document_hash_for_policy(policy_id: str, *, language: str = "en") -> str:
+def document_hash_for_policy(policy_id: str, *, language: str = "fr") -> str:
     """SHA-256 of the published HTML document (integrity evidence under DOC Art. 417-1)."""
     docs = _documents_by_id()
     doc = docs.get(policy_id)
@@ -84,7 +84,7 @@ def document_hash_for_policy(policy_id: str, *, language: str = "en") -> str:
         return ""
     slug = str(doc.get("slug", ""))
     lang = normalize_acceptance_language(language)
-    for candidate in (lang, "en", "fr"):
+    for candidate in ("fr", lang, "en"):
         path = _STATIC_LEGAL_ROOT / candidate / f"{slug}.html"
         if path.is_file():
             return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -199,7 +199,7 @@ def build_acceptance_status(
             "policy_version": accepted_versions[policy.policy_id],
             "slug": policy.slug,
             "document_hash": document_hash_for_policy(
-                policy.policy_id, language="en"
+                policy.policy_id, language="fr"
             ),
         }
         for policy in required

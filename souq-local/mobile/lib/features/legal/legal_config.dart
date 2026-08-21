@@ -7,6 +7,9 @@ class LegalConfig {
 
   static const platformName = 'Dribex';
 
+  /// Binding language for all legal document HTML served to mobile users.
+  static const authoritativeLanguageCode = 'fr';
+
   static const supportEmail = 'support@dribex.ma';
   static const privacyEmail = 'privacy@dribex.app';
   static const legalEmail = 'legal@dribex.ma';

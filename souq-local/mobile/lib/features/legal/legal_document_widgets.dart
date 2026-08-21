@@ -11,28 +11,31 @@ class LegalDocumentBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          content.title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-        if (content.meta.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.xs),
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-            content.meta,
-            style: TextStyle(
-              color: context.colors.textSecondary,
-              fontSize: 13,
-            ),
+            content.title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
           ),
+          if (content.meta.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              content.meta,
+              style: TextStyle(
+                color: context.colors.textSecondary,
+                fontSize: 13,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          ...content.blocks.map((block) => LegalDocumentBlock(block: block)),
         ],
-        const SizedBox(height: AppSpacing.md),
-        ...content.blocks.map((block) => LegalDocumentBlock(block: block)),
-      ],
+      ),
     );
   }
 }

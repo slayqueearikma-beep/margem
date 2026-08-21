@@ -32,28 +32,24 @@ class _LegalAcceptanceScreenState extends ConsumerState<LegalAcceptanceScreen> {
   bool _submitting = false;
   LegalAcceptanceStatus? _status;
   Future<List<LegalDocumentContent>>? _documentsFuture;
-  String? _loadedLang;
 
   @override
   void initState() {
     super.initState();
+    _documentsFuture = _loadDocuments();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadStatus());
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final lang = ref.read(localeProvider).languageCode;
-    if (_documentsFuture == null || _loadedLang != lang) {
-      _loadedLang = lang;
-      _documentsFuture = _loadDocuments(lang);
-    }
+    // Documents are always French; UI copy follows localeProvider in build().
   }
 
-  Future<List<LegalDocumentContent>> _loadDocuments(String languageCode) async {
+  Future<List<LegalDocumentContent>> _loadDocuments() async {
     final results = await Future.wait([
-      LegalDocumentContent.fetch('terms', languageCode),
-      LegalDocumentContent.fetch('privacy', languageCode),
+      LegalDocumentContent.fetch('terms'),
+      LegalDocumentContent.fetch('privacy'),
     ]);
     return results;
   }
@@ -122,10 +118,8 @@ class _LegalAcceptanceScreenState extends ConsumerState<LegalAcceptanceScreen> {
   }
 
   void _reloadDocuments() {
-    final lang = ref.read(localeProvider).languageCode;
     setState(() {
-      _loadedLang = lang;
-      _documentsFuture = _loadDocuments(lang);
+      _documentsFuture = _loadDocuments();
     });
   }
 
@@ -187,6 +181,18 @@ class _LegalAcceptanceScreenState extends ConsumerState<LegalAcceptanceScreen> {
                               height: 1.45,
                             ),
                           ),
+                          if (copy.legalContentNotice.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              copy.legalContentNotice,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: context.colors.textSecondary,
+                                height: 1.45,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: AppSpacing.lg),
                           Expanded(
                             child: _LegalDocumentsPanel(
@@ -205,6 +211,7 @@ class _LegalAcceptanceScreenState extends ConsumerState<LegalAcceptanceScreen> {
                             contentPadding: EdgeInsets.zero,
                             controlAffinity: ListTileControlAffinity.leading,
                             title: _CheckboxRichText(
+                              uiLanguageCode: locale.languageCode,
                               copy: copy,
                               onOpenTerms: () => context.push('/legal/terms'),
                               onOpenPrivacy: () =>
@@ -307,11 +314,13 @@ class _LegalDocumentsPanel extends StatelessWidget {
 
 class _CheckboxRichText extends StatelessWidget {
   const _CheckboxRichText({
+    required this.uiLanguageCode,
     required this.copy,
     required this.onOpenTerms,
     required this.onOpenPrivacy,
   });
 
+  final String uiLanguageCode;
   final LegalAcceptanceCopy copy;
   final VoidCallback onOpenTerms;
   final VoidCallback onOpenPrivacy;
@@ -328,7 +337,7 @@ class _CheckboxRichText extends StatelessWidget {
       decoration: TextDecoration.underline,
     );
 
-    switch (copy.acceptanceLanguageCode) {
+    switch (uiLanguageCode) {
       case 'fr':
         return RichText(
           text: TextSpan(

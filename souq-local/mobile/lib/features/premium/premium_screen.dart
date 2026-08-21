@@ -107,11 +107,10 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
 
     setState(() => _subscribingCode = plan.code);
     try {
-      final locale = Localizations.localeOf(context).languageCode;
       final result = await apiServiceProvider.checkoutSubscription(
         plan.code,
         subscriptionTermsAccepted: true,
-        acceptanceLanguage: locale,
+        acceptanceLanguage: LegalConfig.authoritativeLanguageCode,
       );
       if (!mounted) return;
 

@@ -99,10 +99,12 @@ class AppConfig {
     defaultValue: '',
   );
 
+  /// Legal documents are authoritative in French only (`/legal/fr/{doc}`).
+  static const String legalContentLanguageCode = 'fr';
+
   /// Localized legal document URL served by the API (`/legal/{lang}/{doc}`).
-  static String legalDocumentUrl(String doc, String languageCode) {
-    const supported = {'en', 'fr', 'ar'};
-    final lang = supported.contains(languageCode) ? languageCode : 'en';
+  static String legalDocumentUrl(String doc, [String? languageCode]) {
+    const lang = legalContentLanguageCode;
     final override = privacyPolicyUrl;
     if (doc == 'privacy' && override.isNotEmpty) {
       return override;
@@ -111,17 +113,17 @@ class AppConfig {
     return '$origin/legal/$lang/$doc';
   }
 
-  static String privacyPolicyUrlFor(String languageCode) =>
-      legalDocumentUrl('privacy', languageCode);
+  static String privacyPolicyUrlFor([String? languageCode]) =>
+      legalDocumentUrl('privacy');
 
-  static String termsUrlFor(String languageCode) =>
-      legalDocumentUrl('terms', languageCode);
+  static String termsUrlFor([String? languageCode]) =>
+      legalDocumentUrl('terms');
 
-  static String cookiePolicyUrlFor(String languageCode) =>
-      legalDocumentUrl('cookies', languageCode);
+  static String cookiePolicyUrlFor([String? languageCode]) =>
+      legalDocumentUrl('cookies');
 
-  static String accountDeletionUrlFor(String languageCode) =>
-      legalDocumentUrl('account-deletion', languageCode);
+  static String accountDeletionUrlFor([String? languageCode]) =>
+      legalDocumentUrl('account-deletion');
 
   static const String appName = 'Dribex';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';

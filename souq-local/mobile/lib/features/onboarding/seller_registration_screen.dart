@@ -21,6 +21,7 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../features/legal/signup_terms_footer.dart';
+import '../legal/legal_config.dart';
 import '../legal/legal_documents.dart';
 import '../legal/legal_document_screen.dart';
 import '../../core/widgets/map_widgets.dart';
@@ -219,7 +220,7 @@ class _SellerRegistrationScreenState
             },
             categoryIds: categoryId != null ? [categoryId] : [],
             sellerTermsAcknowledged: true,
-            acceptanceLanguage: locale,
+            acceptanceLanguage: LegalConfig.authoritativeLanguageCode,
           ),
         );
         final sellerId = seller.id;

@@ -20,12 +20,11 @@ void main() {
   });
 
   group('LegalAcceptanceCopy', () {
-    test('uses English for en and Arabic for ar locale', () {
-      final en = LegalAcceptanceCopy.forLanguageCode('en');
+    test('uses Arabic UI with French legal acceptance for ar locale', () {
       final ar = LegalAcceptanceCopy.forLanguageCode('ar');
-      expect(en.title, 'Before you continue');
       expect(ar.title, 'قبل المتابعة');
-      expect(ar.acceptanceLanguageCode, 'ar');
+      expect(ar.acceptanceLanguageCode, 'fr');
+      expect(ar.legalContentNotice, isNotEmpty);
     });
 
     test('uses French for fr locale', () {
@@ -33,6 +32,13 @@ void main() {
       expect(fr.title, 'Avant de continuer');
       expect(fr.acceptButton, 'J’accepte');
       expect(fr.acceptanceLanguageCode, 'fr');
+    });
+
+    test('uses English UI with French legal acceptance for en locale', () {
+      final en = LegalAcceptanceCopy.forLanguageCode('en');
+      expect(en.title, 'Before you continue');
+      expect(en.acceptanceLanguageCode, 'fr');
+      expect(en.legalContentNotice, isNotEmpty);
     });
   });
 }

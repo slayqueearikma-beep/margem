@@ -23,16 +23,11 @@ class LegalDocumentScreen extends ConsumerStatefulWidget {
 
 class _LegalDocumentScreenState extends ConsumerState<LegalDocumentScreen> {
   Future<LegalDocumentContent>? _future;
-  String? _loadedForLang;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final lang = Localizations.localeOf(context).languageCode;
-    if (_future == null || _loadedForLang != lang) {
-      _loadedForLang = lang;
-      _future = LegalDocumentContent.fetch(widget.docSlug, lang);
-    }
+  void initState() {
+    super.initState();
+    _future = LegalDocumentContent.fetch(widget.docSlug);
   }
 
   @override
@@ -55,10 +50,8 @@ class _LegalDocumentScreenState extends ConsumerState<LegalDocumentScreen> {
             return AsyncErrorView.fromError(
               snapshot.error!,
               onRetry: () {
-                final lang = Localizations.localeOf(context).languageCode;
                 setState(() {
-                  _loadedForLang = lang;
-                  _future = LegalDocumentContent.fetch(widget.docSlug, lang);
+                  _future = LegalDocumentContent.fetch(widget.docSlug);
                 });
               },
             );

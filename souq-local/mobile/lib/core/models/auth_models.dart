@@ -115,7 +115,7 @@ class SellerCreatePayload {
     this.openingHours,
     this.categoryIds = const [],
     this.sellerTermsAcknowledged = false,
-    this.acceptanceLanguage = 'en',
+    this.acceptanceLanguage = 'fr',
   });
 
   final String businessName;
