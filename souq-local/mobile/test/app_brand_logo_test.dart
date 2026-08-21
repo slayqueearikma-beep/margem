@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:souq_local/core/widgets/app_brand_logo.dart';
+import 'package:souq_local/core/widgets/margem_app_bar.dart';
 
 Size _logoBoxSize(WidgetTester tester) {
   final logo = find.bySemanticsLabel('Dribex logo');
@@ -12,7 +13,7 @@ Size _logoBoxSize(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('header tier logo uses responsive header size', (tester) async {
+  testWidgets('header tier logo uses responsive auth size', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: MediaQuery(
@@ -27,17 +28,17 @@ void main() {
       ),
     );
 
-    expect(_logoBoxSize(tester), const Size(120, 120));
+    expect(_logoBoxSize(tester), const Size(140, 140));
   });
 
-  testWidgets('compact tier logo fits app bar scale', (tester) async {
+  testWidgets('navbar tier logo fills shared toolbar', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: MediaQuery(
           data: const MediaQueryData(size: Size(390, 844)),
           child: Scaffold(
             body: AppBrandLogo(
-              tier: AppLogoTier.compact,
+              tier: AppLogoTier.navbar,
               includeClearSpace: false,
             ),
           ),
@@ -45,7 +46,22 @@ void main() {
       ),
     );
 
-    expect(_logoBoxSize(tester), const Size(44, 44));
+    expect(_logoBoxSize(tester), const Size(52, 52));
+  });
+
+  testWidgets('MarGemAppBarLogo uses navbar tier', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(size: Size(390, 844)),
+          child: Scaffold(
+            body: const MarGemAppBarLogo(),
+          ),
+        ),
+      ),
+    );
+
+    expect(_logoBoxSize(tester), const Size(52, 52));
   });
 
   testWidgets('forContext honors explicit size override', (tester) async {
@@ -82,7 +98,7 @@ void main() {
       ),
     );
 
-    expect(_logoBoxSize(tester), const Size(120, 120));
+    expect(_logoBoxSize(tester), const Size(140, 140));
   });
 
   testWidgets('splash tier uses larger hero size', (tester) async {

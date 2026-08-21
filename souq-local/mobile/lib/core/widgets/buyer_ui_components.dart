@@ -29,7 +29,7 @@ class BuyerShellHeader extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: SizedBox(
-        height: 56,
+        height: AppLogoLayout.toolbarHeight,
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -855,7 +855,7 @@ class BuyerAdaptiveHeader extends StatelessWidget {
         AppSpacing.sm,
       ),
       child: SizedBox(
-        height: 56,
+        height: AppLogoLayout.toolbarHeight,
         child: Stack(
           alignment: Alignment.center,
           children: [

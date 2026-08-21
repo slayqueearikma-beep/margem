@@ -12,7 +12,10 @@ enum AppLogoTier {
   /// Language, login, register, forgot password, OTP, onboarding headers.
   header,
 
-  /// Drawers, app bars, compact inline placements.
+  /// Centered toolbar / app-bar mark (buyer header, seller shell, MarGemAppBar).
+  navbar,
+
+  /// Drawers and small inline placements.
   compact,
 }
 
@@ -23,7 +26,18 @@ class AppLogoLayout {
   /// Uniform scale applied to the raster mark inside its layout box.
   /// Compensates for transparent margins in PNG assets (BoxFit.contain letterboxing)
   /// without changing aspect ratio or recoloring the artwork.
-  static const double markFillScale = 1.22;
+  static const double markFillScale = 1.28;
+
+  static double markFillScaleFor(AppLogoTier tier) {
+    return switch (tier) {
+      AppLogoTier.navbar => 1.2,
+      AppLogoTier.compact => 1.16,
+      AppLogoTier.header || AppLogoTier.splash => markFillScale,
+    };
+  }
+
+  /// Shared toolbar row height used by [MarGemAppBar] and [BuyerShellHeader].
+  static const double toolbarHeight = kToolbarHeight;
 
   static double sizeFor(BuildContext context, AppLogoTier tier) {
     final width = MediaQuery.sizeOf(context).width;
@@ -39,16 +53,22 @@ class AppLogoLayout {
           _ => 248.0,
         },
       AppLogoTier.header => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 168.0,
-          (_, _, true) => 108.0,
-          (_, true, _) => 128.0,
-          _ => 120.0,
+          (true, _, _) => 184.0,
+          (_, _, true) => 124.0,
+          (_, true, _) => 148.0,
+          _ => 140.0,
+        },
+      AppLogoTier.navbar => switch ((isTablet, isLargePhone, isSmallPhone)) {
+          (true, _, _) => 56.0,
+          (_, _, true) => 48.0,
+          (_, true, _) => 54.0,
+          _ => 52.0,
         },
       AppLogoTier.compact => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 52.0,
+          (true, _, _) => 48.0,
           (_, _, true) => 40.0,
-          (_, true, _) => 48.0,
-          _ => 44.0,
+          (_, true, _) => 44.0,
+          _ => 42.0,
         },
     };
   }
@@ -67,12 +87,13 @@ class AppBrandSizes {
   AppBrandSizes._();
 
   static const double splash = 248;
-  static const double authHeader = 120;
-  static const double onboardingHeader = 120;
-  static const double settingsBranding = 120;
-  static const double emptyState = 120;
-  static const double drawerHeader = 48;
-  static const double compact = 44;
+  static const double authHeader = 140;
+  static const double onboardingHeader = 140;
+  static const double settingsBranding = 140;
+  static const double emptyState = 140;
+  static const double drawerHeader = 42;
+  static const double navbar = 52;
+  static const double compact = 42;
   static const double compactSmall = 40;
   static const double clearSpace = 8;
   static const double clearSpaceHero = 16;
@@ -288,6 +309,7 @@ class AppBrandLogo extends StatelessWidget {
         : (includeClearSpace ? AppBrandSizes.clearSpace : 0);
 
     final resolved = _resolvedVariant;
+    final effectiveTier = tier ?? resolvedTier;
     final logo = Semantics(
       label: '${AppConfig.appName} logo',
       child: switch (resolved) {
@@ -297,7 +319,13 @@ class AppBrandLogo extends StatelessWidget {
             iconSize: resolvedSize,
             showWordmark: showWordmark,
           ),
-        AppBrandLogoVariant.icon => _LogoMark(size: resolvedSize),
+        AppBrandLogoVariant.icon => _LogoMark(
+            size: resolvedSize,
+            fillScale: effectiveTier != null
+                ? AppLogoLayout.markFillScaleFor(effectiveTier)
+                : AppLogoLayout.markFillScale,
+            clipToBounds: effectiveTier == AppLogoTier.navbar,
+          ),
         AppBrandLogoVariant.lockup => _HorizontalLockup(iconSize: resolvedSize),
         AppBrandLogoVariant.wordmark => _Wordmark(height: resolvedSize * 0.55),
       },
@@ -371,25 +399,33 @@ class _HorizontalLockup extends StatelessWidget {
 }
 
 class _LogoMark extends StatelessWidget {
-  const _LogoMark({required this.size});
+  const _LogoMark({
+    required this.size,
+    this.fillScale = AppLogoLayout.markFillScale,
+    this.clipToBounds = false,
+  });
 
   final double size;
+  final double fillScale;
+  final bool clipToBounds;
 
   @override
   Widget build(BuildContext context) {
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final renderSize = size * AppLogoLayout.markFillScale;
+    final renderSize = size * fillScale;
+    Widget image = _LogoImage(
+      asset: AppBrandLogo._iconAsset1x,
+      assetCandidates: AppBrandLogo._iconAssetCandidatesForDpr(dpr),
+      width: renderSize,
+      height: renderSize,
+    );
+    if (clipToBounds) {
+      image = ClipRect(child: image);
+    }
     return SizedBox(
       width: size,
       height: size,
-      child: Center(
-        child: _LogoImage(
-          asset: AppBrandLogo._iconAsset1x,
-          assetCandidates: AppBrandLogo._iconAssetCandidatesForDpr(dpr),
-          width: renderSize,
-          height: renderSize,
-        ),
-      ),
+      child: Center(child: image),
     );
   }
 }
@@ -488,14 +524,14 @@ class AppLogoPlaceholder extends StatelessWidget {
   }
 }
 
-/// Compact nav/header mark — icon only.
+/// Toolbar / app-bar mark — use [MarGemAppBarLogo] or this alias.
 class AppLogoHeader extends StatelessWidget {
   const AppLogoHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const AppBrandLogo(
-      tier: AppLogoTier.compact,
+      tier: AppLogoTier.navbar,
       includeClearSpace: false,
     );
   }

@@ -5,14 +5,14 @@ import '../navigation/margem_navigation_leading.dart';
 import '../theme/theme_context.dart';
 import 'app_brand_logo.dart';
 
-/// Centered MarGem logo for toolbars and sliver app bars.
+/// Centered Dribex logo for toolbars and shared app headers.
 class MarGemAppBarLogo extends StatelessWidget {
   const MarGemAppBarLogo({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const AppBrandLogo(
-      tier: AppLogoTier.compact,
+      tier: AppLogoTier.navbar,
       includeClearSpace: false,
     );
   }
