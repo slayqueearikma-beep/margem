@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MarGem local lab — cross-platform start script.
+"""Dribex local lab — cross-platform start script.
 
 Usage:
   python start_lab.py
@@ -70,14 +70,14 @@ def start_flutter(api_url: str, device_id: str | None) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Start MarGem local lab")
+    parser = argparse.ArgumentParser(description="Start Dribex local lab")
     parser.add_argument("--no-flutter", action="store_true", help="Start Docker backend only")
     parser.add_argument("-d", "--device", default="", help="Flutter device id")
     args = parser.parse_args()
 
     LAB_DIR.mkdir(exist_ok=True)
 
-    print("\n=== MarGem Lab — starting ===\n")
+    print("\n=== Dribex Lab — starting ===\n")
 
     if run(["docker", "info"], capture_output=True).returncode != 0:
         print("ERROR: Docker is not running.", file=sys.stderr)

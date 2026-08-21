@@ -1,6 +1,6 @@
-# MarGem Budget Azure (~$15–25/month)
+# Dribex Budget Azure (~$15–25/month)
 
-The **cheapest** way to run MarGem in the cloud: **one small VM** running Docker Compose (Postgres + API) plus minimal blob storage for images.
+The **cheapest** way to run Dribex in the cloud: **one small VM** running Docker Compose (Postgres + API) plus minimal blob storage for images.
 
 No Container Apps, no managed PostgreSQL, no Key Vault.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start everything for MarGem home server: Docker (API + Postgres) + Flutter app.
+# Start everything for Dribex home server: Docker (API + Postgres) + Flutter app.
 # Usage:
 #   ./start_home_server.sh           # API + Flutter (if phone connected)
 #   ./start_home_server.sh --build   # Rebuild API image first
@@ -55,7 +55,7 @@ ensure_docker_running() {
 }
 
 echo ""
-echo "=== MarGem Home Server — start all ==="
+echo "=== Dribex Home Server — start all ==="
 echo ""
 
 if ! command -v docker >/dev/null 2>&1; then
@@ -74,11 +74,18 @@ fi
 if [[ ! -f "$ENV_FILE" ]]; then
   if [[ -f "$ENV_EXAMPLE" ]]; then
     cp "$ENV_EXAMPLE" "$ENV_FILE"
-    echo "Created .env.home"
-    echo "Edit passwords, Azure connection string, and ALLOWED_HOSTS, then re-run."
+    echo "Created .env.home from env.home.example"
+    echo "Generate secrets: openssl rand -hex 32 (run three times for JWT, upload, MFA keys)"
+    echo "Edit ALLOWED_HOSTS and PUBLIC_API_URL for your LAN IP, then re-run."
     exit 1
   fi
   echo "Missing .env.home — copy env.home.example and configure it first." >&2
+  exit 1
+fi
+
+echo "Validating .env.home..."
+if ! PYTHONPATH="$ROOT/backend" python3 "$ROOT/backend/scripts/validate_home_env.py" "$ENV_FILE"; then
+  echo "Fix the errors above before starting Docker." >&2
   exit 1
 fi
 
@@ -86,7 +93,10 @@ LAN_IP="$(get_lan_ip || true)"
 LAN_IP="${LAN_IP:-127.0.0.1}"
 API_PORT="$(grep -E '^API_PORT=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
 API_PORT="${API_PORT:-8000}"
+ADMIN_PORT="$(grep -E '^ADMIN_PORT=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
+ADMIN_PORT="${ADMIN_PORT:-8080}"
 API_URL="http://${LAN_IP}:${API_PORT}"
+ADMIN_URL="http://${LAN_IP}:${ADMIN_PORT}"
 
 check_api_health() {
   local port="$1"
@@ -121,8 +131,8 @@ else
   echo "API not ready yet. Check:"
   echo "  docker compose -f docker-compose.home.yml --env-file .env.home logs api"
   echo ""
-  echo "If logs show 400 on /health, add localhost to ALLOWED_HOSTS in .env.home:"
-  echo '  ALLOWED_HOSTS=["localhost","127.0.0.1","192.168.11.103","192.168.11.103:8000"]'
+  echo "If logs show 400 on /health, add your LAN IP to ALLOWED_HOSTS in .env.home:"
+  echo "  ALLOWED_HOSTS=localhost,127.0.0.1,${LAN_IP}"
   exit 1
 fi
 
@@ -130,7 +140,15 @@ echo ""
 echo "  Same Wi-Fi:   $API_URL"
 echo "  This machine: http://localhost:${API_PORT}"
 echo "  Health:       http://localhost:${API_PORT}/health"
-echo "  Images:       Azure Blob (cloud)"
+echo "  Admin UI:     $ADMIN_URL  (separate web dashboard, not in the mobile app)"
+echo "  Ready:        http://localhost:${API_PORT}/ready"
+STORAGE_BACKEND="$(grep -E '^STORAGE_BACKEND=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
+STORAGE_BACKEND="${STORAGE_BACKEND:-local}"
+if [[ "$STORAGE_BACKEND" == "azure" ]]; then
+  echo "  Images:       Azure Blob Storage"
+else
+  echo "  Images:       Local disk (./data/media volume)"
+fi
 echo "  Stop all:     ./stop_home_server.sh"
 echo ""
 

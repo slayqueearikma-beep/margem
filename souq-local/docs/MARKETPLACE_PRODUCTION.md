@@ -1,19 +1,19 @@
-# MarGem — Local Discovery Platform
+# Dribex — Local Discovery Platform
 
-MarGem is a Morocco-focused **third-party local marketplace and discovery platform**.
+Dribex is a Morocco-focused **third-party local marketplace and discovery platform**.
 
 It connects buyers with businesses, service providers, freelancers, stores, restaurants, professionals, and local sellers.
 
-## What MarGem is
+## What Dribex is
 
 - Discover businesses, products, and services near you
 - Compare listings and seller profiles
 - Contact sellers directly (in-app message, call, WhatsApp, email)
 - Complete transactions **outside** the platform using payment methods both parties agree on
 
-## What MarGem is NOT
+## What Dribex is NOT
 
-MarGem does **not**:
+Dribex does **not**:
 
 - Process payments between buyers and sellers
 - Store credit/debit cards or banking credentials for marketplace transactions
@@ -65,7 +65,7 @@ Sellers may list accepted payment methods (cash, bank transfer, mobile payment, 
 - Browse & search listings and businesses
 - Favorites, follows, reviews
 - Contact sellers
-- Premium (MarGem Plus) for discovery perks
+- Premium (Dribex Plus) for discovery perks
 
 ### Admin APIs
 - List users, suspend accounts
@@ -100,8 +100,8 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USERNAME=...
 SMTP_PASSWORD=...
-SMTP_FROM=MarGem <noreply@margem.ma>
-PUBLIC_APP_URL=https://margem.ma
+SMTP_FROM=Dribex <noreply@dribex.ma>
+PUBLIC_APP_URL=https://dribex.ma
 ```
 
 Without SMTP, verification/reset tokens are logged server-side (never in production responses).

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/app_config.dart';
+
 enum AccountType { buyer, seller, guest }
 
 /// Client preference for which shell to show. Capability still comes from sellerId/profile.
@@ -128,9 +130,18 @@ class AppStorage {
   static const _sellerIdKey = 'seller_id';
   static const _languageCodeKey = 'language_code';
   static const _languageSelectedKey = 'language_selected';
+
+  /// Default UI language for first launch (Moroccan marketplace).
+  static const defaultLanguageCode = 'ar';
   static const _themeModeKey = 'theme_mode';
   static const _guestFavoritesKey = 'guest_favorite_items';
   static const _legacyGuestCartKey = 'guest_cart_items';
+  static const _marketplaceSlugKey = 'buyer_marketplace_slug';
+
+  String? getMarketplaceSlug() => _prefs.getString(_marketplaceSlugKey);
+
+  Future<bool> setMarketplaceSlug(String slug) =>
+      _prefs.setString(_marketplaceSlugKey, slug);
 
   bool get isOnboardingComplete =>
       _prefs.getBool(_onboardingCompleteKey) ?? false;
@@ -163,7 +174,8 @@ class AppStorage {
         : '/buyer/home';
   }
 
-  String get languageCode => _prefs.getString(_languageCodeKey) ?? 'en';
+  String get languageCode =>
+      _prefs.getString(_languageCodeKey) ?? defaultLanguageCode;
 
   Locale getLocale() => Locale(languageCode);
 
@@ -194,6 +206,11 @@ class AppStorage {
 
   Future<void> completeOnboarding() =>
       _prefs.setBool(_onboardingCompleteKey, true);
+
+  String? getSelectedCity() => _prefs.getString(_userCityKey);
+
+  Future<void> saveSelectedCity(String city) =>
+      _prefs.setString(_userCityKey, city);
 
   Future<void> saveSession(UserSession session) async {
     await _prefs.setBool(_loggedInKey, true);
@@ -290,6 +307,15 @@ class AppStorage {
   Future<List<GuestFavoriteItem>> addGuestFavoriteItem(
       GuestFavoriteItem item) async {
     final items = [...getGuestFavoriteItems()];
+    if (items.length >= AppConfig.maxGuestFavorites &&
+        !items.any((entry) {
+          if (item.productId.isNotEmpty) {
+            return entry.productId == item.productId;
+          }
+          return entry.productId.isEmpty && entry.sellerId == item.sellerId;
+        })) {
+      return items;
+    }
     final index = items.indexWhere((entry) {
       if (item.productId.isNotEmpty) {
         return entry.productId == item.productId;
