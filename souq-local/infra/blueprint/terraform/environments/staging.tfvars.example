@@ -1,0 +1,40 @@
+# =============================================================================
+# DORMANT by default — blueprint_enabled = false → 0 resources in plan
+# =============================================================================
+
+subscription_id     = ""   # Required when enabling
+blueprint_enabled   = false
+environment_name    = "staging"
+activation_phase    = "0"
+location            = "westeurope"
+dr_location         = "francecentral"
+name_prefix         = "margem"
+domain_name         = "api-staging.dribex.ma"
+
+# Enable modules incrementally — see docs/11-migration-path.md
+module_flags = {
+  networking      = false
+  keyvault        = false
+  postgresql      = false
+  storage         = false
+  monitoring      = false
+  security        = false
+  aks             = false
+  appservice      = false
+  apim            = false
+  frontdoor       = false
+  redis           = false
+  servicebus      = false
+  messaging       = false
+  search          = false
+  ai              = false
+  ddos_protection = false
+  firewall        = false
+  multi_region    = false
+}
+
+common_tags = {
+  project    = "margem"
+  managed_by = "terraform-blueprint"
+  status     = "dormant"
+}
