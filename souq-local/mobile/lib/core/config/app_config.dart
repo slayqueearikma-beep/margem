@@ -103,4 +103,21 @@ class AppConfig {
 
   /// Launch city — MarGem is Casablanca-only for now.
   static const String launchCity = 'Casablanca';
+
+  /// Extra hosts permitted for presigned image uploads (comma-separated define).
+  static List<String> get allowedUploadHosts {
+    const raw = String.fromEnvironment('ALLOWED_UPLOAD_HOSTS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((h) => h.trim().toLowerCase()).where((h) => h.isNotEmpty).toList();
+  }
+
+  /// Optional SHA-256 certificate pins for release TLS pinning.
+  static List<String> get certificatePins {
+    const raw = String.fromEnvironment('CERTIFICATE_PINS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+  }
+
+  /// Maximum guest favorites stored locally before login.
+  static const int maxGuestFavorites = 50;
 }

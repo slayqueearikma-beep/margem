@@ -9,36 +9,36 @@ import 'network_image_view.dart';
 class OnboardingIllustration extends StatelessWidget {
   const OnboardingIllustration({
     super.key,
-    required this.backgroundColor,
+    this.backgroundColor = AppColors.cream,
     required this.icon,
     this.secondaryIcon,
     this.imageAsset,
+    this.imageFit = BoxFit.contain,
   });
 
   final Color backgroundColor;
   final IconData icon;
   final IconData? secondaryIcon;
   final String? imageAsset;
+  final BoxFit imageFit;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppSpacing.illustrationRadius),
+    return ColoredBox(
+      color: backgroundColor,
+      child: SizedBox(
+        height: 300,
+        width: double.infinity,
+        child: imageAsset != null
+            ? Image.asset(
+                imageAsset!,
+                fit: imageFit,
+                alignment: Alignment.center,
+                filterQuality: FilterQuality.high,
+                errorBuilder: (_, __, ___) => _iconFallback(),
+              )
+            : _iconFallback(),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: imageAsset != null
-          ? Image.asset(
-              imageAsset!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (_, __, ___) => _iconFallback(),
-            )
-          : _iconFallback(),
     );
   }
 
@@ -108,7 +108,7 @@ class SectionHeader extends StatelessWidget {
             TextButton(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
+                foregroundColor: AppColors.lavender,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 minimumSize: const Size(44, 36),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -157,9 +157,10 @@ class FeaturedBusinessCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: isDark ? AppColors.darkBorder : AppColors.borderLight,
         ),
       ),
+      shadowColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -194,7 +195,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                                   ? Icons.favorite_rounded
                                   : Icons.favorite_border_rounded,
                               size: 18,
-                              color: AppColors.primary,
+                              color: AppColors.lavender,
                             ),
                           ),
                         ),
