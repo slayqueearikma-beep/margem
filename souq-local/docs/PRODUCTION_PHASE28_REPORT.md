@@ -32,7 +32,7 @@ Not **READY FOR PRODUCTION** until: NAPS live credentials, Cloudflare tunnel liv
 | Payments | NAPS (prod) + manual (dev) | ⚠️ Sandbox only |
 | Video | 59s server + client, free tier 5 videos | ✅ This branch |
 | QR | `/p/{token}` + share-link API | ✅ This branch |
-| Maps | Android manifest key; iOS needs AppDelegate key | ⚠️ |
+| Maps | Android manifest key; iOS `GMSApiKey` via `Secrets.xcconfig` | ⚠️ Keys required at build |
 | Push (FCM) | Not implemented | ❌ |
 | Credits | Not implemented | ❌ |
 | Auctions | Not implemented | ❌ |
