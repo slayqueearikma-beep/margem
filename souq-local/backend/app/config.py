@@ -149,6 +149,13 @@ class Settings(BaseSettings):
     # Require MFA for staff/admin API access outside dev (home server: set true in .env.home).
     admin_require_staff_mfa: bool = False
 
+    # Production URLs
+    qr_public_base_url: str = "https://qr.dribex.ma"
+    sentry_dsn: str = ""
+
+    # Seller video quotas (free tier)
+    free_seller_video_limit: int = 5
+
     default_cities: list[str] = [
         "Casablanca",
     ]

@@ -108,10 +108,6 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
 
     final account = ref.read(sellerAccountProvider).valueOrNull;
     if (account == null) return;
-    if (!_isPremium(account.stats.isPremium || account.profile.isPremium)) {
-      _showPremiumRequired();
-      return;
-    }
 
     setState(() {
       _loading = true;
@@ -155,32 +151,6 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
     }
   }
 
-  bool _isPremium(bool flag) => flag;
-
-  void _showPremiumRequired() {
-    final l10n = context.l10n;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.premiumRequiredTitle),
-        content: Text(l10n.premiumRequiredForVideo),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.push('/premium');
-            },
-            child: Text(l10n.upgradeToPremium),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _formatTimer(Duration value) {
     final m = value.inMinutes.remainder(60).toString().padLeft(2, '0');
     final s = value.inSeconds.remainder(60).toString().padLeft(2, '0');
@@ -204,9 +174,6 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
         ),
       ),
       data: (account) {
-        final isPremium =
-            account.stats.isPremium || account.profile.isPremium;
-
         if (_videoFile == null) {
           return Scaffold(
             appBar: MarGemAppBar(
@@ -231,22 +198,15 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
                   icon: Icons.videocam_outlined,
                   title: l10n.createVideo,
                   subtitle: l10n.createVideoSub,
-                  onTap: isPremium ? _recordVideo : _showPremiumRequired,
+                  onTap: _recordVideo,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _SourceOptionCard(
                   icon: Icons.video_library_outlined,
                   title: l10n.selectVideo,
                   subtitle: l10n.selectVideoSub,
-                  onTap: isPremium ? _pickFromGallery : _showPremiumRequired,
+                  onTap: _pickFromGallery,
                 ),
-                if (!isPremium) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    l10n.premiumRequiredForVideo,
-                    style: TextStyle(color: context.colors.textSecondary),
-                  ),
-                ],
               ],
             ),
           );

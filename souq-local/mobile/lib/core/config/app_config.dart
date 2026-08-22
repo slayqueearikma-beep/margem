@@ -135,6 +135,16 @@ class AppConfig {
   /// Launch city — MarGem is Casablanca-only for now.
   static const String launchCity = 'Casablanca';
 
+  /// Default map center — Casablanca (production).
+  static const double defaultMapLatitude = 33.5731;
+  static const double defaultMapLongitude = -7.5898;
+
+  /// Public QR link base (HTTPS only in production).
+  static const String qrPublicBaseUrl = String.fromEnvironment(
+    'QR_PUBLIC_BASE_URL',
+    defaultValue: 'https://qr.dribex.ma',
+  );
+
   /// Extra hosts permitted for presigned image uploads (comma-separated define).
   static List<String> get allowedUploadHosts {
     const raw = String.fromEnvironment('ALLOWED_UPLOAD_HOSTS', defaultValue: '');

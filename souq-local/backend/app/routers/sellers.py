@@ -168,7 +168,32 @@ def _require_premium_seller(user: User, seller: SellerProfile) -> None:
     if not active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Premium membership is required to publish videos",
+            detail="Premium membership is required for this feature",
+        )
+
+
+async def _enforce_video_quota(session: AsyncSession, user: User, seller: SellerProfile) -> None:
+    """Free sellers: up to N active videos. Premium: unlimited."""
+    apply_seller_premium_expiry(seller, persist=False)
+    if is_premium_active(
+        is_premium=bool(user.is_premium or seller.is_premium),
+        premium_until=user.premium_until,
+    ):
+        return
+    active_count = await session.scalar(
+        select(func.count(SellerVideo.id)).where(
+            SellerVideo.seller_id == seller.id,
+            SellerVideo.is_active.is_(True),
+        )
+    )
+    limit = settings.free_seller_video_limit
+    if int(active_count or 0) >= limit:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                f"Free sellers can publish up to {limit} active videos. "
+                "Upgrade to Dribex Pro for unlimited videos."
+            ),
         )
 
 
@@ -542,7 +567,7 @@ async def add_video(
     session: AsyncSession = Depends(get_db),
 ) -> SellerVideo:
     seller = await _owned_seller(seller_id, user, session)
-    _require_premium_seller(user, seller)
+    await _enforce_video_quota(session, user, seller)
 
     from app.services.video_validation import (
         assert_video_duration_from_url,
@@ -575,6 +600,66 @@ async def add_video(
     await session.commit()
     await session.refresh(video)
     return video
+
+
+@router.get("/{seller_id}/videos/quota")
+async def seller_video_quota(
+    seller_id: UUID,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    seller = await _owned_seller(seller_id, user, session)
+    apply_seller_premium_expiry(seller, persist=False)
+    premium = is_premium_active(
+        is_premium=bool(user.is_premium or seller.is_premium),
+        premium_until=user.premium_until,
+    )
+    active_count = await session.scalar(
+        select(func.count(SellerVideo.id)).where(
+            SellerVideo.seller_id == seller.id,
+            SellerVideo.is_active.is_(True),
+        )
+    )
+    limit = None if premium else settings.free_seller_video_limit
+    used = int(active_count or 0)
+    return {
+        "is_premium": premium,
+        "active_videos": used,
+        "limit": limit,
+        "remaining": None if premium else max(0, settings.free_seller_video_limit - used),
+    }
+
+
+@router.post("/{seller_id}/share-link")
+async def create_seller_share_link(
+    seller_id: UUID,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    await _owned_seller(seller_id, user, session)
+    from app.services.share_links import get_or_create_share_link, public_qr_url
+
+    link = await get_or_create_share_link(session, resource_type="seller", resource_id=seller_id)
+    await session.commit()
+    return {"token": link.token, "public_url": public_qr_url(link.token)}
+
+
+@router.post("/{seller_id}/products/{product_id}/share-link")
+async def create_product_share_link(
+    seller_id: UUID,
+    product_id: UUID,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    await _owned_seller(seller_id, user, session)
+    product = await session.get(Product, product_id)
+    if product is None or product.seller_id != seller_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    from app.services.share_links import get_or_create_share_link, public_qr_url
+
+    link = await get_or_create_share_link(session, resource_type="product", resource_id=product_id)
+    await session.commit()
+    return {"token": link.token, "public_url": public_qr_url(link.token)}
 
 
 @router.patch("/{seller_id}/products/{product_id}", response_model=ProductOut)

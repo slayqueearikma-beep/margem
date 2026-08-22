@@ -343,6 +343,17 @@ class SellerVideo(Base):
     seller: Mapped[SellerProfile] = relationship(back_populates="videos")
 
 
+class ShareLink(Base):
+    __tablename__ = "share_links"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    token: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    resource_type: Mapped[str] = mapped_column(String(32))
+    resource_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class Review(Base):
     __tablename__ = "reviews"
     __table_args__ = (UniqueConstraint("seller_id", "buyer_id", name="uq_review_seller_buyer"),)

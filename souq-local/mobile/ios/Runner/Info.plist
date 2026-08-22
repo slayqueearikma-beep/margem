@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Souq Local</string>
+	<string>Dribex</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -72,5 +72,18 @@
 	<string>Dribex uses the microphone when recording seller videos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Dribex lets you choose videos from your library to publish on your storefront.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Dribex uses your location to show nearby sellers and help place your shop on the map.</string>
+	<key>GMSApiKey</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>margem</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

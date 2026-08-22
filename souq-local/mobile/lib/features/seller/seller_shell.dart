@@ -20,9 +20,6 @@ class SellerShell extends ConsumerWidget {
 
   void _showAddSheet(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final account = ref.read(sellerAccountProvider).valueOrNull;
-    final isPremium = account != null &&
-        (account.stats.isPremium || account.profile.isPremium);
 
     showModalBottomSheet<void>(
       context: context,
@@ -60,10 +57,6 @@ class SellerShell extends ConsumerWidget {
                     subtitle: Text(l10n.addVideoSub),
                     onTap: () {
                       Navigator.pop(ctx);
-                      if (!isPremium) {
-                        _showPremiumRequiredDialog(context);
-                        return;
-                      }
                       context.push('/seller/videos/new');
                     },
                   ),
@@ -77,30 +70,6 @@ class SellerShell extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showPremiumRequiredDialog(BuildContext context) {
-    final l10n = context.l10n;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.premiumRequiredTitle),
-        content: Text(l10n.premiumRequiredForVideo),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.push('/premium');
-            },
-            child: Text(l10n.upgradeToPremium),
-          ),
-        ],
       ),
     );
   }

@@ -42,6 +42,7 @@ from app.routers import (
     local_media,
     media,
     privacy,
+    qr,
     search,
     seller_ops,
     sellers,
@@ -98,7 +99,7 @@ async def lifespan(app: FastAPI):
                         code="seller_pro",
                         name="Seller Pro",
                         description="Featured placement, premium storefront, advanced discovery analytics",
-                        price_mad=199,
+                        price_mad=99,
                         billing_period_days=30,
                         features=[
                             "Featured placement",
@@ -193,6 +194,7 @@ app.include_router(uploads.router)
 if settings.effective_storage_provider == "selfhosted":
     app.include_router(media.router)
 app.include_router(discovery.router)
+app.include_router(qr.router)
 app.include_router(search.router)
 app.include_router(seller_ops.router)
 app.include_router(billing.router)
@@ -359,3 +361,13 @@ async def health(request: Request):
         body["service"] = settings.app_name
         body["environment"] = settings.app_env
     return body
+
+
+@app.get("/metrics")
+@limiter.exempt
+async def metrics(request: Request):
+    """Prometheus text metrics — restrict via firewall in production."""
+    from fastapi.responses import PlainTextResponse
+    from app.telemetry import metrics_prometheus_text
+
+    return PlainTextResponse(metrics_prometheus_text(), media_type="text/plain; version=0.0.4")

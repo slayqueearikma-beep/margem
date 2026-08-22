@@ -68,10 +68,10 @@ def _minimal_mp4(duration_units: int = 45000, timescale: int = 1000) -> bytes:
 
 
 @pytest.mark.asyncio
-async def test_add_video_requires_premium():
+async def test_add_video_rejects_unvalidated_media_for_free_seller():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        seller = await _register(client, "video-nonpremium@example.com")
+        seller = await _register(client, "video-free@example.com")
         token = seller["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
         created = await _create_seller(client, token)
@@ -85,7 +85,7 @@ async def test_add_video_requires_premium():
                 "content_type": "video/mp4",
             },
         )
-        assert response.status_code == 403, response.text
+        assert response.status_code == 400, response.text
 
 
 @pytest.mark.asyncio
