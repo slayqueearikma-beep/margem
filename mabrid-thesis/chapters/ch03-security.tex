@@ -1,0 +1,266 @@
+\chapter{Enterprise Security Architecture}
+\label{ch:security}
+
+\section{Introduction}
+
+For a trusted marketplace, security failure translates directly into reputational collapse, regulatory sanction, and user attrition. This chapter presents MABRID's enterprise security architecture: governance, Zero Trust strategy, identity and data protection, cloud and network controls, threat management, monitoring, and alignment with international frameworks. The treatment is strategic and architectural---suitable for board review and CISO programme design---without reference to implementation artefacts.
+
+\section{Security Governance}
+
+\subsection{Security Programme Charter}
+
+The security programme operates under a charter approved by executive leadership, defining mission (protect confidentiality, integrity, and availability of platform and user data), scope, authority of the CISO, and relationship to legal and compliance functions \parencite{nist80039}.
+
+\subsection{Policies, Standards, and Procedures}
+
+Governance documentation follows a hierarchy:
+\begin{itemize}
+  \item \textbf{Policies} --- board-approved statements of intent (acceptable use, access control, data classification).
+  \item \textbf{Standards} --- mandatory controls (encryption algorithms, password complexity, log retention).
+  \item \textbf{Procedures} --- operational steps (onboarding access, incident escalation).
+  \item \textbf{Guidelines} --- recommended practices (secure vendor assessment questionnaires).
+\end{itemize}
+
+\subsection{Roles and Responsibilities}
+
+Security is everyone's responsibility, but accountability is explicit. Engineering leadership implements controls; the CISO validates effectiveness; internal audit provides assurance; all employees complete annual security awareness training.
+
+\figureplaceholder{H}{figures/ch03-security-governance.pdf}{0.9}{Security governance structure and policy hierarchy}
+
+\section{Zero Trust Strategy}
+
+\subsection{Beyond Perimeter Security}
+
+Traditional perimeter models assume trust inside the corporate network. Cloud-hosted marketplaces, remote administration, and third-party integrations render perimeter-centric models insufficient \parencite{kindervag2010zero,rose2020zt}. MABRID adopts \gls{zt}: \emph{never trust, always verify}.
+
+\subsection{Core Principles}
+
+\begin{enumerate}
+  \item \textbf{Identity first} --- every access request is authenticated and authorised against policy.
+  \item \textbf{Least privilege} --- minimum permissions required for role and task duration.
+  \item \textbf{Continuous verification} --- session risk evaluated dynamically; step-up authentication when context changes.
+  \item \textbf{Micro-segmentation} --- logical separation of production, staging, management, and data tiers.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.2cm,
+    box/.style={draw=mabridblue, thick, rounded corners, minimum width=2.6cm, minimum height=0.9cm, align=center, font=\small},
+    arrow/.style={-{Stealth[length=2mm]}, thick}
+  ]
+    \node[box] (user) {User / Admin};
+    \node[box, right=of user] (id) {Identity\\Verification};
+    \node[box, right=of id] (policy) {Policy\\Engine};
+    \node[box, right=of policy] (resource) {Protected\\Resource};
+    \draw[arrow] (user) -- (id);
+    \draw[arrow] (id) -- node[above,font=\tiny]{MFA + context} (policy);
+    \draw[arrow] (policy) -- node[above,font=\tiny]{Allow / Deny} (resource);
+    \node[below=0.3cm of policy,font=\footnotesize,text width=8cm,align=center] {Continuous logging to SIEM};
+  \end{tikzpicture}
+  \caption{Zero Trust access decision flow for MABRID}
+  \label{fig:zt-flow}
+\end{figure}
+
+\section{Identity and Access Management}
+
+\subsection{Role-Based Access Control}
+
+\gls{rbac} maps job functions to permission sets. MABRID defines roles including: buyer, seller, moderator, support agent, analyst, administrator, and auditor. Separation of duties prevents single individuals from both deploying changes and approving them in production.
+
+\subsection{Multi-Factor Authentication}
+
+\gls{mfa} is mandatory for administrative access, seller accounts managing financial or verification data, and any user opting into enhanced protection. Phishing-resistant methods (FIDO2 hardware keys for privileged roles) are recommended \parencite{nist80063b}.
+
+\subsection{Conditional Access}
+
+Access decisions incorporate signals: device compliance, geolocation anomaly, impossible travel, and risk scores from identity protection services. High-risk sessions trigger re-authentication or block.
+
+\subsection{Identity Lifecycle}
+
+Joiner--mover--leaver processes provision and deprovision access within defined SLAs. Offboarding revokes credentials, sessions, and API keys immediately upon termination. Periodic access reviews validate continued need.
+
+\begin{table}[H]
+  \centering
+  \caption{Illustrative RBAC matrix (excerpt)}
+  \label{tab:rbac}
+  \begin{tabular}{lcccc}
+    \toprule
+    \textbf{Permission} & Buyer & Seller & Moderator & Admin \\
+    \midrule
+    Browse listings & \checkmark & \checkmark & \checkmark & \checkmark \\
+    Manage own storefront & --- & \checkmark & --- & --- \\
+    Moderate content & --- & --- & \checkmark & \checkmark \\
+    System configuration & --- & --- & --- & \checkmark \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Data Protection}
+
+\subsection{Data Classification}
+
+Data is classified Public, Internal, Confidential, and Restricted (personal data, credentials, verification documents). Handling requirements escalate with classification: encryption, access logging, and retention limits.
+
+\subsection{Encryption}
+
+Data in transit uses modern TLS configurations. Data at rest employs platform-managed or customer-managed keys depending on sensitivity. End-to-end encryption may apply to certain messaging scenarios subject to moderation and legal obligations balance.
+
+\subsection{Backup and Recovery}
+
+Backups follow 3-2-1 principles: three copies, two media types, one offsite. Recovery procedures are tested quarterly; results documented for audit.
+
+\subsection{Key Management}
+
+Cryptographic keys for production systems are stored in Azure Key Vault or equivalent HSM-backed service. Key rotation, access auditing, and separation of duties for key administrators are enforced \parencite{microsoftKeyVault}.
+
+\subsection{Secrets Management}
+
+Application secrets, API credentials, and certificate private keys never reside in source repositories. Centralised secret stores with automatic rotation reduce credential theft impact.
+
+\section{Cloud Security}
+
+\subsection{Shared Responsibility Model}
+
+Cloud providers secure the underlying infrastructure; MABRID secures configuration, identity, data, and workloads \parencite{microsoftSharedResp}. Misconfiguration remains a leading breach cause; governance addresses this through policy-as-code and continuous compliance scanning.
+
+\subsection{Microsoft Defender and Security Posture}
+
+Microsoft Defender for Cloud (formerly Security Center) provides secure score recommendations, regulatory compliance dashboards, and threat protection for cloud workloads \parencite{microsoftDefenderCloud}.
+
+\subsection{Azure Policy}
+
+Azure Policy enforces organisational standards: allowed regions (e.g., EU/Morocco-aligned deployments), required encryption, tagging for cost allocation, and restricted public IP attachment.
+
+\subsection{Private Networking}
+
+Production data tiers reside in private subnets without direct internet exposure. Administrative access uses bastion hosts or private endpoints. egress filtering limits data exfiltration paths.
+
+\section{Network Segmentation and Firewall Strategy}
+
+Network segments include: public edge (load balancing), application tier, data tier, management zone, and security tooling zone. Firewall rules default-deny with explicit allow lists. East-west traffic between segments is logged and restricted.
+
+\figureplaceholder{H}{figures/ch03-network-segmentation.pdf}{0.92}{Logical network segmentation model for MABRID on Azure}
+
+\section{Threat Management}
+
+\subsection{Risk Assessment Methodology}
+
+Risk assessments follow ISO 27005 and NIST SP 800-30 \parencite{iso27005,nist80030}: asset identification, threat enumeration, vulnerability analysis, likelihood and impact scoring, and treatment planning. Assessments occur at least annually and upon major architectural change.
+
+\subsection{Threat Modelling}
+
+Structured threat modelling (STRIDE, PASTA) examines abuse cases: fake seller onboarding, review manipulation, account takeover, insider abuse, and denial of service. Mitigations map to controls in this architecture.
+
+\subsection{Attack Surface Management}
+
+External attack surface includes public endpoints, mobile application distribution, DNS records, and third-party integrations. Continuous discovery tools and penetration testing reduce unknown exposures \parencite{owaspASVS}.
+
+\subsection{Vulnerability Management}
+
+Vulnerabilities are prioritised by CVSS score and exploitability in context. Critical patches target defined SLAs (e.g., 72 hours for internet-facing critical issues). Exception processes document compensating controls.
+
+\section{Incident Response}
+
+\subsection{Incident Response Plan}
+
+The IR plan defines severity levels, roles (incident commander, communications lead, legal counsel), containment strategies, evidence preservation, and recovery steps \parencite{nist80061}. Playbooks address data breach, ransomware, defacement, and insider threat scenarios.
+
+\subsection{Communication}
+
+Regulatory notification timelines (including \gls{cndp} and \gls{gdpr} where applicable) are integrated into playbooks. User communication templates balance transparency with investigation integrity.
+
+\subsection{Post-Incident Review}
+
+Blameless post-mortems produce corrective actions tracked to closure. Metrics include mean time to detect, mean time to respond, and mean time to recover.
+
+\section{Business Continuity and Security}
+
+Security incidents may trigger BCP activation. Critical marketplace functions have alternate communication channels and manual moderation procedures during outages. Cyber insurance may transfer residual financial risk.
+
+\section{Security Monitoring}
+
+\subsection{Azure Monitor and Log Analytics}
+
+Centralised logging aggregates platform, identity, network, and application telemetry. Retention aligns with legal and investigative requirements \parencite{microsoftMonitor}.
+
+\subsection{Microsoft Sentinel SIEM}
+
+Sentinel provides \gls{siem} capabilities: correlation rules, threat intelligence integration, user and entity behaviour analytics, and investigation workbooks \parencite{microsoftSentinel}.
+
+\subsection{SOAR Automation}
+
+\gls{soar} playbooks automate repetitive response: disable compromised accounts, isolate hosts, enrich alerts with threat intelligence, and notify on-call engineers.
+
+\subsection{Alert Management}
+
+Alert fatigue is mitigated through tuning, severity classification, and on-call rotations with defined escalation paths. Security operations centre maturity evolves from reactive alerting to proactive threat hunting.
+
+\subsection{Security Dashboards}
+
+Executive dashboards display secure score trends, open critical vulnerabilities, incident counts, and compliance posture. Operational dashboards support analyst triage.
+
+\figureplaceholder{H}{figures/ch03-soc-dashboard.pdf}{0.88}{Security operations dashboard (insert screenshot when available)}
+
+\section{Compliance Alignment}
+
+\subsection{ISO 27001}
+
+\gls{iso27001} provides a certifiable ISMS framework. MABRID maps controls to Annex A domains, conducts gap assessments, and pursues certification as a commercial differentiator for enterprise clients \parencite{iso27001standard}.
+
+\subsection{NIST Cybersecurity Framework}
+
+The \gls{nistcsf} functions---Identify, Protect, Detect, Respond, Recover---structure the security programme \parencite{nistcsf20}. Table~\ref{tab:nist-mapping} illustrates mapping.
+
+\begin{table}[H]
+  \centering
+  \caption{NIST CSF function mapping (selected controls)}
+  \label{tab:nist-mapping}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Function} & \textbf{MABRID programme element} \\
+    \midrule
+    Identify & Asset inventory, risk register, data classification \\
+    Protect & IAM, encryption, secure configuration, awareness training \\
+    Detect & SIEM, vulnerability scanning, anomaly detection \\
+    Respond & Incident response plan, forensics, communications \\
+    Recover & Backups, DR testing, continuous improvement \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{SOC 2}
+
+\gls{soc2} Trust Services Criteria (security, availability, confidentiality) support enterprise sales requiring vendor assurance reports \parencite{aicpaSOC2}.
+
+\subsection{CIS Controls}
+
+\gls{cis} Critical Security Controls v8 provide prioritised safeguards \parencite{ciscontrols18}. Implementation groups guide phased adoption based on organisational maturity.
+
+\subsection{OWASP Governance}
+
+\gls{owasp} resources inform secure development governance, application security verification, and top risk awareness \parencite{owaspTop10}. Security requirements are embedded in vendor and change management processes.
+
+\section{Security Risk Matrix}
+
+\begin{table}[H]
+  \centering
+  \caption{Selected security risks and control treatments}
+  \label{tab:sec-risk}
+  \small
+  \begin{tabularx}{\textwidth}{@{}lccX@{}}
+    \toprule
+    \textbf{Risk} & \textbf{Likelihood} & \textbf{Impact} & \textbf{Treatment} \\
+    \midrule
+    Account takeover & Medium & High & MFA, anomaly detection, session limits \\
+    Data breach & Low & Critical & Encryption, segmentation, DLP monitoring \\
+    Insider threat & Low & High & RBAC, logging, background checks \\
+    DDoS outage & Medium & Medium & CDN, rate limiting, scaling policies \\
+    Supply chain compromise & Low & High & Vendor assessment, signed artefacts \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Chapter Conclusion}
+
+Enterprise security architecture is the cornerstone of MABRID's trust proposition. Zero Trust, rigorous identity governance, defence in depth on Azure, and continuous monitoring through Sentinel collectively reduce risk to acceptable levels while supporting compliance objectives. Security investment is not overhead but a prerequisite for marketplace credibility, investor confidence, and regulatory acceptance in Morocco and beyond.

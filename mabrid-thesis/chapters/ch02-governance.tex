@@ -1,0 +1,180 @@
+\chapter{Enterprise Governance and Management}
+\label{ch:governance}
+
+\section{Introduction}
+
+Sustainable marketplace platforms require more than product vision: they demand institutional governance that allocates authority, manages risk, and aligns incentives across functions. This chapter describes how MABRID operates as an enterprise---organisational structure, decision-making, strategic planning, operational management, entrepreneurship strategy, and performance measurement---forming the management backbone that supports security and compliance programmes.
+
+\section{Organizational Governance}
+
+\subsection{Corporate Governance Principles}
+
+MABRID adopts principles aligned with OECD corporate governance guidance adapted to venture-stage companies \parencite{oecd2015governance}: accountability of leadership to stakeholders, transparency of material risks, responsible resource allocation, and independent oversight of audit and security matters where feasible.
+
+\subsection{Board and Executive Oversight}
+
+At maturity, governance includes a board of directors (or advisory board pre-Series A) with defined charters. Executive leadership comprises Chief Executive Officer, Chief Operating Officer, Chief Technology Officer (governance of technology risk, not implementation detail), Chief Information Security Officer, Chief Legal \& Compliance Officer, and Head of Trust \& Safety.
+
+\figureplaceholder{H}{figures/ch02-org-chart.pdf}{0.95}{Illustrative organisational governance structure}
+
+\subsection{Three Lines of Defence}
+
+Risk management follows the three lines model \parencite{iia2017three}:
+\begin{enumerate}
+  \item \textbf{First line:} Business units owning operational risk (marketplace operations, seller success).
+  \item \textbf{Second line:} Risk, compliance, and security functions setting standards and monitoring adherence.
+  \item \textbf{Third line:} Internal audit (or external audit at early stage) providing independent assurance.
+\end{enumerate}
+
+\section{Company Structure and Roles}
+
+\subsection{Functional Departments}
+
+Table~\ref{tab:roles} summarises primary responsibilities. RACI matrices (Responsible, Accountable, Consulted, Informed) should be maintained for critical processes including incident response, policy updates, and vendor onboarding.
+
+\begin{table}[H]
+  \centering
+  \caption{Executive roles and primary accountability areas}
+  \label{tab:roles}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Role} & \textbf{Accountability} \\
+    \midrule
+    CEO & Strategy, investor relations, regulatory engagement \\
+    COO & Operations, seller onboarding, support SLAs \\
+    CISO & Security programme, risk acceptance, incident command \\
+    CLO & Legal policies, CNDP liaison, contract governance \\
+    Head of Trust \& Safety & Moderation, fraud prevention, community standards \\
+    CFO & Financial controls, cloud cost governance, unit economics \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Decision-Making Framework}
+
+Strategic decisions (market expansion, major partnerships, certification investments) require board or executive committee approval. Operational decisions follow delegated authority limits documented in a governance handbook. Security exceptions require CISO sign-off with time-bound remediation plans.
+
+\section{Strategic Planning}
+
+\subsection{Planning Horizon}
+
+MABRID employs rolling 12-month operational plans nested within a three-year strategic plan. Quarterly business reviews assess KPI performance, competitive dynamics, and regulatory developments.
+
+\subsection{SWOT Analysis}
+
+\begin{table}[H]
+  \centering
+  \caption{Strategic SWOT analysis for MABRID}
+  \label{tab:swot}
+  \begin{tabularx}{\textwidth}{@{}XX@{}}
+    \toprule
+    \textbf{Strengths} & \textbf{Weaknesses} \\
+    \midrule
+    Trust-focused positioning; Morocco-first design & Early-stage brand recognition \\
+    Integrated legal and security documentation & Limited initial moderator capacity \\
+    \addlinespace
+    \textbf{Opportunities} & \textbf{Threats} \\
+    \midrule
+    SME digitisation; mobile growth & Incumbent platforms and informal channels \\
+    Enterprise partnerships; verification services & Regulatory evolution; cyber threats \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Business Model Canvas}
+
+The Business Model Canvas \parencite{osterwalder2010business} decomposes MABRID's logic:
+
+\begin{itemize}
+  \item \textbf{Customer segments:} Buyers, sellers, enterprise multi-location businesses, partners.
+  \item \textbf{Value propositions:} Trusted discovery, verification, community, analytics (sellers).
+  \item \textbf{Channels:} Mobile applications, web presence, partnerships, field sales for enterprise.
+  \item \textbf{Customer relationships:} Self-service, community support, dedicated account management (enterprise).
+  \item \textbf{Revenue streams:} Seller subscriptions, buyer premium, verification fees, enterprise contracts.
+  \item \textbf{Key resources:} Brand, policy corpus, moderation team, cloud infrastructure, data assets (governed).
+  \item \textbf{Key activities:} Curation, moderation, marketing, compliance, security operations.
+  \item \textbf{Key partners:} Cloud provider, payment processor (future), verification agencies, associations.
+  \item \textbf{Cost structure:} Cloud, personnel, marketing, legal, security tooling, moderation.
+\end{itemize}
+
+\figureplaceholder{H}{figures/ch02-bmc.pdf}{0.95}{Business Model Canvas for MABRID (insert designed canvas image)}
+
+\section{Revenue Streams}
+
+\subsection{Subscription Tiers}
+
+Free standard accounts lower barriers to entry. Paid seller tiers provide enhanced visibility, analytics, and verification priority. Optional buyer premium offers personalisation and support upgrades. Pricing must remain transparent and compliant with consumer protection norms.
+
+\subsection{Ancillary Revenue}
+
+Verification services, featured campaigns (governed by advertising policy), and enterprise packages diversify income beyond per-seat subscriptions.
+
+\section{Operational Management}
+
+\subsection{Operating Model}
+
+Operations follow ITIL-inspired service management adapted for startups \parencite{axelos2019itil}: incident, problem, change, and release processes with lightweight documentation. Trust \& safety operates 24/7 escalation paths for severe content or fraud reports.
+
+\subsection{Vendor Management}
+
+Third-party vendors (cloud, email, identity, monitoring) undergo security and privacy due diligence. Contracts include data processing terms, breach notification clauses, and right-to-audit where appropriate.
+
+\section{Risk Management}
+
+\subsection{Enterprise Risk Register}
+
+Risks are categorised: strategic, operational, financial, legal, reputational, and cyber. Each entry documents likelihood, impact, owner, and treatment (mitigate, transfer, accept, avoid). The board receives quarterly risk summaries.
+
+\subsection{Risk Heat Map}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[scale=0.9]
+    \draw[step=1.8,gray!25] (0,0) grid (7.2,5.4);
+    \node[rotate=90] at (-0.6,2.7) {\small Impact};
+    \node at (3.6,-0.5) {\small Likelihood};
+    \fill[red!30] (5.4,3.6) rectangle (7.2,5.4);
+    \node[align=center,font=\small] at (6.3,4.5) {Critical};
+    \fill[orange!30] (3.6,3.6) rectangle (5.4,5.4);
+    \fill[yellow!30] (1.8,1.8) rectangle (3.6,3.6);
+    \node[align=left,font=\footnotesize] at (1.0,4.8) {R1: Data breach};
+    \node[align=left,font=\footnotesize] at (4.2,4.2) {R2: Regulatory fine};
+    \node[align=left,font=\footnotesize] at (2.4,2.4) {R3: Seller churn};
+  \end{tikzpicture}
+  \caption{Illustrative enterprise risk heat map}
+  \label{fig:risk-heatmap}
+\end{figure}
+
+\section{Quality Management}
+
+Quality objectives include accurate listings, timely support responses, and policy consistency. ISO 9001 principles inform process documentation without requiring immediate certification. Customer feedback loops and Net Promoter Score tracking guide service improvements.
+
+\section{Business Continuity}
+
+\gls{bcp} and \gls{drp} align with security chapter objectives. Critical functions---platform availability, moderation escalation, executive crisis communications---have documented recovery priorities. Tabletop exercises occur at least annually.
+
+\section{Key Performance Indicators}
+
+Governance KPIs include audit finding closure rate, policy review currency, training completion, and cloud cost variance versus budget. These complement business KPIs from Chapter~\ref{ch:business-vision}.
+
+\section{Entrepreneurship Strategy}
+
+\subsection{Lean Startup Methodology}
+
+MABRID applies Build--Measure--Learn cycles \parencite{ries2011lean}: hypothesise value propositions, launch minimum viable marketplace presence in anchor cities, measure engagement and trust metrics, and pivot or persevere based on evidence.
+
+\subsection{Product-Market Fit}
+
+Indicators of product-market fit include organic growth, high retention among sellers who complete verification, and word-of-mouth referral rates. Qualitative interviews supplement quantitative dashboards.
+
+\subsection{Scaling Strategy}
+
+Scaling proceeds geographically (city rollout) and categorically (vertical depth in high-trust sectors). Premature national marketing before local liquidity risks hollow user experience.
+
+\subsection{Competitive Advantage}
+
+Sustainable advantage derives from trust infrastructure---verification, moderation, community, security posture---that is costly and slow for competitors to replicate credibly \parencite{kim2005blueocean}.
+
+\section{Chapter Conclusion}
+
+Enterprise governance transforms MABRID from a concept into an accountable organisation. Clear roles, risk discipline, and strategic planning create the conditions under which security and legal programmes (Chapters~\ref{ch:security} and~\ref{ch:legal}) can operate effectively. Investors and partners should evaluate not only market opportunity but also the maturity of governance artefacts documented herein.

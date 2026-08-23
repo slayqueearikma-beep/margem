@@ -1,3 +1,6 @@
+import '../../l10n/strings/app_strings.dart';
+import 'service_pricing.dart';
+
 class CategoryModel {
   const CategoryModel({
     required this.id,
@@ -117,6 +120,7 @@ class SellerModel {
     this.categories = const [],
     this.products = const [],
     this.services = const [],
+    this.distanceKm,
   });
 
   final String id;
@@ -158,6 +162,7 @@ class SellerModel {
   final List<CategoryModel> categories;
   final List<ProductModel> products;
   final List<ServiceModel> services;
+  final double? distanceKm;
 
   factory SellerModel.fromJson(Map<String, dynamic> json) {
     return SellerModel(
@@ -221,6 +226,7 @@ class SellerModel {
       services: (json['services'] as List<dynamic>? ?? [])
           .map((e) => ServiceModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      distanceKm: (json['distance_km'] as num?)?.toDouble(),
     );
   }
 }
@@ -384,6 +390,7 @@ class SearchProductModel {
     required this.priceMad,
     required this.imageUrl,
     required this.isAvailable,
+    this.distanceKm,
   });
 
   final String id;
@@ -398,6 +405,7 @@ class SearchProductModel {
   final double? priceMad;
   final String imageUrl;
   final bool isAvailable;
+  final double? distanceKm;
 
   factory SearchProductModel.fromJson(Map<String, dynamic> json) {
     return SearchProductModel(
@@ -413,6 +421,7 @@ class SearchProductModel {
       priceMad: (json['price_mad'] as num?)?.toDouble(),
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
+      distanceKm: (json['distance_km'] as num?)?.toDouble(),
     );
   }
 }
@@ -458,26 +467,55 @@ class ServiceModel {
     required this.id,
     required this.name,
     required this.description,
+    this.pricingModel = ServicePricingModel.fixedPrice,
     this.priceMad,
+    this.priceMinMad,
+    this.priceMaxMad,
+    this.priceNegotiable = false,
     this.imageUrl = '',
     this.isAvailable = true,
+    this.isFeatured = false,
+    this.coverageAreas = const [],
   });
 
   final String id;
   final String name;
   final String description;
+  final ServicePricingModel pricingModel;
   final double? priceMad;
+  final double? priceMinMad;
+  final double? priceMaxMad;
+  final bool priceNegotiable;
   final String imageUrl;
   final bool isAvailable;
+  final bool isFeatured;
+  final List<String> coverageAreas;
+
+  String displayPrice(AppStrings l10n) => formatServicePrice(
+        l10n,
+        pricingModel: pricingModel,
+        priceMad: priceMad,
+        priceMinMad: priceMinMad,
+        priceMaxMad: priceMaxMad,
+        priceNegotiable: priceNegotiable,
+      );
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
+      pricingModel: ServicePricingModel.fromApi(json['pricing_model'] as String?),
       priceMad: (json['price_mad'] as num?)?.toDouble(),
+      priceMinMad: (json['price_min_mad'] as num?)?.toDouble(),
+      priceMaxMad: (json['price_max_mad'] as num?)?.toDouble(),
+      priceNegotiable: json['price_negotiable'] as bool? ?? false,
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
+      isFeatured: json['is_featured'] as bool? ?? false,
+      coverageAreas: (json['coverage_areas'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
     );
   }
 }

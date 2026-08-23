@@ -157,17 +157,16 @@ class MarketSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: AppColors.cardSurface(context),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: AppColors.outlineSubtle(context),
         ),
-        boxShadow: isDark
+        boxShadow: AppColors.isDark(context)
             ? null
             : [
                 BoxShadow(
@@ -213,13 +212,10 @@ class MarketInfoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.primary.withValues(alpha: 0.16)
-            : AppColors.cardSelected,
+        color: AppColors.cardSurface(context),
         borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.18),

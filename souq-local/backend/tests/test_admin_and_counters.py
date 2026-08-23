@@ -11,6 +11,7 @@ import app.database as database
 from app.main import app
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.models import SellerProfile, User, UserRole, VerificationStatus
+from tests.auth_helpers import register_test_user
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -24,19 +25,15 @@ async def client():
 
 async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
     email = f"{account_type}-{uuid4().hex[:8]}@example.com"
-    res = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": "SecurePass1",
-            "account_type": account_type,
-            "display_name": account_type.title(),
-        },
+    body = await register_test_user(
+        client,
+        email=email,
+        account_type=account_type,
+        display_name=account_type.title(),
     )
-    assert res.status_code == 201, res.text
     return {
         "email": email,
-        "headers": {"Authorization": f"Bearer {res.json()['access_token']}"},
+        "headers": {"Authorization": f"Bearer {body['access_token']}"},
     }
 
 
