@@ -478,6 +478,7 @@ class DashboardMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final subtitleColor = AppColors.onSurfaceVariant(context);
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: ListTile(
@@ -499,7 +500,10 @@ class DashboardMenuTile extends StatelessWidget {
                 title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ),
             if (comingSoon) ...[
@@ -521,7 +525,7 @@ class DashboardMenuTile extends StatelessWidget {
           subtitle,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 13, height: 1.25),
+          style: TextStyle(fontSize: 13, height: 1.25, color: subtitleColor),
         ),
         trailing: badge != null
             ? CircleAvatar(
