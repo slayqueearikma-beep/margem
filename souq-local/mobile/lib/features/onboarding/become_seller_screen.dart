@@ -10,6 +10,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Logged-in users open a storefront on the same email/password account.
@@ -95,7 +96,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.becomeSeller)),
+      appBar: MarGemAppBar(semanticLabel: l10n.becomeSeller),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),

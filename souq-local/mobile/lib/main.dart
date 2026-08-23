@@ -11,7 +11,7 @@ Future<void> main() async {
 
   // Config-only base URL — never render it in the UI.
   if (kDebugMode) {
-    debugPrint('MarGem API_BASE_URL=${AppConfig.apiBaseUrl}');
+    debugPrint('Dribex API_BASE_URL=${AppConfig.apiBaseUrl}');
   }
 
   // Release/production builds must not ship with cleartext or emulator defaults.

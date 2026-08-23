@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MarGem local lab — start backend (Docker) + Flutter app
+# Dribex local lab — start backend (Docker) + Flutter app
 # Usage: ./start_lab.sh
 #        ./start_lab.sh --no-flutter
 
@@ -26,7 +26,7 @@ get_lan_ip() {
 }
 
 echo ""
-echo "=== MarGem Lab — starting ==="
+echo "=== Dribex Lab — starting ==="
 echo ""
 
 command -v docker >/dev/null || { echo "Docker not found."; exit 1; }
