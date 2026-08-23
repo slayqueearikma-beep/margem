@@ -87,6 +87,11 @@ class Settings(BaseSettings):
     public_app_url: str = "https://margem.ma"
     public_api_url: str = "http://localhost:8000"
 
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_currency: str = "MAD"
+    purchase_tax_rate_percent: float = 20.0
+
     default_cities: list[str] = [
         "Casablanca",
     ]

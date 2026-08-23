@@ -146,6 +146,12 @@ class ProductCreate(BaseModel):
     category_slug: str = Field(default="", max_length=80)
     stock_quantity: int = Field(default=1, ge=0, le=1_000_000)
     is_featured: bool = False
+    is_purchasable: bool = False
+    delivery_mode: str = Field(default="pickup_only", pattern="^(provider_delivery|pickup_only)$")
+    delivery_fee_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    delivery_eta: str = Field(default="", max_length=120)
+    free_delivery_threshold_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    tax_enabled: bool = False
 
     @field_validator("image_url", "video_url")
     @classmethod
@@ -175,6 +181,12 @@ class ProductUpdate(BaseModel):
     is_hidden: bool | None = None
     is_featured: bool | None = None
     is_paused: bool | None = None
+    is_purchasable: bool | None = None
+    delivery_mode: str | None = Field(default=None, pattern="^(provider_delivery|pickup_only)$")
+    delivery_fee_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    delivery_eta: str | None = Field(default=None, max_length=120)
+    free_delivery_threshold_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    tax_enabled: bool | None = None
 
     @field_validator("image_url", "video_url")
     @classmethod
@@ -209,6 +221,12 @@ class ProductOut(BaseModel):
     is_hidden: bool = False
     is_featured: bool = False
     is_paused: bool = False
+    is_purchasable: bool = False
+    delivery_mode: str = "pickup_only"
+    delivery_fee_mad: float | None = None
+    delivery_eta: str = ""
+    free_delivery_threshold_mad: float | None = None
+    tax_enabled: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -509,3 +527,93 @@ class PresignRequest(BaseModel):
 class PresignResponse(BaseModel):
     upload_url: str
     public_url: str
+
+
+class CheckoutPreviewIn(BaseModel):
+    product_id: UUID
+    quantity: int = Field(default=1, ge=1, le=99)
+    delivery_method: str = Field(default="pickup", pattern="^(pickup|delivery)$")
+    buyer_name: str = Field(default="", max_length=120)
+    buyer_phone: str = Field(default="", max_length=32)
+    buyer_address: str = Field(default="", max_length=500)
+
+
+class CheckoutPreviewOut(BaseModel):
+    product_id: UUID
+    product_name: str
+    quantity: int
+    unit_price_mad: float
+    subtotal_mad: float
+    delivery_fee_mad: float
+    tax_mad: float
+    total_mad: float
+    delivery_method: str
+    delivery_available: bool
+    pickup_only: bool
+    tax_enabled: bool
+    stock_available: int
+
+
+class CheckoutSessionIn(CheckoutPreviewIn):
+    success_url: str = Field(min_length=8, max_length=512)
+    cancel_url: str = Field(min_length=8, max_length=512)
+
+
+class CheckoutSessionOut(BaseModel):
+    order_id: UUID
+    checkout_url: str
+    session_id: str
+
+
+class PurchaseOrderOut(BaseModel):
+    id: UUID
+    order_number: str
+    buyer_id: UUID
+    seller_id: UUID
+    product_id: UUID
+    product_name: str
+    quantity: int
+    unit_price_mad: float
+    subtotal_mad: float
+    delivery_fee_mad: float
+    tax_mad: float
+    total_mad: float
+    delivery_method: str
+    buyer_name: str
+    buyer_phone: str
+    buyer_address: str
+    payment_status: str
+    order_status: str
+    stripe_payment_intent_id: str
+    receipt_number: str
+    paid_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+    seller_business_name: str | None = None
+    buyer_email: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class PurchaseOrderStatusUpdate(BaseModel):
+    order_status: str = Field(pattern="^(preparing|ready|delivered|completed|cancelled)$")
+
+
+class PurchaseReceiptOut(BaseModel):
+    receipt_number: str
+    order_number: str
+    issued_at: datetime
+    buyer_name: str
+    buyer_email: str
+    seller_name: str
+    product_name: str
+    quantity: int
+    unit_price_mad: float
+    subtotal_mad: float
+    delivery_fee_mad: float
+    tax_mad: float
+    total_mad: float
+    delivery_method: str
+    payment_status: str
+    stripe_payment_intent_id: str
+    receipt_text: str

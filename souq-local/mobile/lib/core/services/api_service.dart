@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
 import '../models/models.dart';
+import '../models/purchase_models.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -286,6 +287,92 @@ class ApiService {
 
   Future<void> deleteProduct(String sellerId, String productId) async {
     await deletePath('/sellers/$sellerId/products/$productId', auth: true);
+  }
+
+  Future<CheckoutPreviewModel> previewCheckout({
+    required String productId,
+    int quantity = 1,
+    String deliveryMethod = 'pickup',
+    String buyerName = '',
+    String buyerPhone = '',
+    String buyerAddress = '',
+  }) async {
+    final data = await postJson(
+      '/purchase/checkout/preview',
+      {
+        'product_id': productId,
+        'quantity': quantity,
+        'delivery_method': deliveryMethod,
+        'buyer_name': buyerName,
+        'buyer_phone': buyerPhone,
+        'buyer_address': buyerAddress,
+      },
+      auth: true,
+    );
+    return CheckoutPreviewModel.fromJson(data);
+  }
+
+  Future<CheckoutSessionModel> createCheckoutSession({
+    required String productId,
+    required int quantity,
+    required String deliveryMethod,
+    required String successUrl,
+    required String cancelUrl,
+    String buyerName = '',
+    String buyerPhone = '',
+    String buyerAddress = '',
+  }) async {
+    final data = await postJson(
+      '/purchase/checkout/session',
+      {
+        'product_id': productId,
+        'quantity': quantity,
+        'delivery_method': deliveryMethod,
+        'success_url': successUrl,
+        'cancel_url': cancelUrl,
+        'buyer_name': buyerName,
+        'buyer_phone': buyerPhone,
+        'buyer_address': buyerAddress,
+      },
+      auth: true,
+    );
+    return CheckoutSessionModel.fromJson(data);
+  }
+
+  Future<List<PurchaseOrderModel>> fetchMyPurchases() async {
+    final data = await getJson('/purchase/orders/me', auth: true);
+    return (data as List<dynamic>)
+        .map((item) => PurchaseOrderModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<PurchaseOrderModel> fetchPurchaseOrder(String orderId) async {
+    final data = await getJson('/purchase/orders/$orderId', auth: true);
+    return PurchaseOrderModel.fromJson(data);
+  }
+
+  Future<PurchaseReceiptModel> fetchPurchaseReceipt(String orderId) async {
+    final data = await getJson('/purchase/orders/$orderId/receipt', auth: true);
+    return PurchaseReceiptModel.fromJson(data);
+  }
+
+  Future<List<PurchaseOrderModel>> fetchSellerPurchaseOrders() async {
+    final data = await getJson('/purchase/seller/orders', auth: true);
+    return (data as List<dynamic>)
+        .map((item) => PurchaseOrderModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<PurchaseOrderModel> updateSellerOrderStatus(
+    String orderId,
+    String orderStatus,
+  ) async {
+    final data = await patchJson(
+      '/purchase/seller/orders/$orderId/status',
+      {'order_status': orderStatus},
+      auth: true,
+    );
+    return PurchaseOrderModel.fromJson(data);
   }
 
   Future<void> changePassword({

@@ -21,7 +21,7 @@ from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.models import SubscriptionPlan
-from app.routers import auth, catalog, discovery, search, seller_ops, sellers, uploads
+from app.routers import auth, catalog, discovery, purchase, search, seller_ops, sellers, uploads
 from app.services.local_storage import media_root
 from app.telemetry import configure_telemetry
 
@@ -117,6 +117,7 @@ app.include_router(uploads.router)
 app.include_router(discovery.router)
 app.include_router(search.router)
 app.include_router(seller_ops.router)
+app.include_router(purchase.router)
 
 if settings.storage_backend == "local":
     app.mount(

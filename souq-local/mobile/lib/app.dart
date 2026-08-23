@@ -21,6 +21,9 @@ import 'features/onboarding/become_seller_screen.dart';
 import 'features/onboarding/buyer_registration_screen.dart';
 import 'features/onboarding/onboarding_welcome_screen.dart';
 import 'features/onboarding/seller_registration_screen.dart';
+import 'features/purchase/my_purchases_screen.dart';
+import 'features/purchase/purchase_checkout_screen.dart';
+import 'features/purchase/seller_orders_screen.dart';
 import 'features/premium/premium_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/seller/product_detail_screen.dart';
@@ -178,7 +181,24 @@ final routerProvider = Provider<GoRouter>((ref) {
           sellerId: state.pathParameters['sellerId']!,
           productId: state.pathParameters['productId']!,
         ),
+        routes: [
+          GoRoute(
+            path: 'checkout',
+            builder: (_, state) => PurchaseCheckoutScreen(
+              sellerId: state.pathParameters['sellerId']!,
+              product: state.extra as ProductModel,
+            ),
+          ),
+        ],
       ),
+      GoRoute(path: '/purchases', builder: (_, __) => const MyPurchasesScreen()),
+      GoRoute(
+        path: '/purchases/:orderId',
+        builder: (_, state) => PurchaseReceiptScreen(
+          orderId: state.pathParameters['orderId']!,
+        ),
+      ),
+      GoRoute(path: '/seller/orders', builder: (_, __) => const SellerOrdersScreen()),
     ],
   );
   ref.onDispose(router.dispose);
