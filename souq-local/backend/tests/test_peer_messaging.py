@@ -6,6 +6,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from tests.auth_helpers import register_test_user
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -20,17 +21,13 @@ async def client():
 async def _register(client: AsyncClient, account_type: str, name: str) -> dict:
     email = f"{account_type}-{uuid4().hex[:8]}@example.com"
     password = "SecurePass1"
-    res = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-            "account_type": account_type,
-            "display_name": name,
-        },
+    body = await register_test_user(
+        client,
+        email=email,
+        password=password,
+        account_type=account_type,
+        display_name=name,
     )
-    assert res.status_code == 201, res.text
-    body = res.json()
     return {
         "email": email,
         "password": password,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import 'margem_background.dart';
 
 class StepProgressBar extends StatelessWidget {
   const StepProgressBar({
@@ -21,11 +23,11 @@ class StepProgressBar extends StatelessWidget {
         return Expanded(
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
+            curve: Curves.easeOutCubic,
             margin: EdgeInsets.only(right: index < totalSteps - 1 ? 6 : 0),
             height: 4,
             decoration: BoxDecoration(
-              color: isActive ? AppColors.primary : AppColors.border,
+              color: isActive ? AppColors.lavender : AppColors.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -49,11 +51,12 @@ class PageDots extends StatelessWidget {
         final isActive = index == currentIndex;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
           margin: const EdgeInsets.symmetric(horizontal: 4),
           width: isActive ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: isActive ? AppColors.primary : AppColors.border,
+            color: isActive ? AppColors.lavender : AppColors.border,
             borderRadius: BorderRadius.circular(4),
           ),
         );
@@ -71,6 +74,7 @@ class OnboardingScaffold extends StatelessWidget {
     this.progressStep,
     this.progressTotal,
     this.bottom,
+    this.showBackground = true,
   });
 
   final Widget child;
@@ -79,55 +83,104 @@ class OnboardingScaffold extends StatelessWidget {
   final int? progressStep;
   final int? progressTotal;
   final Widget? bottom;
+  final bool showBackground;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.screenHorizontal, 8, AppSpacing.screenHorizontal, 0),
-              child: Column(
-                children: [
-                  if (showBack)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: onBack ?? () => Navigator.of(context).maybePop(),
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                      ),
-                    ),
-                  if (progressStep != null && progressTotal != null) ...[
-                    StepProgressBar(currentStep: progressStep!, totalSteps: progressTotal!),
-                    const SizedBox(height: AppSpacing.md),
-                  ],
-                ],
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.md,
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.lg,
-                ),
-                child: child,
-              ),
-            ),
-            if (bottom != null)
+      backgroundColor: Colors.transparent,
+      body: MargemBackground(
+        showBlobs: showBackground,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.screenHorizontal,
-                  0,
+                  8,
                   AppSpacing.screenHorizontal,
-                  AppSpacing.lg,
+                  0,
                 ),
-                child: bottom!,
+                child: Column(
+                  children: [
+                    if (showBack)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: _GlassIconButton(
+                          icon: Icons.arrow_back_ios_new_rounded,
+                          onPressed:
+                              onBack ?? () => Navigator.of(context).maybePop(),
+                        ),
+                      ),
+                    if (progressStep != null && progressTotal != null) ...[
+                      StepProgressBar(
+                        currentStep: progressStep!,
+                        totalSteps: progressTotal!,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                  ],
+                ),
               ),
-          ],
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.md,
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.lg,
+                  ),
+                  child: child,
+                ),
+              ),
+              if (bottom != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenHorizontal,
+                    0,
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.lg,
+                  ),
+                  child: bottom!,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassIconButton extends StatelessWidget {
+  const _GlassIconButton({required this.icon, required this.onPressed});
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.darkCard.withValues(alpha: 0.6)
+                : Colors.white.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.borderLight,
+            ),
+            boxShadow: AppShadows.soft(blur: 12, y: 2),
+          ),
+          child: Icon(icon, size: 18),
         ),
       ),
     );

@@ -1,16 +1,19 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/validation/form_validators.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/models/auth_models.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/margem_background.dart';
 import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -29,9 +32,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    if (kDebugMode) {
-      debugPrint('MarGem API_BASE_URL=${AppConfig.apiBaseUrl}');
-    }
   }
 
   @override
@@ -43,10 +43,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     final l10n = context.l10n;
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty) {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.enterEmailPassword)));
+      return;
+    }
+    if (!FormValidators.isValidEmail(email)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.emailRequired)));
       return;
     }
 
@@ -56,64 +62,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         await apiServiceProvider.checkHealth();
 
         final auth = ref.read(authServiceProvider);
-        final session = await auth.login(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
-
-        final prefs = await ref.read(sharedPreferencesProvider.future);
-        await auth.persistToken(prefs);
-
-        final storage = ref.read(appStorageProvider);
-        if (storage == null) {
-          throw ApiException(
-              'App storage is not ready. Please restart the app.');
+        AuthSession session;
+        try {
+          session = await auth.login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+        } on MfaRequiredException catch (mfa) {
+          if (!mounted) return;
+          final code = await _promptMfaCode();
+          if (code == null || code.isEmpty) return;
+          session = await auth.completeMfaLogin(
+            mfaToken: mfa.mfaToken,
+            code: code,
+          );
         }
 
-        final existing = storage.getSession();
-        var userSession = UserSession(
-          name: session.user.displayName.isNotEmpty
-              ? session.user.displayName
-              : l10n.returningUser,
-          email: session.user.email,
-          accountType:
-              session.user.canSell ? AccountType.seller : AccountType.buyer,
-          city: AppConfig.launchCity,
-          businessName: existing?.businessName,
-          sellerId: existing?.sellerId,
-        );
-
-        if (session.user.canSell || session.user.hasSellerProfile) {
-          try {
-            final seller = await apiServiceProvider.fetchMySeller();
-            userSession = userSession.copyWith(
-              accountType: AccountType.seller,
-              sellerId: seller.id,
-              businessName: seller.businessName,
-              city: seller.city,
-            );
-          } on ApiException {
-            // Seller may still need to complete onboarding profile creation.
-          }
-        }
-
-        final guestItems = guestFavoritesMigrationPayload(storage);
-        if (guestItems.isNotEmpty) {
-          await apiServiceProvider.migrateGuestFavorites(guestItems);
-          await storage.clearGuestFavorites();
-        }
-
-        await storage.saveSession(userSession);
-        if (userSession.hasSellerProfile &&
-            storage.getAppMode(session: userSession) == AppMode.buyer &&
-            session.user.accountType == 'seller') {
-          await storage.saveAppMode(AppMode.seller);
-        }
-        ref.read(userSessionProvider.notifier).state = userSession;
-        ref.read(authSessionProvider.notifier).state = session;
-
-        if (!mounted) return;
-        context.go(storage.homeRouteFor(userSession));
+        await _completeLogin(session);
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -126,6 +91,94 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<String?> _promptMfaCode() async {
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Two-factor authentication'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          maxLength: 8,
+          decoration: const InputDecoration(
+            labelText: 'Authenticator code',
+            counterText: '',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('Verify'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return code;
+  }
+
+  Future<void> _completeLogin(AuthSession session) async {
+    final l10n = context.l10n;
+    final auth = ref.read(authServiceProvider);
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    await auth.persistToken(prefs);
+
+    final storage = ref.read(appStorageProvider);
+    if (storage == null) {
+      throw ApiException('App storage is not ready. Please restart the app.');
+    }
+
+    final existing = storage.getSession();
+    var userSession = UserSession(
+      name: session.user.displayName.isNotEmpty
+          ? session.user.displayName
+          : l10n.returningUser,
+      email: session.user.email,
+      accountType: session.user.canSell ? AccountType.seller : AccountType.buyer,
+      city: AppConfig.launchCity,
+      businessName: existing?.businessName,
+      sellerId: existing?.sellerId,
+    );
+
+    if (session.user.canSell || session.user.hasSellerProfile) {
+      try {
+        final seller = await apiServiceProvider.fetchMySeller();
+        userSession = userSession.copyWith(
+          accountType: AccountType.seller,
+          sellerId: seller.id,
+          businessName: seller.businessName,
+          city: seller.city,
+        );
+      } on ApiException {
+        // Seller may still need to complete onboarding profile creation.
+      }
+    }
+
+    final guestItems = guestFavoritesMigrationPayload(storage);
+    if (guestItems.isNotEmpty) {
+      await apiServiceProvider.migrateGuestFavorites(guestItems);
+      await storage.clearGuestFavorites();
+    }
+
+    await storage.saveSession(userSession);
+    if (userSession.hasSellerProfile &&
+        storage.getAppMode(session: userSession) == AppMode.buyer &&
+        session.user.accountType == 'seller') {
+      await storage.saveAppMode(AppMode.seller);
+    }
+    ref.read(userSessionProvider.notifier).state = userSession;
+    ref.read(authSessionProvider.notifier).state = session;
+
+    if (!mounted) return;
+    context.go(storage.homeRouteFor(userSession));
   }
 
   InputDecoration _fieldDecoration({
@@ -160,8 +213,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
+      backgroundColor: Colors.transparent,
+      body: MargemBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             AppSpacing.screenHorizontal,
             AppSpacing.md,
@@ -171,24 +226,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.illustrationRadius),
-                child: AspectRatio(
-                  aspectRatio: 1.15,
-                  child: Image.asset(
-                    'assets/images/onboarding/onboarding_01_ideas.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: AppColors.cardSelected,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.waving_hand_rounded,
-                        size: 64,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
+              Center(
+                child: AppBrandLogo(
+                  variant: AppBrandLogoVariant.icon,
+                  iconSize: AppBrandSizes.authHeader,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -296,6 +337,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 

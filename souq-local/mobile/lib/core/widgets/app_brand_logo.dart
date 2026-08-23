@@ -1,104 +1,288 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'margem_m_logo.dart';
 
-/// MarGem brand logo — transparent asset with theme-aware fallback.
+/// Official MarGem logo sizes — use everywhere for consistent proportions.
+class AppBrandSizes {
+  AppBrandSizes._();
+
+  /// Native splash — large centered icon only.
+  static const double splash = 128;
+
+  /// Login, register, forgot-password hero.
+  static const double authHeader = 72;
+
+  /// Onboarding welcome & account-type headers.
+  static const double onboardingHeader = 64;
+
+  /// Settings, language picker.
+  static const double settingsBranding = 56;
+
+  /// Large empty states.
+  static const double emptyState = 88;
+
+  /// Drawer header mark.
+  static const double drawerHeader = 36;
+
+  /// Top app bars, compact headers, navigation.
+  static const double compact = 32;
+
+  /// Tight inline placements.
+  static const double compactSmall = 28;
+
+  /// Minimum clear-space padding around the logo (each side).
+  static const double clearSpace = 8;
+
+  /// Clear space for hero / splash placements.
+  static const double clearSpaceHero = 16;
+
+  static double clearSpaceFor(AppBrandContext context) {
+    return switch (context) {
+      AppBrandContext.primaryBranding => clearSpaceHero,
+      _ => clearSpace,
+    };
+  }
+}
+
+/// Where the logo appears — drives icon vs lockup per brand rules.
+enum AppBrandContext {
+  /// Splash — icon only, large.
+  primaryBranding,
+
+  /// Language picker, about.
+  settingsBranding,
+
+  /// Large empty states.
+  emptyState,
+
+  /// Top bars, drawers, tabs, cards.
+  compactBranding,
+}
+
+/// MarGem brand logo — crisp vector mark with optional raster fallback.
 class AppBrandLogo extends StatelessWidget {
   const AppBrandLogo({
     super.key,
-    this.variant = AppBrandLogoVariant.full,
+    this.brandContext,
+    this.variant,
     this.width,
     this.height,
     this.iconSize = 40,
-  });
+    this.showWordmark = false,
+    this.preferVector = true,
+  }) : assert(
+          brandContext != null || variant != null,
+          'Provide either brandContext or variant',
+        );
 
-  final AppBrandLogoVariant variant;
+  /// Picks icon size & variant from [AppBrandContext] UX rules.
+  factory AppBrandLogo.forContext(
+    AppBrandContext brandContext, {
+    Key? key,
+    double? size,
+    double? width,
+    double? height,
+    bool showWordmark = false,
+    bool preferVector = true,
+  }) {
+    return AppBrandLogo(
+      key: key,
+      brandContext: brandContext,
+      iconSize: size ?? _defaultSizeFor(brandContext),
+      width: width,
+      height: height,
+      showWordmark: showWordmark,
+      preferVector: preferVector,
+    );
+  }
+
+  final AppBrandContext? brandContext;
+  final AppBrandLogoVariant? variant;
   final double? width;
   final double? height;
   final double iconSize;
+  final bool showWordmark;
+  final bool preferVector;
 
-  static const _logoAsset = 'assets/images/margem_logo.png';
+  static const _iconAsset = 'assets/images/margem_logo.png';
+  static const _iconAsset2x = 'assets/images/margem_logo@2x.png';
+  static const _fullAsset = 'assets/images/margem_logo_full.png';
+
+  static double _defaultSizeFor(AppBrandContext context) {
+    return switch (context) {
+      AppBrandContext.primaryBranding => AppBrandSizes.splash,
+      AppBrandContext.settingsBranding => AppBrandSizes.settingsBranding,
+      AppBrandContext.emptyState => AppBrandSizes.emptyState,
+      AppBrandContext.compactBranding => AppBrandSizes.compact,
+    };
+  }
+
+  AppBrandLogoVariant get _resolvedVariant {
+    if (variant != null) return variant!;
+    return switch (brandContext!) {
+      AppBrandContext.primaryBranding ||
+      AppBrandContext.settingsBranding ||
+      AppBrandContext.emptyState ||
+      AppBrandContext.compactBranding =>
+        AppBrandLogoVariant.icon,
+    };
+  }
+
+  double get _clearSpace {
+    if (brandContext != null) {
+      return AppBrandSizes.clearSpaceFor(brandContext!);
+    }
+    return AppBrandSizes.clearSpace;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Semantics(
+    final resolved = _resolvedVariant;
+    final logo = Semantics(
       label: 'MarGem logo',
-      child: switch (variant) {
-        AppBrandLogoVariant.full => _ThemedAssetLogo(
-            asset: _logoAsset,
-            width: width ?? 260,
+      child: switch (resolved) {
+        AppBrandLogoVariant.full => _FullLockup(
+            width: width,
             height: height,
-            fit: BoxFit.contain,
-            isDark: isDark,
-            fallback: _FallbackLogo(
-              showTagline: true,
-              iconSize: iconSize + 28,
-              isDark: isDark,
-            ),
+            iconSize: iconSize,
+            showWordmark: showWordmark,
+            preferVector: preferVector,
           ),
-        AppBrandLogoVariant.icon => _ThemedAssetLogo(
-            asset: _logoAsset,
-            width: iconSize,
-            height: iconSize,
-            fit: BoxFit.contain,
-            isDark: isDark,
-            fallback: _FallbackLogo(
-              showTagline: false,
-              iconSize: iconSize,
-              isDark: isDark,
-            ),
+        AppBrandLogoVariant.icon => _LogoMark(
+            size: iconSize,
+            preferVector: preferVector,
           ),
-        AppBrandLogoVariant.wordmark => _Wordmark(height: iconSize * 0.55, isDark: isDark),
+        AppBrandLogoVariant.lockup => _HorizontalLockup(
+            iconSize: iconSize,
+            preferVector: preferVector,
+          ),
+        AppBrandLogoVariant.wordmark => _Wordmark(height: iconSize * 0.55),
       },
+    );
+
+    return Padding(
+      padding: EdgeInsets.all(_clearSpace),
+      child: logo,
     );
   }
 }
 
-class _ThemedAssetLogo extends StatelessWidget {
-  const _ThemedAssetLogo({
+class _FullLockup extends StatelessWidget {
+  const _FullLockup({
+    required this.width,
+    required this.height,
+    required this.iconSize,
+    required this.showWordmark,
+    required this.preferVector,
+  });
+
+  final double? width;
+  final double? height;
+  final double iconSize;
+  final bool showWordmark;
+  final bool preferVector;
+
+  @override
+  Widget build(BuildContext context) {
+    if (preferVector) {
+      return MargemMLogo(
+        size: iconSize,
+        showWordmark: true,
+        wordmarkSize: iconSize * 0.22,
+      );
+    }
+    return _LogoImage(
+      asset: AppBrandLogo._fullAsset,
+      width: width ?? iconSize * 1.15,
+      height: height,
+      fallback: MargemMLogo(
+        size: iconSize,
+        showWordmark: true,
+        wordmarkSize: iconSize * 0.22,
+      ),
+    );
+  }
+}
+
+class _HorizontalLockup extends StatelessWidget {
+  const _HorizontalLockup({
+    required this.iconSize,
+    required this.preferVector,
+  });
+
+  final double iconSize;
+  final bool preferVector;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _LogoMark(size: iconSize, preferVector: preferVector),
+        SizedBox(width: iconSize * 0.2),
+        _Wordmark(height: iconSize * 0.55),
+      ],
+    );
+  }
+}
+
+class _LogoMark extends StatelessWidget {
+  const _LogoMark({
+    required this.size,
+    this.preferVector = true,
+  });
+
+  final double size;
+  final bool preferVector;
+
+  @override
+  Widget build(BuildContext context) {
+    if (preferVector) {
+      return MargemMLogo(size: size);
+    }
+    return _LogoImage(
+      asset: AppBrandLogo._iconAsset,
+      width: size,
+      height: size,
+      fallback: MargemMLogo(size: size),
+    );
+  }
+}
+
+class _LogoImage extends StatelessWidget {
+  const _LogoImage({
     required this.asset,
-    required this.isDark,
-    required this.fallback,
     this.width,
     this.height,
-    this.fit = BoxFit.contain,
+    required this.fallback,
   });
 
   final String asset;
-  final bool isDark;
-  final Widget fallback;
   final double? width;
   final double? height;
-  final BoxFit fit;
+  final Widget fallback;
 
   @override
   Widget build(BuildContext context) {
-    final image = Image.asset(
-      asset,
+  final dpr = MediaQuery.devicePixelRatioOf(context);
+  final assetPath = dpr >= 2.5
+      ? AppBrandLogo._iconAsset2x
+      : asset;
+
+    return Image.asset(
+      assetPath,
       width: width,
       height: height,
-      fit: fit,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
+      gaplessPlayback: true,
       errorBuilder: (_, __, ___) => fallback,
-    );
-
-    if (!isDark) return image;
-
-    // Brighten dark gem fills so the transparent logo stays readable on dark surfaces.
-    return ColorFiltered(
-      colorFilter: const ColorFilter.matrix(<double>[
-        1.15, 0, 0, 0, 40,
-        0, 1.15, 0, 0, 40,
-        0, 0, 1.15, 0, 40,
-        0, 0, 0, 1, 0,
-      ]),
-      child: image,
     );
   }
 }
 
-enum AppBrandLogoVariant { full, icon, wordmark }
+enum AppBrandLogoVariant { full, lockup, icon, wordmark }
 
 /// Backwards-compatible alias used across existing screens.
 class AppLogoPlaceholder extends StatelessWidget {
@@ -115,11 +299,11 @@ class AppLogoPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (showFullLogo || size >= 100) {
+    if (showFullLogo) {
       return AppBrandLogo(
         variant: AppBrandLogoVariant.full,
-        width: size * 2.1,
-        iconSize: size * 0.45,
+        iconSize: size,
+        showWordmark: true,
       );
     }
 
@@ -130,125 +314,46 @@ class AppLogoPlaceholder extends StatelessWidget {
   }
 }
 
+/// Compact nav/header mark — icon only.
 class AppLogoHeader extends StatelessWidget {
-  const AppLogoHeader({super.key, this.size = 36});
+  const AppLogoHeader({super.key, this.size = AppBrandSizes.compact});
 
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    return AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: size);
+    return AppBrandLogo.forContext(
+      AppBrandContext.compactBranding,
+      size: size,
+    );
   }
 }
 
 class _Wordmark extends StatelessWidget {
-  const _Wordmark({required this.height, required this.isDark});
+  const _Wordmark({required this.height});
 
   final double height;
-  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    final marColor = isDark ? Colors.white : AppColors.charcoal;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final marColor = isDark ? Colors.white : AppColors.navy;
     return RichText(
       text: TextSpan(
-        style: TextStyle(fontSize: height, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+        style: TextStyle(
+          fontSize: height,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
+          height: 1.05,
+        ),
         children: [
           TextSpan(text: 'Mar', style: TextStyle(color: marColor)),
-          const TextSpan(text: 'Gem', style: TextStyle(color: AppColors.primary)),
+          const TextSpan(
+            text: 'Gem',
+            style: TextStyle(color: AppColors.lavender),
+          ),
         ],
       ),
     );
   }
-}
-
-class _FallbackLogo extends StatelessWidget {
-  const _FallbackLogo({
-    required this.showTagline,
-    required this.iconSize,
-    required this.isDark,
-  });
-
-  final bool showTagline;
-  final double iconSize;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final taglineColor = (isDark ? Colors.white : AppColors.charcoal).withValues(alpha: 0.75);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CustomPaint(
-          size: Size(iconSize, iconSize),
-          painter: _MarGemGemPainter(isDark: isDark),
-        ),
-        if (showTagline) ...[
-          SizedBox(height: iconSize * 0.28),
-          _Wordmark(height: iconSize * 0.34, isDark: isDark),
-          SizedBox(height: iconSize * 0.12),
-          Text(
-            'DISCOVER MOROCCO\'S HIDDEN GEMS',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: iconSize * 0.11,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w600,
-              color: taglineColor,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _MarGemGemPainter extends CustomPainter {
-  _MarGemGemPainter({required this.isDark});
-
-  final bool isDark;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final cx = w / 2;
-    final fill = isDark ? const Color(0xFF1A1A1A) : AppColors.charcoal;
-
-    final gem = Path()
-      ..moveTo(cx, h * 0.06)
-      ..lineTo(w * 0.92, h * 0.38)
-      ..lineTo(cx, h * 0.94)
-      ..lineTo(w * 0.08, h * 0.38)
-      ..close();
-
-    canvas.drawPath(gem, Paint()..color = fill);
-    canvas.drawPath(
-      gem,
-      Paint()
-        ..color = AppColors.primary
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = w * 0.04,
-    );
-
-    final mPath = Path()
-      ..moveTo(cx - w * 0.18, h * 0.42)
-      ..lineTo(cx - w * 0.1, h * 0.24)
-      ..lineTo(cx, h * 0.36)
-      ..lineTo(cx + w * 0.1, h * 0.24)
-      ..lineTo(cx + w * 0.18, h * 0.42);
-    canvas.drawPath(
-      mPath,
-      Paint()
-        ..color = AppColors.primary
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = w * 0.05
-        ..strokeCap = StrokeCap.round,
-    );
-
-    canvas.drawCircle(Offset(cx, h * 0.12), w * 0.05, Paint()..color = AppColors.primary);
-  }
-
-  @override
-  bool shouldRepaint(covariant _MarGemGemPainter oldDelegate) => oldDelegate.isDark != isDark;
 }
