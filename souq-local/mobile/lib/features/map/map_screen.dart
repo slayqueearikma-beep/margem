@@ -43,22 +43,31 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final city = ref.read(buyerCityProvider);
-    if (_loadedCity != city) {
+    final category = ref.read(buyerCategorySlugProvider);
+    if (_loadedCity != city || _loadedCategory != category) {
       _loadedCity = city;
-      _mapFuture = _loadMapData(city);
+      _loadedCategory = category;
+      _mapFuture = _loadMapData(city, category: category);
     }
   }
 
-  void _reload(String city) {
+  String? _loadedCategory;
+
+  void _reload(String city, {String? category}) {
     setState(() {
       _loadedCity = city;
-      _mapFuture = _loadMapData(city);
+      _loadedCategory = category;
+      _mapFuture = _loadMapData(city, category: category);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(buyerCityProvider);
+    final category = ref.watch(buyerCategorySlugProvider);
+    ref.listen(buyerCategorySlugProvider, (previous, next) {
+      if (previous != next) _reload(city, category: next);
+    });
 
     if (!AppConfig.hasGoogleMapsApiKey) {
       return Scaffold(
@@ -83,7 +92,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         if (snapshot.hasError) {
           return AsyncErrorView.fromError(
             snapshot.error!,
-            onRetry: () => _reload(city),
+            onRetry: () => _reload(city, category: category),
           );
         }
 
@@ -192,10 +201,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  Future<_MapData> _loadMapData(String city) async {
+  Future<_MapData> _loadMapData(String city, {String? category}) async {
     try {
       final results = await Future.wait([
-        apiServiceProvider.fetchMapPins(city: city),
+        apiServiceProvider.fetchMapPins(city: city, category: category),
         apiServiceProvider.fetchWarningZones(city: city),
       ]);
       return _MapData(

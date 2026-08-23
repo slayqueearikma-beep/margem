@@ -6,6 +6,7 @@ class CategoryModel {
     this.nameFr = '',
     this.nameAr = '',
     required this.icon,
+    this.accentColor = '#5B6CFF',
   });
 
   final String id;
@@ -14,6 +15,7 @@ class CategoryModel {
   final String nameFr;
   final String nameAr;
   final String icon;
+  final String accentColor;
 
   String localizedName(String languageCode) {
     switch (languageCode) {
@@ -34,6 +36,7 @@ class CategoryModel {
       nameFr: json['name_fr'] as String? ?? '',
       nameAr: json['name_ar'] as String? ?? '',
       icon: json['icon'] as String? ?? 'store',
+      accentColor: json['accent_color'] as String? ?? '#5B6CFF',
     );
   }
 }
@@ -778,7 +781,10 @@ class SubscriptionPlanModel {
     required this.name,
     required this.description,
     required this.priceMad,
+    this.priceMadYearly,
     required this.billingPeriodDays,
+    this.tierLevel = 1,
+    this.trialDays = 0,
     required this.features,
     required this.isActive,
   });
@@ -788,7 +794,10 @@ class SubscriptionPlanModel {
   final String name;
   final String description;
   final double priceMad;
+  final double? priceMadYearly;
   final int billingPeriodDays;
+  final int tierLevel;
+  final int trialDays;
   final List<String> features;
   final bool isActive;
 
@@ -799,7 +808,10 @@ class SubscriptionPlanModel {
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
       priceMad: (json['price_mad'] as num?)?.toDouble() ?? 0,
+      priceMadYearly: (json['price_mad_yearly'] as num?)?.toDouble(),
       billingPeriodDays: json['billing_period_days'] as int? ?? 30,
+      tierLevel: json['tier_level'] as int? ?? 1,
+      trialDays: json['trial_days'] as int? ?? 0,
       features: (json['features'] as List<dynamic>? ?? [])
           .map((item) => item.toString())
           .toList(),
@@ -816,6 +828,10 @@ class SubscriptionModel {
     required this.currentPeriodStart,
     required this.currentPeriodEnd,
     required this.provider,
+    this.providerReference = '',
+    this.stripeSubscriptionId,
+    this.billingInterval = 'monthly',
+    this.cancelAtPeriodEnd = false,
   });
 
   final String id;
@@ -824,6 +840,12 @@ class SubscriptionModel {
   final String currentPeriodStart;
   final String currentPeriodEnd;
   final String provider;
+  final String providerReference;
+  final String? stripeSubscriptionId;
+  final String billingInterval;
+  final bool cancelAtPeriodEnd;
+
+  bool get isStripe => provider == 'stripe';
 
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionModel(
@@ -834,6 +856,33 @@ class SubscriptionModel {
       currentPeriodStart: json['current_period_start'] as String? ?? '',
       currentPeriodEnd: json['current_period_end'] as String? ?? '',
       provider: json['provider'] as String? ?? '',
+      providerReference: json['provider_reference'] as String? ?? '',
+      stripeSubscriptionId: json['stripe_subscription_id'] as String?,
+      billingInterval: json['billing_interval'] as String? ?? 'monthly',
+      cancelAtPeriodEnd: json['cancel_at_period_end'] as bool? ?? false,
+    );
+  }
+}
+
+class BillingConfigModel {
+  const BillingConfigModel({
+    required this.stripeEnabled,
+    required this.publishableKey,
+    required this.selfServeEnabled,
+    required this.trialEnabled,
+  });
+
+  final bool stripeEnabled;
+  final String publishableKey;
+  final bool selfServeEnabled;
+  final bool trialEnabled;
+
+  factory BillingConfigModel.fromJson(Map<String, dynamic> json) {
+    return BillingConfigModel(
+      stripeEnabled: json['stripe_enabled'] as bool? ?? false,
+      publishableKey: json['publishable_key'] as String? ?? '',
+      selfServeEnabled: json['self_serve_enabled'] as bool? ?? false,
+      trialEnabled: json['trial_enabled'] as bool? ?? false,
     );
   }
 }

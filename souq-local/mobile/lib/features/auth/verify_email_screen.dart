@@ -30,9 +30,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   void initState() {
     super.initState();
     _tokenController = TextEditingController(text: widget.initialToken);
-    if (widget.initialToken.trim().isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _confirm());
-    }
   }
 
   @override
