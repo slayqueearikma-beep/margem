@@ -27,6 +27,7 @@ from app.models import (
 )
 from app.services.notifications import notify_user
 from app.services.payment_provider import CheckoutSession, get_payment_provider, hash_webhook_payload
+from app.services.subscription_service import ensure_checkout_allowed
 
 logger = logging.getLogger("margem.billing")
 
@@ -49,6 +50,8 @@ async def create_subscription_checkout(
     ).scalar_one_or_none()
     if plan is None:
         raise ValueError("Plan not found")
+
+    await ensure_checkout_allowed(session, user, plan)
 
     payment = DribexServicePayment(
         id=uuid4(),

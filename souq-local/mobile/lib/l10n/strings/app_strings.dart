@@ -662,6 +662,7 @@ abstract class AppStrings {
   String get privacyAndSecurityTitle;
   String get helpAndSupportTitle;
   String get subscriptionManagementTitle;
+  String get paymentHistoryTitle;
   String get subscriptionRenewsUntil;
   String get cancelSubscriptionTitle;
   String get cancelSubscriptionBody;

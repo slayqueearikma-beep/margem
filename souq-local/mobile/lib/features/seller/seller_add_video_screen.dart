@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../core/models/models.dart';
+import '../../core/providers/subscription_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/upload_service.dart';
 import '../../core/theme/app_spacing.dart';
@@ -17,6 +19,13 @@ import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
 import 'seller_video_constants.dart';
+
+final sellerVideoQuotaProvider =
+    FutureProvider.autoDispose<SellerVideoQuotaModel?>((ref) async {
+  final account = ref.watch(sellerAccountProvider).valueOrNull;
+  if (account == null) return null;
+  return apiServiceProvider.fetchSellerVideoQuota(account.profile.id);
+});
 
 class SellerAddVideoScreen extends ConsumerStatefulWidget {
   const SellerAddVideoScreen({super.key, this.initialFile});
@@ -134,10 +143,13 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
       context.pop();
     } on ApiException catch (error) {
       if (!mounted) return;
+      final message = error.statusCode == 403
+          ? l10n.premiumRequiredForVideo
+          : error.message;
       await showAppErrorDialog(
         context,
         title: l10n.somethingWentWrong,
-        message: error.message,
+        message: message,
       );
     } catch (_) {
       if (!mounted) return;
@@ -161,6 +173,7 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final accountAsync = ref.watch(sellerAccountProvider);
+    final quotaAsync = ref.watch(sellerVideoQuotaProvider);
 
     return accountAsync.when(
       loading: () => const Scaffold(
@@ -192,6 +205,32 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: context.colors.textSecondary,
                       ),
+                ),
+                quotaAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (quota) {
+                    if (quota == null || quota.isPremium) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.md),
+                      child: Card(
+                        child: ListTile(
+                          title: Text(l10n.premiumRequiredTitle),
+                          subtitle: Text(
+                            '${quota.activeVideos}/${quota.limit ?? 5} videos used',
+                          ),
+                          trailing: quota.isAtLimit
+                              ? FilledButton(
+                                  onPressed: () => context.push('/premium'),
+                                  child: Text(l10n.upgradeToPremium),
+                                )
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 _SourceOptionCard(

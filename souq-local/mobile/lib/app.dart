@@ -230,7 +230,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
-      GoRoute(path: '/premium', builder: (_, __) => const PremiumScreen()),
+      GoRoute(
+        path: '/premium',
+        builder: (_, state) => PremiumScreen(
+          checkoutNotice: state.uri.queryParameters['checkout'],
+        ),
+      ),
+      GoRoute(
+        path: '/premium/success',
+        redirect: (_, __) => '/premium?checkout=success',
+      ),
+      GoRoute(
+        path: '/premium/cancel',
+        redirect: (_, __) => '/premium?checkout=cancelled',
+      ),
       GoRoute(path: '/profile', builder: (_, __) => const BuyerProfileScreen()),
       GoRoute(
           path: '/messages',

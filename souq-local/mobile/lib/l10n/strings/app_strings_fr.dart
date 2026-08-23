@@ -1520,6 +1520,8 @@ class AppStringsFr extends AppStringsEn {
 
   @override
   String get subscriptionManagementTitle => 'Votre abonnement';
+  @override
+  String get paymentHistoryTitle => 'Historique des paiements';
 
   @override
   String get subscriptionRenewsUntil => 'Accès jusqu’au';

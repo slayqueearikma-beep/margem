@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/subscription_providers.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_spacing.dart';
@@ -215,6 +216,7 @@ class SellerDrawer extends ConsumerWidget {
     await ref.read(authServiceProvider).logout(prefs);
     await ref.read(appStorageProvider)?.logout();
     ref.invalidate(sellerAccountProvider);
+    invalidateSubscriptionProviders(ref);
     ref.read(userSessionProvider.notifier).state = null;
     ref.read(authSessionProvider.notifier).state = null;
     if (context.mounted) context.go('/login');

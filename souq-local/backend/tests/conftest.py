@@ -92,15 +92,15 @@ async def prepare_database():
                         billing_period_days=30,
                         features=["Personalized recommendations", "Priority support"],
                     ),
-                    SubscriptionPlan(
-                        id=uuid4(),
-                        code="seller_pro",
-                        name="Seller Pro",
-                        description="Seller visibility boost",
-                        price_mad=199,
-                        billing_period_days=30,
-                        features=["Featured placement", "Analytics", "Premium badge"],
-                    ),
+                SubscriptionPlan(
+                    id=uuid4(),
+                    code="seller_pro",
+                    name="Dribex Pro",
+                    description="Seller visibility boost",
+                    price_mad=99,
+                    billing_period_days=30,
+                    features=["Featured placement", "Analytics", "Premium badge"],
+                ),
                 ]
             )
         existing_packages = (

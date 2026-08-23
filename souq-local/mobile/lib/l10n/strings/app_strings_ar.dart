@@ -1524,6 +1524,8 @@ class AppStringsAr extends AppStringsEn {
 
   @override
   String get subscriptionManagementTitle => 'اشتراكك';
+  @override
+  String get paymentHistoryTitle => 'سجل المدفوعات';
 
   @override
   String get subscriptionRenewsUntil => 'الوصول حتى';

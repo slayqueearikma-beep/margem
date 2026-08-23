@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/validation/form_validators.dart';
+import '../../core/providers/subscription_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -197,6 +198,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
     ref.read(userSessionProvider.notifier).state = userSession;
     ref.read(authSessionProvider.notifier).state = session;
+    invalidateSubscriptionProviders(ref);
     syncLegalAcceptanceFromAuthUser(ref, session.user);
 
     if (!mounted) return;

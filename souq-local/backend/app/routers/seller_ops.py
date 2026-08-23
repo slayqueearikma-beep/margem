@@ -504,11 +504,19 @@ async def reply_message(
 
 
 @router.get("/subscriptions/plans", response_model=list[PlanOut])
-async def list_plans(session: AsyncSession = Depends(get_db)) -> list[SubscriptionPlan]:
+async def list_plans(
+    audience: str | None = Query(default=None, pattern="^(buyer|seller)$"),
+    session: AsyncSession = Depends(get_db),
+) -> list[SubscriptionPlan]:
+    from app.services.subscription_service import plan_audience
+
     result = await session.execute(
         select(SubscriptionPlan).where(SubscriptionPlan.is_active.is_(True)).order_by(SubscriptionPlan.price_mad.asc())
     )
-    return list(result.scalars().all())
+    plans = list(result.scalars().all())
+    if audience is None:
+        return plans
+    return [plan for plan in plans if plan_audience(plan.code) == audience]
 
 
 @router.get("/subscriptions/me", response_model=SubscriptionOut | None)
@@ -516,14 +524,11 @@ async def my_subscription(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut | None:
-    result = await session.execute(
-        select(Subscription)
-        .options(selectinload(Subscription.plan))
-        .where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
-        .order_by(Subscription.created_at.desc())
-        .limit(1)
-    )
-    sub = result.scalar_one_or_none()
+    from app.services.subscription_service import get_active_subscription, revoke_expired_entitlements
+
+    sub = await get_active_subscription(session, user.id)
+    sub = await revoke_expired_entitlements(session, user, subscription=sub)
+    await session.commit()
     if sub is None:
         return None
     return SubscriptionOut(

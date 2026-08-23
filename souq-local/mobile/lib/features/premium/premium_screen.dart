@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/providers/subscription_providers.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -18,31 +19,11 @@ import '../legal/legal_config.dart';
 import '../legal/legal_documents.dart';
 import '../legal/legal_document_screen.dart';
 
-final subscriptionPlansProvider =
-    FutureProvider.autoDispose<List<SubscriptionPlanModel>>((ref) {
-  return apiServiceProvider.fetchSubscriptionPlans();
-});
-
-final mySubscriptionProvider =
-    FutureProvider.autoDispose<SubscriptionModel?>((ref) {
-  final session = ref.watch(userSessionProvider);
-  if (session == null || session.isGuest) return Future.value(null);
-  return apiServiceProvider.fetchMySubscription();
-});
-
-final billingStatusProvider = FutureProvider.autoDispose<BillingStatusModel>((ref) {
-  return apiServiceProvider.fetchBillingStatus();
-});
-
-final myPlatformPaymentsProvider =
-    FutureProvider.autoDispose<List<PlatformPaymentModel>>((ref) {
-  final session = ref.watch(userSessionProvider);
-  if (session == null || session.isGuest) return Future.value(const []);
-  return apiServiceProvider.fetchMyPlatformPayments();
-});
-
 class PremiumScreen extends ConsumerStatefulWidget {
-  const PremiumScreen({super.key});
+  const PremiumScreen({super.key, this.checkoutNotice});
+
+  /// Optional post-checkout banner (`success`, `cancelled`).
+  final String? checkoutNotice;
 
   @override
   ConsumerState<PremiumScreen> createState() => _PremiumScreenState();
@@ -52,6 +33,27 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
   String? _subscribingCode;
   bool _subscriptionTermsAccepted = false;
   bool _cancelling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _handleCheckoutNotice());
+  }
+
+  void _handleCheckoutNotice() {
+    final notice = widget.checkoutNotice;
+    if (notice == null || !mounted) return;
+    invalidateSubscriptionProviders(ref);
+    final l10n = context.l10n;
+    final message = switch (notice) {
+      'success' => l10n.premiumActivated,
+      'cancelled' => l10n.premiumCheckoutFailed,
+      _ => null,
+    };
+    if (message != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
 
   Future<void> _cancelSubscription() async {
     final l10n = context.l10n;
@@ -70,7 +72,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
     setState(() => _cancelling = true);
     try {
       await apiServiceProvider.cancelSubscription();
-      ref.invalidate(mySubscriptionProvider);
+      invalidateSubscriptionProviders(ref);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.cancelSubscriptionScheduled)),
@@ -115,7 +117,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
       if (!mounted) return;
 
       if (result.activated) {
-        ref.invalidate(mySubscriptionProvider);
+        invalidateSubscriptionProviders(ref);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.premiumActivated)),
         );
@@ -143,9 +145,12 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
       }
     } on ApiException catch (error) {
       if (mounted) {
-        final message = error.statusCode == 503
-            ? l10n.premiumBillingUnavailable
-            : friendlyErrorMessage(error, l10n);
+        final message = switch (error.statusCode) {
+          503 => l10n.premiumBillingUnavailable,
+          400 when error.message.toLowerCase().contains('active subscription') =>
+            l10n.currentPlan,
+          _ => friendlyErrorMessage(error, l10n),
+        };
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
@@ -163,7 +168,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
       try {
         final payment = await apiServiceProvider.fetchPlatformPayment(paymentId);
         if (payment.status == 'success') {
-          ref.invalidate(mySubscriptionProvider);
+          invalidateSubscriptionProviders(ref);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(l10n.premiumActivated)),
@@ -209,21 +214,22 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
         error: (error, _) => AsyncErrorView.fromError(error,
             onRetry: () => ref.invalidate(subscriptionPlansProvider)),
         data: (plans) {
-          if (plans.isEmpty) {
+          final visiblePlans = filterPlansForSession(plans, session);
+          if (visiblePlans.isEmpty) {
             return BuyerEmptyState(
               icon: Icons.workspace_premium_outlined,
               title: l10n.noPremiumPlans,
             );
           }
           final active = subscriptionAsync.valueOrNull;
-          final billing = billingAsync.valueOrNull;
-          final selfServeEnabled = billing?.selfServeEnabled ?? true;
+          final billingLoading = billingAsync.isLoading;
+          final billingError = billingAsync.hasError;
+          final selfServeEnabled =
+              billingAsync.valueOrNull?.selfServeEnabled ?? false;
 
           return RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(subscriptionPlansProvider);
-              ref.invalidate(mySubscriptionProvider);
-              ref.invalidate(billingStatusProvider);
+              invalidateSubscriptionProviders(ref);
             },
             child: ListView(
               padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
@@ -264,7 +270,20 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                   ),
                 ],
                 const SizedBox(height: AppSpacing.md),
-                ...plans.map(
+                if (billingLoading)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: AppSpacing.md),
+                    child: LinearProgressIndicator(),
+                  )
+                else if (billingError)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: Text(
+                      l10n.premiumBillingUnavailable,
+                      style: TextStyle(color: context.colors.textSecondary),
+                    ),
+                  ),
+                ...visiblePlans.map(
                   (plan) => _PlanCard(
                     plan: plan,
                     active: active?.plan.code == plan.code,
@@ -456,7 +475,7 @@ class _PaymentHistorySection extends ConsumerWidget {
       data: (payments) {
         if (payments.isEmpty) return const SizedBox.shrink();
         return MarketSectionCard(
-          title: l10n.premium,
+          title: l10n.paymentHistoryTitle,
           child: Column(
             children: payments.take(5).map((payment) {
               return ListTile(

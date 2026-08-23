@@ -175,9 +175,13 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<List<dynamic>> getJsonList(String path, {bool auth = false}) async {
+  Future<List<dynamic>> getJsonList(
+    String path, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
-      () => _get(_uri(path), headers: auth ? _authHeaders : null),
+      () => _get(_uri(path, query), headers: auth ? _authHeaders : null),
       auth: auth,
     );
     _ensureSuccess(response);
@@ -1249,8 +1253,14 @@ class ApiService {
     );
   }
 
-  Future<List<SubscriptionPlanModel>> fetchSubscriptionPlans() async {
-    final data = await getJsonList('/subscriptions/plans');
+  Future<List<SubscriptionPlanModel>> fetchSubscriptionPlans({
+    String? audience,
+  }) async {
+    final query = audience == null ? null : <String, String>{'audience': audience};
+    final data = await getJsonList(
+      '/subscriptions/plans',
+      query: query,
+    );
     return data
         .map((item) =>
             SubscriptionPlanModel.fromJson(item as Map<String, dynamic>))
@@ -1321,7 +1331,12 @@ class ApiService {
 
   Future<PlatformPaymentModel> fetchPlatformPayment(String paymentId) async {
     final data = await getJson('/billing/payments/$paymentId', auth: true);
-    return PlatformPaymentModel.fromJson(data as Map<String, dynamic>);
+    return PlatformPaymentModel.fromJson(data);
+  }
+
+  Future<SellerVideoQuotaModel> fetchSellerVideoQuota(String sellerId) async {
+    final data = await getJson('/sellers/$sellerId/videos/quota', auth: true);
+    return SellerVideoQuotaModel.fromJson(data);
   }
 
   Future<void> requestPasswordReset(String email) {
