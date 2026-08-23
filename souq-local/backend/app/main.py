@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -21,8 +23,22 @@ from app.middleware.request_context import RequestContextMiddleware
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.models import SubscriptionPlan
-from app.routers import auth, catalog, discovery, search, seller_ops, sellers, uploads
+from app.routers import (
+    auth,
+    bundles,
+    catalog,
+    community,
+    discovery,
+    marketplace_admin,
+    marketplace_community,
+    marketplaces,
+    search,
+    seller_ops,
+    sellers,
+    uploads,
+)
 from app.services.local_storage import media_root
+from app.services.community_chat import ensure_default_cities
 from app.telemetry import configure_telemetry
 
 configure_logging(json_logs=settings.app_env in {"production", "prod"})
@@ -69,6 +85,10 @@ async def lifespan(app: FastAPI):
                 ]
             )
             await session.commit()
+
+    async with database.SessionLocal() as session:
+        await ensure_default_cities(session)
+
     yield
     await database.engine.dispose()
 
@@ -99,6 +119,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
+    expose_headers=["X-Request-ID"],
     max_age=600,
 )
 
@@ -117,6 +138,31 @@ app.include_router(uploads.router)
 app.include_router(discovery.router)
 app.include_router(search.router)
 app.include_router(seller_ops.router)
+app.include_router(community.router)
+app.include_router(marketplaces.router)
+app.include_router(marketplace_community.router)
+app.include_router(marketplace_admin.router)
+app.include_router(bundles.router)
+
+_admin_dashboard_dir: Path | None = None
+if settings.admin_dashboard_dir.strip():
+    _candidate = Path(settings.admin_dashboard_dir).expanduser()
+    if _candidate.is_dir():
+        _admin_dashboard_dir = _candidate
+if _admin_dashboard_dir is None:
+    for _candidate in (
+        Path(__file__).resolve().parents[2] / "admin-dashboard",
+        Path("/admin-dashboard"),
+    ):
+        if _candidate.is_dir():
+            _admin_dashboard_dir = _candidate
+            break
+if _admin_dashboard_dir is not None:
+    app.mount(
+        "/admin",
+        StaticFiles(directory=str(_admin_dashboard_dir), html=True),
+        name="admin-dashboard",
+    )
 
 if settings.storage_backend == "local":
     app.mount(
@@ -124,6 +170,34 @@ if settings.storage_backend == "local":
         StaticFiles(directory=str(media_root())),
         name="media",
     )
+
+_brand_dir = Path(__file__).resolve().parents[1] / "static" / "brand"
+_legal_dir = Path(__file__).resolve().parents[1] / "static" / "legal"
+if _brand_dir.is_dir():
+    app.mount("/brand", StaticFiles(directory=str(_brand_dir)), name="brand")
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon() -> FileResponse:
+        return FileResponse(_brand_dir / "favicon.ico")
+
+    @app.get("/site.webmanifest", include_in_schema=False)
+    async def web_manifest() -> FileResponse:
+        manifest = _brand_dir / "site.webmanifest"
+        if manifest.is_file():
+            return FileResponse(manifest, media_type="application/manifest+json")
+        return FileResponse(_brand_dir / "icon-192.png")
+
+
+if _legal_dir.is_dir():
+    app.mount("/legal", StaticFiles(directory=str(_legal_dir)), name="legal")
+
+    @app.get("/terms", include_in_schema=False)
+    async def terms_page() -> FileResponse:
+        return FileResponse(_legal_dir / "terms.html")
+
+    @app.get("/privacy", include_in_schema=False)
+    async def privacy_page() -> FileResponse:
+        return FileResponse(_legal_dir / "privacy.html")
 
 
 def _request_id(request: Request) -> str:
@@ -181,7 +255,12 @@ async def ready(request: Request):
             status_code=503,
             content={"status": "unavailable", "database": "error"},
         )
-    return {"status": "ok", "database": "ok"}
+    body: dict[str, str] = {"status": "ok", "database": "ok"}
+    if _admin_dashboard_dir is not None:
+        body["admin_dashboard"] = "ok"
+    else:
+        body["admin_dashboard"] = "missing"
+    return body
 
 
 @app.get("/health")

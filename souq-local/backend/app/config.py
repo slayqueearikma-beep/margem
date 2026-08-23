@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local"
 
     auth_dev_bypass: bool = False
+    # When false, non-production hosts cannot activate premium without Stripe.
+    allow_manual_billing: bool = False
     # In production, verified email is required before creating a storefront,
     # messaging users, or creating reputation signals.
     require_verified_email: bool = True
@@ -58,15 +60,26 @@ class Settings(BaseSettings):
     # Defaults to the JWT key only in development for backwards compatibility.
     upload_token_secret: str = ""
     jwt_algorithm: str = "HS256"
+    jwt_issuer: str = "margem-api"
+    jwt_audience: str = "margem-mobile"
     jwt_access_expire_minutes: int = 60
     jwt_refresh_expire_days: int = 7
     bcrypt_rounds: int = 12
+    login_lockout_threshold: int = 5
+    staff_mfa_required: bool = True
+    mfa_encryption_key: str = ""
 
     azure_storage_connection_string: str = ""
     azure_storage_container: str = "margem-media"
-    # azure = Blob SAS uploads; local = laptop disk under LOCAL_MEDIA_ROOT (home server).
+    # azure = Blob SAS; local = API disk; minio = S3-compatible on-prem object store.
     storage_backend: str = "azure"
     local_media_root: str = "./data/media"
+    minio_endpoint: str = ""
+    minio_access_key: str = ""
+    minio_secret_key: str = ""
+    minio_bucket: str = "margem-media"
+    minio_public_url: str = ""
+    minio_region: str = ""
     max_upload_bytes: int = 8_388_608
 
     cors_origins: list[str] = ["http://localhost:3000"]
@@ -74,9 +87,14 @@ class Settings(BaseSettings):
 
     rate_limit: str = "300/minute"
     auth_rate_limit: str = "30/minute"
+    signup_otp_verify_rate_limit: str = "5/minute"
     max_request_body_bytes: int = 1_048_576
     redis_url: str = ""
     allow_insecure_email_fallback: bool = False
+    # Number of trusted reverse-proxy hops that append X-Forwarded-For (0 = direct).
+    trusted_proxy_hops: int = 0
+    # Optional comma-separated extra hosts allowed for presigned upload URLs.
+    upload_allowed_hosts: list[str] = []
 
     smtp_host: str = ""
     smtp_port: int = 587
@@ -86,10 +104,16 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     public_app_url: str = "https://margem.ma"
     public_api_url: str = "http://localhost:8000"
+    # Optional path to admin-dashboard static files (Docker: /admin-dashboard).
+    admin_dashboard_dir: str = ""
 
     default_cities: list[str] = [
         "Casablanca",
     ]
+
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_currency: str = "mad"
 
     @field_validator("storage_backend", mode="before")
     @classmethod
@@ -97,8 +121,8 @@ class Settings(BaseSettings):
         if value is None or value == "":
             return "azure"
         cleaned = str(value).strip().lower()
-        if cleaned not in {"azure", "local"}:
-            raise ValueError("STORAGE_BACKEND must be 'azure' or 'local'")
+        if cleaned not in {"azure", "local", "minio"}:
+            raise ValueError("STORAGE_BACKEND must be 'azure', 'local', or 'minio'")
         return cleaned
 
     @field_validator("azure_storage_connection_string", "azure_storage_container", "local_media_root", mode="before")
@@ -108,7 +132,7 @@ class Settings(BaseSettings):
             return value.strip().strip('"').strip("'")
         return value
 
-    @field_validator("cors_origins", "allowed_hosts", mode="before")
+    @field_validator("cors_origins", "allowed_hosts", "upload_allowed_hosts", mode="before")
     @classmethod
     def parse_string_list(cls, value: Any) -> list[str]:
         if isinstance(value, str):
@@ -140,6 +164,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
+        if not self.mfa_encryption_key:
+            object.__setattr__(self, "mfa_encryption_key", self.jwt_secret_key)
         if self.app_env in {"production", "prod"}:
             if self.debug:
                 raise ValueError("DEBUG must be false in production")
@@ -161,6 +187,11 @@ class Settings(BaseSettings):
                 raise ValueError("ALLOWED_HOSTS must not include '*' in production")
             if self.storage_backend == "azure" and not self.azure_storage_connection_string:
                 raise ValueError("AZURE_STORAGE_CONNECTION_STRING is required in production when STORAGE_BACKEND=azure")
+            if self.storage_backend == "minio":
+                if not self.minio_endpoint or not self.minio_access_key or not self.minio_secret_key:
+                    raise ValueError("MINIO_ENDPOINT, MINIO_ACCESS_KEY, and MINIO_SECRET_KEY are required when STORAGE_BACKEND=minio")
+                if not self.minio_public_url:
+                    raise ValueError("MINIO_PUBLIC_URL is required when STORAGE_BACKEND=minio")
             if self.storage_backend == "local" and not self.public_api_url:
                 raise ValueError("PUBLIC_API_URL is required in production when STORAGE_BACKEND=local")
             if not self.smtp_host and not self.allow_insecure_email_fallback:

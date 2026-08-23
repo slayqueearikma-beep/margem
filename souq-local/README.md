@@ -20,20 +20,39 @@ Production readiness (score, blockers, checklist): [docs/PRODUCTION_READINESS_AU
 
 ```bash
 cd souq-local
-docker compose up
+docker compose up -d --build
 ```
 
-In another terminal:
+Or use the helper script:
+
+```bash
+./scripts/docker-admin.sh up
+```
+
+- **Admin dashboard:** http://localhost:8000/admin  
+- **API docs:** http://localhost:8000/docs  
+
+Register an account in the mobile app, then grant yourself admin:
+
+```bash
+./scripts/docker-admin.sh promote-admin your@email.com
+```
+
+Open **Users** in the admin dashboard to see all accounts. Or list from the database:
+
+```bash
+./scripts/docker-admin.sh list-users
+```
+
+In another terminal (mobile app):
 
 ```bash
 cd mobile
 flutter pub get
-flutter run
+flutter run --dart-define=API_BASE_URL=http://localhost:8000
 ```
 
 **No demo accounts are seeded.** Register buyer and seller accounts through the app.
-
-API docs: http://localhost:8000/docs
 
 ### Realistic demo marketplace data
 

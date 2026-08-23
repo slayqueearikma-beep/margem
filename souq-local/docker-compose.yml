@@ -18,8 +18,8 @@ services:
 
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: margem-api
     ports:
       - "8000:8000"
@@ -29,8 +29,15 @@ services:
       DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@postgres:5432/souq_local
       JWT_SECRET_KEY: local-dev-secret-change-in-production-min-32-chars
       UPLOAD_TOKEN_SECRET: local-dev-upload-token-secret-change-in-production-min-32-chars
+      STORAGE_BACKEND: local
+      LOCAL_MEDIA_ROOT: /data/media
+      PUBLIC_API_URL: http://localhost:8000
+      ADMIN_DASHBOARD_DIR: /admin-dashboard
       AUTH_DEV_BYPASS: "false"
-      CORS_ORIGINS: '["http://localhost:3000","http://10.0.2.2:8000"]'
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000","http://10.0.2.2:8000"]'
+    volumes:
+      - api_media:/data/media
+      - ./admin-dashboard:/admin-dashboard:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,3 +50,4 @@ services:
 
 volumes:
   postgres_data:
+  api_media:

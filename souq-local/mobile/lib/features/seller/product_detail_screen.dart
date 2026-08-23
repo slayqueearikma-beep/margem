@@ -7,15 +7,25 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/margem_app_bar.dart';
+import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
+import '../../core/widgets/user_safety_sheet.dart';
 import '../../l10n/app_localizations.dart';
 import '../wishlist/wishlist_screen.dart';
+
+bool _isStoreOwner(UserSession? session, String sellerId) {
+  final ownedSellerId = session?.sellerId;
+  return ownedSellerId != null &&
+      ownedSellerId.isNotEmpty &&
+      ownedSellerId == sellerId;
+}
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({
@@ -43,14 +53,33 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _future = apiServiceProvider.fetchSeller(widget.sellerId);
     final session = ref.read(userSessionProvider);
+    final asOwner = _isStoreOwner(session, widget.sellerId);
+    _future = apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
+    if (session == null || session.isGuest) {
+      final storage = ref.read(appStorageProvider);
+      _isFavorite = storage
+              ?.getGuestFavoriteItems()
+              .any((item) => item.productId == widget.productId) ??
+          false;
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _syncFavoriteState());
+    }
     if (session != null && !session.isGuest) {
       apiServiceProvider
           .trackRecentlyViewed(
               sellerId: widget.sellerId, productId: widget.productId)
           .catchError((_) {});
     }
+  }
+
+  Future<void> _syncFavoriteState() async {
+    try {
+      final favorites = await ref.read(favoritesProvider.future);
+      final found =
+          favorites.any((favorite) => favorite.productId == widget.productId);
+      if (mounted) setState(() => _isFavorite = found);
+    } catch (_) {}
   }
 
   @override
@@ -74,11 +103,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-              body: Center(child: CircularProgressIndicator()));
+            appBar: MarGemAppBar(),
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         if (snapshot.hasError || !snapshot.hasData) {
           return Scaffold(
-            appBar: AppBar(),
+            appBar: const MarGemAppBar(),
             body: AsyncErrorView.fromError(
               snapshot.error ?? Exception(context.l10n.somethingWentWrong),
               onRetry: () => setState(() {
@@ -93,12 +124,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             seller.products.where((p) => p.id == widget.productId).toList();
         if (matches.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: Text(context.l10n.products)),
+            appBar: MarGemAppBar(semanticLabel: context.l10n.products),
             body: Center(child: Text(context.l10n.noProductsListed)),
           );
         }
         final product = matches.first;
         final l10n = context.l10n;
+        final session = ref.watch(userSessionProvider);
+        final isOwnStore = _isStoreOwner(session, widget.sellerId);
         final gallery = _galleryUrls(product);
         final related = sortProductsForCarousel(
           seller.products.where((p) => p.id != product.id).toList(),
@@ -112,11 +145,27 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   slivers: [
                     SliverAppBar(
                       pinned: true,
+                      centerTitle: true,
+                      automaticallyImplyLeading: false,
+                      leading: const MargemBackLeading(),
+                      title: const MarGemAppBarLogo(),
+                      actions: [
+                        if (!isOwnStore &&
+                            session != null &&
+                            !session.isGuest &&
+                            seller.userId.isNotEmpty)
+                          UserSafetyMenuButton(
+                            userId: seller.userId,
+                            displayName: seller.businessName,
+                            sellerId: seller.id,
+                            productId: product.id,
+                          ),
+                      ],
                       expandedHeight: MediaQuery.sizeOf(context).width * 0.95,
                       flexibleSpace: FlexibleSpaceBar(
                         background: gallery.isEmpty
-                            ? const ColoredBox(
-                                color: AppColors.surfaceMuted,
+                            ? ColoredBox(
+                                color: context.colors.surfaceVariant,
                                 child: Center(
                                   child: Icon(Icons.image_outlined, size: 48),
                                 ),
@@ -149,9 +198,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                         children: List.generate(
                                           gallery.length,
                                           (i) => AnimatedContainer(
-                                            duration: const Duration(
+                                            duration: Duration(
                                                 milliseconds: 200),
-                                            margin: const EdgeInsets.symmetric(
+                                            margin: EdgeInsets.symmetric(
                                                 horizontal: 3),
                                             width: i == _galleryIndex ? 18 : 7,
                                             height: 7,
@@ -172,7 +221,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
+                        padding: EdgeInsets.fromLTRB(
                           AppSpacing.screenHorizontal,
                           AppSpacing.lg,
                           AppSpacing.screenHorizontal,
@@ -188,7 +237,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                   .headlineSmall
                                   ?.copyWith(fontWeight: FontWeight.w800),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               product.priceMad == null
                                   ? l10n.priceOnRequest
@@ -197,47 +246,47 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                   .textTheme
                                   .headlineMedium
                                   ?.copyWith(
-                                    color: AppColors.primary,
+                                    color: context.colors.primary,
                                     fontWeight: FontWeight.w800,
                                   ),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             Row(
                               children: [
                                 RatingBarIndicator(
                                   rating: seller.averageRating,
-                                  itemBuilder: (_, __) => const Icon(
+                                  itemBuilder: (_, __) => Icon(
                                     Icons.star_rounded,
-                                    color: AppColors.star,
+                                    color: context.colors.star,
                                   ),
                                   itemCount: 5,
                                   itemSize: 16,
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 Text(
                                   seller.averageRating.toStringAsFixed(1),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: AppSpacing.lg),
+                            SizedBox(height: AppSpacing.lg),
                             InkWell(
                               onTap: () =>
                                   context.push('/seller/${seller.id}'),
                               borderRadius: BorderRadius.circular(16),
                               child: MarketSectionCard(
                                 title: l10n.seller,
-                                trailing: const Icon(
+                                trailing: Icon(
                                   Icons.chevron_right_rounded,
-                                  color: AppColors.textSecondary,
+                                  color: context.colors.textSecondary,
                                 ),
                                 child: Row(
                                   children: [
                                     CircleAvatar(
                                       radius: 24,
-                                      backgroundColor: AppColors.cardSelected,
+                                      backgroundColor: context.colors.surfaceVariant,
                                       child: ClipOval(
                                         child: SizedBox(
                                           width: 48,
@@ -252,7 +301,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -263,14 +312,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                               Flexible(
                                                 child: Text(
                                                   seller.businessName,
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontWeight: FontWeight.w800,
                                                   ),
                                                 ),
                                               ),
                                               if (seller.verificationStatus ==
                                                   'verified')
-                                                const Padding(
+                                                Padding(
                                                   padding:
                                                       EdgeInsets.only(left: 4),
                                                   child: Icon(
@@ -281,12 +330,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                                 ),
                                             ],
                                           ),
-                                          const SizedBox(height: 2),
+                                          SizedBox(height: 2),
                                           Text(
                                             l10n.reviewsCount(
                                                 seller.reviewCount),
-                                            style: const TextStyle(
-                                              color: AppColors.textSecondary,
+                                            style: TextStyle(
+                                              color: context.colors.textSecondary,
                                               fontSize: 13,
                                             ),
                                           ),
@@ -297,7 +346,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: AppSpacing.lg),
+                            SizedBox(height: AppSpacing.lg),
                             Text(
                               l10n.description,
                               style: Theme.of(context)
@@ -305,15 +354,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                   .titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w800),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               product.description.isEmpty
                                   ? l10n.noDescription
                                   : product.description,
-                              style: const TextStyle(height: 1.45),
+                              style: TextStyle(height: 1.45),
                             ),
                             if (product.priceNegotiable) ...[
-                              const SizedBox(height: AppSpacing.md),
+                              SizedBox(height: AppSpacing.md),
                               MarketInfoChip(
                                 icon: Icons.handshake_outlined,
                                 label: l10n.priceNegotiable,
@@ -323,7 +372,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     ? product.acceptedPaymentMethods
                                     : seller.paymentMethods)
                                 .isNotEmpty) ...[
-                              const SizedBox(height: AppSpacing.lg),
+                              SizedBox(height: AppSpacing.lg),
                               Text(
                                 l10n.acceptedPaymentMethods,
                                 style: Theme.of(context)
@@ -331,7 +380,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     .titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w800),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
@@ -349,7 +398,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                               ),
                             ],
                             if (related.isNotEmpty) ...[
-                              const SizedBox(height: AppSpacing.xl),
+                              SizedBox(height: AppSpacing.xl),
                               Text(
                                 l10n.moreFromSeller,
                                 style: Theme.of(context)
@@ -357,7 +406,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     .titleLarge
                                     ?.copyWith(fontWeight: FontWeight.w800),
                               ),
-                              const SizedBox(height: AppSpacing.md),
+                              SizedBox(height: AppSpacing.md),
                               ProductCarouselStrip(
                                 products: related,
                                 rating: seller.averageRating > 0
@@ -380,7 +429,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               SafeArea(
                 top: false,
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(
+                  padding: EdgeInsets.fromLTRB(
                     AppSpacing.screenHorizontal,
                     10,
                     AppSpacing.screenHorizontal,
@@ -397,7 +446,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 12,
-                        offset: const Offset(0, -4),
+                        offset: Offset(0, -4),
                       ),
                     ],
                   ),
@@ -411,7 +460,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           onPressed: () => _openChat(seller),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Expanded(
                         child: MarketPrimaryButton(
                           label: l10n.callSeller,
@@ -421,9 +470,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                               : () => _callSeller(seller),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Material(
-                        color: AppColors.surfaceMuted,
+                        color: context.colors.surfaceVariant,
                         borderRadius:
                             BorderRadius.circular(MarketButtonMetrics.radius),
                         child: InkWell(
@@ -436,21 +485,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             width: MarketButtonMetrics.height,
                             height: MarketButtonMetrics.height,
                             child: _addingFavorite
-                                ? const Padding(
+                                ? Padding(
                                     padding: EdgeInsets.all(14),
                                     child: CircularProgressIndicator(
                                         strokeWidth: 2),
                                   )
                                 : AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 180),
+                                    duration: Duration(milliseconds: 180),
                                     child: Icon(
                                       _isFavorite
                                           ? Icons.favorite_rounded
                                           : Icons.favorite_border_rounded,
                                       key: ValueKey(_isFavorite),
                                       color: _isFavorite
-                                          ? AppColors.danger
-                                          : AppColors.primary,
+                                          ? context.colors.error
+                                          : context.colors.primary,
                                     ),
                                   ),
                           ),
@@ -469,24 +518,50 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   Future<void> _openChat(SellerModel seller) async {
     final l10n = context.l10n;
+    final session = ref.read(userSessionProvider);
+    if (session == null || session.isGuest) {
+      if (!mounted) return;
+      await context.push('/login');
+      return;
+    }
+    if (_isStoreOwner(session, seller.id)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.cannotMessageOwnStore)),
+      );
+      return;
+    }
     setState(() => _contacting = true);
     try {
-      await apiServiceProvider.createContactEvent(
-          sellerId: seller.id, channel: 'message');
-      final session = ref.read(userSessionProvider);
-      if (session == null || session.isGuest) {
-        if (mounted) await context.push('/login');
-        return;
+      try {
+        await apiServiceProvider.createContactEvent(
+          sellerId: seller.id,
+          channel: 'message',
+        );
+      } catch (_) {
+        // Analytics only — do not block opening the chat thread.
       }
       final conversation =
           await apiServiceProvider.openSellerConversation(seller.id);
       if (!mounted) return;
       context.push('/messages/${conversation.id}', extra: conversation);
     } on ApiException catch (error) {
-      if (mounted) {
-        await showAppErrorDialog(context,
-            title: l10n.somethingWentWrong, message: error.message);
-      }
+      if (!mounted) return;
+      final message = error.message.toLowerCase().contains('verify')
+          ? l10n.verifyEmailToContinue
+          : error.message;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: message,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.somethingWentWrong,
+      );
     } finally {
       if (mounted) setState(() => _contacting = false);
     }
