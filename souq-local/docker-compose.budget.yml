@@ -1,4 +1,4 @@
-# MarGem budget production stack — runs on a single Azure VM
+# Dribex budget production stack — runs on a single Azure VM
 # Used by start_azure_budget.ps1 (do not use for local dev — use docker-compose.yml)
 
 services:
@@ -20,19 +20,20 @@ services:
 
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: margem-api
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      APP_ENV: production
+      APP_ENV: ${APP_ENV:-staging}
       DEBUG: "false"
       AUTH_DEV_BYPASS: "false"
       DATABASE_URL: postgresql+asyncpg://margemadmin:${POSTGRES_PASSWORD}@postgres:5432/margem
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET}
+      ADMIN_DASHBOARD_DIR: /admin-dashboard
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}
@@ -41,9 +42,9 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://margem.ma}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.margem.ma}
+      SMTP_FROM: ${SMTP_FROM:-Dribex <noreply@dribex.ma>}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
       JWT_REFRESH_EXPIRE_DAYS: "7"
       RATE_LIMIT: ${RATE_LIMIT:-300/minute}
