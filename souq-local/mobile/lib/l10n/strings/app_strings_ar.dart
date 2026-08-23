@@ -68,10 +68,22 @@ class AppStringsAr extends AppStringsEn {
   String get trustedReviewsSubtitle =>
       'اقرأ تقييمات المشترين الحقيقيين واكتشف أكثر المحلات موثوقية في مدينتك.';
   @override
-  String get chooseAccountType => 'اختر نوع حسابك';
+  String get chooseAccountType => 'مرحباً بك في MarGem';
   @override
   String get chooseAccountTypeSubtitle =>
-      'حساب واحد للاثنين. ابدأ كمتسوّق أو أنشئ متجراً — يمكنك التبديل في أي وقت بنفس البريد وكلمة المرور.';
+      'انضم إلى مجتمعنا واكتشف جواهر المغرب المخفية.';
+  @override
+  String get accountTypeSectionLabel => 'اختر نوع حسابك';
+  @override
+  String get decideLater => 'سأقرر لاحقاً';
+  @override
+  String get secureSignupLine1 => 'بياناتك مشفرة وآمنة.';
+  @override
+  String get secureSignupLine2 => 'لن نشارك معلوماتك الشخصية أبداً.';
+  @override
+  String get continueAsBuyer => 'المتابعة كمشتري';
+  @override
+  String get continueAsSeller => 'المتابعة كبائع';
   @override
   String get buyer => 'مشتري';
   @override
@@ -136,6 +148,77 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get navMessages => 'الرسائل';
   @override
+  String get navDashboard => 'لوحة التحكم';
+  @override
+  String get navServices => 'الخدمات';
+  @override
+  String get navBookings => 'الحجوزات';
+  @override
+  String get navMore => 'المزيد';
+  @override
+  String get earnings => 'الأرباح';
+  @override
+  String get gallery => 'المعرض';
+  @override
+  String get businessInfo => 'معلومات النشاط';
+  @override
+  String get helpSupport => 'المساعدة والدعم';
+  @override
+  String get comingSoon => 'قريبًا';
+  @override
+  String get upcomingBookings => 'الحجوزات القادمة';
+  @override
+  String get viewAll => 'عرض الكل';
+  @override
+  String get highlightServices => 'خدمات مميزة';
+  @override
+  String get upcoming => 'قادم';
+  @override
+  String filterAll(int count) => 'الكل ($count)';
+  @override
+  String filterActive(int count) => 'نشط ($count)';
+  @override
+  String filterInactive(int count) => 'غير نشط ($count)';
+  @override
+  String bookingsUpcoming(int count) =>
+      count > 0 ? 'قادم ($count)' : 'قادم';
+  @override
+  String bookingsCompleted(int count) =>
+      count > 0 ? 'مكتمل ($count)' : 'مكتمل';
+  @override
+  String bookingsCancelled(int count) =>
+      count > 0 ? 'ملغى ($count)' : 'ملغى';
+  @override
+  String get noBookingsYet =>
+      'لا توجد حجوزات بعد. ستظهر استفسارات العملاء هنا.';
+  @override
+  String get noBookingsInCategory => 'لا يوجد شيء في هذه الفئة بعد.';
+  @override
+  String get bookingsInquiryHint => 'افتح الرسائل للرد على العملاء.';
+  @override
+  String get viewMessages => 'عرض الرسائل';
+  @override
+  String get today => 'اليوم';
+  @override
+  String favoritesCount(int count) => '$count مفضلة في متجرك';
+  @override
+  String get stepBasicInfo => 'المعلومات الأساسية';
+  @override
+  String get stepPricing => 'التسعير';
+  @override
+  String get stepDetails => 'التفاصيل';
+  @override
+  String get customersWillSee => 'سيرى العملاء:';
+  @override
+  String get nextStep => 'متابعة';
+  @override
+  String get publishService => 'نشر الخدمة';
+  @override
+  String get serviceStatusLive => 'الخدمة متاحة';
+  @override
+  String get serviceDetailsHint =>
+      'يمكنك تحديث التوفر والأسعار في أي وقت من تبويب الخدمات.';
+  @override
   String get margemMember => 'عضو MarGem';
   @override
   String get allCategories => 'الكل';
@@ -193,6 +276,8 @@ class AppStringsAr extends AppStringsEn {
   String get businessKeyword => 'اسم المحل أو كلمة مفتاحية';
   @override
   String get noBusinessesFound => 'لم يتم العثور على محلات';
+  @override
+  String get searchSortedByNearest => 'عرض الأقرب أولاً';
   @override
   String warningZones(int count) => '$count منطقة تحذير';
   @override
@@ -295,6 +380,25 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get productDeleted => 'تم حذف المنتج';
   @override
+  String get serviceManagement => 'إدارة الخدمات';
+  @override
+  String get serviceManagementSub => 'إضافة أو تعديل أو حذف الخدمات والأسعار';
+  @override
+  String get addService => 'إضافة خدمة';
+  @override
+  String get editService => 'تعديل الخدمة';
+  @override
+  String get deleteService => 'حذف الخدمة';
+  @override
+  String get deleteServiceConfirm =>
+      'حذف هذه الخدمة؟ لن يراها المشترون في متجرك بعد الآن.';
+  @override
+  String get noServicesYet => 'لا توجد خدمات بعد. أضف خدمتك الأولى.';
+  @override
+  String get serviceSaved => 'تم حفظ الخدمة';
+  @override
+  String get serviceDeleted => 'تم حذف الخدمة';
+  @override
   String get profileSaved => 'تم تحديث الملف';
   @override
   String get storeVisible => 'المتجر ظاهر للمشترين';
@@ -376,6 +480,8 @@ class AppStringsAr extends AppStringsEn {
   String get description => 'الوصف';
   @override
   String get priceOptional => 'السعر (درهم، اختياري)';
+  @override
+  String get priceMad => 'السعر (درهم)';
   @override
   String get addAnotherItem => 'إضافة عنصر آخر';
   @override
@@ -519,6 +625,69 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get priceNegotiable => 'السعر قابل للتفاوض';
   @override
+  String get pricingModel => 'نموذج التسعير';
+  @override
+  String get pricingModelFixedPrice => 'سعر ثابت';
+  @override
+  String get pricingModelStartingFrom => 'يبدأ من';
+  @override
+  String get pricingModelPriceRange => 'نطاق سعري';
+  @override
+  String get pricingModelHourly => 'بالساعة';
+  @override
+  String get pricingModelDaily => 'يومي';
+  @override
+  String get pricingModelWeekly => 'أسبوعي';
+  @override
+  String get pricingModelMonthly => 'شهري';
+  @override
+  String get pricingModelPerPerson => 'للشخص';
+  @override
+  String get pricingModelPerUnit => 'للوحدة';
+  @override
+  String get pricingModelPerSqm => 'للمتر المربع';
+  @override
+  String get pricingModelPerKm => 'للكيلومتر';
+  @override
+  String get pricingModelRequestQuote => 'اطلب عرض سعر';
+  @override
+  String get pricingModelContactForPrice => 'تواصل للسعر';
+  @override
+  String get pricingModelNegotiable => 'قابل للتفاوض';
+  @override
+  String get pricingModelFree => 'مجاني';
+  @override
+  String get minPrice => 'الحد الأدنى للسعر (درهم)';
+  @override
+  String get maxPrice => 'الحد الأقصى للسعر (درهم)';
+  @override
+  String priceStartingFrom(String amount) => 'يبدأ من $amount';
+  @override
+  String priceRangeLabel(String min, String max) => '$min – $max';
+  @override
+  String pricePerHour(String amount) => '$amount / ساعة';
+  @override
+  String pricePerDay(String amount) => '$amount / يوم';
+  @override
+  String pricePerWeek(String amount) => '$amount / أسبوع';
+  @override
+  String pricePerMonth(String amount) => '$amount / شهر';
+  @override
+  String pricePerPerson(String amount) => '$amount / شخص';
+  @override
+  String pricePerUnit(String amount) => '$amount / وحدة';
+  @override
+  String pricePerSqm(String amount) => '$amount / م²';
+  @override
+  String pricePerKm(String amount) => '$amount / كم';
+  @override
+  String priceNegotiableWithAmount(String amount) => '$amount · قابل للتفاوض';
+  @override
+  String get enterValidPrice => 'أدخل سعرًا صالحًا';
+  @override
+  String get minPriceExceedsMax =>
+      'لا يمكن أن يتجاوز الحد الأدنى للسعر الحد الأقصى';
+  @override
   String get acceptedPaymentMethods => 'طرق الدفع المقبولة';
   @override
   @override
@@ -597,7 +766,6 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get writeYourMessage => 'اكتب رسالتك...';
   @override
-  String favoritesCount(int count) => '$count مفضلة';
   @override
   String followersCount(int count) =>
       count == 1 ? 'متابع واحد' : '$count متابع';
@@ -712,6 +880,35 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get resendVerificationEmail => 'إعادة إرسال رسالة التحقق';
   @override
+  String get signupOtpChannelTitle => 'أين نرسل رمز التحقق المكوّن من 6 أرقام؟';
+  @override
+  String get signupOtpChannelSubtitle =>
+      'اختر طريقة التحقق من هويتك للمتابعة.';
+  @override
+  String get signupOtpSendPhone => 'إرسال إلى الهاتف';
+  @override
+  String get signupOtpSendEmail => 'إرسال إلى البريد الإلكتروني';
+  @override
+  String get signupOtpPrivacyNote => 'لن نشارك رمزك مع أي شخص.';
+  @override
+  String get signupOtpCodeTitle => 'أدخل الرمز المكوّن من 6 أرقام';
+  @override
+  String signupOtpCodeSentTo(String destination) =>
+      'أرسلنا رمزًا مكوّنًا من 6 أرقام إلى $destination. ';
+  @override
+  String get signupOtpChange => 'تغيير';
+  @override
+  String get signupOtpCodeInvalid => 'أدخل الرمز المكوّن من 6 أرقام.';
+  @override
+  String get signupOtpDidntReceive => 'لم يصلك الرمز؟';
+  @override
+  String signupOtpResendCountdown(int seconds) =>
+      'إعادة الإرسال (00:${seconds.toString().padLeft(2, '0')})';
+  @override
+  String get signupOtpResend => 'إعادة إرسال الرمز';
+  @override
+  String get signupOtpVerify => 'تحقق';
+  @override
   String get premiumTitle => 'نمّ عملك مع MarGem بريميوم';
   @override
   String get premiumSubtitle =>
@@ -814,6 +1011,58 @@ class AppStringsAr extends AppStringsEn {
   String get verification => 'التحقق';
   @override
   String get markAllRead => 'تعيين الكل كمقروء';
+  @override
+  String get communityChatTitle => 'مجتمع المدينة';
+  @override
+  String get communitySearchHint => 'البحث في القنوات...';
+  @override
+  String get communityFilterAll => 'الكل';
+  @override
+  String get communityFilterVerified => 'موثّق';
+  @override
+  String get communityFilterTrusted => 'موثوق';
+  @override
+  String get communityNoChannels => 'لم يتم العثور على قنوات';
+  @override
+  String get communityNoChannelsSubtitle => 'جرّب فلتراً أو كلمة بحث أخرى.';
+  @override
+  String get communityNewMessage => 'رسالة جديدة';
+  @override
+  String get communityDiscoverTitle => 'اكتشف المجتمعات';
+  @override
+  String get communityMembers => 'أعضاء';
+  @override
+  String get communityOnline => 'متصل';
+  @override
+  String communityCitySubtitle(String city) =>
+      'تواصل مع السكان، اكتشف التوصيات، وانضم إلى النقاش في $city.';
+  @override
+  String get communityGuestHint =>
+      'سجّل الدخول للنشر والانضمام إلى مجتمع مدينتك.';
+  @override
+  String get communityEmptyChannel => 'ابدأ المحادثة';
+  @override
+  String get communityEmptyChannelSubtitle =>
+      'كن أول من يشارك شيئاً مع مدينتك.';
+  @override
+  String get communityReplyingTo => 'الرد على';
+  @override
+  String communityTyping(String name) => '$name يكتب...';
+  @override
+  String get communityReply => 'رد';
+  @override
+  String get communityCopy => 'نسخ الرسالة';
+  @override
+  String get communityReport => 'الإبلاغ عن الرسالة';
+  @override
+  String get communityReported => 'تم إرسال البلاغ. شكراً لك.';
+  @override
+  String get communityCopied => 'تم نسخ الرسالة';
+  @override
+  String get communityHomeCardTitle => 'مجتمع المدينة';
+  @override
+  String get communityHomeCardSubtitle =>
+      'تحدث مع السكان، احصل على توصيات، واكتشف ما يحدث بالقرب منك.';
 
   @override
   String categoryLabel(String key) {

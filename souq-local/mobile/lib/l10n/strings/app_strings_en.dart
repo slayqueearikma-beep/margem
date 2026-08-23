@@ -67,10 +67,22 @@ class AppStringsEn extends AppStrings {
   String get trustedReviewsSubtitle =>
       'Read ratings from real buyers and discover the most trusted businesses in your city.';
   @override
-  String get chooseAccountType => 'Choose your account type';
+  String get chooseAccountType => 'Welcome to MarGem';
   @override
   String get chooseAccountTypeSubtitle =>
-      'One account for both. Start as a shopper or set up a business — you can switch anytime with the same email and password.';
+      'Join our community and discover Morocco\'s hidden gems.';
+  @override
+  String get accountTypeSectionLabel => 'Choose your account type';
+  @override
+  String get decideLater => 'I\'ll decide later';
+  @override
+  String get secureSignupLine1 => 'Your data is encrypted and secure.';
+  @override
+  String get secureSignupLine2 => 'We never share your personal information.';
+  @override
+  String get continueAsBuyer => 'Continue as Buyer';
+  @override
+  String get continueAsSeller => 'Continue as Seller';
   @override
   String get buyer => 'Buyer';
   @override
@@ -137,6 +149,77 @@ class AppStringsEn extends AppStrings {
   @override
   String get navMessages => 'Messages';
   @override
+  String get navDashboard => 'Dashboard';
+  @override
+  String get navServices => 'Services';
+  @override
+  String get navBookings => 'Bookings';
+  @override
+  String get navMore => 'More';
+  @override
+  String get earnings => 'Earnings';
+  @override
+  String get gallery => 'Gallery';
+  @override
+  String get businessInfo => 'Business info';
+  @override
+  String get helpSupport => 'Help & support';
+  @override
+  String get comingSoon => 'Soon';
+  @override
+  String get upcomingBookings => 'Upcoming bookings';
+  @override
+  String get viewAll => 'View all';
+  @override
+  String get highlightServices => 'Highlight services';
+  @override
+  String get upcoming => 'Upcoming';
+  @override
+  String filterAll(int count) => 'All ($count)';
+  @override
+  String filterActive(int count) => 'Active ($count)';
+  @override
+  String filterInactive(int count) => 'Inactive ($count)';
+  @override
+  String bookingsUpcoming(int count) =>
+      count > 0 ? 'Upcoming ($count)' : 'Upcoming';
+  @override
+  String bookingsCompleted(int count) =>
+      count > 0 ? 'Completed ($count)' : 'Completed';
+  @override
+  String bookingsCancelled(int count) =>
+      count > 0 ? 'Cancelled ($count)' : 'Cancelled';
+  @override
+  String get noBookingsYet => 'No bookings yet. Customer inquiries appear here.';
+  @override
+  String get noBookingsInCategory => 'Nothing in this category yet.';
+  @override
+  String get bookingsInquiryHint =>
+      'Open messages to respond to customer inquiries.';
+  @override
+  String get viewMessages => 'View messages';
+  @override
+  String get today => 'Today';
+  @override
+  String favoritesCount(int count) => '$count favorites on your storefront';
+  @override
+  String get stepBasicInfo => 'Basic info';
+  @override
+  String get stepPricing => 'Pricing';
+  @override
+  String get stepDetails => 'Details';
+  @override
+  String get customersWillSee => 'Customers will see:';
+  @override
+  String get nextStep => 'Continue';
+  @override
+  String get publishService => 'Publish service';
+  @override
+  String get serviceStatusLive => 'Service is live';
+  @override
+  String get serviceDetailsHint =>
+      'You can update availability and pricing anytime from the services tab.';
+  @override
   String get margemMember => 'MarGem member';
   @override
   String get allCategories => 'All';
@@ -194,6 +277,8 @@ class AppStringsEn extends AppStrings {
   String get businessKeyword => 'Business name or keyword';
   @override
   String get noBusinessesFound => 'No businesses found';
+  @override
+  String get searchSortedByNearest => 'Showing nearest matches';
   @override
   String warningZones(int count) => '$count warning zone(s)';
   @override
@@ -297,6 +382,25 @@ class AppStringsEn extends AppStrings {
   @override
   String get productDeleted => 'Product deleted';
   @override
+  String get serviceManagement => 'Service management';
+  @override
+  String get serviceManagementSub => 'Add, edit, or remove services and pricing';
+  @override
+  String get addService => 'Add service';
+  @override
+  String get editService => 'Edit service';
+  @override
+  String get deleteService => 'Delete service';
+  @override
+  String get deleteServiceConfirm =>
+      'Delete this service? Buyers will no longer see it on your storefront.';
+  @override
+  String get noServicesYet => 'No services yet. Add your first service.';
+  @override
+  String get serviceSaved => 'Service saved';
+  @override
+  String get serviceDeleted => 'Service deleted';
+  @override
   String get profileSaved => 'Profile updated';
   @override
   String get storeVisible => 'Store is visible to buyers';
@@ -379,6 +483,8 @@ class AppStringsEn extends AppStrings {
   String get description => 'Description';
   @override
   String get priceOptional => 'Price (MAD, optional)';
+  @override
+  String get priceMad => 'Price (MAD)';
   @override
   String get addAnotherItem => 'Add another item';
   @override
@@ -522,6 +628,68 @@ class AppStringsEn extends AppStrings {
   @override
   String get priceNegotiable => 'Price negotiable';
   @override
+  String get pricingModel => 'Pricing model';
+  @override
+  String get pricingModelFixedPrice => 'Fixed price';
+  @override
+  String get pricingModelStartingFrom => 'Starting from';
+  @override
+  String get pricingModelPriceRange => 'Price range';
+  @override
+  String get pricingModelHourly => 'Hourly';
+  @override
+  String get pricingModelDaily => 'Daily';
+  @override
+  String get pricingModelWeekly => 'Weekly';
+  @override
+  String get pricingModelMonthly => 'Monthly';
+  @override
+  String get pricingModelPerPerson => 'Per person';
+  @override
+  String get pricingModelPerUnit => 'Per unit';
+  @override
+  String get pricingModelPerSqm => 'Per m²';
+  @override
+  String get pricingModelPerKm => 'Per km';
+  @override
+  String get pricingModelRequestQuote => 'Request quote';
+  @override
+  String get pricingModelContactForPrice => 'Contact for price';
+  @override
+  String get pricingModelNegotiable => 'Negotiable';
+  @override
+  String get pricingModelFree => 'Free';
+  @override
+  String get minPrice => 'Minimum price (MAD)';
+  @override
+  String get maxPrice => 'Maximum price (MAD)';
+  @override
+  String priceStartingFrom(String amount) => 'From $amount';
+  @override
+  String priceRangeLabel(String min, String max) => '$min – $max';
+  @override
+  String pricePerHour(String amount) => '$amount / hour';
+  @override
+  String pricePerDay(String amount) => '$amount / day';
+  @override
+  String pricePerWeek(String amount) => '$amount / week';
+  @override
+  String pricePerMonth(String amount) => '$amount / month';
+  @override
+  String pricePerPerson(String amount) => '$amount / person';
+  @override
+  String pricePerUnit(String amount) => '$amount / unit';
+  @override
+  String pricePerSqm(String amount) => '$amount / m²';
+  @override
+  String pricePerKm(String amount) => '$amount / km';
+  @override
+  String priceNegotiableWithAmount(String amount) => '$amount · negotiable';
+  @override
+  String get enterValidPrice => 'Enter a valid price';
+  @override
+  String get minPriceExceedsMax => 'Minimum price cannot exceed maximum price';
+  @override
   String get acceptedPaymentMethods => 'Accepted payment methods';
   @override
   @override
@@ -602,9 +770,6 @@ class AppStringsEn extends AppStrings {
   String get moreFromSeller => 'More from this seller';
   @override
   String get writeYourMessage => 'Write your message...';
-  @override
-  String favoritesCount(int count) =>
-      count == 1 ? '1 favorite' : '$count favorites';
   @override
   String followersCount(int count) =>
       count == 1 ? '1 follower' : '$count followers';
@@ -720,6 +885,35 @@ class AppStringsEn extends AppStrings {
   @override
   String get resendVerificationEmail => 'Resend verification email';
   @override
+  String get signupOtpChannelTitle => 'Where should we send your 6-digit code?';
+  @override
+  String get signupOtpChannelSubtitle =>
+      'Choose how you want to verify your identity to continue.';
+  @override
+  String get signupOtpSendPhone => 'Send to phone';
+  @override
+  String get signupOtpSendEmail => 'Send to email';
+  @override
+  String get signupOtpPrivacyNote => 'We’ll never share your code with anyone.';
+  @override
+  String get signupOtpCodeTitle => 'Enter the 6-digit code';
+  @override
+  String signupOtpCodeSentTo(String destination) =>
+      'We’ve sent a 6-digit code to $destination. ';
+  @override
+  String get signupOtpChange => 'Change';
+  @override
+  String get signupOtpCodeInvalid => 'Enter the 6-digit code.';
+  @override
+  String get signupOtpDidntReceive => 'Didn’t receive the code?';
+  @override
+  String signupOtpResendCountdown(int seconds) =>
+      'Resend code (00:${seconds.toString().padLeft(2, '0')})';
+  @override
+  String get signupOtpResend => 'Resend code';
+  @override
+  String get signupOtpVerify => 'Verify';
+  @override
   String get premiumTitle => 'Grow with MarGem Premium';
   @override
   String get premiumSubtitle =>
@@ -822,6 +1016,58 @@ class AppStringsEn extends AppStrings {
   String get verification => 'Verification';
   @override
   String get markAllRead => 'Mark all read';
+  @override
+  String get communityChatTitle => 'City Community';
+  @override
+  String get communitySearchHint => 'Search channels...';
+  @override
+  String get communityFilterAll => 'All';
+  @override
+  String get communityFilterVerified => 'Verified';
+  @override
+  String get communityFilterTrusted => 'Trusted';
+  @override
+  String get communityNoChannels => 'No channels found';
+  @override
+  String get communityNoChannelsSubtitle => 'Try a different filter or search term.';
+  @override
+  String get communityNewMessage => 'New message';
+  @override
+  String get communityDiscoverTitle => 'Discover communities';
+  @override
+  String get communityMembers => 'members';
+  @override
+  String get communityOnline => 'online';
+  @override
+  String communityCitySubtitle(String city) =>
+      'Connect with locals, discover recommendations, and join the conversation in $city.';
+  @override
+  String get communityGuestHint =>
+      'Sign in to post messages and join your city community.';
+  @override
+  String get communityEmptyChannel => 'Start the conversation';
+  @override
+  String get communityEmptyChannelSubtitle =>
+      'Be the first to share something with your city.';
+  @override
+  String get communityReplyingTo => 'Replying to';
+  @override
+  String communityTyping(String name) => '$name is typing...';
+  @override
+  String get communityReply => 'Reply';
+  @override
+  String get communityCopy => 'Copy message';
+  @override
+  String get communityReport => 'Report message';
+  @override
+  String get communityReported => 'Report submitted. Thank you.';
+  @override
+  String get communityCopied => 'Message copied';
+  @override
+  String get communityHomeCardTitle => 'City Community';
+  @override
+  String get communityHomeCardSubtitle =>
+      'Chat with locals, get recommendations, and discover what\'s happening nearby.';
 
   @override
   String categoryLabel(String key) {

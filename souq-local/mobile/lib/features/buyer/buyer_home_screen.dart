@@ -13,6 +13,7 @@ import '../../core/navigation/app_back_handler.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/location_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
@@ -28,6 +29,16 @@ import '../settings/language_settings_tile.dart';
 final buyerCityProvider = StateProvider<String>((ref) {
   // Casablanca-only launch — ignore any other saved city.
   return AppConfig.launchCity;
+});
+
+/// Buyer origin for nearest-seller search (GPS, or city center fallback).
+final buyerSearchLocationProvider = FutureProvider.autoDispose<LatLng>((ref) async {
+  final position = await LocationService.getCurrentPosition();
+  if (position != null) {
+    return LatLng(position.latitude, position.longitude);
+  }
+  final city = ref.watch(buyerCityProvider);
+  return CityCoordinates.centerFor(city);
 });
 
 final buyerCategorySlugProvider = StateProvider<String?>((ref) => null);
@@ -283,6 +294,23 @@ class BuyerHomeScreen extends ConsumerWidget {
                 AppSpacing.sm,
               ),
               child: _ExploreMapCard(
+                title: l10n.communityHomeCardTitle,
+                subtitle: l10n.communityHomeCardSubtitle,
+                icon: Icons.groups_rounded,
+                accentColor: AppColors.lavender,
+                onTap: () => context.push('/community'),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screenHorizontal,
+                AppSpacing.sm,
+                AppSpacing.screenHorizontal,
+                AppSpacing.sm,
+              ),
+              child: _ExploreMapCard(
                 title: l10n.exploreOnMap,
                 subtitle: l10n.exploreOnMapSubtitle(city),
                 onTap: () => context.push('/map'),
@@ -371,6 +399,7 @@ class BuyerHomeScreen extends ConsumerWidget {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (e, _) => SliverFillRemaining(
+              hasScrollBody: true,
               child: AsyncErrorView.fromError(
                 e,
                 onRetry: () => ref.invalidate(buyerSellersProvider),
@@ -481,7 +510,10 @@ class _HomeTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 30),
+        AppBrandLogo.forContext(
+          AppBrandContext.compactBranding,
+          size: 28,
+        ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
@@ -744,11 +776,17 @@ class _ExploreMapCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.icon = Icons.location_on_rounded,
+    this.accentColor = AppColors.lavender,
+    this.showMiniMap = true,
   });
 
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final IconData icon;
+  final Color accentColor;
+  final bool showMiniMap;
 
   @override
   Widget build(BuildContext context) {
@@ -763,16 +801,17 @@ class _ExploreMapCard extends StatelessWidget {
           height: 92,
           child: Stack(
             children: [
-              Positioned(
-                right: -8,
-                top: -8,
-                bottom: -8,
-                width: 140,
-                child: Opacity(
-                  opacity: 0.35,
-                  child: CustomPaint(painter: _MiniMapPainter()),
+              if (showMiniMap)
+                Positioned(
+                  right: -8,
+                  top: -8,
+                  bottom: -8,
+                  width: 140,
+                  child: Opacity(
+                    opacity: 0.35,
+                    child: CustomPaint(painter: _MiniMapPainter()),
+                  ),
                 ),
-              ),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -785,9 +824,9 @@ class _ExploreMapCard extends StatelessWidget {
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.location_on_rounded,
-                        color: AppColors.primary,
+                      child: Icon(
+                        icon,
+                        color: accentColor,
                       ),
                     ),
                     const SizedBox(width: 12),

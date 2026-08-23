@@ -3,6 +3,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app.services.password_policy import validate_password_strength
+from tests.auth_helpers import register_test_user
 
 
 def test_password_policy_requires_complexity():
@@ -36,17 +37,13 @@ async def test_register_and_login_flow():
         email = "prod-test@example.com"
         password = "SecurePass1"
 
-        register = await client.post(
-            "/auth/register",
-            json={
-                "email": email,
-                "password": password,
-                "account_type": "buyer",
-                "display_name": "Prod Test",
-            },
+        body = await register_test_user(
+            client,
+            email=email,
+            password=password,
+            account_type="buyer",
+            display_name="Prod Test",
         )
-        assert register.status_code == 201
-        body = register.json()
         assert body["access_token"]
         assert body["refresh_token"]
         token = body["access_token"]
@@ -76,24 +73,21 @@ async def test_register_and_login_flow():
 async def test_register_email_case_insensitive():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        first = await client.post(
-            "/auth/register",
-            json={
-                "email": "Case@Example.com",
-                "password": "SecurePass1",
-                "account_type": "buyer",
-                "display_name": "Case User",
-            },
+        first = await register_test_user(
+            client,
+            email="Case@Example.com",
+            password="SecurePass1",
+            account_type="buyer",
+            display_name="Case User",
         )
-        assert first.status_code == 201
+        assert first["access_token"]
 
         second = await client.post(
-            "/auth/register",
+            "/auth/signup/otp/send",
             json={
                 "email": "case@example.com",
-                "password": "SecurePass1",
-                "account_type": "buyer",
-                "display_name": "Dup",
+                "phone": "",
+                "channel": "email",
             },
         )
         assert second.status_code == 409
