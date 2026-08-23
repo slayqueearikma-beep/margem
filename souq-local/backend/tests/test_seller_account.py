@@ -2,22 +2,18 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from tests.auth_helpers import register_test_user
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
 
 async def _register(client: AsyncClient, email: str, account_type: str) -> dict:
-    response = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": "SecurePass1",
-            "account_type": account_type,
-            "display_name": email.split("@")[0],
-        },
+    return await register_test_user(
+        client,
+        email=email,
+        account_type=account_type,
+        display_name=email.split("@")[0],
     )
-    assert response.status_code == 201, response.text
-    return response.json()
 
 
 async def _create_seller(client: AsyncClient, token: str, name: str = "My Shop") -> dict:
@@ -38,6 +34,8 @@ async def _create_seller(client: AsyncClient, token: str, name: str = "My Shop")
                 "days": {"Mon": True, "Tue": True, "Wed": True, "Thu": True, "Fri": True, "Sat": True, "Sun": False},
                 "open": "09:00",
                 "close": "21:00",
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
             },
             "category_ids": [],
         },

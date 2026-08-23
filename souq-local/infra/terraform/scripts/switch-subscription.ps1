@@ -1,4 +1,4 @@
-# Deploy (or update) MarGem on subscription N for monthly credit rotation.
+# Deploy (or update) Dribex on subscription N for monthly credit rotation.
 # Usage: .\switch-subscription.ps1 -Sub 1
 #        .\switch-subscription.ps1 -Sub 2
 
