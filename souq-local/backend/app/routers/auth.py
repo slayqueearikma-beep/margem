@@ -113,6 +113,7 @@ async def _issue_auth_token(session: AsyncSession, user_id: UUID, purpose: str, 
 
 async def _token_response(session: AsyncSession, user: User, request: Request | None = None) -> TokenResponse:
     from app.auth import user_has_seller_profile
+    from app.services.admin_login import is_staff_role, record_staff_login
 
     device = ""
     ip = ""
@@ -138,6 +139,8 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
         stored.last_seen_at = datetime.now(UTC)
 
     user.last_login_at = datetime.now(UTC)
+    if is_staff_role(user.role):
+        await record_staff_login(session, user_id=user.id, request=request, success=True)
     has_store = await user_has_seller_profile(session, user.id)
     await session.commit()
     return TokenResponse(
@@ -203,9 +206,20 @@ async def login(
     payload: LoginRequest,
     session: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
+    from app.services.admin_login import is_staff_role, record_staff_login
+
     result = await session.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
     if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
+        if user is not None and is_staff_role(user.role):
+            await record_staff_login(
+                session,
+                user_id=user.id,
+                request=request,
+                success=False,
+                failure_reason="invalid_credentials",
+            )
+            await session.commit()
         log_security_event(
             "login_failed",
             email=payload.email.lower(),

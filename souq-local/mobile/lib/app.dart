@@ -10,6 +10,9 @@ import 'core/services/auth_service.dart';
 import 'core/services/locale_provider.dart';
 import 'core/services/theme_mode_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'features/admin/admin_shell.dart';
+import 'features/admin/screens/admin_dashboard_screen.dart';
+import 'features/admin/screens/admin_management_screens.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_email_screen.dart';
@@ -43,9 +46,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     // Keep the page stack for Android system-back; only splash/auth flows
     // intentionally replace via context.go().
     redirect: (context, state) {
-      final session =
-          ProviderScope.containerOf(context).read(userSessionProvider);
+      final container = ProviderScope.containerOf(context);
+      final session = container.read(userSessionProvider);
+      final authSession = container.read(authSessionProvider);
       final path = state.matchedLocation;
+      final isAdminRoute = path.startsWith('/admin');
       final isSellerManagement = path == '/seller/dashboard' ||
           path.startsWith('/seller/products') ||
           path.startsWith('/seller/profile') ||
@@ -53,10 +58,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings') ||
           path.startsWith('/seller/messages');
-      final isAuthProtected = isSellerManagement;
+      final isAuthProtected = isSellerManagement || isAdminRoute;
       final isAuthenticated = session != null && !session.isGuest;
       if (isAuthProtected && !isAuthenticated) {
         return '/login';
+      }
+      if (isAdminRoute) {
+        final user = authSession?.user;
+        if (user == null || !user.isStaff) {
+          return '/buyer/home';
+        }
       }
       if (isSellerManagement &&
           isAuthenticated &&
@@ -178,6 +189,51 @@ final routerProvider = Provider<GoRouter>((ref) {
           sellerId: state.pathParameters['sellerId']!,
           productId: state.pathParameters['productId']!,
         ),
+      ),
+      ShellRoute(
+        builder: (context, state, child) => AdminShell(child: child),
+        routes: [
+          GoRoute(
+            path: '/admin/dashboard',
+            builder: (_, __) => const AdminDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/admin/users',
+            builder: (_, __) => const AdminUsersScreen(),
+          ),
+          GoRoute(
+            path: '/admin/businesses',
+            builder: (_, __) => const AdminBusinessesScreen(),
+          ),
+          GoRoute(
+            path: '/admin/listings',
+            builder: (_, __) => const AdminListingsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/reports',
+            builder: (_, __) => const AdminReportsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/categories',
+            builder: (_, __) => const AdminCategoriesScreen(),
+          ),
+          GoRoute(
+            path: '/admin/premium',
+            builder: (_, __) => const AdminPremiumScreen(),
+          ),
+          GoRoute(
+            path: '/admin/analytics',
+            builder: (_, __) => const AdminAnalyticsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/notifications',
+            builder: (_, __) => const AdminNotificationsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/audit',
+            builder: (_, __) => const AdminAuditScreen(),
+          ),
+        ],
       ),
     ],
   );
