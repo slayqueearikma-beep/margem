@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth import get_current_user, get_current_user_optional
+from app.services.text_sanitizer import sanitize_free_text
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (
@@ -269,15 +270,20 @@ async def migrate_guest_favorites(
                 select(Favorite).where(Favorite.user_id == user.id, Favorite.product_id == item.product_id)
             )
             if exists.scalar_one_or_none() is None:
-                session.add(
-                    Favorite(
-                        id=uuid4(),
-                        user_id=user.id,
-                        product_id=item.product_id,
-                        seller_id=product.seller_id,
-                    )
-                )
-                await bump_favorite_count(session, product.seller_id, delta=1)
+                try:
+                    async with session.begin_nested():
+                        session.add(
+                            Favorite(
+                                id=uuid4(),
+                                user_id=user.id,
+                                product_id=item.product_id,
+                                seller_id=product.seller_id,
+                            )
+                        )
+                        await bump_favorite_count(session, product.seller_id, delta=1)
+                        await session.flush()
+                except IntegrityError:
+                    await session.rollback()
         elif item.seller_id:
             seller = await session.get(SellerProfile, item.seller_id)
             if seller is None:
@@ -290,8 +296,13 @@ async def migrate_guest_favorites(
                 )
             )
             if exists.scalar_one_or_none() is None:
-                session.add(Favorite(id=uuid4(), user_id=user.id, seller_id=item.seller_id))
-                await bump_favorite_count(session, item.seller_id, delta=1)
+                try:
+                    async with session.begin_nested():
+                        session.add(Favorite(id=uuid4(), user_id=user.id, seller_id=item.seller_id))
+                        await bump_favorite_count(session, item.seller_id, delta=1)
+                        await session.flush()
+                except IntegrityError:
+                    await session.rollback()
     await session.commit()
     return await list_favorites(user=user, session=session)
 
@@ -343,8 +354,19 @@ async def follow_seller(
     if follow is None:
         follow = SellerFollow(id=uuid4(), user_id=user.id, seller_id=seller_id)
         session.add(follow)
-        await session.commit()
-        await session.refresh(follow)
+        try:
+            await session.commit()
+            await session.refresh(follow)
+        except IntegrityError:
+            await session.rollback()
+            follow = (
+                await session.execute(
+                    select(SellerFollow).where(
+                        SellerFollow.user_id == user.id,
+                        SellerFollow.seller_id == seller_id,
+                    )
+                )
+            ).scalar_one()
     return FollowOut(
         id=follow.id,
         seller_id=seller.id,
@@ -508,8 +530,8 @@ async def create_report(
         seller = await session.get(SellerProfile, payload.seller_id)
         if seller is None:
             raise HTTPException(status_code=404, detail="Seller not found")
-    reason = payload.reason.strip()
-    if not reason or len(reason) > 80:
+    reason = sanitize_free_text(payload.reason, max_length=80)
+    if not reason:
         raise HTTPException(status_code=400, detail="Invalid report reason")
     report = Report(
         id=uuid4(),
@@ -517,7 +539,7 @@ async def create_report(
         seller_id=payload.seller_id,
         product_id=payload.product_id,
         reason=reason,
-        details=(payload.details or "").strip()[:2000],
+        details=sanitize_free_text(payload.details or "", max_length=2000),
     )
     session.add(report)
     await session.commit()

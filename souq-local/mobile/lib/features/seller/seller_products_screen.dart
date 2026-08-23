@@ -9,12 +9,13 @@ import '../../core/models/auth_models.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/upload_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
 
@@ -27,8 +28,7 @@ class SellerProductsScreen extends ConsumerWidget {
     final accountAsync = ref.watch(sellerAccountProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.productManagement),
+      appBar: MarGemAppBar(
         actions: [
           IconButton(
             tooltip: l10n.addProduct,
@@ -86,7 +86,7 @@ class SellerProductsScreen extends ConsumerWidget {
                 final product = products[index];
                 return Card(
                   child: ListTile(
-                    contentPadding: const EdgeInsets.all(AppSpacing.sm),
+                    contentPadding: EdgeInsets.all(AppSpacing.sm),
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: SizedBox(
@@ -98,7 +98,7 @@ class SellerProductsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    title: Text(product.name, style: TextStyle(fontWeight: FontWeight.w600)),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -107,7 +107,7 @@ class SellerProductsScreen extends ConsumerWidget {
                         Text(
                           product.isAvailable ? l10n.available : l10n.unavailable,
                           style: TextStyle(
-                            color: product.isAvailable ? AppColors.success : AppColors.warning,
+                            color: product.isAvailable ? context.colors.success : context.colors.warning,
                             fontSize: 12,
                           ),
                         ),
@@ -284,14 +284,14 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
       return accountAsync.when(
         loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
         error: (error, _) => Scaffold(
-          appBar: AppBar(),
+          appBar: MarGemAppBar(),
           body: AsyncErrorView.fromError(error, onRetry: () => ref.invalidate(sellerAccountProvider)),
         ),
         data: (account) {
           final product = account.profile.products.where((p) => p.id == widget.productId).firstOrNull;
           if (product == null) {
             return Scaffold(
-              appBar: AppBar(),
+              appBar: MarGemAppBar(),
               body: Center(child: Text(l10n.somethingWentWrong)),
             );
           }
@@ -306,8 +306,8 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
 
   Widget _buildForm(AppStrings l10n) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isEditing ? l10n.editProduct : l10n.addProduct),
+      appBar: MarGemAppBar(
+        semanticLabel: widget.isEditing ? l10n.editProduct : l10n.addProduct,
         actions: [
           if (widget.isEditing)
             IconButton(
