@@ -73,6 +73,28 @@ def test_host_lists_accept_comma_delimited_docker_environment_values():
     ]
 
 
+def test_cors_origins_from_env_accepts_comma_separated_and_malformed_json(monkeypatch):
+    monkeypatch.setenv(
+        "CORS_ORIGINS",
+        "http://192.168.11.101:8000,http://192.168.11.101:8080",
+    )
+    settings = Settings(_env_file=None)
+    assert settings.cors_origins == [
+        "http://192.168.11.101:8000",
+        "http://192.168.11.101:8080",
+    ]
+
+    monkeypatch.setenv(
+        "CORS_ORIGINS",
+        '["http://192.168.11.101:8000","http://192.168.11.101:8080',
+    )
+    settings = Settings(_env_file=None)
+    assert settings.cors_origins == [
+        "http://192.168.11.101:8000",
+        "http://192.168.11.101:8080",
+    ]
+
+
 @pytest.mark.asyncio
 async def test_invalid_token_returns_401_without_firebase(prepare_database):
     from httpx import ASGITransport, AsyncClient

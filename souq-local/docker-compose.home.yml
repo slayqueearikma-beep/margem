@@ -23,8 +23,8 @@ services:
 
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: margem-home-api
     restart: unless-stopped
     ports:
@@ -38,6 +38,7 @@ services:
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET}
       STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
       LOCAL_MEDIA_ROOT: /data/media
+      ADMIN_DASHBOARD_DIR: /admin-dashboard
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING:-}
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}
@@ -47,9 +48,8 @@ services:
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
-      # Never log authentication tokens as an implicit fallback. Set this
-      # explicitly to true only for an isolated development emergency.
-      ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-false}
+      # Home LAN servers often have no SMTP; tokens are logged server-side only.
+      ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-true}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
@@ -58,6 +58,7 @@ services:
       AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-30/minute}
     volumes:
       - margem_home_media:/data/media
+      - ./admin-dashboard:/admin-dashboard:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,6 +68,20 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
+
+  admin:
+    build:
+      context: ./admin-dashboard
+      dockerfile: Dockerfile
+    container_name: margem-home-admin
+    restart: unless-stopped
+    ports:
+      - "${ADMIN_PORT:-8080}:80"
+    environment:
+      MARGEM_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   margem_home_pg:

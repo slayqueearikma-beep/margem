@@ -120,7 +120,7 @@ async def seed() -> None:
                 firebase_uid=f"demo-{i}",
                 email=f"{first.lower()}.{last.split()[0].lower()}.{i}@margem.demo",
                 password_hash=hash_password("MarGemDemo2026!"),
-                account_type=AccountType.SELLER if i < 80 else AccountType.BUYER,
+                account_type=AccountType.PROVIDER if i < 80 else AccountType.CUSTOMER,
                 display_name=name,
                 email_verified_at=NOW - timedelta(days=RNG.randint(10, 900)),
                 role=UserRole.SELLER if i < 80 else UserRole.BUYER,
