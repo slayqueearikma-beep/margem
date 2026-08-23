@@ -15,6 +15,7 @@ import '../../core/services/upload_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/widgets/network_image_view.dart';
@@ -174,7 +175,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     final accountAsync = ref.watch(sellerAccountProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.profileManagement)),
+      appBar: MarGemAppBar(semanticLabel: l10n.profileManagement),
       body: accountAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => AsyncErrorView.fromError(

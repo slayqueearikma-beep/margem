@@ -27,7 +27,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      APP_ENV: production
+      APP_ENV: ${APP_ENV:-staging}
       DEBUG: "false"
       AUTH_DEV_BYPASS: "false"
       DATABASE_URL: postgresql+asyncpg://margemadmin:${POSTGRES_PASSWORD}@postgres:5432/margem
@@ -42,8 +42,8 @@ services:
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://margem.ma}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.margem.ma}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
       JWT_REFRESH_EXPIRE_DAYS: "7"
       RATE_LIMIT: ${RATE_LIMIT:-300/minute}
