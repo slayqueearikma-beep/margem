@@ -39,4 +39,6 @@ async def test_live_and_ready_endpoints():
 
         ready_res = await client.get("/ready")
         assert ready_res.status_code in {200, 503}
-        assert "status" in ready_res.json()
+        payload = ready_res.json()
+        assert "status" in payload
+        assert payload.get("admin_dashboard") in {"ok", "missing"}

@@ -104,6 +104,70 @@ docker compose -f docker-compose.home.yml --env-file .env.home down
 .\stop_home_server.ps1
 ```
 
+## Admin dashboard (web)
+
+Staff admin is **not** in the mobile app. It runs as a **separate web dashboard** on its own port:
+
+`http://<laptop-lan-ip>:8080` (e.g. `http://192.168.11.101:8080`)
+
+The mobile app talks to the API on port **8000** only. Admin uses port **8080** and calls the API in the background.
+
+1. Register an account in the mobile app (role cannot be set at signup).
+2. Promote that email to admin:
+
+```bash
+MARGEM_PROFILE=home ./scripts/docker-admin.sh promote-admin you@example.com
+```
+
+3. Open the admin URL in a browser (phone or laptop on the same Wi‑Fi) and log in.
+
+Ensure `.env.home` allows cross-origin requests from the admin port:
+
+```env
+CORS_ORIGINS=http://192.168.11.101:8000,http://192.168.11.101:8080
+ADMIN_PORT=8080
+```
+
+**If the admin page does not load**, rebuild and start both services:
+
+```bash
+git pull
+docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
+MARGEM_API_URL=http://192.168.11.101:8000 MARGEM_ADMIN_URL=http://192.168.11.101:8080 \
+  MARGEM_PROFILE=home ./scripts/docker-admin.sh check-admin
+```
+
+Legacy note: home compose disables embedded `/admin` on the API — **use port 8080 only**.
+
+### Admin security (maximum hardening)
+
+The admin container applies several layers by default:
+
+| Layer | What it does |
+|-------|----------------|
+| **Private IP only** | Blocks access from the public internet (`ADMIN_ALLOW_PUBLIC=false`) |
+| **HTTP Basic Auth** | Second password gate before MarGem login (`ADMIN_BASIC_AUTH_*`) |
+| **Security headers + CSP** | Reduces XSS / clickjacking risk |
+| **Rate limiting** | nginx limits requests to the admin UI |
+| **No embedded admin on API** | `/admin` is not served on port 8000 |
+| **Origin guard** | Admin API rejects browser calls from unknown origins |
+| **Session token** | JWT stored in `sessionStorage` (cleared when browser tab closes) |
+| **MFA for staff** | `ADMIN_REQUIRE_STAFF_MFA=true` requires MFA for admin/support |
+
+Add to `.env.home`:
+
+```env
+ADMIN_BASIC_AUTH_USER=margem
+ADMIN_BASIC_AUTH_PASSWORD=your-strong-gate-password
+ADMIN_REQUIRE_STAFF_MFA=true
+ADMIN_ALLOW_PUBLIC=false
+CORS_ORIGINS=http://192.168.11.101:8000,http://192.168.11.111:8080
+```
+
+On your phone you will enter **two passwords**: Basic Auth gate, then MarGem admin login.
+
+**Never** expose port 8080 through Cloudflare or port-forwarding. Keep admin on LAN only.
+
 ## Backups (home server)
 
 ```bash

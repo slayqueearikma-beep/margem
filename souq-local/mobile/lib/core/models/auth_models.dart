@@ -23,9 +23,14 @@ class AuthUser {
     );
   }
 
-  bool get isBuyer => accountType == 'buyer' || !hasSellerProfile;
-  bool get isSeller => accountType == 'seller' || hasSellerProfile;
-  bool get canSell => hasSellerProfile || accountType == 'seller';
+  bool get isBuyer =>
+      accountType == 'customer' || accountType == 'buyer' || !hasSellerProfile;
+  bool get isSeller =>
+      accountType == 'provider' || accountType == 'seller' || hasSellerProfile;
+  bool get canSell =>
+      hasSellerProfile ||
+      accountType == 'provider' ||
+      accountType == 'seller';
 }
 
 class AuthSession {
@@ -176,19 +181,31 @@ class ProductCreatePayload {
   const ProductCreatePayload({
     required this.name,
     required this.description,
+    this.pricingType = 'fixed',
     this.priceMad,
+    this.categorySlug = '',
+    this.deliveryAvailable = false,
+    this.pickupOnly = true,
     this.imageUrl = '',
   });
 
   final String name;
   final String description;
+  final String pricingType;
   final double? priceMad;
+  final String categorySlug;
+  final bool deliveryAvailable;
+  final bool pickupOnly;
   final String imageUrl;
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'description': description,
-        if (priceMad != null) 'price_mad': priceMad,
+        'pricing_type': pricingType,
+        if (pricingType == 'fixed' && priceMad != null) 'price_mad': priceMad,
+        if (categorySlug.isNotEmpty) 'category_slug': categorySlug,
+        'delivery_available': deliveryAvailable,
+        'pickup_only': pickupOnly,
         'image_url': imageUrl,
       };
 }
@@ -222,14 +239,95 @@ class ProductUpdatePayload {
   }
 }
 
-/// Maps seller onboarding UI labels to backend category slugs.
+class ServiceCreatePayload {
+  const ServiceCreatePayload({
+    required this.name,
+    required this.description,
+    required this.pricingModel,
+    this.priceMad,
+    this.priceMinMad,
+    this.priceMaxMad,
+    this.imageUrl = '',
+    this.isAvailable = true,
+  });
+
+  final String name;
+  final String description;
+  final String pricingModel;
+  final double? priceMad;
+  final double? priceMinMad;
+  final double? priceMaxMad;
+  final String imageUrl;
+  final bool isAvailable;
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'description': description,
+        'pricing_model': pricingModel,
+        if (priceMad != null) 'price_mad': priceMad,
+        if (priceMinMad != null) 'price_min_mad': priceMinMad,
+        if (priceMaxMad != null) 'price_max_mad': priceMaxMad,
+        'image_url': imageUrl,
+        'is_available': isAvailable,
+      };
+}
+
+class ServiceUpdatePayload {
+  const ServiceUpdatePayload({
+    this.name,
+    this.description,
+    this.pricingModel,
+    this.priceMad,
+    this.priceMinMad,
+    this.priceMaxMad,
+    this.clearPrice = false,
+    this.clearMinPrice = false,
+    this.clearMaxPrice = false,
+    this.imageUrl,
+    this.isAvailable,
+  });
+
+  final String? name;
+  final String? description;
+  final String? pricingModel;
+  final double? priceMad;
+  final double? priceMinMad;
+  final double? priceMaxMad;
+  final bool clearPrice;
+  final bool clearMinPrice;
+  final bool clearMaxPrice;
+  final String? imageUrl;
+  final bool? isAvailable;
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (pricingModel != null) 'pricing_model': pricingModel,
+      if (clearPrice) 'price_mad': null,
+      if (!clearPrice && priceMad != null) 'price_mad': priceMad,
+      if (clearMinPrice) 'price_min_mad': null,
+      if (!clearMinPrice && priceMinMad != null) 'price_min_mad': priceMinMad,
+      if (clearMaxPrice) 'price_max_mad': null,
+      if (!clearMaxPrice && priceMaxMad != null) 'price_max_mad': priceMaxMad,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (isAvailable != null) 'is_available': isAvailable,
+    };
+  }
+}
+
+/// Fundamental marketplace category slugs (API taxonomy).
 const sellerCategorySlugMap = <String, String>{
-  'Food': 'food',
-  'Clothing': 'clothing',
-  'Electronics': 'electronics',
-  'Beauty': 'beauty',
-  'Services': 'services',
-  'Home & Garden': 'home',
-  'Health': 'health',
-  'Sports': 'sports',
+  'clothing': 'clothing',
+  'shoes': 'shoes',
+  'perfumes': 'perfumes',
+  'beauty': 'beauty',
+  'electronics': 'electronics',
+  'food': 'food',
+  'home': 'home',
+  'jewelry': 'jewelry',
+  'accessories': 'accessories',
+  'sports': 'sports',
+  'health': 'health',
+  'kids': 'kids',
 };
