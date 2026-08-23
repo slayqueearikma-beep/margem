@@ -9,14 +9,17 @@ final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>((ref) {
 });
 
 class LocaleNotifier extends StateNotifier<Locale> {
-  LocaleNotifier(this._storage) : super(_storage?.getLocale() ?? const Locale('en'));
+  LocaleNotifier(this._storage)
+      : super(_storage?.getLocale() ?? const Locale(AppStorage.defaultLanguageCode));
 
   AppStorage? _storage;
 
   void updateStorage(AppStorage? storage) {
     _storage = storage;
-    if (storage != null && storage.isLanguageSelected) {
-      state = storage.getLocale();
+    if (storage != null) {
+      state = storage.isLanguageSelected
+          ? storage.getLocale()
+          : const Locale(AppStorage.defaultLanguageCode);
     }
   }
 

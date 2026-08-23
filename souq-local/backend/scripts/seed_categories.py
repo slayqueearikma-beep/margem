@@ -8,19 +8,9 @@ import asyncio
 
 from sqlalchemy import select
 
+from app.data.marketplace_categories import MARKETPLACE_CATEGORIES
 from app.database import SessionLocal
 from app.models import Category
-
-CATEGORIES = [
-    ("food", "Food", "Nourriture", "طعام", "restaurant"),
-    ("clothing", "Clothing", "Vêtements", "ملابس", "checkroom"),
-    ("electronics", "Electronics", "Électronique", "إلكترونيات", "devices"),
-    ("beauty", "Beauty", "Beauté", "جمال", "spa"),
-    ("services", "Services", "Services", "خدمات", "build"),
-    ("home", "Home & Garden", "Maison", "منزل", "home"),
-    ("health", "Health", "Santé", "صحة", "local_hospital"),
-    ("sports", "Sports", "Sport", "رياضة", "sports_soccer"),
-]
 
 
 async def seed_categories() -> None:
@@ -30,11 +20,19 @@ async def seed_categories() -> None:
             print("Categories already exist — skipping.")
             return
 
-        for slug, en, fr, ar, icon in CATEGORIES:
-            session.add(Category(slug=slug, name_en=en, name_fr=fr, name_ar=ar, icon=icon))
+        for cat in MARKETPLACE_CATEGORIES:
+            session.add(
+                Category(
+                    slug=cat.slug,
+                    name_en=cat.name_en,
+                    name_fr=cat.name_fr,
+                    name_ar=cat.name_ar,
+                    icon=cat.icon,
+                )
+            )
 
         await session.commit()
-        print(f"Seeded {len(CATEGORIES)} categories.")
+        print(f"Seeded {len(MARKETPLACE_CATEGORIES)} categories.")
 
 
 if __name__ == "__main__":
