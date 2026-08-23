@@ -1,4 +1,4 @@
-# MarGem Production Deployment
+# Dribex Production Deployment
 
 Deploy the API to Azure with PostgreSQL, Key Vault, Blob Storage, and Container Apps. **No demo users or businesses are seeded** — you create real accounts through the app.
 
@@ -49,7 +49,7 @@ Edit your tfvars file for the **current month**:
 - `subscription_alias` — short label (`sub1`, `sub2`, …) used in resource names
 - `postgres_admin_password` — strong password (8+ chars)
 - `jwt_secret_key` — random string, **32+ characters**
-- `cors_origins` — your real origins, e.g. `["https://margem.app"]` (no `*`)
+- `cors_origins` — your real origins, e.g. `["https://dribex.app"]` (no `*`)
 - `api_image` — set after pushing to ACR (step 3)
 
 ## 2. Provision Azure infrastructure

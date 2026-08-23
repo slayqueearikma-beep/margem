@@ -2,9 +2,13 @@ import 'app_strings.dart';
 
 class AppStringsEn extends AppStrings {
   @override
-  String get appName => 'MarGem';
+  String get appName => 'Dribex';
   @override
   String get appTagline => 'Discover Morocco\'s Hidden Gems';
+  @override
+  String get splashTagline => 'Discover. Connect. Grow Locally.';
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
   @override
   String get selectLanguage => 'Choose your language';
   @override
@@ -52,10 +56,10 @@ class AppStringsEn extends AppStrings {
   @override
   String get language => 'Language';
   @override
-  String get discoverTitle => 'Discover Local Businesses';
+  String get discoverTitle => 'Discover Local Businesses & Services';
   @override
   String get discoverSubtitle =>
-      'Find trusted shops, products, and services across Morocco — all in one place.';
+      'Find trusted sellers, unique products and amazing services around you.';
   @override
   String get exploreMapTitle => 'Explore on the Map';
   @override
@@ -67,10 +71,32 @@ class AppStringsEn extends AppStrings {
   String get trustedReviewsSubtitle =>
       'Read ratings from real buyers and discover the most trusted businesses in your city.';
   @override
-  String get chooseAccountType => 'Choose your account type';
+  String get connectTitle => 'Connect with Confidence';
+  @override
+  String get connectSubtitle =>
+      'Verified profiles, reviews and secure communication you can trust.';
+  @override
+  String get growTitle => 'Grow Your Business';
+  @override
+  String get growSubtitle =>
+      'List your products or services, reach more customers and grow your brand.';
+  @override
+  String get chooseAccountType => 'Welcome to Dribex';
   @override
   String get chooseAccountTypeSubtitle =>
-      'One account for both. Start as a shopper or set up a business — you can switch anytime with the same email and password.';
+      'Join our community and discover Morocco\'s hidden gems.';
+  @override
+  String get accountTypeSectionLabel => 'Choose your account type';
+  @override
+  String get decideLater => 'I\'ll decide later';
+  @override
+  String get secureSignupLine1 => 'Your data is encrypted and secure.';
+  @override
+  String get secureSignupLine2 => 'We never share your personal information.';
+  @override
+  String get continueAsBuyer => 'Continue as Buyer';
+  @override
+  String get continueAsSeller => 'Continue as Seller';
   @override
   String get buyer => 'Buyer';
   @override
@@ -125,7 +151,7 @@ class AppStringsEn extends AppStrings {
   String get city => 'City';
   @override
   String get fillRequiredFields =>
-      'Please fill all required fields (password min 6 characters).';
+      'Please fill all required fields (password min 8 characters with upper, lower, and number).';
   @override
   String get navHome => 'Home';
   @override
@@ -137,7 +163,76 @@ class AppStringsEn extends AppStrings {
   @override
   String get navMessages => 'Messages';
   @override
-  String get margemMember => 'MarGem member';
+  String get navDashboard => 'Dashboard';
+  @override
+  String get navServices => 'Services';
+  @override
+  String get navBookings => 'Bookings';
+  @override
+  String get navMore => 'More';
+  @override
+  String get earnings => 'Earnings';
+  @override
+  String get gallery => 'Gallery';
+  @override
+  String get businessInfo => 'Business info';
+  @override
+  String get comingSoon => 'Soon';
+  @override
+  String get upcomingBookings => 'Upcoming bookings';
+  @override
+  String get viewAll => 'View all';
+  @override
+  String get highlightServices => 'Highlight services';
+  @override
+  String get upcoming => 'Upcoming';
+  @override
+  String filterAll(int count) => 'All ($count)';
+  @override
+  String filterActive(int count) => 'Active ($count)';
+  @override
+  String filterInactive(int count) => 'Inactive ($count)';
+  @override
+  String bookingsUpcoming(int count) =>
+      count > 0 ? 'Upcoming ($count)' : 'Upcoming';
+  @override
+  String bookingsCompleted(int count) =>
+      count > 0 ? 'Completed ($count)' : 'Completed';
+  @override
+  String bookingsCancelled(int count) =>
+      count > 0 ? 'Cancelled ($count)' : 'Cancelled';
+  @override
+  String get noBookingsYet => 'No bookings yet. Customer inquiries appear here.';
+  @override
+  String get noBookingsInCategory => 'Nothing in this category yet.';
+  @override
+  String get bookingsInquiryHint =>
+      'Open messages to respond to customer inquiries.';
+  @override
+  String get viewMessages => 'View messages';
+  @override
+  String get today => 'Today';
+  @override
+  String favoritesCount(int count) => '$count favorites on your storefront';
+  @override
+  String get stepBasicInfo => 'Basic info';
+  @override
+  String get stepPricing => 'Pricing';
+  @override
+  String get stepDetails => 'Details';
+  @override
+  String get customersWillSee => 'Customers will see:';
+  @override
+  String get nextStep => 'Continue';
+  @override
+  String get publishService => 'Publish service';
+  @override
+  String get serviceStatusLive => 'Service is live';
+  @override
+  String get serviceDetailsHint =>
+      'You can update availability and pricing anytime from the services tab.';
+  @override
+  String get margemMember => 'Dribex member';
   @override
   String get allCategories => 'All';
   @override
@@ -159,6 +254,19 @@ class AppStringsEn extends AppStrings {
   @override
   String goodMorning(String name) =>
       name.isEmpty ? 'Good morning' : 'Good morning, $name';
+  @override
+  String buyerHello(String name) =>
+      name.isEmpty ? 'Hello 👋' : 'Hello, $name 👋';
+  @override
+  String get buyerHomeSubtitle => 'What are you looking for today?';
+  @override
+  String get promoBannerTitle => 'Find the best around you';
+  @override
+  String get promoBannerSubtitle => 'Trusted sellers, great deals';
+  @override
+  String get exploreNow => 'Explore now';
+  @override
+  String get popularCategories => 'Popular categories';
   @override
   String get searchHint => 'Search shops, products, services…';
   @override
@@ -185,6 +293,24 @@ class AppStringsEn extends AppStrings {
   @override
   String get tryAgain => 'Try again';
   @override
+  String get contentNotFound =>
+      'We could not find what you were looking for.';
+  @override
+  String get requestCouldNotBeProcessed =>
+      'We could not complete that request. Please try again.';
+  @override
+  String get tooManyRequests =>
+      'Too many requests. Please wait a moment and try again.';
+  @override
+  String get searchEmptySubtitle =>
+      'Try another keyword, switch category, or clear your filters.';
+  @override
+  String get premiumCheckoutOpened =>
+      'Complete payment in your browser, then return to Dribex.';
+  @override
+  String get premiumCheckoutFailed =>
+      'Could not open checkout. Please try again or contact support.';
+  @override
   String get verifyEmailToContinue => 'Verify your email before continuing.';
   @override
   String get pressBackAgainToExit => 'Press back again to exit';
@@ -193,7 +319,27 @@ class AppStringsEn extends AppStrings {
   @override
   String get businessKeyword => 'Business name or keyword';
   @override
+  String get pricingOffer => 'Offer';
+  @override
+  String get deliveryAvailable => 'Delivery available';
+  @override
+  String get pickupOnly => 'Pickup only';
+  @override
+  String get searchFilters => 'Filters';
+  @override
+  String get minRating => 'Min rating';
+  @override
+  String get provider => 'Providers';
+  @override
+  String get productCategory => 'Category';
+  @override
+  String get applyFilters => 'Apply';
+  @override
+  String get clearFilters => 'Clear';
+  @override
   String get noBusinessesFound => 'No businesses found';
+  @override
+  String get searchSortedByNearest => 'Showing nearest matches';
   @override
   String warningZones(int count) => '$count warning zone(s)';
   @override
@@ -297,6 +443,25 @@ class AppStringsEn extends AppStrings {
   @override
   String get productDeleted => 'Product deleted';
   @override
+  String get serviceManagement => 'Service management';
+  @override
+  String get serviceManagementSub => 'Add, edit, or remove services and pricing';
+  @override
+  String get addService => 'Add service';
+  @override
+  String get editService => 'Edit service';
+  @override
+  String get deleteService => 'Delete service';
+  @override
+  String get deleteServiceConfirm =>
+      'Delete this service? Buyers will no longer see it on your storefront.';
+  @override
+  String get noServicesYet => 'No services yet. Add your first service.';
+  @override
+  String get serviceSaved => 'Service saved';
+  @override
+  String get serviceDeleted => 'Service deleted';
+  @override
   String get profileSaved => 'Profile updated';
   @override
   String get storeVisible => 'Store is visible to buyers';
@@ -379,6 +544,8 @@ class AppStringsEn extends AppStrings {
   String get description => 'Description';
   @override
   String get priceOptional => 'Price (MAD, optional)';
+  @override
+  String get priceMad => 'Price (MAD)';
   @override
   String get addAnotherItem => 'Add another item';
   @override
@@ -522,8 +689,78 @@ class AppStringsEn extends AppStrings {
   @override
   String get priceNegotiable => 'Price negotiable';
   @override
-  String get acceptedPaymentMethods => 'Accepted payment methods';
+  String get pricingModel => 'Pricing model';
   @override
+  String get pricingModelFixedPrice => 'Fixed price';
+  @override
+  String get pricingModelStartingFrom => 'Starting from';
+  @override
+  String get pricingModelPriceRange => 'Price range';
+  @override
+  String get pricingModelHourly => 'Hourly';
+  @override
+  String get pricingModelDaily => 'Daily';
+  @override
+  String get pricingModelWeekly => 'Weekly';
+  @override
+  String get pricingModelMonthly => 'Monthly';
+  @override
+  String get pricingModelPerPerson => 'Per person';
+  @override
+  String get pricingModelPerUnit => 'Per unit';
+  @override
+  String get pricingModelPerSqm => 'Per m²';
+  @override
+  String get pricingModelPerKm => 'Per km';
+  @override
+  String get pricingModelRequestQuote => 'Request quote';
+  @override
+  String get pricingModelContactForPrice => 'Contact for price';
+  @override
+  String get pricingModelNegotiable => 'Negotiable';
+  @override
+  String get pricingModelFree => 'Free';
+  @override
+  String get minPrice => 'Minimum price (MAD)';
+  @override
+  String get maxPrice => 'Maximum price (MAD)';
+  @override
+  String priceStartingFrom(String amount) => 'From $amount';
+  @override
+  String priceRangeLabel(String min, String max) => '$min – $max';
+  @override
+  String pricePerHour(String amount) => '$amount / hour';
+  @override
+  String pricePerDay(String amount) => '$amount / day';
+  @override
+  String pricePerWeek(String amount) => '$amount / week';
+  @override
+  String pricePerMonth(String amount) => '$amount / month';
+  @override
+  String pricePerPerson(String amount) => '$amount / person';
+  @override
+  String pricePerUnit(String amount) => '$amount / unit';
+  @override
+  String pricePerSqm(String amount) => '$amount / m²';
+  @override
+  String pricePerKm(String amount) => '$amount / km';
+  @override
+  String priceNegotiableWithAmount(String amount) => '$amount · negotiable';
+  @override
+  String get enterValidPrice => 'Enter a valid price';
+  @override
+  String get minPriceExceedsMax => 'Minimum price cannot exceed maximum price';
+  @override
+  String get acceptedPaymentMethods => 'Seller accepts (off Dribex)';
+  @override
+  String get discoveryPlatformNotice =>
+      'Dribex helps you discover local sellers. Any purchase happens directly with the seller — Dribex does not process, hold, or distribute product payments.';
+  @override
+  String get offPlatformPaymentNotice =>
+      'Payment methods listed below are accepted by the seller outside Dribex. You pay the seller directly, not Dribex.';
+  @override
+  String get dribexServicePaymentNotice =>
+      'Premium and advertising fees are paid to Dribex for platform services only — not for products sold by sellers.';
   @override
   String get contactSeller => 'Contact seller';
   @override
@@ -602,9 +839,6 @@ class AppStringsEn extends AppStrings {
   String get moreFromSeller => 'More from this seller';
   @override
   String get writeYourMessage => 'Write your message...';
-  @override
-  String favoritesCount(int count) =>
-      count == 1 ? '1 favorite' : '$count favorites';
   @override
   String followersCount(int count) =>
       count == 1 ? '1 follower' : '$count followers';
@@ -698,7 +932,7 @@ class AppStringsEn extends AppStrings {
   String get noPremiumPlans => 'No premium plans are available right now.';
   @override
   String get premiumBillingUnavailable =>
-      'Self-serve billing is not enabled yet. Contact MarGem support or ask an admin to grant premium visibility.';
+      'Self-serve billing is not enabled yet. Contact Dribex support or ask an admin to grant premium visibility.';
   @override
   String get premiumContactSupport => 'Contact support';
   @override
@@ -720,7 +954,36 @@ class AppStringsEn extends AppStrings {
   @override
   String get resendVerificationEmail => 'Resend verification email';
   @override
-  String get premiumTitle => 'Grow with MarGem Premium';
+  String get signupOtpChannelTitle => 'Where should we send your 6-digit code?';
+  @override
+  String get signupOtpChannelSubtitle =>
+      'Choose how you want to verify your identity to continue.';
+  @override
+  String get signupOtpSendPhone => 'Send to phone';
+  @override
+  String get signupOtpSendEmail => 'Send to email';
+  @override
+  String get signupOtpPrivacyNote => 'We’ll never share your code with anyone.';
+  @override
+  String get signupOtpCodeTitle => 'Enter the 6-digit code';
+  @override
+  String signupOtpCodeSentTo(String destination) =>
+      'We’ve sent a 6-digit code to $destination. ';
+  @override
+  String get signupOtpChange => 'Change';
+  @override
+  String get signupOtpCodeInvalid => 'Enter the 6-digit code.';
+  @override
+  String get signupOtpDidntReceive => 'Didn’t receive the code?';
+  @override
+  String signupOtpResendCountdown(int seconds) =>
+      'Resend code (00:${seconds.toString().padLeft(2, '0')})';
+  @override
+  String get signupOtpResend => 'Resend code';
+  @override
+  String get signupOtpVerify => 'Verify';
+  @override
+  String get premiumTitle => 'Grow with Dribex Premium';
   @override
   String get premiumSubtitle =>
       'Unlock stronger visibility, discovery tools, and profile insights.';
@@ -822,6 +1085,127 @@ class AppStringsEn extends AppStrings {
   String get verification => 'Verification';
   @override
   String get markAllRead => 'Mark all read';
+  @override
+  String get ok => 'OK';
+  @override
+  String get done => 'Done';
+  @override
+  String get twoFactorAuthTitle => 'Two-factor authentication';
+  @override
+  String get twoFactorAuthCodeLabel => 'Authenticator code';
+  @override
+  String get conversationDefault => 'Conversation';
+  @override
+  String get tapToOpenConversation => 'Tap to open conversation';
+  @override
+  String get demoLabel => 'Demo';
+  @override
+  String get demoBusinessesMapHint =>
+      'Demo businesses shown — start the backend API for live data.';
+  @override
+  String get communityPinned => 'Pinned';
+  @override
+  String get mapPreviewTitle => 'Map preview';
+  @override
+  String get mapDemoModeTitle => 'Demo map mode';
+  @override
+  String get mapApiKeyHint =>
+      'Map is temporarily unavailable. Please try again later.';
+  @override
+  String get mapUnavailable =>
+      'Map is temporarily unavailable. Please try again later.';
+  @override
+  String mapLocationsInArea(int count) =>
+      count == 1 ? '1 location in this area' : '$count locations in this area';
+  @override
+  String distanceLabel(double km) {
+    if (km < 1) return '${(km * 1000).round()} m';
+    return '${km.toStringAsFixed(1)} km';
+  }
+
+  @override
+  String get communityChatTitle => 'City Community';
+  @override
+  String get communitySearchHint => 'Search channels...';
+  @override
+  String get communityFilterAll => 'All';
+  @override
+  String get communityFilterVerified => 'Verified';
+  @override
+  String get communityFilterTrusted => 'Trusted';
+  @override
+  String get communityNoChannels => 'No channels found';
+  @override
+  String get communityNoChannelsSubtitle => 'Try a different filter or search term.';
+  @override
+  String get communityNewMessage => 'New message';
+  @override
+  String get communityDiscoverTitle => 'Discover communities';
+  @override
+  String get communityMembers => 'members';
+  @override
+  String get communityOnline => 'online';
+  @override
+  String communityCitySubtitle(String city) =>
+      'Connect with locals, discover recommendations, and join the conversation in $city.';
+  @override
+  String get communityGuestHint =>
+      'Sign in to post messages and join your city community.';
+  @override
+  String get communityEmptyChannel => 'Start the conversation';
+  @override
+  String get communityEmptyChannelSubtitle =>
+      'Be the first to share something with your city.';
+  @override
+  String get communityReplyingTo => 'Replying to';
+  @override
+  String communityTyping(String name) => '$name is typing...';
+  @override
+  String get communityReply => 'Reply';
+  @override
+  String get communityCopy => 'Copy message';
+  @override
+  String get communityReport => 'Report message';
+  @override
+  String get communityReported => 'Report submitted. Thank you.';
+  @override
+  String get communityCopied => 'Message copied';
+  @override
+  String get communityHomeCardTitle => 'City Community';
+  @override
+  String get communityHomeCardSubtitle =>
+      'Chat with locals, get recommendations, and discover what\'s happening nearby.';
+
+  @override
+  String get reportUser => 'Report user';
+  @override
+  String reportUserSubtitle(String name) =>
+      'Tell us what happened with $name. Our team will review your report.';
+  @override
+  String get blockUser => 'Block user';
+  @override
+  String blockUserConfirm(String name) =>
+      'Block $name? They will not be able to message you and this conversation will be hidden.';
+  @override
+  String get userReported => 'Report submitted. Thank you.';
+  @override
+  String get userBlocked => 'User blocked.';
+  @override
+  String get reportReasonLabel => 'Reason';
+  @override
+  String get reportReasonSpam => 'Spam';
+  @override
+  String get reportReasonHarassment => 'Harassment';
+  @override
+  String get reportReasonScam => 'Scam or fraud';
+  @override
+  String get reportReasonInappropriate => 'Inappropriate content';
+  @override
+  String get reportReasonOther => 'Other';
+  @override
+  String get reportDetailsOptional => 'Additional details (optional)';
+  @override
+  String get submitReport => 'Submit report';
 
   @override
   String categoryLabel(String key) {
@@ -860,4 +1244,304 @@ class AppStringsEn extends AppStrings {
     };
     return days[key] ?? key;
   }
+
+  @override
+  String paymentMethodLabel(String key) {
+    const labels = {
+      'cash': 'Cash',
+      'bank_transfer': 'Bank transfer',
+      'card': 'Card',
+      'mobile_money': 'Mobile money',
+      'cod': 'Cash on delivery',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String deliveryMethodLabel(String key) {
+    const labels = {
+      'in_store': 'In-store pickup',
+      'local_delivery': 'Local delivery',
+      'pickup': 'Pickup',
+      'delivery': 'Delivery',
+      'shipping': 'Shipping',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String get appStorageNotReady =>
+      'App storage is not ready. Please restart the app.';
+
+  @override
+  String get communityYou => 'You';
+
+  @override
+  String get bundleBuilderTitle => 'Bundle Builder';
+  @override
+  String get bundleBuilderSubtitle =>
+      'Build complete packages and find the best combination across sellers.';
+  @override
+  String bundleBuilderMarketplace(String slug) => 'Marketplace: $slug';
+  @override
+  String get bundleBuilderChooseTemplate => 'Choose a package';
+  @override
+  String get bundleBuilderSummary => 'Your bundle';
+  @override
+  String get bundleBuilderTotalPrice => 'Total price';
+  @override
+  String get bundleBuilderSavings => 'Estimated savings';
+  @override
+  String get bundleBuilderAvailability => 'Availability';
+  @override
+  String get bundleBuilderAllAvailable => 'All items available';
+  @override
+  String get bundleBuilderPartialAvailability => 'Check availability with sellers';
+  @override
+  String get bundleBuilderMatchedSlots => 'Components matched';
+  @override
+  String get bundleBuilderWarranty => 'Warranty';
+  @override
+  String get bundleBuilderInStock => 'In stock';
+  @override
+  String get bundleBuilderCheckAvailability => 'Confirm availability';
+  @override
+  String get bundleBuilderSellerBreakdown => 'Seller breakdown';
+  @override
+  String get bundleBuilderContactSeller => 'View seller';
+
+  @override
+  String get marketplaceCommunityTitle => 'Marketplace Community';
+  @override
+  String get marketplaceCommunitySubtitle =>
+      'Ask questions, share deals, recommend sellers, and report scams.';
+  @override
+  String get marketplaceCommunityJoin => 'Join community';
+  @override
+  String get marketplaceCommunityChannels => 'Discussion channels';
+  @override
+  String get marketplaceCommunityPostQuestion => 'Question';
+  @override
+  String get marketplaceCommunityPostDeal => 'Deal';
+  @override
+  String get marketplaceCommunityPostRecommend => 'Recommend';
+  @override
+  String get marketplaceCommunityPostScam => 'Report scam';
+
+  @override
+  String get legalSectionTitle => 'Legal & privacy';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get cookiePolicy => 'Cookie Policy';
+
+  @override
+  String get accountDeletionPolicy => 'Account deletion';
+
+  @override
+  String get subscriptionTerms => 'Subscription & billing terms';
+
+  @override
+  String get dataExport => 'Export my data';
+
+  @override
+  String get contactSupport => 'Contact support';
+
+  @override
+  String get signupTermsAcknowledgment =>
+      'By creating an account, you agree to our Terms of Service and Privacy Policy.';
+
+  @override
+  String get privacyAndLegal => 'Privacy & Legal';
+
+  @override
+  String get privacySettings => 'Privacy Settings';
+
+  @override
+  String get yourData => 'Your Data';
+
+  @override
+  String get managePermissions => 'Manage Permissions';
+
+  @override
+  String get sellerTerms => 'Seller Terms';
+
+  @override
+  String get communityGuidelines => 'Community Guidelines';
+
+  @override
+  String get legalNotice => 'Legal Notice';
+
+  @override
+  String get openSourceLicenses => 'Open Source Licenses';
+
+  @override
+  String get privacyLegalHubIntro =>
+      'Review our policies and manage your privacy choices in one place.';
+
+  @override
+  String get privacyLegalHubSubtitle =>
+      'Policies, privacy controls, and your data';
+
+  @override
+  String get privacySectionTitle => 'Privacy';
+
+  @override
+  String get legalSubsectionTitle => 'Legal';
+
+  @override
+  String get privacySettingsIntro =>
+      'Control optional preferences below. Some processing is required to run your account and keep the platform secure.';
+
+  @override
+  String get requiredDataProcessing => 'Required data processing';
+
+  @override
+  String get requiredDataProcessingBody =>
+      'We process your account details, security logs, and content you post to provide Dribex, prevent fraud, and meet legal obligations. These cannot be turned off while you use the service.';
+
+  @override
+  String get optionalPreferences => 'Optional preferences';
+
+  @override
+  String get locationAccessDescription =>
+      'Dribex uses your location to help you discover nearby businesses when you use maps or location features. You control this in your device settings.';
+
+  @override
+  String get manageLocationPermission => 'Manage location permission';
+
+  @override
+  String get notificationsPermissionDescription =>
+      'Push notifications are managed through your device settings when available.';
+
+  @override
+  String get manageNotificationPermission => 'Open device settings';
+
+  @override
+  String get personalizedRecommendations => 'Personalized recommendations';
+
+  @override
+  String get personalizedRecommendationsDescription =>
+      'Use your activity on Dribex to improve suggestions. This does not sell your data.';
+
+  @override
+  String get marketingCommunications => 'Marketing communications';
+
+  @override
+  String get marketingCommunicationsDescription =>
+      'Receive promotional updates and recommendations from Dribex by email when we offer this.';
+
+  @override
+  String get yourDataIntro =>
+      'View what we store about your account, export a copy, or request deletion.';
+
+  @override
+  String get viewAccountInfo => 'Account information';
+
+  @override
+  String get dataExportDescription =>
+      'Download a JSON copy of your account data to your clipboard.';
+
+  @override
+  String get dataExportCopied =>
+      'Your data export was copied to the clipboard.';
+
+  @override
+  String get requestDataCorrection => 'Request correction';
+
+  @override
+  String get requestDataCorrectionDescription =>
+      'Email our privacy team to update inaccurate personal data.';
+
+  @override
+  String get dataRetentionInfo => 'Data retention';
+
+  @override
+  String get deleteAccountExplainer =>
+      'Deleting your account removes your storefront, messages, and profile. Some records may be kept where required by law.';
+
+  @override
+  String get signInToManageData =>
+      'Sign in to view, export, or delete your personal data.';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get accountSectionTitle => 'Account';
+
+  @override
+  String get notificationsSectionTitle => 'Notifications';
+
+  @override
+  String get notificationsSectionSubtitle =>
+      'Manage notification and marketing preferences';
+
+  @override
+  String get privacyAndSecurityTitle => 'Privacy & Security';
+
+  @override
+  String get helpAndSupportTitle => 'Help & Support';
+
+  @override
+  String get subscriptionManagementTitle => 'Your subscription';
+
+  @override
+  String get subscriptionRenewsUntil => 'Access until';
+
+  @override
+  String get cancelSubscriptionTitle => 'Cancel subscription';
+
+  @override
+  String get cancelSubscriptionBody =>
+      'Premium stays active until the end of the current billing period. You will not be charged again after cancellation.';
+
+  @override
+  String get cancelSubscriptionScheduled =>
+      'Cancellation scheduled — Premium remains active until the period ends.';
+
+  @override
+  String get requestAccountErasure => 'Request account erasure';
+
+  @override
+  String get requestAccountErasureDescription =>
+      'Submit a formal erasure request for staff review (separate from immediate in-app deletion).';
+
+  @override
+  String get signupTermsPrefix => 'By continuing, you agree to the ';
+
+  @override
+  String get signupTermsMiddle => ' and acknowledge the ';
+
+  @override
+  String get signupTermsSuffix => '.';
+
+  @override
+  String get locationUsageNotice =>
+      'Dribex uses your location to help you discover nearby businesses.';
+
+  @override
+  String get connectionError =>
+      'Cannot reach the server. Check your internet connection and try again.';
+
+  @override
+  String get apiUnavailable =>
+      'The service is temporarily unavailable. Please try again later.';
+
+  @override
+  String requestTimeout(int seconds) =>
+      'Request timed out after ${seconds}s. Check your connection and try again.';
+
+  @override
+  String get invalidCredentials =>
+      'Invalid email or password. Check your credentials and try again.';
+
+  @override
+  String get invalidEmailFormat =>
+      'Enter a valid email address (for example, you@example.com).';
 }
