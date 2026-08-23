@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install a daily local backup job for a MarGem home server.
+# Install a daily local backup job for a Dribex home server.
 # Optionally set RCLONE_REMOTE (for example "b2:margem-backups") before running
 # to copy archives off-site after each successful backup.
 set -euo pipefail
@@ -16,7 +16,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 EOF
 
 crontab "$CRON_FILE"
-echo "Installed daily MarGem backup at 02:17 local time."
+echo "Installed daily Dribex backup at 02:17 local time."
 if [[ -n "${RCLONE_REMOTE:-}" ]]; then
   echo "Off-site copy enabled through rclone remote: $RCLONE_REMOTE"
 else

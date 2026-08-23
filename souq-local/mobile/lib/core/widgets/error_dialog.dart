@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 Future<void> showAppErrorDialog(
   BuildContext context, {
   required String title,
@@ -11,7 +13,10 @@ Future<void> showAppErrorDialog(
       title: Text(title),
       content: SingleChildScrollView(child: Text(message)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(AppLocalizations.get(ctx).strings.ok),
+        ),
       ],
     ),
   );
