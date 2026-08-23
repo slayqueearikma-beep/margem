@@ -20,7 +20,7 @@ class NetworkImageView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (url.isEmpty) {
       return ColoredBox(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: AppColors.imagePlaceholderSurface(context),
         child: Icon(placeholderIcon, color: AppColors.primary, size: 40),
       );
     }
@@ -29,7 +29,7 @@ class NetworkImageView extends StatelessWidget {
       fit: fit,
       placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       errorWidget: (_, __, ___) => ColoredBox(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: AppColors.imagePlaceholderSurface(context),
         child: Icon(placeholderIcon, color: AppColors.primary, size: 40),
       ),
     );

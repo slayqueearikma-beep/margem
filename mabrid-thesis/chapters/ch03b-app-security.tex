@@ -1,0 +1,383 @@
+\chapter{Sécurisation technique de l'application MarGem}
+\label{ch:app-security}
+
+\section{Introduction}
+
+Le chapitre~\ref{ch:security} a présenté l'architecture de sécurité d'entreprise de MABRID : gouvernance, confiance zéro, alignement NIST et ISO~27001. Ce chapitre descend au niveau de l'\emph{implémentation} : il décrit comment l'application mobile MarGem et son backend FastAPI ont été sécurisés concrètement. L'objectif est de montrer la traduction opérationnelle des principes théoriques en contrôles vérifiables --- authentification, autorisation, durcissement API, modération communautaire et protection des données --- sans exposer de secrets ni de détails exploitables par un attaquant.
+
+\section{Vue d'ensemble de la plateforme}
+
+\subsection{Architecture logique}
+
+MarGem suit une architecture trois tiers :
+\begin{itemize}
+  \item \textbf{Client mobile} --- application Flutter (iOS/Android) consommant une API REST et des WebSockets pour le chat communautaire.
+  \item \textbf{Backend} --- API FastAPI asynchrone (Python), authentification \gls{jwt}, persistance PostgreSQL via SQLAlchemy.
+  \item \textbf{Stockage} --- Azure Blob Storage (production) ou stockage local signé (développement), avec validation stricte des médias.
+\end{itemize}
+
+\figureplaceholder{H}{figures/ch03b-app-architecture.pdf}{0.9}{Architecture applicative MarGem : mobile, API, base de données, stockage}
+
+\subsection{Surface d'attaque principale}
+
+\begin{table}[H]
+  \centering
+  \caption{Surface d'attaque et contrôles associés}
+  \label{tab:attack-surface}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Surface} & \textbf{Contrôles implémentés} \\
+    \midrule
+    Endpoints REST publics & Rate limiting, validation Pydantic, en-têtes sécurité \\
+    Authentification & \gls{jwt} court, refresh rotatif, \gls{mfa}, verrouillage \\
+    WebSocket communautaire & \gls{jwt} obligatoire, appartenance ville, lecture seule \\
+    Uploads médias & Presign, magic bytes, allowlist hôtes \\
+    Messagerie peer-to-peer & Vérification participant, email vérifié \\
+    Admin / staff & Rôles, \gls{mfa} obligatoire en production \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Philosophie de conception}
+
+Trois principes guident l'implémentation :
+\begin{enumerate}
+  \item \textbf{Défaut sécurisé} --- la production refuse les configurations faibles (secrets par défaut, CORS ouvert, bypass auth).
+  \item \textbf{Défense en profondeur} --- plusieurs couches (middleware, schémas, services, tests) plutôt qu'un seul point de contrôle.
+  \item \textbf{Moindre privilège} --- chaque endpoint exige le minimum d'autorisation ; les tokens portent une version révocable.
+\end{enumerate}
+
+\section{Authentification et gestion des sessions}
+
+\subsection{Hachage des mots de passe}
+
+Les mots de passe utilisent \textbf{bcrypt} via Passlib avec un facteur de coût configurable (12 rounds par défaut). La politique impose 8 à 128 caractères avec majuscules, minuscules et chiffres. Aucun mot de passe en clair n'est stocké ou journalisé.
+
+\subsection{Jetons \gls{jwt} d'accès}
+
+Les jetons d'accès sont signés en \textbf{HS256} et contiennent : identifiant utilisateur (\texttt{sub}), expiration, type (\texttt{access}), version de token (\texttt{tv}), émetteur et audience. La validation rejette tout jeton incomplet ou expiré. La version de token permet une révocation globale instantanée lors d'un changement de mot de passe ou d'une déconnexion de toutes les sessions.
+
+\subsection{Jetons de rafraîchissement et rotation}
+
+Seul le \textbf{hash SHA-256} du refresh token est persisté en base. À chaque rotation :
+\begin{itemize}
+  \item l'ancien token est révoqué ;
+  \item un nouveau couple access/refresh est émis ;
+  \item les métadonnées de session (IP, user-agent, appareil) sont enregistrées.
+\end{itemize}
+
+\textbf{Détection de réutilisation} : si un refresh token déjà révoqué est présenté, toutes les sessions de l'utilisateur sont invalidées et un événement de sécurité est journalisé (\texttt{refresh\_reuse\_detected}). Ce mécanisme protège contre le vol de refresh tokens.
+
+Un plafond de \textbf{10 sessions actives} par utilisateur évite l'accumulation de tokens orphelins ; les plus anciennes sessions sont purgées.
+
+\subsection{Verrouillage de compte}
+
+Après un seuil configurable d'échecs de connexion (5 par défaut), le compte est temporairement verrouillé avec des durées croissantes (5, 15, 30 minutes). Les comptes suspendus ou supprimés sont bloqués à la connexion, au refresh et à chaque requête authentifiée.
+
+\subsection{OTP de pré-inscription}
+
+Le flux d'inscription impose une vérification préalable :
+\begin{enumerate}
+  \item envoi d'un code OTP à 6 chiffres (email ou téléphone) ;
+  \item vérification avec maximum 8 tentatives et TTL de 10 minutes ;
+  \item émission d'un \emph{proof token} à usage unique (20 minutes) consommé à l'enregistrement final.
+\end{enumerate}
+
+Les codes OTP sont hashés (SHA-256) ; les réponses masquent les destinations (\texttt{a***@domaine.ma}) pour limiter l'énumération tout en informant l'utilisateur.
+
+\subsection{Vérification email et réinitialisation mot de passe}
+
+La vérification email utilise des codes à 6 chiffres ou des tokens à usage unique, avec limitation de débit (5/min, 30/h). La réinitialisation de mot de passe retourne toujours un code HTTP 204, quelle que soit l'existence du compte, pour \textbf{empêcher l'énumération} d'emails enregistrés.
+
+\section{Authentification multifacteur (\gls{mfa})}
+
+\subsection{Implémentation TOTP}
+
+L'\gls{mfa} repose sur \textbf{TOTP} (intervalle 30 secondes, bibliothèque pyotp). Le secret TOTP est chiffré au repos avec \textbf{Fernet} et une clé dédiée (\texttt{MFA\_ENCRYPTION\_KEY}).
+
+\subsection{Parcours d'enrollment}
+
+\begin{enumerate}
+  \item \texttt{POST /auth/mfa/enroll} génère le secret et un QR code ;
+  \item \texttt{POST /auth/mfa/confirm} valide un code TOTP et active l'\gls{mfa} ;
+  \item huit \textbf{codes de récupération} à usage unique sont générés (hashés en base).
+\end{enumerate}
+
+\subsection{Connexion avec \gls{mfa}}
+
+Si l'\gls{mfa} est activé, la connexion initiale retourne \texttt{mfa\_required} et un jeton de challenge court (5 minutes). La complétion via \texttt{POST /auth/mfa/login} accepte le TOTP ou un code de récupération, avec maximum 5 échecs par challenge.
+
+\subsection{Exigence staff en production}
+
+Les rôles administrateur et support doivent activer l'\gls{mfa} en production (\texttt{STAFF\_MFA\_REQUIRED=true}). Sans \gls{mfa}, l'accès aux fonctions sensibles est refusé.
+
+\begin{table}[H]
+  \centering
+  \caption{Matrice des mécanismes d'authentification}
+  \label{tab:auth-matrix}
+  \begin{tabularx}{\textwidth}{@{}lXl@{}}
+    \toprule
+    \textbf{Mécanisme} & \textbf{Rôle} & \textbf{Statut} \\
+    \midrule
+    bcrypt + politique MDP & Stockage credentials & Implémenté \\
+    \gls{jwt} access (60 min) & Sessions API & Implémenté \\
+    Refresh rotatif + révocation & Persistance session & Implémenté \\
+    OTP pré-inscription & Anti-spam signup & Implémenté \\
+    TOTP + recovery codes & \gls{mfa} utilisateur/staff & Implémenté \\
+    Verrouillage progressif & Anti brute-force & Implémenté \\
+  \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Sécurité de l'API backend}
+
+\subsection{Pile de middleware}
+
+L'ordre des middlewares est critique et a été configuré ainsi :
+\begin{enumerate}
+  \item \textbf{SlowAPI} --- limitation globale de débit ;
+  \item \textbf{RequestContext} --- identifiant de requête (\texttt{X-Request-ID}) et journaux structurés ;
+  \item \textbf{RequestSizeLimit} --- taille maximale du corps (1 Mo par défaut, 8 Mo pour uploads) ;
+  \item \textbf{SecurityHeaders} --- HSTS, CSP, X-Frame-Options, Permissions-Policy ;
+  \item \textbf{TrustedHost} --- validation de l'en-tête Host en production ;
+  \item \textbf{CORS} --- origines explicites, credentials limités ;
+  \item \textbf{ProxyHeaders} --- IP client correcte derrière Azure/reverse proxy.
+\end{enumerate}
+
+\subsection{En-têtes de sécurité HTTP}
+
+Chaque réponse inclut notamment :
+\begin{itemize}
+  \item \texttt{X-Content-Type-Options: nosniff}
+  \item \texttt{X-Frame-Options: DENY}
+  \item \texttt{Strict-Transport-Security} (HTTPS uniquement)
+  \item \texttt{Content-Security-Policy: default-src 'none'; frame-ancestors 'none'}
+  \item \texttt{Cache-Control: no-store}
+  \item \texttt{Permissions-Policy} restreignant géolocalisation, caméra, paiement
+\end{itemize}
+
+\subsection{Limitation de débit (rate limiting)}
+
+\begin{table}[H]
+  \centering
+  \caption{Limites de débit par catégorie d'endpoint}
+  \label{tab:rate-limits}
+  \small
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Catégorie} & \textbf{Limite} \\
+    \midrule
+    Global (par IP) & 300/minute \\
+    Authentification & 30/minute \\
+    Messages communautaires & 30/minute \\
+    Uploads & 20--30/minute \\
+    Messagerie peer & 30--60/minute \\
+    Export données personnelles & 3/heure \\
+    Administration & 30/minute \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Un backend \textbf{Redis} optionnel permet le partage des compteurs entre réplicas en production.
+
+\subsection{Validation des entrées}
+
+Tous les endpoints utilisent des schémas \textbf{Pydantic v2} avec validateurs personnalisés : URLs (http/https uniquement), listes de médias (max 12), force du mot de passe, format OTP. Les erreurs de validation retournent un JSON structuré (422) avec \texttt{request\_id}. Les exceptions non gérées renvoient un message générique (500) sans stack trace.
+
+\subsection{Garde-fous au démarrage en production}
+
+Au boot, l'application refuse de démarrer si :
+\begin{itemize}
+  \item \texttt{DEBUG=true} ou \texttt{AUTH\_DEV\_BYPASS=true} ;
+  \item le secret \gls{jwt} fait moins de 32 caractères ou utilise la valeur par défaut ;
+  \item \texttt{CORS\_ORIGINS} ou \texttt{ALLOWED\_HOSTS} contient \texttt{*} ;
+  \item les URLs publiques ne sont pas en HTTPS (hors localhost) ;
+  \item SMTP n'est pas configuré (sauf fallback explicite).
+\end{itemize}
+
+La documentation OpenAPI est \textbf{désactivée} en production.
+
+\figureplaceholder{H}{figures/ch03b-middleware-stack.pdf}{0.85}{Pile de middleware sécurité backend MarGem}
+
+\section{Base de données et autorisation applicative}
+
+\subsection{Prévention des injections SQL}
+
+Toutes les requêtes passent par l'ORM \textbf{SQLAlchemy} avec paramètres liés. Les recherches \texttt{ILIKE} échappent les caractères spéciaux (\%, \_, \textbackslash) via une fonction dédiée. Aucune requête SQL brute n'est utilisée dans la logique métier.
+
+\subsection{Absence de RLS PostgreSQL}
+
+Le projet n'implémente pas encore le Row-Level Security au niveau base. L'autorisation est assurée \textbf{exclusivement en couche application} :
+\begin{itemize}
+  \item dépendances FastAPI (\texttt{require\_admin}, \texttt{require\_seller}, \texttt{require\_verified\_email}) ;
+  \item vérification d'appartenance aux conversations de messagerie ;
+  \item contrôle d'appartenance à la ville pour le chat communautaire ;
+  \item validation que les URLs médias appartiennent à l'utilisateur courant.
+\end{itemize}
+
+Cette approche est documentée comme \textbf{risque résiduel} : une compromission directe de la base contournerait ces contrôles.
+
+\subsection{Verrouillages pessimistes}
+
+Les opérations sensibles (rotation de refresh token, vérification OTP, consommation de codes de récupération \gls{mfa}) utilisent \texttt{SELECT ... FOR UPDATE} pour éviter les conditions de course.
+
+\section{Sécurité WebSocket et chat communautaire}
+
+\subsection{Authentification WebSocket}
+
+L'endpoint \texttt{/community/ws} exige un \gls{jwt} valide passé en paramètre de requête, une ville active et l'appartenance à la communauté urbaine. Les codes de fermeture sont explicites : 4401 (non authentifié), 4403 (interdit), 4404 (canal introuvable).
+
+\subsection{Modèle lecture seule côté client}
+
+Le client WebSocket ne peut envoyer que des \texttt{ping} ou des événements \texttt{typing:*}. Les \textbf{messages sont créés uniquement via REST} (\texttt{POST}), puis diffusés serveur. Cela empêche l'injection directe de contenu via WebSocket.
+
+\subsection{Modération et confiance}
+
+\begin{table}[H]
+  \centering
+  \caption{Contrôles du chat communautaire}
+  \label{tab:community-controls}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Contrôle} & \textbf{Description} \\
+    \midrule
+    Email vérifié & Obligatoire pour rejoindre, poster, réagir \\
+    Appartenance ville & \texttt{require\_city\_membership} avant toute action \\
+    Score anti-spam & Duplicatas, majuscules, liens, mots-clés scam \\
+    Modération auto & Score $\geq$ 0,75 $\rightarrow$ statut \texttt{PENDING\_MODERATION} \\
+    Anti-duplicata & Même corps en 60 secondes refusé \\
+    Blocage / mute & Par utilisateur, journalisé \\
+    Signalement & \texttt{POST /report} $\rightarrow$ file modération admin \\
+    Score confiance & 0--100 (email, premium, ancienneté, avis) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Messagerie acheteur--vendeur}
+
+La messagerie peer-to-peer impose : email vérifié, interdiction de s'envoyer des messages à soi-même, vérification de participation à la conversation, masquage des utilisateurs suspendus (404). Les avis vendeur exigent une preuve serveur de contact via la messagerie intégrée --- un événement client ne suffit pas.
+
+\section{Sécurité de l'application mobile}
+
+\subsection{Stockage des jetons}
+
+Les jetons access et refresh sont stockés dans \textbf{FlutterSecureStorage} (Keychain iOS, EncryptedSharedPreferences Android). Les préférences non sensibles (thème, favoris invité) restent dans SharedPreferences, \textbf{sans tokens ni email}.
+
+\subsection{TLS et épinglage de certificat}
+
+En production, l'URL de l'API doit être HTTPS (assertion au build). L'\textbf{épinglage de certificat} (SHA-256) est optionnel via la variable de build \texttt{CERTIFICATE\_PINS} ; par défaut, le TLS standard de la plateforme s'applique.
+
+\subsection{Client HTTP durci}
+
+Le client mobile applique : timeouts (15s général, 60s upload), \textbf{refresh automatique sur 401} avec garde single-flight, masquage des messages d'erreur internes en production, en-tête \texttt{Authorization: Bearer} uniquement.
+
+\subsection{Protection SSRF sur uploads}
+
+Avant tout upload vers une URL présignée, le client vérifie que l'hôte cible est l'API ou \texttt{*.blob.core.windows.net} (liste configurable). Cela bloque les redirections vers des serveurs arbitraires.
+
+\subsection{Télémétrie et PII}
+
+Sentry (optionnel) est configuré avec \texttt{sendDefaultPii = false} et filtrage des en-têtes contenant \texttt{password}, \texttt{token}, \texttt{authorization}.
+
+\figureplaceholder{H}{figures/ch03b-mobile-security.pdf}{0.88}{Couches de sécurité client mobile Flutter}
+
+\section{Sécurité des téléversements}
+
+\subsection{Flux de presignature}
+
+\begin{enumerate}
+  \item Le client authentifié demande une URL présignée (\texttt{POST /uploads/presign}, 20/min).
+  \item Le nom de fichier est assaini ; le type MIME est validé.
+  \item En production Azure : SAS en écriture seule, 15 minutes, chemin \texttt{\{user\_id\}/\{uuid\}-fichier}.
+  \item En local : token HMAC signé, TTL 15 minutes.
+\end{enumerate}
+
+\subsection{Validation du contenu}
+
+Seuls \textbf{JPEG, PNG, WebP et GIF} sont acceptés. La validation combine le type MIME déclaré et les \textbf{magic bytes} (signatures binaires). Taille maximale : 8 Mo. Les noms de fichiers sont limités à 120 caractères alphanumériques et caractères sûrs ; les traversées de chemin sont supprimées.
+
+\subsection{Liaison des URLs médias}
+
+Les URLs de médias sur les profils vendeur sont validées côté serveur : rejet de \texttt{javascript:}, \texttt{data:}, hôtes étrangers. Sur Azure, le chemin doit être \texttt{/\{container\}/\{user\_id\}/...}. Cette liaison empêche le hotlinking et le SSRF via des champs profil.
+
+\subsection{Validation post-upload}
+
+\texttt{POST /uploads/validate} récupère le blob et relance la vérification magic bytes, détectant les fichiers malveillants déclarés comme images.
+
+\section{Journalisation, audit et secrets}
+
+\subsection{Événements de sécurité}
+
+La fonction \texttt{log\_security\_event} journalise au niveau WARNING : connexions réussies/échouées, verrouillages, réutilisation de refresh, événements \gls{mfa}, changements de mot de passe, suppressions de compte. Les champs sensibles (email, token, mot de passe) sont \textbf{masqués automatiquement}.
+
+\subsection{Journaux d'accès}
+
+Le middleware de contexte remplace les chemins contenant des tokens d'upload par \texttt{[REDACTED]}. En production, les logs sont structurés en JSON avec \texttt{request\_id}.
+
+\subsection{Gestion des secrets}
+
+\begin{table}[H]
+  \centering
+  \caption{Secrets et leur traitement}
+  \label{tab:secrets}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Secret} & \textbf{Traitement} \\
+    \midrule
+    \texttt{JWT\_SECRET\_KEY} & Variable d'environnement, min. 32 caractères \\
+    \texttt{UPLOAD\_TOKEN\_SECRET} & Séparé du JWT en production \\
+    \texttt{MFA\_ENCRYPTION\_KEY} & Clé Fernet dédiée \\
+    Azure Storage & Chaîne de connexion / identité managée \\
+    SMTP & Environnement / Key Vault, jamais loggé \\
+    Application mobile & Aucun secret API embarqué \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Droits des personnes (RGPD / loi 09-08)}
+
+\texttt{GET /auth/me/export} (3/heure) exporte les données du compte. \texttt{DELETE /auth/me} exige le mot de passe, anonymise les PII et révoque toutes les sessions --- aligné sur le droit à l'effacement.
+
+\section{Abonnements et périmètre paiement}
+
+MarGem est une plateforme de \textbf{découverte et mise en relation}, pas de paiement intégré : aucune donnée de carte bancaire n'est traitée (hors périmètre PCI). Les abonnements premium sont activés manuellement en développement ; en production, l'auto-souscription retourne 503 jusqu'à intégration d'un prestataire (Stripe prévu). Les méthodes de paiement déclarées par les vendeurs (ex. espèces) sont des métadonnées JSON sans traitement transactionnel.
+
+\section{Tests et assurance qualité sécurité}
+
+Le backend inclut une suite de tests dédiés :
+\begin{itemize}
+  \item \texttt{test\_security\_hardening.py} --- verrouillage, \gls{mfa}, révocation globale ;
+  \item \texttt{test\_signup\_otp.py} --- chaîne OTP complète ;
+  \item \texttt{test\_auth\_lifecycle.py} --- validation des paramètres production ;
+  \item \texttt{test\_sellers\_authz.py} --- éligibilité avis, anti-contournement ;
+  \item \texttt{test\_upload\_security.py} --- allowlist médias, assainissement noms ;
+  \item \texttt{test\_community\_chat.py} --- comportement API communautaire.
+\end{itemize}
+
+Ces tests automatisent la non-régression des contrôles critiques et complètent les revues manuelles et futurs pentests.
+
+\section{Risques résiduels et feuille de route}
+
+\begin{table}[H]
+  \centering
+  \caption{Écarts résiduels documentés}
+  \label{tab:residual-risks}
+  \small
+  \begin{tabularx}{\textwidth}{@{}lXl@{}}
+    \toprule
+    \textbf{Écart} & \textbf{Impact} & \textbf{Priorité} \\
+    \midrule
+    Pas de RLS PostgreSQL & Contournement si accès DB & Haute \\
+    JWT WebSocket en query string & Fuite possible dans logs proxy & Moyenne \\
+    Épinglage certificat opt-in & MITM si non activé & Moyenne \\
+    OTP SMS non branché & Canal téléphone limité & Basse \\
+    Billing Stripe non intégré & Pas de revenus auto & Fonctionnel \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La feuille de route sécurité prévoit : RLS sur tables sensibles, rotation automatique des secrets via Azure Key Vault, pentest externe avant lancement public, activation obligatoire de l'épinglage certificat sur builds production, et intégration webhooks Stripe avec vérification de signature.
+
+\section{Conclusion du chapitre}
+
+La sécurisation de MarGem traduit la stratégie Zero Trust en contrôles concrets : authentification robuste avec \gls{mfa} et rotation de sessions, API durcie par middleware et rate limiting, modération communautaire algorithmique, uploads validés par magic bytes, stockage mobile sécurisé et journalisation sans fuite de secrets. Cette implémentation constitue la preuve technique du positionnement « confiance par conception » de MABRID, tout en documentant honnêtement les écarts résiduels à traiter avant une montée en charge nationale.

@@ -1,0 +1,159 @@
+\chapter{Gouvernance cloud et stratégie d'infrastructure}
+\label{ch:cloud}
+
+\section{Introduction}
+
+Le cloud computing permet aux plateformes de place de marché de s'adapter élastiquement, de se déployer à l'échelle mondiale et d'innover rapidement---pourtant, une adoption cloud non maîtrisée introduit des dépassements de coûts, une dérive de configuration et des échecs de gouvernance. Ce chapitre articule la stratégie cloud de MABRID sur Microsoft Azure, en mettant l'accent sur la gouvernance, la discipline de gestion de l'infrastructure, la reprise après sinistre, la sélection des services et l'optimisation des coûts.
+
+\section{Stratégie d'adoption du cloud}
+
+\subsection{Facteurs d'adoption du cloud}
+
+Les facteurs stratégiques comprennent la rapidité de mise sur le marché, l'élasticité opérationnelle pendant les campagnes marketing, la distribution géographique pour les utilisateurs sensibles à la latence et l'accès aux services de sécurité managés \parencite{mell2009cloud,nist800145}.
+
+\subsection{Avantages du cloud pour MABRID}
+
+\begin{itemize}
+  \item Provisionnement rapide d'environnements pour les lancements par ville et les pics saisonniers.
+  \item Bases de données, stockage et surveillance managés réduisant le travail lourd non différenciant.
+  \item Intégration avec l'identité d'entreprise et les outils de sécurité (Azure AD, Sentinel).
+  \item Économie à la croissance alignée sur les contraintes de trésorerie des startups.
+\end{itemize}
+
+\subsection{Limites du cloud et atténuations}
+
+Les limites comprennent la concentration fournisseur, les considérations de résidence des données et les coûts potentiels de sortie. Atténuations : sauvegarde multi-région, clauses contractuelles de localisation des données, revues d'architecture pour la portabilité des charges critiques et discipline FinOps.
+
+\section{Gouvernance Azure}
+
+\subsection{Hiérarchie des groupes de gestion}
+
+Les groupes de gestion Azure organisent les abonnements : racine $\rightarrow$ production $\rightarrow$ non-production $\rightarrow$ bac à sable. Les politiques s'héritent vers le bas, assurant des garde-fous cohérents \parencite{microsoftCloudAdoption}.
+
+\subsection{Contrôle d'accès fondé sur les rôles dans Azure}
+
+Le \gls{rbac} Azure attribue des rôles à moindre privilège au niveau de l'abonnement, du groupe de ressources et de la ressource. Privileged Identity Management fournit une élévation juste-à-temps pour les tâches administratives.
+
+\subsection{Gouvernance des coûts}
+
+Les pratiques FinOps \parencite{finopsfoundation} comprennent :
+\begin{itemize}
+  \item Étiquetage obligatoire des ressources (environnement, centre de coûts, propriétaire).
+  \item Alertes budgétaires et détection d'anomalies via Azure Cost Management.
+  \item Instances réservées ou plans d'économies pour les charges de base prévisibles.
+  \item Revues régulières de redimensionnement et suppression des ressources orphelines.
+\end{itemize}
+
+\figureplaceholder{H}{figures/ch04-azure-landing-zone.pdf}{0.9}{Architecture conceptuelle de zone d'atterrissage Azure pour MABRID}
+
+\section{Infrastructure en tant que code et contrôle de version}
+
+\subsection{Principes}
+
+Les définitions d'infrastructure sont stockées dans un contrôle de version avec revue par les pairs, validation automatisée et historique de changements auditable \parencite{hashicorpTerraform}. Cela réduit la dérive de configuration et soutient des environnements de reprise après sinistre reproductibles.
+
+\subsection{Gestion de l'état}
+
+Le stockage d'état distant avec chiffrement et verrouillage empêche les conflits de modification concurrente. L'accès à l'état est restreint aux pipelines de déploiement et aux administrateurs de secours.
+
+\subsection{Conception modulaire}
+
+Des modules réutilisables encapsulent les modèles de réseau, calcul, stockage et surveillance. Les modules imposent par construction l'étiquetage et les bases de sécurité.
+
+\section{Reprise après sinistre}
+
+\subsection{Objectifs}
+
+L'objectif de temps de reprise (RTO) et l'objectif de point de reprise (RPO) sont définis par niveau :
+\begin{itemize}
+  \item \textbf{Niveau 1 (critique) :} RTO $<$ 4 heures, RPO $<$ 15 minutes.
+  \item \textbf{Niveau 2 (important) :} RTO $<$ 24 heures, RPO $<$ 1 heure.
+  \item \textbf{Niveau 3 (non critique) :} RTO $<$ 72 heures, RPO $<$ 24 heures.
+\end{itemize}
+
+\subsection{Services de récupération Azure}
+
+Azure Backup et Site Recovery soutiennent les politiques de sauvegarde automatisées et l'orchestration de basculement \parencite{microsoftASR}. Les exercices DR valident les runbooks annuellement.
+
+\section{Sélection des services Azure}
+
+Le tableau~\ref{tab:azure-services} associe les besoins métier aux services Azure au niveau stratégique.
+
+\begin{table}[H]
+  \centering
+  \caption{Correspondance des services Azure pour MABRID (vue stratégique)}
+  \label{tab:azure-services}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Capacité} & \textbf{Service Azure (représentatif)} \\
+    \midrule
+    Réseau virtuel & Azure Virtual Network, NSG, Azure Firewall \\
+    Calcul & Azure App Service, Azure Kubernetes Service (selon l'échelle requise) \\
+    Données & Azure Database for PostgreSQL, Azure Cache for Redis \\
+    Stockage objet & Azure Blob Storage (actifs médias) \\
+    Secrets & Azure Key Vault \\
+    Surveillance & Azure Monitor, Log Analytics, Application Insights \\
+    Sécurité & Microsoft Defender for Cloud, Sentinel \\
+    Coûts & Azure Cost Management + Billing \\
+    DR & Azure Backup, Azure Site Recovery \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Réseau privé et résidence des données}
+
+Les bases de données de production et les comptes de stockage utilisent des points de terminaison privés. Les régions de déploiement sont sélectionnées en tenant compte de la latence vers les utilisateurs marocains et des engagements de résidence des données communiqués dans la politique de confidentialité.
+
+\section{Optimisation des coûts}
+
+\subsection{Profilage des charges de travail}
+
+Les environnements non productifs sont réduits en dehors des heures ouvrables. Les règles d'autoscaling adaptent la capacité aux profils de trafic diurnes dans les fuseaux horaires marocains.
+
+\subsection{Niveaux de stockage}
+
+Les médias peu consultés migrent vers des niveaux froid ou archive selon les politiques de cycle de vie, réduisant les dépenses de stockage sans perdre la récupérabilité.
+
+\subsection{Lien avec l'économie unitaire}
+
+Le coût cloud unitaire par utilisateur actif et par annonce informe les décisions tarifaires et les rapports investisseurs. Le CFO et la direction technique revoient les dépenses cloud hebdomadairement pendant les phases de croissance.
+
+\begin{figure}[H]
+  \centering
+  \ifmabridhaspgfgantt
+  \begin{ganttchart}[
+    hgrid,
+    vgrid,
+    x unit=0.45cm,
+    y unit title=0.6cm,
+    y unit chart=0.5cm,
+    title height=1,
+    bar height=0.5,
+    bar label font=\small
+  ]{1}{24}
+    \gantttitle{Feuille de route de maturité cloud (mois)}{24} \\
+    \gantttitlelist{1,...,24}{1} \\
+    \ganttbar{MVP mono-région}{1}{6} \\
+    \ganttbar{Étiquetage FinOps et budgets}{4}{8} \\
+    \ganttbar{Résilience multi-AZ}{7}{12} \\
+    \ganttbar{Région DR en veille}{12}{18} \\
+    \ganttbar{Zone d'atterrissage entreprise}{16}{24}
+  \end{ganttchart}
+  \else
+  \begin{tikzpicture}[x=0.42cm,y=0.75cm,font=\small]
+    \draw[->] (0,0) -- (25,0) node[right]{Mois};
+    \foreach \m in {0,6,12,18,24} {\draw (\m,0.1) -- (\m,-0.1) node[below]{\m};}
+    \draw[fill=mabridblue!25,draw=mabridblue] (0,1) rectangle (6,1.6) node[midway]{MVP mono-région};
+    \draw[fill=mabridblue!35,draw=mabridblue] (3,2) rectangle (8,2.6) node[midway,font=\tiny]{FinOps};
+    \draw[fill=mabridblue!45,draw=mabridblue] (6,3) rectangle (12,3.6) node[midway,font=\tiny]{Multi-AZ};
+    \draw[fill=mabridblue!55,draw=mabridblue] (11,4) rectangle (18,4.6) node[midway,font=\tiny]{DR veille};
+    \draw[fill=mabridaccent!35,draw=mabridblue] (15,5) rectangle (24,5.6) node[midway,font=\tiny]{LZ entreprise};
+  \end{tikzpicture}
+  \fi
+  \caption{Chronologie Gantt illustrative de maturité cloud}
+  \label{fig:cloud-gantt}
+\end{figure}
+
+\section{Conclusion du chapitre}
+
+La gouvernance cloud assure que l'adoption d'Azure sert les objectifs commerciaux de MABRID sans sacrifier la sécurité ni la discipline fiscale. L'architecture de zone d'atterrissage, l'infrastructure en tant que code, le RBAC, la gestion des coûts et une reprise après sinistre testée soutiennent collectivement la mise à l'échelle nationale tout en maintenant la résilience opérationnelle attendue d'une plateforme de place de marché de confiance.

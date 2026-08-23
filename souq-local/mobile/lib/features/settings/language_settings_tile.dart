@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/utils/directional_ui.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -28,7 +29,7 @@ class LanguageSettingsTile extends ConsumerWidget {
       leading: const Icon(Icons.language_rounded, color: AppColors.primary),
       title: Text(l10n.language),
       subtitle: Text(_languageLabel(l10n, code)),
-      trailing: const Icon(Icons.chevron_right_rounded),
+      trailing: Icon(DirectionalUi.forwardChevron(context)),
       onTap: () => context.push('/settings/language'),
     );
   }

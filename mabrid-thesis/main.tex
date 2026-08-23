@@ -1,0 +1,65 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+\input{preamble.tex}
+
+\title{%
+  \textbf{MABRID}\\[0.6em]
+  \large Conception, gouvernance, sécurité et stratégie commerciale\\
+  pour une place de marché numérique de confiance
+}
+\author{%
+  Rapport de projet académique\\[0.4em]
+  \textit{Master Systèmes d'Information, Cybersécurité et Management}
+}
+\date{août 2026}
+
+\begin{document}
+
+\pagenumbering{roman}
+\input{frontmatter/titlepage}
+\clearpage
+\input{frontmatter/acknowledgements}
+\clearpage
+\input{frontmatter/abstract}
+\clearpage
+\input{frontmatter/executive-summary}
+\clearpage
+\tableofcontents
+\clearpage
+\listoffigures
+\clearpage
+\listoftables
+\clearpage
+\input{frontmatter/abbreviations}
+\clearpage
+\printglossary[type=\acronymtype,title=Liste des abréviations]
+\clearpage
+\printglossary[title=Glossaire]
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\include{chapters/ch01-business-vision}
+\include{chapters/ch02-entrepreneuriat}
+\include{chapters/ch02-governance}
+\include{chapters/ch03-security}
+\include{chapters/ch03b-app-security}
+\include{chapters/ch04-cloud}
+\include{chapters/ch05-legal}
+\include{chapters/ch06-roadmap}
+\include{chapters/ch07-marketing}
+\include{chapters/conclusion}
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliographie}
+\printbibliography[heading=none,title={Bibliographie}]
+
+\appendix
+\renewcommand{\chaptername}{Annexe}
+\include{appendices/appendix-a}
+\include{appendices/appendix-b}
+\include{appendices/appendix-c}
+
+\end{document}
