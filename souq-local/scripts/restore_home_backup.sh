@@ -22,8 +22,20 @@ MEDIA_BACKUP="$(dirname "$DB_BACKUP")/margem-media-$STAMP.tar.gz"
 read -r -p "This replaces the current MarGem database. Type RESTORE to continue: " confirm
 [[ "$confirm" == "RESTORE" ]] || { echo "Cancelled."; exit 1; }
 
-echo "Restoring database..."
-gunzip -c "$DB_BACKUP" | docker exec -i margem-home-db psql -U margemadmin -d margem
+echo "Stopping API connections..."
+docker compose -f "$ROOT/docker-compose.home.yml" stop api 2>/dev/null || true
+
+echo "Recreating empty database..."
+docker exec -i margem-home-db psql -v ON_ERROR_STOP=1 -U margemadmin -d postgres <<'SQL'
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = 'margem' AND pid <> pg_backend_pid();
+DROP DATABASE IF EXISTS margem;
+CREATE DATABASE margem OWNER margemadmin;
+SQL
+
+echo "Restoring database from backup..."
+gunzip -c "$DB_BACKUP" | docker exec -i margem-home-db psql -v ON_ERROR_STOP=1 -U margemadmin -d margem
 
 if [[ -f "$MEDIA_BACKUP" ]]; then
   echo "Restoring local media..."
@@ -37,5 +49,6 @@ else
   echo "Database restored, but listing images were not restored." >&2
 fi
 
-echo "Restore completed. Restart the API to refresh connections:"
-echo "cd \"$ROOT\" && docker compose -f docker-compose.home.yml --env-file .env.home up -d"
+echo "Restore completed. Restarting services..."
+cd "$ROOT"
+docker compose -f docker-compose.home.yml --env-file .env.home up -d

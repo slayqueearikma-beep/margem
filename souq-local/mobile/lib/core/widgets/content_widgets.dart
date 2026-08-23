@@ -9,36 +9,36 @@ import 'network_image_view.dart';
 class OnboardingIllustration extends StatelessWidget {
   const OnboardingIllustration({
     super.key,
-    required this.backgroundColor,
+    this.backgroundColor,
     required this.icon,
     this.secondaryIcon,
     this.imageAsset,
+    this.imageFit = BoxFit.contain,
   });
 
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final IconData icon;
   final IconData? secondaryIcon;
   final String? imageAsset;
+  final BoxFit imageFit;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppSpacing.illustrationRadius),
+    return ColoredBox(
+      color: backgroundColor ?? AppColors.scaffold(context),
+      child: SizedBox(
+        height: 300,
+        width: double.infinity,
+        child: imageAsset != null
+            ? Image.asset(
+                imageAsset!,
+                fit: imageFit,
+                alignment: Alignment.center,
+                filterQuality: FilterQuality.high,
+                errorBuilder: (_, __, ___) => _iconFallback(),
+              )
+            : _iconFallback(),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: imageAsset != null
-          ? Image.asset(
-              imageAsset!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (_, __, ___) => _iconFallback(),
-            )
-          : _iconFallback(),
     );
   }
 
@@ -108,7 +108,7 @@ class SectionHeader extends StatelessWidget {
             TextButton(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
+                foregroundColor: AppColors.lavender,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 minimumSize: const Size(44, 36),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -150,16 +150,16 @@ class FeaturedBusinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: AppColors.cardSurface(context),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: AppColors.outlineSubtle(context),
         ),
       ),
+      shadowColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -182,7 +182,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                       top: 8,
                       right: 8,
                       child: Material(
-                        color: Colors.white,
+                        color: AppColors.favoriteButton(context),
                         shape: const CircleBorder(),
                         child: InkWell(
                           customBorder: const CircleBorder(),
@@ -194,7 +194,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                                   ? Icons.favorite_rounded
                                   : Icons.favorite_border_rounded,
                               size: 18,
-                              color: AppColors.primary,
+                              color: AppColors.lavender,
                             ),
                           ),
                         ),
@@ -222,8 +222,8 @@ class FeaturedBusinessCard extends StatelessWidget {
                       category,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: AppColors.onSurfaceVariant(context),
                         fontSize: 12,
                       ),
                     ),
@@ -309,8 +309,12 @@ class SellerCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           businessName,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -330,8 +334,9 @@ class SellerCard extends StatelessWidget {
                       description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 13),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.onSurfaceVariant(context),
+                          ),
                     ),
                   ],
                   const SizedBox(height: 8),
@@ -344,8 +349,9 @@ class SellerCard extends StatelessWidget {
                           style: const TextStyle(fontSize: 13)),
                       const Spacer(),
                       Text(city,
-                          style: const TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13)),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.onSurfaceVariant(context),
+                              )),
                     ],
                   ),
                 ],
