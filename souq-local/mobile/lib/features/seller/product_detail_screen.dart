@@ -12,6 +12,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/marketplace_actions.dart';
+import '../../core/widgets/margem_components.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
 import '../../l10n/app_localizations.dart';
@@ -112,7 +113,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   slivers: [
                     SliverAppBar(
                       pinned: true,
-                      expandedHeight: MediaQuery.sizeOf(context).width * 0.95,
+                      automaticallyImplyLeading: false,
+                      expandedHeight: MediaQuery.sizeOf(context).width * 0.92,
+                      backgroundColor: AppColors.white,
                       flexibleSpace: FlexibleSpaceBar(
                         background: gallery.isEmpty
                             ? const ColoredBox(
@@ -138,32 +141,41 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                       ),
                                     ),
                                   ),
-                                  if (gallery.length > 1)
+                                  Positioned(
+                                    top: MediaQuery.paddingOf(context).top + 8,
+                                    left: 12,
+                                    child: MarGemOverlayIconButton(
+                                      icon: Icons.arrow_back_ios_new_rounded,
+                                      onPressed: () => context.pop(),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: MediaQuery.paddingOf(context).top + 8,
+                                    right: 12,
+                                    child: Row(
+                                      children: [
+                                        MarGemOverlayIconButton(
+                                          icon: Icons.favorite_border_rounded,
+                                          onPressed: _addingFavorite
+                                              ? () {}
+                                              : () => _addToFavorites(
+                                                    product, seller),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        MarGemOverlayIconButton(
+                                          icon: Icons.ios_share_rounded,
+                                          onPressed: () {},
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (gallery.isNotEmpty)
                                     Positioned(
                                       bottom: 16,
-                                      left: 0,
-                                      right: 0,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: List.generate(
-                                          gallery.length,
-                                          (i) => AnimatedContainer(
-                                            duration: const Duration(
-                                                milliseconds: 200),
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 3),
-                                            width: i == _galleryIndex ? 18 : 7,
-                                            height: 7,
-                                            decoration: BoxDecoration(
-                                              color: i == _galleryIndex
-                                                  ? Colors.white
-                                                  : Colors.white54,
-                                              borderRadius:
-                                                  BorderRadius.circular(99),
-                                            ),
-                                          ),
-                                        ),
+                                      right: 16,
+                                      child: MarGemGalleryIndicator(
+                                        current: _galleryIndex + 1,
+                                        total: gallery.length,
                                       ),
                                     ),
                                 ],
@@ -222,80 +234,26 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: AppSpacing.lg),
-                            InkWell(
-                              onTap: () =>
-                                  context.push('/seller/${seller.id}'),
-                              borderRadius: BorderRadius.circular(16),
-                              child: MarketSectionCard(
-                                title: l10n.seller,
-                                trailing: const Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: AppColors.textSecondary,
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: AppColors.cardSelected,
-                                      child: ClipOval(
-                                        child: SizedBox(
-                                          width: 48,
-                                          height: 48,
-                                          child: NetworkImageView(
-                                            url: seller.logoImageUrl.isNotEmpty
-                                                ? seller.logoImageUrl
-                                                : seller.coverImageUrl,
-                                            placeholderIcon:
-                                                Icons.storefront_rounded,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  seller.businessName,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.w800,
-                                                  ),
-                                                ),
-                                              ),
-                                              if (seller.verificationStatus ==
-                                                  'verified')
-                                                const Padding(
-                                                  padding:
-                                                      EdgeInsets.only(left: 4),
-                                                  child: Icon(
-                                                    Icons.verified_rounded,
-                                                    color: Colors.blue,
-                                                    size: 18,
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            l10n.reviewsCount(
-                                                seller.reviewCount),
-                                            style: const TextStyle(
-                                              color: AppColors.textSecondary,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            const SizedBox(height: 6),
+                            Text(
+                              seller.city,
+                              style: const TextStyle(
+                                color: AppColors.textTertiary,
+                                fontSize: 13,
                               ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            MarGemSellerPreviewCard(
+                              name: seller.businessName,
+                              imageUrl: seller.logoImageUrl.isNotEmpty
+                                  ? seller.logoImageUrl
+                                  : seller.coverImageUrl,
+                              verified:
+                                  seller.verificationStatus == 'verified',
+                              reviewLabel:
+                                  l10n.reviewsCount(seller.reviewCount),
+                              viewProfileLabel: 'View profile',
+                              onTap: () => context.push('/seller/${seller.id}'),
                             ),
                             const SizedBox(height: AppSpacing.lg),
                             Text(
@@ -377,88 +335,62 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   ],
                 ),
               ),
-              SafeArea(
-                top: false,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal,
-                    10,
-                    AppSpacing.screenHorizontal,
-                    10,
+              MarGemBottomActionBar(
+                children: [
+                  Expanded(
+                    child: MarketSecondaryButton(
+                      label: l10n.callSeller,
+                      icon: Icons.call_rounded,
+                      onPressed: seller.phone.isEmpty
+                          ? null
+                          : () => _callSeller(seller),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    border: Border(
-                      top: BorderSide(
-                        color: Theme.of(context).dividerColor,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: MarketPrimaryButton(
+                      label: l10n.contactSeller,
+                      icon: Icons.chat_bubble_rounded,
+                      loading: _contacting,
+                      onPressed: () => _openChat(seller),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Material(
+                    color: AppColors.surfaceMuted,
+                    borderRadius:
+                        BorderRadius.circular(MarketButtonMetrics.radius),
+                    child: InkWell(
+                      borderRadius:
+                          BorderRadius.circular(MarketButtonMetrics.radius),
+                      onTap: _addingFavorite
+                          ? null
+                          : () => _addToFavorites(product, seller),
+                      child: SizedBox(
+                        width: MarketButtonMetrics.height,
+                        height: MarketButtonMetrics.height,
+                        child: _addingFavorite
+                            ? const Padding(
+                                padding: EdgeInsets.all(14),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2),
+                              )
+                            : AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 180),
+                                child: Icon(
+                                  _isFavorite
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  key: ValueKey(_isFavorite),
+                                  color: _isFavorite
+                                      ? AppColors.primary
+                                      : AppColors.textTertiary,
+                                ),
+                              ),
                       ),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 12,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: MarketPrimaryButton(
-                          label: l10n.contactSeller,
-                          icon: Icons.chat_bubble_rounded,
-                          loading: _contacting,
-                          onPressed: () => _openChat(seller),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: MarketPrimaryButton(
-                          label: l10n.callSeller,
-                          icon: Icons.call_rounded,
-                          onPressed: seller.phone.isEmpty
-                              ? null
-                              : () => _callSeller(seller),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Material(
-                        color: AppColors.surfaceMuted,
-                        borderRadius:
-                            BorderRadius.circular(MarketButtonMetrics.radius),
-                        child: InkWell(
-                          borderRadius:
-                              BorderRadius.circular(MarketButtonMetrics.radius),
-                          onTap: _addingFavorite
-                              ? null
-                              : () => _addToFavorites(product, seller),
-                          child: SizedBox(
-                            width: MarketButtonMetrics.height,
-                            height: MarketButtonMetrics.height,
-                            child: _addingFavorite
-                                ? const Padding(
-                                    padding: EdgeInsets.all(14),
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
-                                : AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 180),
-                                    child: Icon(
-                                      _isFavorite
-                                          ? Icons.favorite_rounded
-                                          : Icons.favorite_border_rounded,
-                                      key: ValueKey(_isFavorite),
-                                      color: _isFavorite
-                                          ? AppColors.danger
-                                          : AppColors.primary,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ],
           ),

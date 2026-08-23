@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../../l10n/app_localizations.dart';
 import 'achievement_badges.dart';
 import 'network_image_view.dart';
 
@@ -52,7 +53,7 @@ class OnboardingIllustration extends StatelessWidget {
           child: Icon(
             secondaryIcon ?? Icons.auto_awesome_rounded,
             size: 36,
-            color: Colors.white.withValues(alpha: 0.35),
+            color: AppColors.overlayFaint,
           ),
         ),
         Positioned(
@@ -61,17 +62,17 @@ class OnboardingIllustration extends StatelessWidget {
           child: Icon(
             Icons.location_on_rounded,
             size: 28,
-            color: Colors.white.withValues(alpha: 0.3),
+            color: AppColors.overlaySoft,
           ),
         ),
         Container(
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: AppColors.overlaySubtle,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 56, color: Colors.white),
+          child: Icon(icon, size: 56, color: AppColors.white),
         ),
       ],
     );
@@ -93,8 +94,7 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
         children: [
           Text(
@@ -105,17 +105,15 @@ class SectionHeader extends StatelessWidget {
           ),
           const Spacer(),
           if (actionLabel != null)
-            TextButton(
-              onPressed: onAction,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                minimumSize: const Size(44, 36),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
+            GestureDetector(
+              onTap: onAction,
               child: Text(
                 actionLabel!,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
             ),
         ],
@@ -151,102 +149,96 @@ class FeaturedBusinessCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+    const cardWidth = 168.0;
+    const imageHeight = 128.0;
+
+    return SizedBox(
+      width: cardWidth,
+      child: Material(
+        color: isDark ? AppColors.darkCard : AppColors.white,
+        elevation: 0,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          width: 232,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 164,
-                width: double.infinity,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    NetworkImageView(
-                      url: imageUrl,
-                      placeholderIcon: Icons.storefront_rounded,
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Material(
-                        color: Colors.white,
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          customBorder: const CircleBorder(),
-                          onTap: onFavorite,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Icon(
-                              isFavorite
-                                  ? Icons.favorite_rounded
-                                  : Icons.favorite_border_rounded,
-                              size: 18,
-                              color: AppColors.primary,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+              boxShadow: AppShadows.card(isDark: isDark),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: imageHeight,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      NetworkImageView(
+                        url: imageUrl,
+                        placeholderIcon: Icons.storefront_rounded,
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Material(
+                          color: AppColors.overlayLight,
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: onFavorite,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Icon(
+                                isFavorite
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                size: 18,
+                                color: isFavorite
+                                    ? AppColors.primary
+                                    : AppColors.textTertiary,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      businessName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      category,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.star_rounded,
-                            size: 14, color: AppColors.star),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
-                            '${rating.toStringAsFixed(1)} ($reviewCount) · $distanceLabel',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12),
-                          ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        businessName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          height: 1.25,
+                          color: AppColors.textSecondary,
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        category,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 11,
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -267,6 +259,8 @@ class SellerCard extends StatelessWidget {
     this.goldenCrowns = 0,
     this.onTap,
     this.compact = false,
+    this.isFavorite = false,
+    this.onFavorite,
   });
 
   final String businessName;
@@ -279,79 +273,134 @@ class SellerCard extends StatelessWidget {
   final int goldenCrowns;
   final VoidCallback? onTap;
   final bool compact;
+  final bool isFavorite;
+  final VoidCallback? onFavorite;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      margin: EdgeInsets.symmetric(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: EdgeInsets.symmetric(
         horizontal: compact ? 0 : AppSpacing.screenHorizontal,
         vertical: compact ? 0 : 6,
       ),
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: compact ? 100 : 140,
-              width: double.infinity,
-              child: NetworkImageView(
-                  url: imageUrl, placeholderIcon: Icons.storefront_rounded),
+      child: Material(
+        color: isDark ? AppColors.darkCard : AppColors.white,
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+              boxShadow: AppShadows.card(isDark: isDark),
             ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AspectRatio(
+                  aspectRatio: compact ? 1.6 : 1.8,
+                  child: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      Expanded(
-                        child: Text(
-                          businessName,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      NetworkImageView(
+                        url: imageUrl,
+                        placeholderIcon: Icons.storefront_rounded,
+                      ),
+                      if (onFavorite != null)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Material(
+                            color: AppColors.overlayLight,
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: onFavorite,
+                              child: Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: Icon(
+                                  isFavorite
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  size: 18,
+                                  color: isFavorite
+                                      ? AppColors.primary
+                                      : AppColors.textTertiary,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      AchievementBadges(
-                        goldenCrowns: goldenCrowns,
-                        achievementStars: achievementStars,
-                        iconSize: 14,
-                        maxCrowns: 2,
-                        maxStars: 3,
-                      ),
                     ],
                   ),
-                  if (!compact) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 13),
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  Row(
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.star_rounded,
-                          size: 14, color: AppColors.star),
-                      const SizedBox(width: 4),
-                      Text('$rating ($reviewCount)',
-                          style: const TextStyle(fontSize: 13)),
-                      const Spacer(),
-                      Text(city,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              businessName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          AchievementBadges(
+                            goldenCrowns: goldenCrowns,
+                            achievementStars: achievementStars,
+                            iconSize: 12,
+                            maxCrowns: 2,
+                            maxStars: 3,
+                          ),
+                        ],
+                      ),
+                      if (!compact && description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13)),
+                            color: AppColors.textTertiary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.star_rounded,
+                              size: 12, color: AppColors.star),
+                          const SizedBox(width: 3),
+                          Text(
+                            '$rating',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          const Spacer(),
+                          Text(
+                            city,
+                            style: const TextStyle(
+                              color: AppColors.textTertiary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -407,7 +456,6 @@ class StatCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         height: 1.05,
                         color: scheme.onSurface,
-                        // Keep digits visually LTR even in Arabic UI.
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -529,7 +577,7 @@ class DashboardMenuTile extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 child: Text(
                   badge!,
-                  style: const TextStyle(fontSize: 10, color: Colors.white),
+                  style: const TextStyle(fontSize: 10, color: AppColors.white),
                 ),
               )
             : Icon(
@@ -537,6 +585,135 @@ class DashboardMenuTile extends StatelessWidget {
                     ? Icons.chevron_left_rounded
                     : Icons.chevron_right_rounded,
               ),
+      ),
+    );
+  }
+}
+
+/// 2-column product grid card matching MarGem reference design.
+class ProductGridCard extends StatelessWidget {
+  const ProductGridCard({
+    super.key,
+    required this.name,
+    required this.priceLabel,
+    required this.imageUrl,
+    required this.onTap,
+    this.locationLabel,
+    this.isFavorite = false,
+    this.onFavorite,
+    this.placeholderIcon = Icons.shopping_bag_outlined,
+  });
+
+  final String name;
+  final String priceLabel;
+  final String imageUrl;
+  final String? locationLabel;
+  final bool isFavorite;
+  final VoidCallback onTap;
+  final VoidCallback? onFavorite;
+  final IconData placeholderIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: isDark ? AppColors.darkCard : AppColors.white,
+      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+            boxShadow: AppShadows.card(isDark: isDark),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    NetworkImageView(
+                      url: imageUrl,
+                      placeholderIcon: placeholderIcon,
+                    ),
+                    if (onFavorite != null)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Material(
+                          color: AppColors.overlayLight,
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: onFavorite,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Icon(
+                                isFavorite
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                size: 18,
+                                color: isFavorite
+                                    ? AppColors.primary
+                                    : AppColors.textTertiary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                        height: 1.25,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      priceLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        height: 1.2,
+                      ),
+                    ),
+                    if (locationLabel != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        locationLabel!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 11,
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

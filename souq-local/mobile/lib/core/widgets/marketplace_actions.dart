@@ -6,7 +6,7 @@ import '../theme/app_spacing.dart';
 /// Shared marketplace action button sizes.
 class MarketButtonMetrics {
   static const height = 48.0;
-  static const radius = 14.0;
+  static const radius = 12.0;
   static const iconSize = 20.0;
   static const gap = 8.0;
   static const horizontalPadding = 16.0;
@@ -35,9 +35,9 @@ class MarketPrimaryButton extends StatelessWidget {
       onPressed: loading ? null : onPressed,
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
         disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.35),
-        disabledForegroundColor: Colors.white70,
+        disabledForegroundColor: AppColors.onPrimaryMuted,
         minimumSize: const Size(0, MarketButtonMetrics.height),
         padding: const EdgeInsets.symmetric(
           horizontal: MarketButtonMetrics.horizontalPadding,
@@ -55,7 +55,7 @@ class MarketPrimaryButton extends StatelessWidget {
           ? const SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
             )
           : Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -96,19 +96,19 @@ class MarketSecondaryButton extends StatelessWidget {
     final child = OutlinedButton(
       onPressed: loading ? null : onPressed,
       style: OutlinedButton.styleFrom(
-        foregroundColor: isDark ? Colors.white : AppColors.textPrimary,
+        foregroundColor: isDark ? AppColors.white : AppColors.textPrimary,
         disabledForegroundColor: AppColors.textTertiary,
         minimumSize: const Size(0, MarketButtonMetrics.height),
         padding: const EdgeInsets.symmetric(
           horizontal: MarketButtonMetrics.horizontalPadding,
         ),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
-          width: 1.4,
+          color: isDark ? AppColors.darkBorder : AppColors.primary,
+          width: 1.5,
         ),
         backgroundColor: isDark
             ? AppColors.darkCard
-            : AppColors.surfaceMuted.withValues(alpha: 0.65),
+            : AppColors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MarketButtonMetrics.radius),
         ),
@@ -162,7 +162,7 @@ class MarketSectionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: isDark ? AppColors.darkCard : AppColors.white,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.border,
@@ -171,7 +171,7 @@ class MarketSectionCard extends StatelessWidget {
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: AppColors.scrimLight,
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),

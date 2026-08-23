@@ -15,12 +15,14 @@ import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/margem_components.dart';
 import '../../l10n/app_localizations.dart';
+import '../map/map_screen.dart';
 import '../messages/messages_inbox_screen.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
@@ -73,7 +75,7 @@ class BuyerHomeShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final index = ref.watch(buyerTabIndexProvider).clamp(0, 2);
+    final index = ref.watch(buyerTabIndexProvider).clamp(0, 3);
 
     return RootBackScope(
       child: Scaffold(
@@ -82,31 +84,51 @@ class BuyerHomeShell extends ConsumerWidget {
           children: [
             const BuyerHomeScreen(),
             SearchScreen(autofocusSearch: index == 1),
+            const MapScreen(),
             const MessagesInboxScreen(),
           ],
         ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: index,
-          height: 68,
-          onDestinationSelected: (i) =>
-              ref.read(buyerTabIndexProvider.notifier).state = i,
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home_rounded),
-              label: l10n.navHome,
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkSurface
+                  : AppColors.white,
+              boxShadow: AppShadows.bottomBar(
+                isDark: Theme.of(context).brightness == Brightness.dark,
+              ),
             ),
-            NavigationDestination(
-              icon: const Icon(Icons.search_rounded),
-              selectedIcon: const Icon(Icons.search_rounded),
-              label: l10n.navSearch,
+            child: NavigationBar(
+              selectedIndex: index,
+              height: AppSpacing.bottomNavHeight,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              onDestinationSelected: (i) =>
+                  ref.read(buyerTabIndexProvider.notifier).state = i,
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home_rounded),
+                  label: l10n.navHome,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.search_rounded),
+                  selectedIcon: const Icon(Icons.search_rounded),
+                  label: l10n.navSearch,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.map_outlined),
+                  selectedIcon: const Icon(Icons.map_rounded),
+                  label: l10n.navMap,
+                ),
+                NavigationDestination(
+                  icon: const _MessagesNavIcon(selected: false),
+                  selectedIcon: const _MessagesNavIcon(selected: true),
+                  label: l10n.navMessages,
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: const _MessagesNavIcon(selected: false),
-              selectedIcon: const _MessagesNavIcon(selected: true),
-              label: l10n.navMessages,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -162,9 +184,6 @@ class BuyerHomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _HomeTopBar(
-                    greeting: l10n.goodMorning(
-                      session?.name.split(' ').first ?? l10n.guestMode,
-                    ),
                     city: city,
                     isGuest: isGuest,
                     onCityTap: null,
@@ -178,16 +197,23 @@ class BuyerHomeScreen extends ConsumerWidget {
                         return;
                       }
                       // Buyer notifications surface is the messages inbox.
-                      ref.read(buyerTabIndexProvider.notifier).state = 2;
+                      ref.read(buyerTabIndexProvider.notifier).state = 3;
                     },
                     onPremium: () => context.push('/premium'),
                     onProfile: () => context.push('/profile'),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  _HomeSearchField(
+                  MarGemSearchBar(
                     hint: l10n.searchHint,
                     onTap: () =>
                         ref.read(buyerTabIndexProvider.notifier).state = 1,
+                  ),
+                  const SizedBox(height: AppSpacing.sectionGap),
+                  MarGemHeroBanner(
+                    actionLabel: l10n.seeAll,
+                    onAction: () =>
+                        ref.read(buyerTabIndexProvider.notifier).state = 2,
+                    icon: Icons.chair_outlined,
                   ),
                   if (isGuest) ...[
                     const SizedBox(height: AppSpacing.md),
@@ -209,7 +235,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.sectionGap),
                     SectionHeader(
                       title: l10n.categories,
                       actionLabel: l10n.seeAll,
@@ -218,7 +244,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SizedBox(
-                      height: 40,
+                      height: 96,
                       child: ListView.separated(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.screenHorizontal,
@@ -226,7 +252,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                         scrollDirection: Axis.horizontal,
                         itemCount: categories.length + 1,
                         separatorBuilder: (_, __) =>
-                            const SizedBox(width: AppSpacing.sm),
+                            const SizedBox(width: AppSpacing.xs),
                         itemBuilder: (_, i) {
                           final isAll = i == 0;
                           final selectedChip = isAll
@@ -240,7 +266,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                           final icon = isAll
                               ? Icons.apps_rounded
                               : _categoryIcon(categories[i - 1].icon);
-                          return _CategoryChip(
+                          return MarGemCategoryIcon(
                             label: label,
                             icon: icon,
                             selected: selectedChip,
@@ -275,19 +301,7 @@ class BuyerHomeScreen extends ConsumerWidget {
             ),
           ),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.lg,
-                AppSpacing.screenHorizontal,
-                AppSpacing.sm,
-              ),
-              child: _ExploreMapCard(
-                title: l10n.exploreOnMap,
-                subtitle: l10n.exploreOnMapSubtitle(city),
-                onTap: () => context.push('/map'),
-              ),
-            ),
+            child: const SizedBox(height: AppSpacing.sectionGap),
           ),
           sellersAsync.when(
             data: (sellers) {
@@ -311,7 +325,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   SizedBox(
-                    height: 220,
+                    height: 204,
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.screenHorizontal,
@@ -347,22 +361,40 @@ class BuyerHomeScreen extends ConsumerWidget {
                       },
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.sectionGap),
                   SectionHeader(title: l10n.nearbyBusinesses),
                   const SizedBox(height: AppSpacing.sm),
-                  ...sellers.take(4).map(
-                        (s) => SellerCard(
-                          businessName: s.businessName,
-                          description: s.description,
-                          rating: s.averageRating,
-                          reviewCount: s.reviewCount,
-                          city: s.city,
-                          imageUrl: s.coverImageUrl,
-                          achievementStars: s.achievementStars,
-                          goldenCrowns: s.goldenCrowns,
-                          onTap: () => context.push('/seller/${s.id}'),
-                        ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.screenHorizontal,
+                    ),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: AppSpacing.productGridGap,
+                        crossAxisSpacing: AppSpacing.productGridGap,
+                        childAspectRatio: 0.68,
                       ),
+                      itemCount: sellers.take(4).length,
+                      itemBuilder: (_, i) {
+                        final s = sellers[i];
+                        return ProductGridCard(
+                          name: s.businessName,
+                          priceLabel: s.city,
+                          imageUrl: s.coverImageUrl,
+                          locationLabel: s.city,
+                          isFavorite: favoriteIds.contains(s.id),
+                          onFavorite: () =>
+                              _toggleFavoriteSeller(context, ref, s),
+                          placeholderIcon: Icons.storefront_rounded,
+                          onTap: () => context.push('/seller/${s.id}'),
+                        );
+                      },
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.xxl),
                 ]),
               );
@@ -460,7 +492,6 @@ class BuyerHomeScreen extends ConsumerWidget {
 
 class _HomeTopBar extends StatelessWidget {
   const _HomeTopBar({
-    required this.greeting,
     required this.city,
     required this.isGuest,
     this.onCityTap,
@@ -469,7 +500,6 @@ class _HomeTopBar extends StatelessWidget {
     required this.onProfile,
   });
 
-  final String greeting;
   final String city;
   final bool isGuest;
   final VoidCallback? onCityTap;
@@ -481,128 +511,86 @@ class _HomeTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 30),
-        const SizedBox(width: AppSpacing.sm),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                greeting,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          child: onCityTap == null
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.location_on_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        city,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 22,
                       color: AppColors.textSecondary,
                     ),
-              ),
-              if (onCityTap == null)
-                Text(
-                  city,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  ],
                 )
-              else
-                InkWell(
+              : InkWell(
                   onTap: onCityTap,
                   borderRadius: BorderRadius.circular(8),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      const Icon(
+                        Icons.location_on_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           city,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                       ),
-                      const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+                      const Icon(Icons.keyboard_arrow_down_rounded, size: 22),
                     ],
                   ),
                 ),
-            ],
-          ),
         ),
         IconButton(
           tooltip: 'Notifications',
           onPressed: onNotifications,
-          icon: const Icon(Icons.notifications_none_rounded),
+          icon: const Icon(Icons.notifications_none_rounded, size: 24),
         ),
         IconButton(
           tooltip: 'Premium',
           onPressed: onPremium,
           icon: const Icon(
             Icons.workspace_premium_rounded,
-            color: AppColors.star,
+            color: AppColors.goldenCrown,
+            size: 24,
           ),
         ),
-        const SizedBox(width: 2),
         InkWell(
           onTap: onProfile,
           customBorder: const CircleBorder(),
           child: CircleAvatar(
-            radius: 16,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+            radius: 18,
+            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
             child: Icon(
               isGuest ? Icons.person_outline_rounded : Icons.person_rounded,
-              size: 18,
+              size: 20,
               color: AppColors.primary,
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _HomeSearchField extends StatelessWidget {
-  const _HomeSearchField({required this.hint, required this.onTap});
-
-  final String hint;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
-      elevation: 1.5,
-      shadowColor: Colors.black.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-        child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-            border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.border,
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.search_rounded,
-                  color: AppColors.textSecondary, size: 22),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  hint,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -678,181 +666,6 @@ class _GuestModeBanner extends StatelessWidget {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: selected
-          ? AppColors.primary
-          : (isDark ? AppColors.darkCard : Colors.white),
-      borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
-            border: Border.all(
-              color: selected
-                  ? AppColors.primary
-                  : (isDark ? AppColors.darkBorder : AppColors.border),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: selected ? Colors.white : AppColors.primary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: selected
-                      ? Colors.white
-                      : (isDark ? Colors.white : AppColors.textPrimary),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ExploreMapCard extends StatelessWidget {
-  const _ExploreMapCard({
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: isDark ? AppColors.darkCard : AppColors.cardSelected,
-      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        child: SizedBox(
-          height: 92,
-          child: Stack(
-            children: [
-              Positioned(
-                right: -8,
-                top: -8,
-                bottom: -8,
-                width: 140,
-                child: Opacity(
-                  opacity: 0.35,
-                  child: CustomPaint(painter: _MiniMapPainter()),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.location_on_rounded,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final road = Paint()
-      ..color = AppColors.primary.withValues(alpha: 0.18)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-    final block = Paint()..color = AppColors.primary.withValues(alpha: 0.08);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(16, 18, size.width - 40, size.height - 36),
-        const Radius.circular(12),
-      ),
-      block,
-    );
-    canvas.drawLine(Offset(20, size.height * 0.35),
-        Offset(size.width - 20, size.height * 0.45), road);
-    canvas.drawLine(Offset(size.width * 0.4, 12),
-        Offset(size.width * 0.55, size.height - 12), road);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Calm, centered profile identity — Apple / Airbnb / Notion inspired.
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({
     required this.displayName,
@@ -880,8 +693,8 @@ class _ProfileHeader extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isDark
@@ -899,7 +712,7 @@ class _ProfileHeader extends StatelessWidget {
                   fontSize: 34,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.5,
-                  color: isDark ? Colors.white : AppColors.primary,
+                  color: isDark ? AppColors.white : AppColors.primary,
                 ),
               ),
             ),
@@ -949,17 +762,25 @@ class _ProfileHeader extends StatelessWidget {
           ),
         ],
         if (membershipLabel != null && membershipLabel!.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.sm + 2),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             membershipLabel!,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: AppColors.textTertiary,
                   fontWeight: FontWeight.w500,
-                  letterSpacing: 0.1,
                 ),
           ),
         ],
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: const [
+            MarGemStatColumn(value: '—', label: 'Listings'),
+            MarGemStatColumn(value: '—', label: 'Favorites'),
+            MarGemStatColumn(value: '—', label: 'Followers'),
+          ],
+        ),
         const SizedBox(height: AppSpacing.lg),
         Divider(
           height: 1,
@@ -988,10 +809,15 @@ class BuyerProfileScreen extends ConsumerWidget {
     final subtitle = isGuest ? l10n.guestMode : email;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navProfile)),
+      appBar: AppBar(
+        title: Text(l10n.navProfile),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screenHorizontal,
+          ),
           children: [
             _ProfileHeader(
               displayName: displayName,
@@ -999,48 +825,47 @@ class BuyerProfileScreen extends ConsumerWidget {
               isGuest: isGuest,
               membershipLabel: isGuest ? null : l10n.margemMember,
             ),
-            const SizedBox(height: AppSpacing.lg),
-            ListTile(
-              leading: const Icon(Icons.favorite_border),
-              title: Text(l10n.favorites),
+            MarGemMenuTile(
+              title: l10n.favorites,
+              icon: Icons.favorite_border_rounded,
               onTap: () => context.push('/favorites'),
             ),
-            ListTile(
-              leading: const Icon(Icons.workspace_premium_outlined),
-              title: Text(l10n.premium),
+            MarGemMenuTile(
+              title: l10n.premium,
+              icon: Icons.workspace_premium_outlined,
               onTap: () => context.push('/premium'),
             ),
-            ListTile(
-              leading: const Icon(Icons.chat_bubble_outline),
-              title: Text(l10n.navMessages),
+            MarGemMenuTile(
+              title: l10n.navMessages,
+              icon: Icons.chat_bubble_outline_rounded,
               onTap: () {
                 context.pop();
-                ref.read(buyerTabIndexProvider.notifier).state = 2;
+                ref.read(buyerTabIndexProvider.notifier).state = 3;
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.location_city_outlined),
-              title: Text(l10n.city),
-              subtitle: Text(session?.city ?? '—'),
+            MarGemMenuTile(
+              title: l10n.city,
+              icon: Icons.location_city_outlined,
+              subtitle: session?.city ?? '—',
             ),
             const LanguageSettingsTile(),
             if (!isGuest)
-              ListTile(
-                leading: const Icon(Icons.mark_email_unread_outlined),
-                title: Text(l10n.verifyEmailTitle),
+              MarGemMenuTile(
+                title: l10n.verifyEmailTitle,
+                icon: Icons.mark_email_unread_outlined,
                 onTap: () => context.push('/verify-email'),
               ),
             if (!isGuest)
-              ListTile(
-                leading: const Icon(Icons.lock_outline),
-                title: Text(l10n.changePassword),
+              MarGemMenuTile(
+                title: l10n.changePassword,
+                icon: Icons.lock_outline_rounded,
                 onTap: () => _changePasswordDialog(context),
               ),
             if (!isGuest && hasSellerProfile)
-              ListTile(
-                leading: const Icon(Icons.storefront_outlined),
-                title: Text(l10n.switchToSellerMode),
-                subtitle: Text(l10n.switchToSellerModeSub),
+              MarGemMenuTile(
+                title: l10n.switchToSellerMode,
+                icon: Icons.storefront_outlined,
+                subtitle: l10n.switchToSellerModeSub,
                 onTap: () async {
                   final storage = ref.read(appStorageProvider);
                   await storage?.saveAppMode(AppMode.seller);
@@ -1048,15 +873,15 @@ class BuyerProfileScreen extends ConsumerWidget {
                 },
               ),
             if (!isGuest && !hasSellerProfile)
-              ListTile(
-                leading: const Icon(Icons.add_business_outlined),
-                title: Text(l10n.becomeSeller),
-                subtitle: Text(l10n.becomeSellerSubtitle),
+              MarGemMenuTile(
+                title: l10n.becomeSeller,
+                icon: Icons.add_business_outlined,
+                subtitle: l10n.becomeSellerSubtitle,
                 onTap: () => context.push('/onboarding/become-seller'),
               ),
-            ListTile(
-              leading: const Icon(Icons.dark_mode_outlined),
-              title: Text(l10n.darkMode),
+            MarGemMenuTile(
+              title: l10n.darkMode,
+              icon: Icons.dark_mode_outlined,
               trailing: Switch(
                 value: Theme.of(context).brightness == Brightness.dark,
                 onChanged: (_) {
@@ -1065,13 +890,10 @@ class BuyerProfileScreen extends ConsumerWidget {
               ),
             ),
             if (!isGuest)
-              ListTile(
-                leading: const Icon(Icons.delete_forever_outlined,
-                    color: AppColors.danger),
-                title: Text(
-                  l10n.deleteAccount,
-                  style: const TextStyle(color: AppColors.danger),
-                ),
+              MarGemMenuTile(
+                title: l10n.deleteAccount,
+                icon: Icons.delete_forever_outlined,
+                titleColor: AppColors.danger,
                 onTap: () => _confirmDeleteAccount(context, ref),
               ),
             const SizedBox(height: AppSpacing.xl),

@@ -41,7 +41,7 @@ class SelectionCard extends StatelessWidget {
         ),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: AppColors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
@@ -114,9 +114,9 @@ class SelectionCard extends StatelessWidget {
                       color: selected ? accentColor : AppColors.border,
                       width: 2,
                     ),
-                    color: selected ? accentColor : Colors.transparent,
+                    color: selected ? accentColor : AppColors.transparent,
                   ),
-                  child: selected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                  child: selected ? const Icon(Icons.check, size: 14, color: AppColors.white) : null,
                 ),
               ],
             ),

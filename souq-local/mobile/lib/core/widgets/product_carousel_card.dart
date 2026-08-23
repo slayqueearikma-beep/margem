@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../models/models.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
 import 'network_image_view.dart';
 
@@ -36,7 +37,7 @@ class ProductCarouselCard extends StatelessWidget {
     final cardWidth = width ?? ((screenW - 48) / 3).clamp(118.0, 168.0);
 
     final card = Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: isDark ? AppColors.darkCard : AppColors.white,
       elevation: 0,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       clipBehavior: Clip.antiAlias,
@@ -45,18 +46,7 @@ class ProductCarouselCard extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-            border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.border,
-            ),
-            boxShadow: isDark
-                ? null
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+            boxShadow: AppShadows.card(isDark: isDark),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +65,7 @@ class ProductCarouselCard extends StatelessWidget {
                         top: 8,
                         right: 8,
                         child: Material(
-                          color: Colors.white.withValues(alpha: 0.92),
+                          color: AppColors.overlayLight,
                           shape: const CircleBorder(),
                           child: InkWell(
                             customBorder: const CircleBorder(),
@@ -91,8 +81,8 @@ class ProductCarouselCard extends StatelessWidget {
                                   key: ValueKey(isFavorite),
                                   size: 18,
                                   color: isFavorite
-                                      ? AppColors.danger
-                                      : AppColors.textSecondary,
+                                      ? AppColors.primary
+                                      : AppColors.textTertiary,
                                 ),
                               ),
                             ),
@@ -105,7 +95,7 @@ class ProductCarouselCard extends StatelessWidget {
                         left: 8,
                         child: Icon(
                           Icons.verified_rounded,
-                          color: Colors.blue,
+                          color: AppColors.info,
                           size: 20,
                         ),
                       ),

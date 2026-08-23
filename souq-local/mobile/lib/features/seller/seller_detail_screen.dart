@@ -248,8 +248,8 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.black.withValues(alpha: 0.05),
-                              Colors.black.withValues(alpha: 0.55),
+                              AppColors.scrimLight,
+                              AppColors.scrim,
                             ],
                           ),
                         ),
@@ -270,7 +270,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               height: 1.45,
                               color: isDark
-                                  ? Colors.white70
+                                  ? AppColors.onPrimaryMuted
                                   : AppColors.textSecondary,
                             ),
                       ),
@@ -549,10 +549,10 @@ class _SellerHeader extends StatelessWidget {
           height: 88,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 3),
+            border: Border.all(color: AppColors.white, width: 3),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
+                color: AppColors.scrimMedium,
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -583,7 +583,7 @@ class _SellerHeader extends StatelessWidget {
                   ),
                   if (seller.verificationStatus == 'verified')
                     const Icon(Icons.verified_rounded,
-                        color: Colors.blue, size: 22),
+                        color: AppColors.verified, size: 22),
                   if (seller.isPremium)
                     const Padding(
                       padding: EdgeInsets.only(left: 4),

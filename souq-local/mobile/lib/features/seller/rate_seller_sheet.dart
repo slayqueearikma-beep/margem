@@ -276,7 +276,7 @@ class _RateSellerSheetState extends State<_RateSellerSheet> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             )
                           : Text(l10n.submitReview),

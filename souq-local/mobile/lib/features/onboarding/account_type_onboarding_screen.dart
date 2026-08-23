@@ -77,7 +77,7 @@ class _AccountTypeOnboardingScreenState
             subtitle: l10n.buyerSubtitle,
             icon: Icons.shopping_bag_outlined,
             selected: _selected == AccountType.buyer,
-            accentColor: const Color(0xFF4D96FF),
+            accentColor: AppColors.buyerAccent,
             bulletPoints: [
               l10n.buyerBullet1,
               l10n.buyerBullet2,
