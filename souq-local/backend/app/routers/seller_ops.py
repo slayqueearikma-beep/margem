@@ -445,7 +445,7 @@ async def reply_message(
     request: Request,
     conversation_id: UUID,
     payload: MessageCreate,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_verified_email),
     session: AsyncSession = Depends(get_db),
 ) -> Message:
     from app.services.messaging import require_conversation_participant, send_message

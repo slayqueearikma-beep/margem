@@ -72,6 +72,9 @@ Capability is `SellerProfile` presence (not mutually exclusive account types). C
 3. **Azure Blob** — listing media
 4. **Compose** — `docker-compose.yml` (dev), `.home.yml` (LAN), `.budget.yml` (single VM)
 5. **CI** — root workflow `.github/workflows/margem-ci.yml`
+6. **Enterprise blueprint (dormant)** — `infra/blueprint/` — future AKS/APIM/Front Door design; **not active**
+
+See [infra/blueprint/README.md](../infra/blueprint/README.md) for the scalability blueprint.
 
 ## Explicit non-goals
 
