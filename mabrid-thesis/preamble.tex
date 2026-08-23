@@ -1,0 +1,125 @@
+% MABRID — Rapport académique (français)
+\usepackage[a4paper,left=2.5cm,right=2.5cm,top=2.8cm,bottom=2.8cm,headheight=15pt]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\frenchbsetup{AutoSpacePunctuation=true}
+\usepackage{lmodern}
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{graphicx}
+\usepackage{xcolor}
+\definecolor{mabridblue}{RGB}{30,58,95}
+\definecolor{mabridaccent}{RGB}{138,124,198}
+
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{pdflscape}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta,positioning,fit,backgrounds,calc,matrix,shadows}
+\newif\ifmabridhaspgfgantt
+\IfFileExists{pgfgantt.sty}{%
+  \usepackage{pgfgantt}%
+  \mabridhaspgfgantttrue
+}{%
+  \mabridhaspgfganttfalse
+}
+
+\usepackage{float}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{amsmath,amssymb}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{MABRID : Gouvernance, Sécurité et Stratégie}}
+\fancyhead[R]{\small\thepage}
+\fancyfoot[C]{\small MABRID — Rapport académique confidentiel}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.2pt}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\small\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{mabridblue}}
+  {\chaptertitlename\ \thechapter}{12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-10pt}{24pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{mabridblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\usepackage[
+  colorlinks=true,
+  linkcolor=mabridblue,
+  citecolor=mabridaccent,
+  urlcolor=mabridaccent,
+  bookmarksnumbered=true
+]{hyperref}
+
+\usepackage{csquotes}
+\usepackage[
+  backend=biber,
+  style=authoryear,
+  sorting=nyt,
+  maxbibnames=6,
+  giveninits=true,
+  uniquename=init,
+  autolang=other
+]{biblatex}
+\addbibresource{references.bib}
+% Filet de sécurité si french.lbx n'est pas chargé (ex. sans texlive-lang-french)
+\DefineBibliographyStrings{french}{
+  and       = {et},
+  andothers = {et\addabbrvspace al\adddot},
+  in        = {dans},
+  page      = {p\adddot},
+  pages     = {p\adddot},
+  urlseen   = {consulté le},
+  editor    = {sous la dir\adddot de},
+  editors   = {sous la dir\adddot de},
+  byeditor  = {sous la dir\adddot de},
+}
+\DeclareLanguageMapping{french}{french}
+
+\usepackage[acronym,toc]{glossaries}
+\makeglossaries
+\input{glossary-entries.tex}
+
+\newcommand{\figureplaceholder}[4]{%
+  \begin{figure}[#1]
+    \centering
+    \IfFileExists{#2}{%
+      \includegraphics[width=#3\textwidth]{#2}%
+    }{%
+      \fcolorbox{mabridblue!40}{mabridblue!5}{%
+        \parbox{#3\textwidth}{%
+          \centering\vspace{2.2cm}
+          \textbf{Emplacement figure}\\[0.4em]
+          \textit{#4}\\[0.3em]
+          \small\texttt{#2}
+          \vspace{2.2cm}%
+        }%
+      }%
+    }
+    \caption{#4}
+    \label{fig:placeholder-\thefigure}
+  \end{figure}%
+}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+\graphicspath{{figures/}}
