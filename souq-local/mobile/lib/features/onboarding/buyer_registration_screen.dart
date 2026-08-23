@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/validation/form_validators.dart';
 import '../../core/config/app_config.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -51,8 +52,8 @@ class _BuyerRegistrationScreenState
   Future<void> _submit() async {
     final l10n = context.l10n;
     if (_nameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
-        _passwordController.text.length < 8) {
+        !FormValidators.isValidEmail(_emailController.text.trim()) ||
+        !FormValidators.isValidPassword(_passwordController.text)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
       return;
