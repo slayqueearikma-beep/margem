@@ -110,6 +110,9 @@ POSTGRES_PASSWORD=$pgPass
 JWT_SECRET_KEY=$jwt
 UPLOAD_TOKEN_SECRET=$uploadTokenSecret
 AZURE_STORAGE_CONNECTION_STRING=$storageConn
+APP_ENV=staging
+PUBLIC_API_URL=$apiUrl
+PUBLIC_APP_URL=$apiUrl
 CORS_ORIGINS=["http://${vmIp}:8000"]
 ALLOWED_HOSTS=["${vmIp}","${vmIp}:8000"]
 SMTP_HOST=$SmtpHost
@@ -135,7 +138,11 @@ scp -i $SshKey -o StrictHostKeyChecking=no -r `
     "$backendSrc\alembic" `
     "$backendSrc\alembic.ini" `
     "$backendSrc\requirements.txt" `
+    "$backendSrc\requirements-telemetry.txt" `
     "$backendSrc\Dockerfile" `
+    "${adminUser}@${vmIp}:~/margem/backend/"
+scp -i $SshKey -o StrictHostKeyChecking=no -r `
+    "$backendSrc\static" `
     "${adminUser}@${vmIp}:~/margem/backend/"
 
 Write-Host "[4/4] Building and starting containers..."
