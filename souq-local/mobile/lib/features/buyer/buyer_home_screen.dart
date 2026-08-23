@@ -16,10 +16,12 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/category_theme.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/legal_links_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
 import '../search/search_screen.dart';
@@ -213,8 +215,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                     SectionHeader(
                       title: l10n.categories,
                       actionLabel: l10n.seeAll,
-                      onAction: () =>
-                          ref.read(buyerTabIndexProvider.notifier).state = 1,
+                      onAction: () => context.push('/categories'),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SizedBox(
@@ -239,10 +240,17 @@ class BuyerHomeScreen extends ConsumerWidget {
                                 );
                           final icon = isAll
                               ? Icons.apps_rounded
-                              : _categoryIcon(categories[i - 1].icon);
+                              : CategoryTheme.iconFor(categories[i - 1].icon);
+                          final accent = isAll
+                              ? AppColors.primary
+                              : CategoryTheme.accentColor(
+                                  categories[i - 1].accentColor,
+                                  slug: categories[i - 1].slug,
+                                );
                           return _CategoryChip(
                             label: label,
                             icon: icon,
+                            accentColor: accent,
                             selected: selectedChip,
                             onTap: () {
                               ref
@@ -382,17 +390,6 @@ class BuyerHomeScreen extends ConsumerWidget {
     );
   }
 
-  static IconData _categoryIcon(String icon) {
-    return switch (icon) {
-      'beauty' || 'spa' => Icons.spa_outlined,
-      'clothing' || 'fashion' => Icons.checkroom_outlined,
-      'electronics' => Icons.smartphone_outlined,
-      'food' || 'restaurant' => Icons.restaurant_outlined,
-      'services' => Icons.handyman_outlined,
-      _ => Icons.storefront_outlined,
-    };
-  }
-
   static String _distanceLabel(LatLng from, LatLng to) {
     const earthKm = 6371.0;
     final dLat = _rad(to.latitude - from.latitude);
@@ -446,12 +443,20 @@ class BuyerHomeScreen extends ConsumerWidget {
         await apiServiceProvider.addFavoriteSeller(seller.id);
       }
       ref.invalidate(buyerFavoriteSellerIdsProvider);
-    } catch (e) {
+    } on ApiException catch (error) {
       if (context.mounted) {
         await showAppErrorDialog(
           context,
           title: l10n.somethingWentWrong,
-          message: e.toString(),
+          message: error.message,
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        await showAppErrorDialog(
+          context,
+          title: l10n.somethingWentWrong,
+          message: l10n.serverUnreachable,
         );
       }
     }
@@ -682,12 +687,14 @@ class _CategoryChip extends StatelessWidget {
   const _CategoryChip({
     required this.label,
     required this.icon,
+    required this.accentColor,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
   final IconData icon;
+  final Color accentColor;
   final bool selected;
   final VoidCallback onTap;
 
@@ -696,7 +703,7 @@ class _CategoryChip extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: selected
-          ? AppColors.primary
+          ? accentColor
           : (isDark ? AppColors.darkCard : Colors.white),
       borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
       child: InkWell(
@@ -708,7 +715,7 @@ class _CategoryChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
             border: Border.all(
               color: selected
-                  ? AppColors.primary
+                  ? accentColor
                   : (isDark ? AppColors.darkBorder : AppColors.border),
             ),
           ),
@@ -718,7 +725,7 @@ class _CategoryChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: selected ? Colors.white : AppColors.primary,
+                color: selected ? Colors.white : accentColor,
               ),
               const SizedBox(width: 6),
               Text(
@@ -1064,6 +1071,9 @@ class BuyerProfileScreen extends ConsumerWidget {
                 },
               ),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            const LegalLinksSection(),
+            const SizedBox(height: AppSpacing.lg),
             if (!isGuest)
               ListTile(
                 leading: const Icon(Icons.delete_forever_outlined,

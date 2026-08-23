@@ -15,7 +15,9 @@ def _escape_ilike(value: str) -> str:
 
 @router.get("/categories", response_model=list[CategoryOut])
 async def list_categories(session: AsyncSession = Depends(get_db)) -> list[Category]:
-    result = await session.execute(select(Category).order_by(Category.name_en))
+    result = await session.execute(
+        select(Category).order_by(Category.sort_order.asc(), Category.name_en.asc())
+    )
     return list(result.scalars().all())
 
 

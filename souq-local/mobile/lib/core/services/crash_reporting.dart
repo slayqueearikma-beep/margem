@@ -30,6 +30,9 @@ class CrashReporting {
         options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
         options.sendDefaultPii = false;
         options.environment = kReleaseMode ? 'production' : 'debug';
+        options.beforeSend = (event, hint) {
+          return _scrubEvent(event);
+        };
       },
     );
     _sentryReady = true;
@@ -53,7 +56,6 @@ class CrashReporting {
     bool fatal = false,
     String? context,
   }) {
-    // Keep PII out of logs — never dump tokens, passwords, or emails here.
     final summary = error.runtimeType.toString();
     if (kDebugMode) {
       debugPrint(
@@ -76,5 +78,21 @@ class CrashReporting {
         },
       );
     }
+  }
+
+  static SentryEvent? _scrubEvent(SentryEvent event) {
+    final sensitive = RegExp(
+      r'(password|token|authorization|secret|api[_-]?key|refresh)',
+      caseSensitive: false,
+    );
+    final headers = event.request?.headers;
+    if (headers != null) {
+      for (final key in List<String>.from(headers.keys)) {
+        if (sensitive.hasMatch(key)) {
+          headers[key] = '[redacted]';
+        }
+      }
+    }
+    return event;
   }
 }

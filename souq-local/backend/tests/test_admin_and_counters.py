@@ -11,15 +11,10 @@ import app.database as database
 from app.main import app
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.models import SellerProfile, User, UserRole, VerificationStatus
+from tests.factories import seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
-
-@pytest.fixture
-async def client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
 
 
 async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
@@ -52,18 +47,13 @@ async def _create_pending_seller(client: AsyncClient) -> UUID:
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json={
-            "business_name": "Pending Shop",
-            "description": "Awaiting verification",
-            "address": "1 Test St",
-            "city": "Casablanca",
-            "latitude": 33.57,
-            "longitude": -7.59,
-            "phone": "+212600000099",
-            "whatsapp_number": "+212600000099",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Pending Shop",
+            description="Awaiting verification",
+            address="1 Test St",
+            phone="+212600000099",
+            whatsapp_number="+212600000099",
+        ),
     )
     assert profile.status_code == 201, profile.text
     seller_id = UUID(profile.json()["id"])
@@ -83,7 +73,7 @@ async def test_support_can_list_pending_but_cannot_verify(client: AsyncClient):
 
     pending = await client.get("/admin/sellers/pending", headers=support["headers"])
     assert pending.status_code == 200, pending.text
-    assert any(item["id"] == str(seller_id) for item in pending.json())
+    assert any(item["id"] == str(seller_id) for item in pending.json()["items"])
 
     verify = await client.post(
         f"/admin/sellers/{seller_id}/verify",
@@ -108,7 +98,7 @@ async def test_admin_can_verify_seller(client: AsyncClient):
 
     pending = await client.get("/admin/sellers/pending", headers=admin["headers"])
     assert pending.status_code == 200
-    assert all(item["id"] != str(seller_id) for item in pending.json())
+    assert all(item["id"] != str(seller_id) for item in pending.json()["items"])
 
 
 @pytest.mark.asyncio
@@ -117,18 +107,15 @@ async def test_favorite_count_increments_atomically(client: AsyncClient):
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json={
-            "business_name": "Counter Shop",
-            "description": "Counters",
-            "address": "2 Test St",
-            "city": "Casablanca",
-            "latitude": 34.02,
-            "longitude": -6.83,
-            "phone": "+212600000088",
-            "whatsapp_number": "+212600000088",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Counter Shop",
+            description="Counters",
+            address="2 Test St",
+            latitude=34.02,
+            longitude=-6.83,
+            phone="+212600000088",
+            whatsapp_number="+212600000088",
+        ),
     )
     assert profile.status_code == 201, profile.text
     seller_id = profile.json()["id"]
@@ -182,7 +169,7 @@ async def test_admin_can_grant_premium(client: AsyncClient):
     grant = await client.post(
         f"/admin/users/{user_id}/premium",
         headers=admin["headers"],
-        json={"plan_code": "buyer_premium", "days": 14},
+        json={"plan_code": "premium", "days": 14},
     )
     assert grant.status_code == 201, grant.text
     assert grant.json()["provider"] == "admin_grant"
@@ -224,18 +211,15 @@ async def test_whitespace_message_rejected(client: AsyncClient):
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json={
-            "business_name": "Msg Shop",
-            "description": "Msgs",
-            "address": "3 Test St",
-            "city": "Casablanca",
-            "latitude": 34.03,
-            "longitude": -5.0,
-            "phone": "+212600000077",
-            "whatsapp_number": "+212600000077",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Msg Shop",
+            description="Msgs",
+            address="3 Test St",
+            latitude=34.03,
+            longitude=-5.0,
+            phone="+212600000077",
+            whatsapp_number="+212600000077",
+        ),
     )
     assert profile.status_code == 201, profile.text
     buyer = await _register(client, "buyer")

@@ -126,6 +126,13 @@ class SellerDashboardScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 IconButton(
+                                  tooltip: l10n.premium,
+                                  onPressed: () => context.push('/premium'),
+                                  icon: const Icon(
+                                    Icons.workspace_premium_outlined,
+                                  ),
+                                ),
+                                IconButton(
                                   tooltip: l10n.notifications,
                                   onPressed: () =>
                                       context.push('/seller/notifications'),

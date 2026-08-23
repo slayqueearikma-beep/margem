@@ -90,6 +90,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
           await apiServiceProvider.openSellerConversation(seller.id);
       if (!mounted) return;
       context.push('/messages/${conversation.id}', extra: conversation);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: error.message);
     } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
@@ -134,6 +138,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
         SnackBar(content: Text(l10n.nowFollowing(seller.businessName))),
       );
       _reload();
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: error.message);
     } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
@@ -190,7 +198,11 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
           ),
         );
       }
-    } on Object catch (_) {
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: error.message);
+    } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
           title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);

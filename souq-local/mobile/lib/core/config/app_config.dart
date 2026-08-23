@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// App configuration — update for your environment.
 class AppConfig {
   /// Production API URL. Set at build time:
@@ -86,13 +88,48 @@ class AppConfig {
     defaultValue: false,
   );
 
-  static bool get allowDemoData => !isProduction && demoFallback;
+  static bool get allowDemoData => !isProduction && !kReleaseMode && demoFallback;
+
+  /// When false, admin routes redirect to buyer home (use for Play Store builds).
+  static bool get enableAdmin {
+    const raw = String.fromEnvironment('ENABLE_ADMIN');
+    if (raw.isNotEmpty) {
+      return raw.toLowerCase() == 'true';
+    }
+    return !isProduction && !kReleaseMode;
+  }
 
   /// Privacy policy URL for Play Store listing and in-app link.
-  static const String privacyPolicyUrl = String.fromEnvironment(
-    'PRIVACY_POLICY_URL',
-    defaultValue: 'https://margem.app/privacy',
-  );
+  static String get privacyPolicyUrl {
+    const raw = String.fromEnvironment('PRIVACY_POLICY_URL');
+    if (raw.isNotEmpty) return raw;
+    if (!isProduction) return '$apiBaseUrl/legal/privacy.html';
+    return 'https://margem.app/privacy';
+  }
+
+  /// Terms of Service URL for registration consent and settings.
+  static String get termsOfServiceUrl {
+    const raw = String.fromEnvironment('TERMS_OF_SERVICE_URL');
+    if (raw.isNotEmpty) return raw;
+    if (!isProduction) return '$apiBaseUrl/legal/terms.html';
+    return 'https://margem.app/terms';
+  }
+
+  /// Cookie policy URL.
+  static String get cookiePolicyUrl {
+    const raw = String.fromEnvironment('COOKIE_POLICY_URL');
+    if (raw.isNotEmpty) return raw;
+    if (!isProduction) return '$apiBaseUrl/legal/cookies.html';
+    return 'https://margem.app/cookies';
+  }
+
+  /// Legal index URL.
+  static String get legalIndexUrl {
+    const raw = String.fromEnvironment('LEGAL_INDEX_URL');
+    if (raw.isNotEmpty) return raw;
+    if (!isProduction) return '$apiBaseUrl/legal/index.html';
+    return 'https://margem.app/legal';
+  }
 
   static const String appName = 'MarGem';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';
@@ -103,4 +140,21 @@ class AppConfig {
 
   /// Launch city — MarGem is Casablanca-only for now.
   static const String launchCity = 'Casablanca';
+
+  /// Extra hosts permitted for presigned image uploads (comma-separated define).
+  static List<String> get allowedUploadHosts {
+    const raw = String.fromEnvironment('ALLOWED_UPLOAD_HOSTS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((h) => h.trim().toLowerCase()).where((h) => h.isNotEmpty).toList();
+  }
+
+  /// Optional SHA-256 certificate pins for release TLS pinning.
+  static List<String> get certificatePins {
+    const raw = String.fromEnvironment('CERTIFICATE_PINS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+  }
+
+  /// Maximum guest favorites stored locally before login.
+  static const int maxGuestFavorites = 50;
 }

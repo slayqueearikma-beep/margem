@@ -9,15 +9,10 @@ from sqlalchemy import select
 import app.database as database
 from app.main import app
 from app.models import User
+from tests.factories import seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
-
-@pytest.fixture
-async def client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
 
 
 async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
@@ -57,18 +52,13 @@ async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
     created = await client.post(
         "/sellers",
         headers=buyer["headers"],
-        json={
-            "business_name": "My Dual Store",
-            "description": "Opened later",
-            "address": "12 Rue Example",
-            "city": "Casablanca",
-            "latitude": 33.5,
-            "longitude": -7.6,
-            "phone": "+212600000088",
-            "whatsapp_number": "+212600000088",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="My Dual Store",
+            description="Opened later",
+            address="12 Rue Example",
+            phone="+212600000088",
+            whatsapp_number="+212600000088",
+        ),
     )
     assert created.status_code == 201, created.text
 
@@ -91,36 +81,30 @@ async def test_seller_can_review_another_business(client: AsyncClient):
     store_a = await client.post(
         "/sellers",
         headers=seller_a["headers"],
-        json={
-            "business_name": "Store A",
-            "description": "",
-            "address": "12 Rue Example",
-            "city": "Casablanca",
-            "latitude": 34.0,
-            "longitude": -6.8,
-            "phone": "+212600000091",
-            "whatsapp_number": "+212600000091",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Store A",
+            description="",
+            address="12 Rue Example",
+            latitude=34.0,
+            longitude=-6.8,
+            phone="+212600000091",
+            whatsapp_number="+212600000091",
+        ),
     )
     assert store_a.status_code == 201, store_a.text
 
     store_b = await client.post(
         "/sellers",
         headers=seller_b["headers"],
-        json={
-            "business_name": "Store B",
-            "description": "",
-            "address": "14 Rue Example",
-            "city": "Casablanca",
-            "latitude": 34.01,
-            "longitude": -6.81,
-            "phone": "+212600000092",
-            "whatsapp_number": "+212600000092",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Store B",
+            description="",
+            address="14 Rue Example",
+            latitude=34.01,
+            longitude=-6.81,
+            phone="+212600000092",
+            whatsapp_number="+212600000092",
+        ),
     )
     assert store_b.status_code == 201, store_b.text
 

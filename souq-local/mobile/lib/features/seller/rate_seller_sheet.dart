@@ -94,6 +94,15 @@ class _RateSellerSheetState extends State<_RateSellerSheet> {
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: AppColors.danger,
+        ),
+      );
     } on Object catch (_) {
       if (!mounted) return;
       setState(() => _submitting = false);

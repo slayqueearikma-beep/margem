@@ -469,15 +469,26 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   Future<void> _openChat(SellerModel seller) async {
     final l10n = context.l10n;
+    final session = ref.read(userSessionProvider);
+    if (session == null || session.isGuest) {
+      if (mounted) await context.push('/login');
+      return;
+    }
+    final mySellerId = session.sellerId;
+    if (mySellerId != null &&
+        mySellerId.isNotEmpty &&
+        mySellerId == seller.id) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.cannotMessageOwnStore)),
+        );
+      }
+      return;
+    }
     setState(() => _contacting = true);
     try {
       await apiServiceProvider.createContactEvent(
           sellerId: seller.id, channel: 'message');
-      final session = ref.read(userSessionProvider);
-      if (session == null || session.isGuest) {
-        if (mounted) await context.push('/login');
-        return;
-      }
       final conversation =
           await apiServiceProvider.openSellerConversation(seller.id);
       if (!mounted) return;
@@ -493,11 +504,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 
   Future<void> _callSeller(SellerModel seller) async {
+    final phone = seller.phone.trim();
+    if (phone.isEmpty) return;
     try {
       await apiServiceProvider.createContactEvent(
           sellerId: seller.id, channel: 'call');
     } catch (_) {}
-    final uri = Uri(scheme: 'tel', path: seller.phone);
+    final uri = Uri(scheme: 'tel', path: phone);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else if (mounted) {
