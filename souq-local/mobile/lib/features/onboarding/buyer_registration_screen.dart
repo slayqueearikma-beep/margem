@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/validation/form_validators.dart';
 import '../../core/config/app_config.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -14,7 +15,12 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
+import '../../core/widgets/legal_links_section.dart';
+import '../../core/models/city_model.dart';
+import '../../core/providers/city_providers.dart';
+import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
+import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../l10n/app_localizations.dart';
 
 class BuyerRegistrationScreen extends ConsumerStatefulWidget {
@@ -30,7 +36,7 @@ class _BuyerRegistrationScreenState
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final String _city = AppConfig.launchCity;
+  CityModel? _selectedCity;
   XFile? _profileImage;
   bool _loading = false;
 
@@ -51,12 +57,20 @@ class _BuyerRegistrationScreenState
   Future<void> _submit() async {
     final l10n = context.l10n;
     if (_nameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
-        _passwordController.text.length < 8) {
+        !FormValidators.isValidEmail(_emailController.text.trim()) ||
+        !FormValidators.isValidPassword(_passwordController.text)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
       return;
     }
+
+    final email = _emailController.text.trim();
+    final signupProof = await showSignupVerificationFlow(
+      context: context,
+      email: email,
+      phone: '',
+    );
+    if (!mounted || signupProof == null) return;
 
     setState(() => _loading = true);
     try {
@@ -65,10 +79,11 @@ class _BuyerRegistrationScreenState
 
         final auth = ref.read(authServiceProvider);
         final session = await auth.register(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text,
           accountType: 'buyer',
           displayName: _nameController.text.trim(),
+          signupProof: signupProof,
         );
 
         final prefs = await ref.read(sharedPreferencesProvider.future);
@@ -76,15 +91,14 @@ class _BuyerRegistrationScreenState
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException(
-              'App storage is not ready. Please restart the app.');
+          throw ApiException(l10n.appStorageNotReady);
         }
 
         final userSession = UserSession(
           name: session.user.displayName,
           email: session.user.email,
           accountType: AccountType.buyer,
-          city: _city,
+          city: _selectedCity?.nameEn ?? AppConfig.launchCity,
         );
 
         final guestItems = guestFavoritesMigrationPayload(storage);
@@ -122,12 +136,19 @@ class _BuyerRegistrationScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final cities = ref.watch(citiesProvider).valueOrNull;
+    if (_selectedCity == null && cities != null && cities.isNotEmpty) {
+      _selectedCity =
+          findCityByName(cities, AppConfig.launchCity) ?? cities.first;
+    }
 
     return OnboardingScaffold(
       showBack: true,
       bottom: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const LegalLinksSection(compact: true),
+          const SizedBox(height: AppSpacing.sm),
           PrimaryButton(
               label: l10n.createAccount,
               onPressed: _submit,
@@ -184,11 +205,9 @@ class _BuyerRegistrationScreenState
             prefixIcon: Icons.lock_outline,
           ),
           const SizedBox(height: AppSpacing.md),
-          AppTextField(
-            label: l10n.city,
-            hint: AppConfig.launchCity,
-            readOnly: true,
-            prefixIcon: Icons.location_city_outlined,
+          CityPickerField(
+            selected: _selectedCity,
+            onSelected: (city) => setState(() => _selectedCity = city),
           ),
         ],
       ),

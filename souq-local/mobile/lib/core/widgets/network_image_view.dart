@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../theme/theme_context.dart';
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
 
 /// Safe network image with placeholder for empty/failed URLs.
 class NetworkImageView extends StatelessWidget {
@@ -20,17 +20,17 @@ class NetworkImageView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (url.isEmpty) {
       return ColoredBox(
-        color: AppColors.primary.withValues(alpha: 0.08),
-        child: Icon(placeholderIcon, color: AppColors.primary, size: 40),
+        color: context.colors.primary.withValues(alpha: 0.08),
+        child: Icon(placeholderIcon, color: context.colors.primary, size: 40),
       );
     }
     return CachedNetworkImage(
       imageUrl: url,
       fit: fit,
-      placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      placeholder: (_, __) => Center(child: CircularProgressIndicator(strokeWidth: 2)),
       errorWidget: (_, __, ___) => ColoredBox(
-        color: AppColors.primary.withValues(alpha: 0.08),
-        child: Icon(placeholderIcon, color: AppColors.primary, size: 40),
+        color: context.colors.primary.withValues(alpha: 0.08),
+        child: Icon(placeholderIcon, color: context.colors.primary, size: 40),
       ),
     );
   }

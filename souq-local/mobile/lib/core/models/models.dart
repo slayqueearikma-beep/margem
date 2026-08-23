@@ -1,3 +1,13 @@
+import '../../l10n/strings/app_strings.dart';
+import 'service_pricing.dart';
+
+enum PricingType { fixed, offer }
+
+PricingType parsePricingType(String? value) {
+  if (value == 'offer') return PricingType.offer;
+  return PricingType.fixed;
+}
+
 class CategoryModel {
   const CategoryModel({
     required this.id,
@@ -34,6 +44,56 @@ class CategoryModel {
       nameFr: json['name_fr'] as String? ?? '',
       nameAr: json['name_ar'] as String? ?? '',
       icon: json['icon'] as String? ?? 'store',
+    );
+  }
+}
+
+class MarketplaceVenueModel {
+  const MarketplaceVenueModel({
+    required this.id,
+    required this.slug,
+    required this.name,
+    this.description = '',
+    this.district = '',
+    this.city = 'Casablanca',
+    this.coverImageUrl = '',
+    this.logoImageUrl = '',
+    this.displayOrder = 0,
+    this.categoryCount = 0,
+    this.sellerCount = 0,
+  });
+
+  final String id;
+  final String slug;
+  final String name;
+  final String description;
+  final String district;
+  final String city;
+  final String coverImageUrl;
+  final String logoImageUrl;
+  final int displayOrder;
+  final int categoryCount;
+  final int sellerCount;
+
+  /// User-facing marketplace label (slug may differ from display name).
+  String get displayName {
+    if (slug == '9ri3a' || name == '9ri3a') return 'Al Qurayaa';
+    return name;
+  }
+
+  factory MarketplaceVenueModel.fromJson(Map<String, dynamic> json) {
+    return MarketplaceVenueModel(
+      id: json['id'] as String,
+      slug: json['slug'] as String,
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      district: json['district'] as String? ?? '',
+      city: json['city'] as String? ?? 'Casablanca',
+      coverImageUrl: json['cover_image_url'] as String? ?? '',
+      logoImageUrl: json['logo_image_url'] as String? ?? '',
+      displayOrder: json['display_order'] as int? ?? 0,
+      categoryCount: json['category_count'] as int? ?? 0,
+      sellerCount: json['seller_count'] as int? ?? 0,
     );
   }
 }
@@ -117,9 +177,11 @@ class SellerModel {
     this.categories = const [],
     this.products = const [],
     this.services = const [],
+    this.userId = '',
   });
 
   final String id;
+  final String userId;
   final String businessName;
   final String description;
   final String city;
@@ -162,6 +224,7 @@ class SellerModel {
   factory SellerModel.fromJson(Map<String, dynamic> json) {
     return SellerModel(
       id: json['id'] as String,
+      userId: json['user_id']?.toString() ?? '',
       businessName: json['business_name'] as String,
       description: json['description'] as String? ?? '',
       city: json['city'] as String,
@@ -309,6 +372,7 @@ class ProductModel {
     required this.id,
     required this.name,
     required this.description,
+    this.pricingType = PricingType.fixed,
     this.priceMad,
     this.imageUrl = '',
     this.isAvailable = true,
@@ -319,6 +383,8 @@ class ProductModel {
     this.mediaUrls = const [],
     this.videoUrl = '',
     this.categorySlug = '',
+    this.deliveryAvailable = false,
+    this.pickupOnly = true,
     this.stockQuantity = 1,
     this.isFeatured = false,
     this.isPaused = false,
@@ -327,6 +393,7 @@ class ProductModel {
   final String id;
   final String name;
   final String description;
+  final PricingType pricingType;
   final double? priceMad;
   final String imageUrl;
   final bool isAvailable;
@@ -337,15 +404,20 @@ class ProductModel {
   final List<String> mediaUrls;
   final String videoUrl;
   final String categorySlug;
+  final bool deliveryAvailable;
+  final bool pickupOnly;
   final int stockQuantity;
   final bool isFeatured;
   final bool isPaused;
+
+  bool get isOffer => pricingType == PricingType.offer;
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
+      pricingType: parsePricingType(json['pricing_type'] as String?),
       priceMad: (json['price_mad'] as num?)?.toDouble(),
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
@@ -363,6 +435,8 @@ class ProductModel {
           .toList(),
       videoUrl: json['video_url'] as String? ?? '',
       categorySlug: json['category_slug'] as String? ?? '',
+      deliveryAvailable: json['delivery_available'] as bool? ?? false,
+      pickupOnly: json['pickup_only'] as bool? ?? true,
       stockQuantity: json['stock_quantity'] as int? ?? 1,
       isFeatured: json['is_featured'] as bool? ?? false,
       isPaused: json['is_paused'] as bool? ?? false,
@@ -381,9 +455,13 @@ class SearchProductModel {
     required this.sellerRating,
     required this.name,
     required this.description,
+    this.pricingType = PricingType.fixed,
     required this.priceMad,
     required this.imageUrl,
     required this.isAvailable,
+    this.categorySlug = '',
+    this.deliveryAvailable = false,
+    this.pickupOnly = true,
   });
 
   final String id;
@@ -395,9 +473,15 @@ class SearchProductModel {
   final double sellerRating;
   final String name;
   final String description;
+  final PricingType pricingType;
   final double? priceMad;
   final String imageUrl;
   final bool isAvailable;
+  final String categorySlug;
+  final bool deliveryAvailable;
+  final bool pickupOnly;
+
+  bool get isOffer => pricingType == PricingType.offer;
 
   factory SearchProductModel.fromJson(Map<String, dynamic> json) {
     return SearchProductModel(
@@ -410,9 +494,68 @@ class SearchProductModel {
       sellerRating: (json['seller_rating'] as num?)?.toDouble() ?? 0,
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      pricingType: parsePricingType(json['pricing_type'] as String?),
       priceMad: (json['price_mad'] as num?)?.toDouble(),
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
+      categorySlug: json['category_slug'] as String? ?? '',
+      deliveryAvailable: json['delivery_available'] as bool? ?? false,
+      pickupOnly: json['pickup_only'] as bool? ?? true,
+    );
+  }
+}
+
+class SearchServiceModel {
+  const SearchServiceModel({
+    required this.id,
+    required this.sellerId,
+    required this.sellerName,
+    required this.sellerCity,
+    required this.sellerVerified,
+    required this.sellerPremium,
+    required this.sellerRating,
+    required this.name,
+    required this.description,
+    this.pricingType = PricingType.fixed,
+    required this.priceMad,
+    required this.imageUrl,
+    required this.isAvailable,
+    this.categorySlug = '',
+  });
+
+  final String id;
+  final String sellerId;
+  final String sellerName;
+  final String sellerCity;
+  final bool sellerVerified;
+  final bool sellerPremium;
+  final double sellerRating;
+  final String name;
+  final String description;
+  final PricingType pricingType;
+  final double? priceMad;
+  final String imageUrl;
+  final bool isAvailable;
+  final String categorySlug;
+
+  bool get isOffer => pricingType == PricingType.offer;
+
+  factory SearchServiceModel.fromJson(Map<String, dynamic> json) {
+    return SearchServiceModel(
+      id: json['id'] as String,
+      sellerId: json['seller_id'] as String,
+      sellerName: json['seller_name'] as String? ?? '',
+      sellerCity: json['seller_city'] as String? ?? '',
+      sellerVerified: json['seller_verified'] as bool? ?? false,
+      sellerPremium: json['seller_premium'] as bool? ?? false,
+      sellerRating: (json['seller_rating'] as num?)?.toDouble() ?? 0,
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      pricingType: parsePricingType(json['pricing_type'] as String?),
+      priceMad: (json['price_mad'] as num?)?.toDouble(),
+      imageUrl: json['image_url'] as String? ?? '',
+      isAvailable: json['is_available'] as bool? ?? true,
+      categorySlug: json['category_slug'] as String? ?? '',
     );
   }
 }
@@ -421,8 +564,10 @@ class MarketplaceSearchPage {
   const MarketplaceSearchPage({
     required this.sellers,
     required this.products,
+    required this.services,
     required this.totalSellers,
     required this.totalProducts,
+    required this.totalServices,
     required this.limit,
     required this.offset,
     required this.hasMore,
@@ -430,8 +575,10 @@ class MarketplaceSearchPage {
 
   final List<SellerModel> sellers;
   final List<SearchProductModel> products;
+  final List<SearchServiceModel> services;
   final int totalSellers;
   final int totalProducts;
+  final int totalServices;
   final int limit;
   final int offset;
   final bool hasMore;
@@ -444,8 +591,12 @@ class MarketplaceSearchPage {
       products: (json['products'] as List<dynamic>? ?? [])
           .map((e) => SearchProductModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      services: (json['services'] as List<dynamic>? ?? [])
+          .map((e) => SearchServiceModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
       totalSellers: json['total_sellers'] as int? ?? 0,
       totalProducts: json['total_products'] as int? ?? 0,
+      totalServices: json['total_services'] as int? ?? 0,
       limit: json['limit'] as int? ?? 20,
       offset: json['offset'] as int? ?? 0,
       hasMore: json['has_more'] as bool? ?? false,
@@ -458,26 +609,63 @@ class ServiceModel {
     required this.id,
     required this.name,
     required this.description,
+    this.pricingModel = ServicePricingModel.fixedPrice,
+    this.pricingType = PricingType.fixed,
     this.priceMad,
+    this.priceMinMad,
+    this.priceMaxMad,
+    this.priceNegotiable = false,
     this.imageUrl = '',
     this.isAvailable = true,
+    this.isFeatured = false,
+    this.categorySlug = '',
+    this.coverageAreas = const [],
   });
 
   final String id;
   final String name;
   final String description;
+  final ServicePricingModel pricingModel;
+  final PricingType pricingType;
   final double? priceMad;
+  final double? priceMinMad;
+  final double? priceMaxMad;
+  final bool priceNegotiable;
   final String imageUrl;
   final bool isAvailable;
+  final bool isFeatured;
+  final String categorySlug;
+  final List<String> coverageAreas;
+
+  bool get isOffer => pricingType == PricingType.offer;
+
+  String displayPrice(AppStrings l10n) => formatServicePrice(
+        l10n,
+        pricingModel: pricingModel,
+        priceMad: priceMad,
+        priceMinMad: priceMinMad,
+        priceMaxMad: priceMaxMad,
+        priceNegotiable: priceNegotiable || isOffer,
+      );
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
+      pricingModel: ServicePricingModel.fromApi(json['pricing_model'] as String?),
+      pricingType: parsePricingType(json['pricing_type'] as String?),
       priceMad: (json['price_mad'] as num?)?.toDouble(),
+      priceMinMad: (json['price_min_mad'] as num?)?.toDouble(),
+      priceMaxMad: (json['price_max_mad'] as num?)?.toDouble(),
+      priceNegotiable: json['price_negotiable'] as bool? ?? false,
       imageUrl: json['image_url'] as String? ?? '',
       isAvailable: json['is_available'] as bool? ?? true,
+      isFeatured: json['is_featured'] as bool? ?? false,
+      categorySlug: json['category_slug'] as String? ?? '',
+      coverageAreas: (json['coverage_areas'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
     );
   }
 }
@@ -792,6 +980,12 @@ class SubscriptionPlanModel {
   final List<String> features;
   final bool isActive;
 
+  /// User-facing plan label (legacy API rows may still say MarGem Plus).
+  String get displayName {
+    if (code == 'buyer_premium' || name == 'MarGem Plus') return 'Dribex Plus';
+    return name;
+  }
+
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanModel(
       id: json['id'] as String,
@@ -838,6 +1032,47 @@ class SubscriptionModel {
   }
 }
 
+class BillingStatusModel {
+  const BillingStatusModel({
+    required this.selfServeEnabled,
+    this.provider,
+  });
+
+  final bool selfServeEnabled;
+  final String? provider;
+
+  factory BillingStatusModel.fromJson(Map<String, dynamic> json) {
+    return BillingStatusModel(
+      selfServeEnabled: json['self_serve_enabled'] as bool? ?? false,
+      provider: json['provider'] as String?,
+    );
+  }
+}
+
+class BillingCheckoutResult {
+  const BillingCheckoutResult({
+    this.checkoutUrl,
+    this.activated = false,
+    this.subscription,
+  });
+
+  final String? checkoutUrl;
+  final bool activated;
+  final SubscriptionModel? subscription;
+
+  factory BillingCheckoutResult.fromJson(Map<String, dynamic> json) {
+    return BillingCheckoutResult(
+      checkoutUrl: json['checkout_url'] as String?,
+      activated: json['activated'] as bool? ?? false,
+      subscription: json['subscription'] is Map<String, dynamic>
+          ? SubscriptionModel.fromJson(
+              json['subscription'] as Map<String, dynamic>,
+            )
+          : null,
+    );
+  }
+}
+
 class ConversationModel {
   const ConversationModel({
     required this.id,
@@ -863,14 +1098,15 @@ class ConversationModel {
 
   factory ConversationModel.fromJson(Map<String, dynamic> json) {
     return ConversationModel(
-      id: json['id'] as String,
-      buyerId: json['buyer_id'] as String? ?? '',
-      sellerId: json['seller_id'] as String? ?? '',
-      peerUserId:
-          json['peer_user_id'] as String? ?? json['buyer_id'] as String? ?? '',
-      lastMessageAt: json['last_message_at'] as String? ?? '',
+      id: json['id']?.toString() ?? '',
+      buyerId: json['buyer_id']?.toString() ?? '',
+      sellerId: json['seller_id']?.toString() ?? '',
+      peerUserId: json['peer_user_id']?.toString() ??
+          json['buyer_id']?.toString() ??
+          '',
+      lastMessageAt: json['last_message_at']?.toString() ?? '',
       peerName: json['peer_name'] as String? ?? '',
-      unreadCount: json['unread_count'] as int? ?? 0,
+      unreadCount: (json['unread_count'] as num?)?.toInt() ?? 0,
       lastMessagePreview: json['last_message_preview'] as String? ?? '',
     );
   }
