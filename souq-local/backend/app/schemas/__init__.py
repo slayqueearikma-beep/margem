@@ -94,11 +94,36 @@ class UserOut(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
+    access_token: str = ""
+    refresh_token: str = ""
     token_type: str = "bearer"
-    expires_in: int
-    user: UserOut
+    expires_in: int = 0
+    user: UserOut | None = None
+    mfa_required: bool = False
+    mfa_token: str | None = None
+
+
+class MfaEnrollOut(BaseModel):
+    secret: str
+    otpauth_uri: str
+
+
+class MfaConfirmOut(BaseModel):
+    recovery_codes: list[str]
+
+
+class MfaCodeRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=16)
+
+
+class MfaLoginRequest(BaseModel):
+    mfa_token: str = Field(min_length=6, max_length=256)
+    code: str = Field(min_length=6, max_length=16)
+
+
+class MfaDisableRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=16)
+    password: str = Field(min_length=1, max_length=128)
 
 
 class RefreshRequest(BaseModel):

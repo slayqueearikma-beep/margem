@@ -13,12 +13,14 @@ class OnboardingIllustration extends StatelessWidget {
     required this.icon,
     this.secondaryIcon,
     this.imageAsset,
+    this.imageFit = BoxFit.cover,
   });
 
   final Color backgroundColor;
   final IconData icon;
   final IconData? secondaryIcon;
   final String? imageAsset;
+  final BoxFit imageFit;
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +33,15 @@ class OnboardingIllustration extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: imageAsset != null
-          ? Image.asset(
-              imageAsset!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (_, __, ___) => _iconFallback(),
+          ? Padding(
+              padding: EdgeInsets.all(imageFit == BoxFit.contain ? 32 : 0),
+              child: Image.asset(
+                imageAsset!,
+                fit: imageFit,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (_, __, ___) => _iconFallback(),
+              ),
             )
           : _iconFallback(),
     );
