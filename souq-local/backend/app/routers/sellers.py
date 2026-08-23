@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from app.auth import get_current_user, get_current_user_optional, require_seller, require_verified_email
 from app.config import settings
+from app.data.marketplace_constants import LAUNCH_CITY
 from app.database import get_db
 from app.limiter import limiter
 from app.models import Category, Product, Review, SellerFollow, SellerProfile, Service, User
@@ -35,6 +36,7 @@ from app.services.ratings import (
     rounded_overall,
 )
 from app.services.reviews import get_review_eligibility
+from app.services.marketplace_scope import resolve_marketplace_id
 from app.services.upload_security import validate_media_url
 
 router = APIRouter(prefix="/sellers", tags=["sellers"])
@@ -132,25 +134,24 @@ def _public_product_visible(product: Product) -> bool:
 
 @router.get("", response_model=list[SellerSummary])
 async def list_sellers(
-    city: str | None = None,
     category: str | None = None,
+    marketplace: str | None = Query(default=None, max_length=80),
     q: str | None = None,
     limit: int = Query(default=_DEFAULT_PAGE_SIZE, ge=1, le=_MAX_PAGE_SIZE),
     offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_db),
 ) -> list[SellerProfile]:
+    marketplace_id = await resolve_marketplace_id(session, marketplace)
     stmt = (
         select(SellerProfile)
         .options(
             selectinload(SellerProfile.categories),
             selectinload(SellerProfile.user),
         )
-        .where(SellerProfile.is_active.is_(True))
+        .where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
     )
-
-    if city:
-        safe_city = _escape_ilike(city[:80])
-        stmt = stmt.where(SellerProfile.city.ilike(safe_city))
+    if marketplace_id is not None:
+        stmt = stmt.where(SellerProfile.marketplace_id == marketplace_id)
     if q:
         safe_q = _escape_ilike(q[:120])
         pattern = f"%{safe_q}%"
@@ -186,12 +187,17 @@ async def list_sellers(
 
 @router.get("/map", response_model=list[MapPin])
 async def map_pins(
-    city: str | None = None,
     category: str | None = None,
+    marketplace: str | None = Query(default=None, max_length=80),
     session: AsyncSession = Depends(get_db),
 ) -> list[MapPin]:
     sellers = await list_sellers(
-        city=city, category=category, q=None, limit=_MAX_PAGE_SIZE, offset=0, session=session
+        category=category,
+        marketplace=marketplace,
+        q=None,
+        limit=_MAX_PAGE_SIZE,
+        offset=0,
+        session=session,
     )
     return [
         MapPin(
@@ -270,11 +276,14 @@ async def get_my_dashboard(
 @router.post("", response_model=SellerDetail, status_code=status.HTTP_201_CREATED)
 async def create_seller(
     payload: SellerCreate,
+    request: Request,
     user: User = Depends(require_verified_email),
     session: AsyncSession = Depends(get_db),
 ) -> SellerProfile:
     """Create a storefront on the current account (buyer can upgrade in place)."""
     from app.models import AccountType, UserRole
+    from app.services.client_ip import get_client_ip
+    from app.services.electronic_acceptance import record_seller_agreement_acceptance
 
     existing = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
     if existing.scalar_one_or_none():
@@ -312,8 +321,15 @@ async def create_seller(
     )
     session.add(seller)
     # Dual-mode: keep one identity; mark account as seller-capable.
-    user.account_type = AccountType.SELLER
-    user.role = UserRole.SELLER
+    user.account_type = AccountType.PROVIDER
+    user.role = UserRole.PROVIDER
+    await record_seller_agreement_acceptance(
+        session,
+        user_id=user.id,
+        language=payload.acceptance_language,
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("user-agent", ""),
+    )
     await session.commit()
     return await _load_seller_detail(session, seller.id)
 
@@ -391,14 +407,25 @@ async def add_product(
     await _owned_seller(seller_id, user, session)
 
     image_url = _validate_owner_media(payload.image_url, user.id)
-    product_data = payload.model_dump()
+    product_data = payload.model_dump(exclude={"pricing_type", "price_mad"})
     product_data["image_url"] = image_url
     product_data["media_urls"] = _validate_owner_media_list(list(payload.media_urls or []), user.id)
     product_data["video_url"] = _validate_owner_media(payload.video_url or "", user.id)
     if payload.is_featured and not user.is_premium:
-        # Featured placement is a premium visibility perk.
         product_data["is_featured"] = False
     product = Product(seller_id=seller_id, **product_data)
+    from app.models import PricingType
+    from app.services.marketplace_pricing import apply_pricing_to_product, normalize_pricing_fields
+
+    try:
+        pricing_type, price_mad, price_negotiable = normalize_pricing_fields(
+            pricing_type=payload.pricing_type,
+            price_mad=payload.price_mad,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    apply_pricing_to_product(product, pricing_type=pricing_type, price_mad=price_mad)
+    product.price_negotiable = price_negotiable
     session.add(product)
     await session.commit()
     await session.refresh(product)
@@ -415,9 +442,23 @@ async def add_service(
     await _owned_seller(seller_id, user, session)
 
     image_url = _validate_owner_media(payload.image_url, user.id)
-    service_data = payload.model_dump()
+    from app.services.service_pricing import normalize_service_pricing
+
+    pricing = normalize_service_pricing(payload.model_dump())
+    service_data = payload.model_dump(
+        exclude={"pricing_type", "price_mad", "price_min_mad", "price_max_mad", "pricing_model", "price_negotiable"}
+    )
     service_data["image_url"] = image_url
+    service_data.update(pricing)
     service = Service(seller_id=seller_id, **service_data)
+    from app.services.marketplace_pricing import apply_pricing_to_service, normalize_pricing_fields
+
+    pricing_type, price_mad, price_negotiable = normalize_pricing_fields(
+        pricing_type=payload.pricing_type,
+        price_mad=service.price_mad,
+    )
+    apply_pricing_to_service(service, pricing_type=pricing_type, price_mad=price_mad)
+    service.price_negotiable = price_negotiable or service.price_negotiable
     session.add(service)
     await session.commit()
     await session.refresh(service)
@@ -488,11 +529,12 @@ async def duplicate_product(
         seller_id=seller_id,
         name=f"{product.name} (copy)",
         description=product.description,
+        pricing_type=product.pricing_type,
         price_mad=product.price_mad,
         price_negotiable=product.price_negotiable,
         availability_note=product.availability_note,
-        accepted_payment_methods=list(product.accepted_payment_methods or []),
-        delivery_options=list(product.delivery_options or []),
+        delivery_available=product.delivery_available,
+        pickup_only=product.pickup_only,
         image_url=product.image_url,
         media_urls=list(product.media_urls or []),
         video_url=product.video_url,
@@ -525,6 +567,20 @@ async def update_service(
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
         data["image_url"] = _validate_owner_media(data["image_url"] or "", user.id)
+
+    pricing_keys = {"pricing_model", "price_mad", "price_min_mad", "price_max_mad", "price_negotiable"}
+    if pricing_keys.intersection(data):
+        from app.services.service_pricing import normalize_service_pricing
+
+        merged = {
+            "pricing_model": service.pricing_model,
+            "price_mad": float(service.price_mad) if service.price_mad is not None else None,
+            "price_min_mad": float(service.price_min_mad) if service.price_min_mad is not None else None,
+            "price_max_mad": float(service.price_max_mad) if service.price_max_mad is not None else None,
+            "price_negotiable": service.price_negotiable,
+        }
+        merged.update({key: data[key] for key in pricing_keys if key in data})
+        data.update(normalize_service_pricing(merged))
 
     for key, value in data.items():
         setattr(service, key, value)

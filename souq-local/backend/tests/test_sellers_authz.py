@@ -5,23 +5,20 @@ from sqlalchemy import select
 import app.database as database
 from app.main import app
 from app.models import User
+from tests.auth_helpers import register_test_user
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
 
 async def _register(client: AsyncClient, email: str, account_type: str) -> dict:
-    response = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": "SecurePass1",
-            "account_type": account_type,
-            "display_name": email.split("@")[0],
-        },
+    body = await register_test_user(
+        client,
+        email=email,
+        account_type=account_type,
+        display_name=email.split("@")[0],
     )
-    assert response.status_code == 201, response.text
     await _verify_email(email)
-    return response.json()
+    return body
 
 
 async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
@@ -38,6 +35,8 @@ async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
             "phone": "+212600000010",
             "cover_image_url": "",
             "category_ids": [],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert created.status_code == 201, created.text
