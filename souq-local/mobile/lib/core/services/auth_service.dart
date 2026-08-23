@@ -40,12 +40,14 @@ class AuthService {
     required String password,
     required String accountType,
     required String displayName,
+    required String signupProof,
   }) async {
     final response = await _api.postJson('/auth/register', {
       'email': email,
       'password': password,
       'account_type': accountType,
       'display_name': displayName,
+      'signup_proof': signupProof,
     });
     return _saveSession(AuthSession.fromJson(response));
   }
@@ -58,10 +60,27 @@ class AuthService {
       'email': email,
       'password': password,
     });
+    if (response['mfa_required'] == true) {
+      throw MfaRequiredException(
+        mfaToken: response['mfa_token'] as String? ?? '',
+      );
+    }
     return _saveSession(AuthSession.fromJson(response));
   }
 
-  Future<bool> refreshAccessToken() async {
+  Future<AuthSession> completeMfaLogin({
+    required String mfaToken,
+    required String code,
+  }) async {
+    final response = await _api.postJson('/auth/mfa/login', {
+      'mfa_token': mfaToken,
+      'code': code,
+    });
+    return _saveSession(AuthSession.fromJson(response));
+  }
+
+  /// Returns `true` when refreshed, `false` when auth is invalid, `null` on transient errors.
+  Future<bool?> refreshAccessToken() async {
     final refresh = _refreshToken;
     if (refresh == null || refresh.isEmpty) return false;
 
@@ -70,11 +89,19 @@ class AuthService {
         'refresh_token': refresh,
       });
       await _saveSession(AuthSession.fromJson(response));
-      await _storage.write(key: _accessTokenKey, value: _accessToken!);
-      await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
       return true;
+    } on ApiException catch (error) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        _accessToken = null;
+        _refreshToken = null;
+        await _storage.delete(key: _accessTokenKey);
+        await _storage.delete(key: _refreshTokenKey);
+        _syncTokenProvider();
+        return false;
+      }
+      return null;
     } on Object {
-      return false;
+      return null;
     }
   }
 
@@ -88,8 +115,15 @@ class AuthService {
     try {
       await _api.getJson('/auth/me', auth: true);
       return true;
+    } on ApiException catch (error) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        final refreshed = await refreshAccessToken();
+        return refreshed == true;
+      }
+      // Transient API errors should not wipe a valid stored session.
+      return true;
     } on Object {
-      return refreshAccessToken();
+      return true;
     }
   }
 
@@ -132,7 +166,10 @@ class AuthService {
 
   Future<AuthSession?> restoreAuthSession() async {
     await loadStoredToken();
-    if (_accessToken == null || _accessToken!.isEmpty) return null;
+    if ((_accessToken == null || _accessToken!.isEmpty) &&
+        (_refreshToken == null || _refreshToken!.isEmpty)) {
+      return null;
+    }
     try {
       final me = await _api.getJson('/auth/me', auth: true);
       return AuthSession(
@@ -140,6 +177,25 @@ class AuthService {
         refreshToken: _refreshToken ?? '',
         user: AuthUser.fromJson(me),
       );
+    } on ApiException catch (error) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        final refreshed = await refreshAccessToken();
+        if (refreshed == true) {
+          try {
+            final me = await _api.getJson('/auth/me', auth: true);
+            return AuthSession(
+              accessToken: _accessToken!,
+              refreshToken: _refreshToken ?? '',
+              user: AuthUser.fromJson(me),
+            );
+          } on Object {
+            return null;
+          }
+        }
+        return null;
+      }
+      // Transient API errors should not block offline session restore.
+      return null;
     } on Object {
       return null;
     }
@@ -148,6 +204,8 @@ class AuthService {
   Future<AuthSession> _saveSession(AuthSession session) async {
     _accessToken = session.accessToken;
     _refreshToken = session.refreshToken;
+    await _storage.write(key: _accessTokenKey, value: _accessToken!);
+    await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
     _syncTokenProvider();
     return session;
   }
@@ -162,3 +220,9 @@ final authServiceProvider = Provider<AuthService>((ref) {
 });
 
 final authSessionProvider = StateProvider<AuthSession?>((ref) => null);
+
+class MfaRequiredException implements Exception {
+  MfaRequiredException({required this.mfaToken});
+
+  final String mfaToken;
+}

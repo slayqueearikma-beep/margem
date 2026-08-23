@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -120,6 +120,35 @@ class SubscriptionOut(BaseModel):
     current_period_start: datetime
     current_period_end: datetime
     provider: str
+    cancelled_at: datetime | None = None
+    cancel_at_period_end: bool = False
+
+
+class BillingStatusOut(BaseModel):
+    self_serve_enabled: bool
+    provider: str | None = None
+
+
+class CheckoutRequest(BaseModel):
+    success_url: str = Field(default="margem://premium/success", max_length=500)
+    cancel_url: str = Field(default="margem://premium/cancel", max_length=500)
+    subscription_terms_accepted: bool = False
+    acceptance_language: str = Field(default="en", max_length=8)
+
+    @field_validator("subscription_terms_accepted")
+    @classmethod
+    def require_subscription_terms(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("subscription_terms_accepted must be true")
+        return value
+
+
+class CheckoutOut(BaseModel):
+    checkout_url: str | None = None
+    activated: bool = False
+    payment_id: UUID | None = None
+    provider: str | None = None
+    subscription: SubscriptionOut | None = None
 
 
 class AdminUserOut(BaseModel):
@@ -131,6 +160,13 @@ class AdminUserOut(BaseModel):
     status: UserStatus
     is_premium: bool
     created_at: datetime
+
+
+class AdminUserListOut(BaseModel):
+    items: list[AdminUserOut]
+    total: int
+    limit: int
+    offset: int
 
 
 async def _seller_profile(user: User, session: AsyncSession) -> SellerProfile:
@@ -234,7 +270,7 @@ async def list_conversations(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> list[ConversationOut]:
-    from app.services.messaging import conversation_participant_filter, peer_display_names
+    from app.services.messaging import blocked_peer_ids, conversation_participant_filter, peer_display_names
 
     result = await session.execute(
         select(Conversation)
@@ -244,6 +280,11 @@ async def list_conversations(
         .offset(offset)
     )
     conversations = list(result.scalars().all())
+    blocked = await blocked_peer_ids(session, user.id)
+    if blocked:
+        conversations = [
+            c for c in conversations if c.other_participant(user.id) not in blocked
+        ]
     return await _conversation_outs(session, conversations, user_id=user.id)
 
 
@@ -445,7 +486,7 @@ async def reply_message(
     request: Request,
     conversation_id: UUID,
     payload: MessageCreate,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_verified_email),
     session: AsyncSession = Depends(get_db),
 ) -> Message:
     from app.services.messaging import require_conversation_participant, send_message
@@ -491,30 +532,42 @@ async def my_subscription(
         current_period_start=sub.current_period_start,
         current_period_end=sub.current_period_end,
         provider=sub.provider,
+        cancelled_at=sub.cancelled_at,
+        cancel_at_period_end=sub.cancelled_at is not None,
     )
 
 
-@router.post("/subscriptions/subscribe/{plan_code}", response_model=SubscriptionOut, status_code=status.HTTP_201_CREATED)
-async def subscribe(
+@router.get("/subscriptions/billing/status", response_model=BillingStatusOut)
+async def billing_status() -> BillingStatusOut:
+    from app.config import settings
+    from app.services.billing_service import billing_self_serve_enabled
+
+    enabled = billing_self_serve_enabled()
+    provider: str | None = None
+    if enabled:
+        provider = settings.payment_provider
+    return BillingStatusOut(self_serve_enabled=enabled, provider=provider)
+
+
+@router.post("/subscriptions/checkout/{plan_code}", response_model=CheckoutOut)
+async def checkout_plan(
     plan_code: str,
+    payload: CheckoutRequest,
+    request: Request,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
-) -> SubscriptionOut:
-    """Activate premium membership for platform visibility (not buyer↔seller payments).
-
-    Membership billing can later plug into an external provider via provider/provider_reference.
-    This endpoint never processes marketplace transaction payments.
-
-    In production, free self-activation is disabled — a payment provider webhook or admin
-    grant must set the subscription. Development keeps manual activation for local testing.
-    """
+) -> CheckoutOut:
     from app.config import settings
+    from app.services.billing_service import billing_self_serve_enabled
+    from app.services.client_ip import get_client_ip
+    from app.services.electronic_acceptance import record_subscription_agreement_acceptance
+    from app.services.platform_billing import create_subscription_checkout
 
-    if settings.app_env in {"production", "prod"}:
+    if not billing_self_serve_enabled():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
-                "Self-serve premium activation is disabled until a billing provider is configured. "
+                "Self-serve premium activation is disabled until NAPS billing is configured. "
                 "Contact support or use an admin grant."
             ),
         )
@@ -526,48 +579,131 @@ async def subscribe(
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
 
-    existing = await session.execute(
-        select(Subscription).where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
-    )
-    for sub in existing.scalars().all():
-        sub.status = SubscriptionStatus.CANCELED
+    client_ip = get_client_ip(request)
+    user_agent = request.headers.get("user-agent", "")
 
-    now = datetime.now(UTC)
-    subscription = Subscription(
-        id=uuid4(),
-        user_id=user.id,
-        plan_id=plan.id,
-        status=SubscriptionStatus.ACTIVE,
-        current_period_start=now,
-        current_period_end=now + timedelta(days=plan.billing_period_days),
-        provider="manual",
-        provider_reference=f"manual-{uuid4().hex[:12]}",
-    )
-    session.add(subscription)
-    user.is_premium = True
-    user.premium_until = subscription.current_period_end
+    try:
+        payment, checkout = await create_subscription_checkout(
+            session,
+            user=user,
+            plan_code=plan.code,
+            success_url=payload.success_url or f"{settings.public_app_url.rstrip('/')}/premium?paid=1",
+            cancel_url=payload.cancel_url or f"{settings.public_app_url.rstrip('/')}/premium?cancelled=1",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    if user.account_type.value == "seller" or plan.code.startswith("seller"):
-        seller = (
-            await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-        ).scalar_one_or_none()
-        if seller:
-            seller.is_premium = True
-
-    await notify_user(
+    await record_subscription_agreement_acceptance(
         session,
-        user_id=user.id,
-        title="Premium activated",
-        body=f"{plan.name} is now active — enjoy higher visibility",
-        kind="premium",
-        data={"plan_code": plan.code},
+        user=user,
+        plan=plan,
+        language=payload.acceptance_language,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        provider_reference=payment.provider_reference or "",
     )
     await session.commit()
-    await session.refresh(subscription)
-    subscription.plan = plan
+
+    if checkout.checkout_url:
+        return CheckoutOut(checkout_url=checkout.checkout_url, payment_id=payment.id, provider=checkout.provider)
+
+    sub_result = await session.execute(
+        select(Subscription)
+        .options(selectinload(Subscription.plan))
+        .where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
+        .order_by(Subscription.created_at.desc())
+        .limit(1)
+    )
+    subscription = sub_result.scalar_one_or_none()
+    if subscription is None:
+        raise HTTPException(status_code=500, detail="Subscription activation failed")
+    return CheckoutOut(
+        activated=True,
+        payment_id=payment.id,
+        provider=checkout.provider,
+        subscription=SubscriptionOut(
+            id=subscription.id,
+            plan=PlanOut.model_validate(subscription.plan),
+            status=subscription.status,
+            current_period_start=subscription.current_period_start,
+            current_period_end=subscription.current_period_end,
+            provider=subscription.provider,
+        ),
+    )
+
+
+@router.post("/subscriptions/subscribe/{plan_code}", response_model=SubscriptionOut, status_code=status.HTTP_201_CREATED)
+async def subscribe(
+    plan_code: str,
+    payload: CheckoutRequest,
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> SubscriptionOut:
+    """Legacy dev-only activation — prefer POST /billing/checkout/subscription/{plan_code}."""
+    from app.config import settings
+    from app.services.billing_service import billing_self_serve_enabled, manual_billing_allowed
+    from app.services.client_ip import get_client_ip
+    from app.services.electronic_acceptance import record_subscription_agreement_acceptance
+    from app.services.platform_billing import create_subscription_checkout
+
+    if settings.app_env in {"production", "prod", "staging"}:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Use /billing/checkout/subscription/{plan_code} with NAPS in production.",
+        )
+    if not billing_self_serve_enabled() or not manual_billing_allowed():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Manual billing is disabled. Configure PAYMENT_PROVIDER=manual for local development.",
+        )
+
+    plan = (
+        await session.execute(
+            select(SubscriptionPlan).where(SubscriptionPlan.code == plan_code, SubscriptionPlan.is_active.is_(True))
+        )
+    ).scalar_one_or_none()
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Plan not found")
+
+    client_ip = get_client_ip(request)
+    user_agent = request.headers.get("user-agent", "")
+
+    try:
+        payment, _checkout = await create_subscription_checkout(
+            session,
+            user=user,
+            plan_code=plan_code,
+            success_url=f"{settings.public_app_url.rstrip('/')}/premium?paid=1",
+            cancel_url=f"{settings.public_app_url.rstrip('/')}/premium?cancelled=1",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    await record_subscription_agreement_acceptance(
+        session,
+        user=user,
+        plan=plan,
+        language=payload.acceptance_language,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        provider_reference=payment.provider_reference or "",
+    )
+    await session.commit()
+
+    sub_result = await session.execute(
+        select(Subscription)
+        .options(selectinload(Subscription.plan))
+        .where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
+        .order_by(Subscription.created_at.desc())
+        .limit(1)
+    )
+    subscription = sub_result.scalar_one_or_none()
+    if subscription is None:
+        raise HTTPException(status_code=500, detail="Subscription activation failed")
     return SubscriptionOut(
         id=subscription.id,
-        plan=PlanOut.model_validate(plan),
+        plan=PlanOut.model_validate(subscription.plan),
         status=subscription.status,
         current_period_start=subscription.current_period_start,
         current_period_end=subscription.current_period_end,
@@ -575,27 +711,50 @@ async def subscribe(
     )
 
 
-@router.get("/admin/users", response_model=list[AdminUserOut])
+@router.get("/admin/users", response_model=AdminUserListOut)
 async def admin_list_users(
     user: User = Depends(require_staff),
     session: AsyncSession = Depends(get_db),
-    limit: int = Query(default=50, ge=1, le=200),
-) -> list[AdminUserOut]:
-    result = await session.execute(select(User).order_by(User.created_at.desc()).limit(limit))
+    q: str | None = Query(default=None, max_length=120),
+    role: str | None = Query(default=None, pattern=r"^(admin|support|customer|provider)$"),
+    status_filter: str | None = Query(
+        default=None, alias="status", pattern=r"^(active|suspended|deleted)$"
+    ),
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> AdminUserListOut:
+    stmt = select(User)
+    if q:
+        like = f"%{q.strip()}%"
+        stmt = stmt.where(or_(User.email.ilike(like), User.display_name.ilike(like)))
+    if role is not None:
+        stmt = stmt.where(User.role == UserRole(role))
+    if status_filter is not None:
+        stmt = stmt.where(User.status == UserStatus(status_filter))
+
+    total = await session.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+    result = await session.execute(
+        stmt.order_by(User.created_at.desc()).offset(offset).limit(limit)
+    )
     users = list(result.scalars().all())
-    return [
-        AdminUserOut(
-            id=u.id,
-            email=u.email,
-            display_name=u.display_name,
-            account_type=u.account_type.value,
-            role=u.role,
-            status=u.status,
-            is_premium=u.is_premium,
-            created_at=u.created_at,
-        )
-        for u in users
-    ]
+    return AdminUserListOut(
+        items=[
+            AdminUserOut(
+                id=u.id,
+                email=u.email,
+                display_name=u.display_name,
+                account_type=u.account_type.value,
+                role=u.role,
+                status=u.status,
+                is_premium=u.is_premium,
+                created_at=u.created_at,
+            )
+            for u in users
+        ],
+        total=int(total),
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.patch("/admin/users/{user_id}/status", status_code=status.HTTP_204_NO_CONTENT)
@@ -678,7 +837,7 @@ async def admin_grant_premium(
     session.add(subscription)
     target.is_premium = True
     target.premium_until = subscription.current_period_end
-    if target.account_type.value == "seller" or plan.code.startswith("seller"):
+    if target.account_type.value == "provider" or plan.code.startswith("seller"):
         seller = (
             await session.execute(select(SellerProfile).where(SellerProfile.user_id == target.id))
         ).scalar_one_or_none()
@@ -699,7 +858,7 @@ async def admin_grant_premium(
         session,
         user_id=target.id,
         title="Premium activated",
-        body=f"{plan.name} granted by MarGem staff",
+        body=f"{plan.name} granted by Dribex staff",
         kind="premium",
         data={"plan_code": plan.code},
     )

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
+
+import '../theme/app_decorations.dart';
+import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 
 class SelectionCard extends StatelessWidget {
-  const SelectionCard({
+  SelectionCard({
     super.key,
     required this.title,
     required this.subtitle,
@@ -12,7 +16,7 @@ class SelectionCard extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.bulletPoints = const [],
-    this.accentColor = AppColors.primary,
+    this.accentColor,
   });
 
   final String title;
@@ -21,24 +25,21 @@ class SelectionCard extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final List<String> bulletPoints;
-  final Color accentColor;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
+    final accent = accentColor ?? context.colors.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
-      decoration: BoxDecoration(
-        color: selected
-            ? (isDark ? accentColor.withValues(alpha: 0.15) : AppColors.cardSelected)
-            : (isDark ? AppColors.darkCard : AppColors.cardUnselected),
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        border: Border.all(
-          color: selected ? accentColor : (isDark ? AppColors.darkBorder : AppColors.border),
-          width: selected ? 2 : 1,
-        ),
+      duration: Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      decoration: AppDecorations.roleCard(
+        context: context,
+        accent: accent,
+        selected: selected,
+        radius: AppSpacing.cardRadius,
       ),
       child: Material(
         color: Colors.transparent,
@@ -46,7 +47,7 @@ class SelectionCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.all(AppSpacing.lg),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -54,44 +55,54 @@ class SelectionCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: AppShadows.card(context),
                   ),
-                  child: Icon(icon, color: accentColor, size: 26),
+                  child: Icon(icon, color: accent, size: 26),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                           height: 1.35,
                         ),
                       ),
                       if (bulletPoints.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(height: AppSpacing.md),
                         ...bulletPoints.map(
                           (point) => Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
+                            padding: EdgeInsets.only(bottom: 6),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.check_circle_rounded, size: 16, color: accentColor),
-                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 16,
+                                  color: accent,
+                                ),
+                                SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     point,
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                                      color: context.colors.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -103,20 +114,24 @@ class SelectionCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: Duration(milliseconds: 200),
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: selected ? accentColor : AppColors.border,
+                      color: selected
+                          ? accent
+                          : (context.colors.border),
                       width: 2,
                     ),
-                    color: selected ? accentColor : Colors.transparent,
+                    color: selected ? accent : Colors.transparent,
                   ),
-                  child: selected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                  child: selected
+                      ? const Icon(Icons.check, size: 14, color: Colors.white)
+                      : null,
                 ),
               ],
             ),
@@ -162,7 +177,7 @@ class AppTextField extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -175,7 +190,8 @@ class AppTextField extends StatelessWidget {
           onTap: onTap,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
+            prefixIcon:
+                prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
             suffix: suffix,
           ),
         ),
@@ -200,6 +216,8 @@ class ImageUploadTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -207,10 +225,10 @@ class ImageUploadTile extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppSpacing.sm),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -220,27 +238,44 @@ class ImageUploadTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).inputDecorationTheme.fillColor,
               borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(
+                color: context.colors.border,
+              ),
             ),
             child: imagePath != null
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-                    child: Image.asset(imagePath!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _placeholder()),
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.inputRadius),
+                    child: Image.asset(
+                      imagePath!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _placeholder(context),
+                    ),
                   )
-                : _placeholder(),
+                : _placeholder(context),
           ),
         ),
       ],
     );
   }
 
-  Widget _placeholder() {
+  Widget _placeholder(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.add_photo_alternate_outlined, color: AppColors.textSecondary.withValues(alpha: 0.7), size: 32),
-        const SizedBox(height: 8),
-        Text('Tap to upload', style: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.9), fontSize: 13)),
+        Icon(
+          Icons.add_photo_alternate_outlined,
+          color: context.colors.textSecondary.withValues(alpha: 0.7),
+          size: 32,
+        ),
+        SizedBox(height: 8),
+        Text(
+          context.l10n.tapToUpload,
+          style: TextStyle(
+            color: context.colors.textSecondary.withValues(alpha: 0.9),
+            fontSize: 13,
+          ),
+        ),
       ],
     );
   }
