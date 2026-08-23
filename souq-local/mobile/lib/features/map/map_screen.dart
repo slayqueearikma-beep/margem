@@ -9,12 +9,14 @@ import '../../core/data/demo_map_data.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/location_service.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
-import '../buyer/buyer_home_screen.dart';
+import '../../core/providers/city_providers.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -35,6 +37,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _initLocation() async {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.locationUsageNotice),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
     final granted = await LocationService.ensurePermission();
     if (mounted) setState(() => _locationEnabled = granted);
   }
@@ -59,31 +69,44 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(buyerCityProvider);
+    final l10n = context.l10n;
 
     if (!AppConfig.hasGoogleMapsApiKey) {
-      return Scaffold(
-        body: SafeArea(
-          child: MapUnavailablePlaceholder(
-            cityCenter: CityCoordinates.centerFor(city),
-            usingDemoData: false,
-          ),
+      return BuyerScreenScaffold(
+        appBar: BuyerAppBar(
+          title: l10n.mapPreviewTitle,
+          leading: const MargemBackLeading(),
+        ),
+        body: MapUnavailablePlaceholder(
+          cityCenter: CityCoordinates.centerFor(city),
+          usingDemoData: false,
         ),
       );
     }
-
-    final l10n = context.l10n;
 
     return FutureBuilder<_MapData>(
       future: _mapFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return BuyerScreenScaffold(
+            appBar: BuyerAppBar(
+              title: l10n.mapPreviewTitle,
+              leading: const MargemBackLeading(),
+            ),
+            body: const Center(child: CircularProgressIndicator()),
+          );
         }
 
         if (snapshot.hasError) {
-          return AsyncErrorView.fromError(
-            snapshot.error!,
-            onRetry: () => _reload(city),
+          return BuyerScreenScaffold(
+            appBar: BuyerAppBar(
+              title: l10n.mapPreviewTitle,
+              leading: const MargemBackLeading(),
+            ),
+            body: AsyncErrorView.fromError(
+              snapshot.error!,
+              onRetry: () => _reload(city),
+            ),
           );
         }
 
@@ -136,35 +159,74 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               myLocationEnabled: _locationEnabled,
             ),
             Positioned(
-              top: MediaQuery.of(context).padding.top + 12,
+              top: MediaQuery.of(context).padding.top + 8,
               left: AppSpacing.screenHorizontal,
+              child: Material(
+                color: context.colors.surface,
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: MargemBackLeading(),
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 12,
+              left: AppSpacing.screenHorizontal + 52,
               right: AppSpacing.screenHorizontal,
-              child: Card(
+              child: BuyerSurfaceCard(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, color: AppColors.primary),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(city, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      const Spacer(),
+                      Icon(
+                        Icons.location_on_rounded,
+                        color: context.colors.primary,
+                      ),
+                      SizedBox(width: AppSpacing.sm),
+                      Text(
+                        city,
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      Spacer(),
                       if (usingDemo)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.warning.withValues(alpha: 0.15),
+                            color: context.colors.warningMuted,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text('Demo', style: TextStyle(color: AppColors.warning, fontSize: 12)),
+                          child: Text(
+                            l10n.demoLabel,
+                            style: TextStyle(
+                              color: context.colors.warning,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         )
                       else if (warnings.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.danger.withValues(alpha: 0.12),
+                            color: context.colors.errorMuted,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(l10n.warningZones(warnings.length), style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+                          child: Text(
+                            l10n.warningZones(warnings.length),
+                            style: TextStyle(
+                              color: context.colors.error,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                     ],
                   ),
@@ -176,11 +238,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 bottom: AppSpacing.lg,
                 left: AppSpacing.screenHorizontal,
                 right: AppSpacing.screenHorizontal,
-                child: Card(
+                child: BuyerSurfaceCard(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     child: Text(
-                      'Demo businesses shown — start the backend API for live data.',
+                      l10n.demoBusinessesMapHint,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),

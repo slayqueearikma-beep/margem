@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/config/app_config.dart';
 import 'core/models/models.dart';
 import 'core/navigation/app_back_handler.dart';
 import 'core/services/app_storage.dart';
@@ -13,9 +14,14 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_email_screen.dart';
+import 'features/bundle_builder/bundle_builder_screen.dart';
 import 'features/buyer/buyer_home_screen.dart';
+import 'features/community_chat/community_channel_screen.dart';
+import 'features/community_chat/community_city_screen.dart';
 import 'features/map/map_screen.dart';
 import 'features/messages/messages_inbox_screen.dart';
+import 'features/marketplace_community/marketplace_community_channel_screen.dart';
+import 'features/marketplace_community/marketplace_community_hub_screen.dart';
 import 'features/onboarding/account_type_onboarding_screen.dart';
 import 'features/onboarding/become_seller_screen.dart';
 import 'features/onboarding/buyer_registration_screen.dart';
@@ -25,20 +31,38 @@ import 'features/premium/premium_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/seller/product_detail_screen.dart';
 import 'features/seller/seller_catalog_screen.dart';
+import 'features/seller/seller_add_service_wizard.dart';
+import 'features/seller/seller_analytics_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
 import 'features/seller/seller_products_screen.dart';
+import 'features/seller/seller_services_screen.dart';
 import 'features/seller/seller_profile_screen.dart';
 import 'features/seller/seller_reviews_screen.dart';
 import 'features/seller/seller_settings_screen.dart';
 import 'features/wishlist/wishlist_screen.dart';
 import 'features/settings/language_selection_screen.dart';
+import 'features/legal/account_settings_screen.dart';
+import 'features/legal/legal_document_screen.dart';
+import 'features/legal/privacy_legal_hub_screen.dart';
+import 'features/legal/privacy_settings_screen.dart';
+import 'features/legal/your_data_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'l10n/app_localizations.dart';
 
+/// Notifies [GoRouter] when auth/session state changes so redirects re-run.
+class _RouterRefreshListenable extends ChangeNotifier {
+  _RouterRefreshListenable(Ref ref) {
+    ref.listen(userSessionProvider, (_, __) => notifyListeners());
+    ref.listen(authSessionProvider, (_, __) => notifyListeners());
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
+  final refresh = _RouterRefreshListenable(ref);
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
+    refreshListenable: refresh,
     initialLocation: '/splash',
     // Keep the page stack for Android system-back; only splash/auth flows
     // intentionally replace via context.go().
@@ -48,12 +72,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       final path = state.matchedLocation;
       final isSellerManagement = path == '/seller/dashboard' ||
           path.startsWith('/seller/products') ||
+          path.startsWith('/seller/services') ||
+          path.startsWith('/seller/analytics') ||
           path.startsWith('/seller/profile') ||
           path.startsWith('/seller/reviews') ||
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings') ||
           path.startsWith('/seller/messages');
-      final isAuthProtected = isSellerManagement;
+      final isMarketplaceCommunity =
+          RegExp(r'^/marketplace/[^/]+/community').hasMatch(path);
+      final isAuthProtected = isSellerManagement ||
+          path == '/premium' ||
+          path == '/profile' ||
+          path == '/favorites' ||
+          path.startsWith('/messages') ||
+          path.startsWith('/community/channels') ||
+          isMarketplaceCommunity;
       final isAuthenticated = session != null && !session.isGuest;
       if (isAuthProtected && !isAuthenticated) {
         return '/login';
@@ -74,6 +108,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/language',
         builder: (_, __) => const LanguageSelectionScreen(fromSettings: true),
+      ),
+      GoRoute(path: '/settings', builder: (_, __) => const AccountSettingsScreen()),
+      GoRoute(
+        path: '/settings/privacy-legal',
+        builder: (_, __) => const PrivacyLegalHubScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        builder: (_, __) => const PrivacySettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/your-data',
+        builder: (_, __) => const YourDataScreen(),
+      ),
+      GoRoute(
+        path: '/legal/:doc',
+        builder: (_, state) => LegalDocumentScreen(
+          docSlug: state.pathParameters['doc']!,
+        ),
       ),
       GoRoute(
           path: '/onboarding',
@@ -109,7 +162,49 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
+      GoRoute(path: '/bundle', builder: (_, __) => const BundleBuilderScreen()),
+      GoRoute(
+        path: '/marketplace/:slug/community',
+        builder: (_, state) => MarketplaceCommunityHubScreen(
+          marketplaceSlug: state.pathParameters['slug']!,
+        ),
+      ),
+      GoRoute(
+        path: '/marketplace/:slug/community/channels/:channelId',
+        builder: (_, state) {
+          final extra = state.extra;
+          final map = extra is Map ? extra : const {};
+          return MarketplaceCommunityChannelScreen(
+            channelId: state.pathParameters['channelId']!,
+            marketplaceSlug: state.pathParameters['slug']!,
+            channelName: map['channelName'] as String? ?? '',
+            defaultPostType: map['defaultPostType'] as String? ?? 'general',
+          );
+        },
+      ),
       GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
+      GoRoute(
+        path: '/community/channels/:channelId',
+        builder: (_, state) {
+          final extra = state.extra;
+          final map = extra is Map ? extra : const {};
+          return CommunityChannelScreen(
+            channelId: state.pathParameters['channelId']!,
+            channelName: map['channelName'] as String? ?? '',
+            citySlug: map['citySlug'] as String? ?? '',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/community',
+        builder: (_, __) => const CommunityCityScreen(),
+      ),
+      GoRoute(
+        path: '/community/:citySlug',
+        builder: (_, state) => CommunityCityScreen(
+          citySlug: state.pathParameters['citySlug'],
+        ),
+      ),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
       GoRoute(path: '/premium', builder: (_, __) => const PremiumScreen()),
       GoRoute(path: '/profile', builder: (_, __) => const BuyerProfileScreen()),
@@ -139,10 +234,23 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/seller/products/new',
           builder: (_, __) => const SellerProductEditorScreen()),
       GoRoute(
-        path: '/seller/products/:productId',
-        builder: (_, state) => SellerProductEditorScreen(
-            productId: state.pathParameters['productId']),
+          path: '/seller/products/:productId',
+          builder: (_, state) => SellerProductEditorScreen(
+              productId: state.pathParameters['productId'])),
+      GoRoute(
+          path: '/seller/services',
+          builder: (_, __) => const SellerServicesRedirect()),
+      GoRoute(
+          path: '/seller/services/new',
+          builder: (_, __) => const SellerAddServiceWizard()),
+      GoRoute(
+        path: '/seller/services/:serviceId',
+        builder: (_, state) => SellerServiceEditorScreen(
+            serviceId: state.pathParameters['serviceId']),
       ),
+      GoRoute(
+          path: '/seller/analytics',
+          builder: (_, __) => const SellerAnalyticsScreen()),
       GoRoute(
           path: '/seller/profile',
           builder: (_, __) => const SellerProfileScreen()),
@@ -249,11 +357,11 @@ class _MarGemAppState extends ConsumerState<MarGemApp>
     }
 
     return MaterialApp.router(
-      title: 'MarGem',
+      title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AppTheme.light(languageCode: locale.languageCode),
+      darkTheme: AppTheme.dark(languageCode: locale.languageCode),
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [

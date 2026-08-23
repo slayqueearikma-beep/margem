@@ -7,18 +7,22 @@ ENV PYTHONUNBUFFERED=1
 
 RUN groupadd --system margem && useradd --system --gid margem --create-home margem
 
-COPY requirements.txt requirements-telemetry.txt ./
+COPY backend/requirements.txt backend/requirements-telemetry.txt ./
 RUN pip install --no-cache-dir -r requirements.txt -r requirements-telemetry.txt
 
-COPY app ./app
-COPY scripts ./scripts
-COPY alembic ./alembic
-COPY alembic.ini .
+COPY backend/app ./app
+COPY backend/scripts ./scripts
+COPY backend/alembic ./alembic
+COPY backend/alembic.ini .
+COPY backend/static ./static
+COPY admin-dashboard /admin-dashboard
 
 RUN chmod +x /app/scripts/entrypoint.sh \
-    && chown -R margem:margem /app
+    && chown -R margem:margem /app /admin-dashboard
 
 USER margem
+
+ENV ADMIN_DASHBOARD_DIR=/admin-dashboard
 
 EXPOSE 8000
 
