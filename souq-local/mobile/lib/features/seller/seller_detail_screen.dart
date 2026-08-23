@@ -15,6 +15,7 @@ import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
+import '../../core/widgets/service_card.dart';
 import '../../l10n/app_localizations.dart';
 import 'rate_seller_sheet.dart';
 
@@ -453,21 +454,9 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                       Text(l10n.noServicesListed)
                     else
                       ...seller.services.map(
-                        (service) => ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(service.name,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w700)),
-                          subtitle: Text(service.description),
-                          trailing: service.priceMad != null
-                              ? Text(
-                                  '${service.priceMad!.toStringAsFixed(0)} MAD',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                )
-                              : null,
+                        (service) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: ServiceCard(service: service),
                         ),
                       ),
                     const SizedBox(height: AppSpacing.xl),

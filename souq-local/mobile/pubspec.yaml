@@ -16,6 +16,7 @@ dependencies:
   go_router: ^14.6.2
   google_maps_flutter: ^2.10.0
   http: ^1.2.2
+  crypto: ^3.0.6
   cached_network_image: ^3.4.1
   url_launcher: ^6.3.1
   flutter_rating_bar: ^4.0.1
@@ -25,6 +26,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   # 9.3+ raises Android Kotlin languageVersion to 1.8 (required by Kotlin 2.2 / AGP 8.11).
   sentry_flutter: ^9.3.0
+  google_fonts: ^6.2.1
+  web_socket_channel: ^3.0.1
 
 dev_dependencies:
   flutter_test:
