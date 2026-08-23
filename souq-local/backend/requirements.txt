@@ -16,3 +16,5 @@ slowapi==0.1.9
 azure-storage-blob==12.24.0
 aiohttp==3.11.11
 redis==5.2.1
+pyotp==2.9.0
+cryptography==44.0.0

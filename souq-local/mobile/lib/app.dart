@@ -53,7 +53,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings') ||
           path.startsWith('/seller/messages');
-      final isAuthProtected = isSellerManagement;
+      final isAuthProtected = isSellerManagement ||
+          path == '/premium' ||
+          path == '/profile' ||
+          path == '/favorites' ||
+          path.startsWith('/messages');
       final isAuthenticated = session != null && !session.isGuest;
       if (isAuthProtected && !isAuthenticated) {
         return '/login';

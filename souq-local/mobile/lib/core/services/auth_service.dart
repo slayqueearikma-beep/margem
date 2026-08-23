@@ -58,6 +58,22 @@ class AuthService {
       'email': email,
       'password': password,
     });
+    if (response['mfa_required'] == true) {
+      throw MfaRequiredException(
+        mfaToken: response['mfa_token'] as String? ?? '',
+      );
+    }
+    return _saveSession(AuthSession.fromJson(response));
+  }
+
+  Future<AuthSession> completeMfaLogin({
+    required String mfaToken,
+    required String code,
+  }) async {
+    final response = await _api.postJson('/auth/mfa/login', {
+      'mfa_token': mfaToken,
+      'code': code,
+    });
     return _saveSession(AuthSession.fromJson(response));
   }
 
@@ -70,9 +86,16 @@ class AuthService {
         'refresh_token': refresh,
       });
       await _saveSession(AuthSession.fromJson(response));
-      await _storage.write(key: _accessTokenKey, value: _accessToken!);
-      await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
       return true;
+    } on ApiException catch (error) {
+      if (error.statusCode == 401 || error.statusCode == 403) {
+        _accessToken = null;
+        _refreshToken = null;
+        await _storage.delete(key: _accessTokenKey);
+        await _storage.delete(key: _refreshTokenKey);
+        _syncTokenProvider();
+      }
+      return false;
     } on Object {
       return false;
     }
@@ -148,6 +171,8 @@ class AuthService {
   Future<AuthSession> _saveSession(AuthSession session) async {
     _accessToken = session.accessToken;
     _refreshToken = session.refreshToken;
+    await _storage.write(key: _accessTokenKey, value: _accessToken!);
+    await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
     _syncTokenProvider();
     return session;
   }
@@ -162,3 +187,9 @@ final authServiceProvider = Provider<AuthService>((ref) {
 });
 
 final authSessionProvider = StateProvider<AuthSession?>((ref) => null);
+
+class MfaRequiredException implements Exception {
+  MfaRequiredException({required this.mfaToken});
+
+  final String mfaToken;
+}
