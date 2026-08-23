@@ -1,4 +1,4 @@
-# MarGem Production Engineering Report
+# Dribex Production Engineering Report
 
 **Branch:** `cursor/production-grade-audit-f384`  
 **Scope:** `souq-local` (FastAPI backend, Flutter mobile, Docker, Azure Terraform, home server)  
