@@ -5,6 +5,9 @@ class AuthUser {
     required this.accountType,
     required this.displayName,
     this.hasSellerProfile = false,
+    this.role = 'buyer',
+    this.status = 'active',
+    this.mfaEnabled = false,
   });
 
   final String id;
@@ -12,6 +15,9 @@ class AuthUser {
   final String accountType;
   final String displayName;
   final bool hasSellerProfile;
+  final String role;
+  final String status;
+  final bool mfaEnabled;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -20,12 +26,24 @@ class AuthUser {
       accountType: json['account_type'] as String,
       displayName: json['display_name'] as String? ?? '',
       hasSellerProfile: json['has_seller_profile'] as bool? ?? false,
+      role: json['role'] as String? ?? 'buyer',
+      status: json['status'] as String? ?? 'active',
+      mfaEnabled: json['mfa_enabled'] as bool? ?? false,
     );
   }
 
   bool get isBuyer => accountType == 'buyer' || !hasSellerProfile;
   bool get isSeller => accountType == 'seller' || hasSellerProfile;
   bool get canSell => hasSellerProfile || accountType == 'seller';
+
+  static const staffRoles = {'super_admin', 'admin', 'moderator', 'support'};
+  static const adminWriteRoles = {'super_admin', 'admin'};
+  static const moderatorRoles = {'super_admin', 'admin', 'moderator'};
+
+  bool get isStaff => staffRoles.contains(role);
+  bool get canAdminWrite => adminWriteRoles.contains(role);
+  bool get canModerate => moderatorRoles.contains(role);
+  bool get isSuperAdmin => role == 'super_admin';
 }
 
 class AuthSession {
@@ -221,15 +239,3 @@ class ProductUpdatePayload {
     };
   }
 }
-
-/// Maps seller onboarding UI labels to backend category slugs.
-const sellerCategorySlugMap = <String, String>{
-  'Food': 'food',
-  'Clothing': 'clothing',
-  'Electronics': 'electronics',
-  'Beauty': 'beauty',
-  'Services': 'services',
-  'Home & Garden': 'home',
-  'Health': 'health',
-  'Sports': 'sports',
-};

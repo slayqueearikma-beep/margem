@@ -343,6 +343,11 @@ class AppStringsEn extends AppStrings {
   @override
   String get businessCategory => 'Business category';
   @override
+  String get businessCategories => 'Business categories';
+  @override
+  String businessCategoriesHint(int max) =>
+      'Choose 1 to $max categories (at least 1 required)';
+  @override
   String get fullAddress => 'Full address';
   @override
   String get phoneNumber => 'Phone number';

@@ -16,6 +16,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/category_theme.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/content_widgets.dart';
@@ -213,8 +214,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                     SectionHeader(
                       title: l10n.categories,
                       actionLabel: l10n.seeAll,
-                      onAction: () =>
-                          ref.read(buyerTabIndexProvider.notifier).state = 1,
+                      onAction: () => context.push('/categories'),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SizedBox(
@@ -239,10 +239,17 @@ class BuyerHomeScreen extends ConsumerWidget {
                                 );
                           final icon = isAll
                               ? Icons.apps_rounded
-                              : _categoryIcon(categories[i - 1].icon);
+                              : CategoryTheme.iconFor(categories[i - 1].icon);
+                          final accent = isAll
+                              ? AppColors.primary
+                              : CategoryTheme.accentColor(
+                                  categories[i - 1].accentColor,
+                                  slug: categories[i - 1].slug,
+                                );
                           return _CategoryChip(
                             label: label,
                             icon: icon,
+                            accentColor: accent,
                             selected: selectedChip,
                             onTap: () {
                               ref
@@ -380,17 +387,6 @@ class BuyerHomeScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  static IconData _categoryIcon(String icon) {
-    return switch (icon) {
-      'beauty' || 'spa' => Icons.spa_outlined,
-      'clothing' || 'fashion' => Icons.checkroom_outlined,
-      'electronics' => Icons.smartphone_outlined,
-      'food' || 'restaurant' => Icons.restaurant_outlined,
-      'services' => Icons.handyman_outlined,
-      _ => Icons.storefront_outlined,
-    };
   }
 
   static String _distanceLabel(LatLng from, LatLng to) {
@@ -682,12 +678,14 @@ class _CategoryChip extends StatelessWidget {
   const _CategoryChip({
     required this.label,
     required this.icon,
+    required this.accentColor,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
   final IconData icon;
+  final Color accentColor;
   final bool selected;
   final VoidCallback onTap;
 
@@ -696,7 +694,7 @@ class _CategoryChip extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: selected
-          ? AppColors.primary
+          ? accentColor
           : (isDark ? AppColors.darkCard : Colors.white),
       borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
       child: InkWell(
@@ -708,7 +706,7 @@ class _CategoryChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
             border: Border.all(
               color: selected
-                  ? AppColors.primary
+                  ? accentColor
                   : (isDark ? AppColors.darkBorder : AppColors.border),
             ),
           ),
@@ -718,7 +716,7 @@ class _CategoryChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: selected ? Colors.white : AppColors.primary,
+                color: selected ? Colors.white : accentColor,
               ),
               const SizedBox(width: 6),
               Text(

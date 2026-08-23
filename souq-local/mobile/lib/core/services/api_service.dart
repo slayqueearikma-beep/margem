@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
 import '../models/models.dart';
+import 'secure_http_client.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -22,7 +23,7 @@ typedef TokenRefreshCallback = Future<bool> Function();
 typedef SessionExpiredCallback = Future<void> Function();
 
 class ApiService {
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  ApiService({http.Client? client}) : _client = client ?? createSecureHttpClient();
 
   static const _requestTimeout = Duration(seconds: 15);
   static const _submitTimeout = Duration(seconds: 25);
@@ -69,10 +70,11 @@ class ApiService {
     String path,
     Map<String, dynamic> body, {
     bool auth = false,
+    Map<String, String>? query,
   }) async {
     final response = await _request(
       () => _post(
-        _uri(path),
+        _uri(path, query),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
       ),
@@ -86,10 +88,11 @@ class ApiService {
     String path,
     Map<String, dynamic> body, {
     bool auth = false,
+    Map<String, String>? query,
   }) async {
     final response = await _request(
       () => _client.patch(
-        _uri(path),
+        _uri(path, query),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
       ),
@@ -100,29 +103,41 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> getJson(String path, {bool auth = false}) async {
+  Future<Map<String, dynamic>> getJson(
+    String path, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
-      () => _get(_uri(path), headers: auth ? _authHeaders : null),
+      () => _get(_uri(path, query), headers: auth ? _authHeaders : null),
       auth: auth,
     );
     _ensureSuccess(response);
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<List<dynamic>> getJsonList(String path, {bool auth = false}) async {
+  Future<List<dynamic>> getJsonList(
+    String path, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
-      () => _get(_uri(path), headers: auth ? _authHeaders : null),
+      () => _get(_uri(path, query), headers: auth ? _authHeaders : null),
       auth: auth,
     );
     _ensureSuccess(response);
     return jsonDecode(response.body) as List<dynamic>;
   }
 
-  Future<void> deleteJson(String path, Map<String, dynamic> body,
-      {bool auth = false}) async {
+  Future<void> deleteJson(
+    String path,
+    Map<String, dynamic> body, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
       () => _client.delete(
-        _uri(path),
+        _uri(path, query),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
       ),
@@ -142,11 +157,15 @@ class ApiService {
     _ensureSuccess(response);
   }
 
-  Future<void> postVoid(String path, Map<String, dynamic> body,
-      {bool auth = false}) async {
+  Future<void> postVoid(
+    String path,
+    Map<String, dynamic> body, {
+    bool auth = false,
+    Map<String, String>? query,
+  }) async {
     final response = await _request(
       () => _post(
-        _uri(path),
+        _uri(path, query),
         headers: _jsonHeaders(auth: auth),
         body: jsonEncode(body),
       ),
@@ -206,19 +225,48 @@ class ApiService {
   }
 
   Future<http.Response> _send(Future<http.Response> Function() request) async {
-    try {
-      return await request().timeout(_requestTimeout);
-    } on TimeoutException {
-      throw ApiException(_connectionErrorMessage);
-    } on SocketException {
-      throw ApiException(_connectionErrorMessage);
-    } on http.ClientException {
-      throw ApiException(_connectionErrorMessage);
-    } on ApiException {
-      rethrow;
-    } on Object {
-      throw ApiException(_connectionErrorMessage);
+    const maxAttempts = 3;
+    var attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        final response = await request().timeout(_requestTimeout);
+        if (attempt < maxAttempts &&
+            (response.statusCode == 502 ||
+                response.statusCode == 503 ||
+                response.statusCode == 504)) {
+          await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+          continue;
+        }
+        return response;
+      } on TimeoutException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on SocketException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on http.ClientException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on ApiException {
+        rethrow;
+      } on Object {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      }
     }
+  }
+
+  void dispose() {
+    _client.close();
   }
 
   Future<T> runSubmit<T>(Future<T> Function() action) {
@@ -678,6 +726,39 @@ class ApiService {
   Future<SubscriptionModel> subscribe(String planCode) async {
     final data =
         await postEmpty('/subscriptions/subscribe/$planCode', auth: true);
+    return SubscriptionModel.fromJson(data);
+  }
+
+  Future<BillingConfigModel> fetchBillingConfig() async {
+    final data = await getJson('/billing/config', auth: false);
+    return BillingConfigModel.fromJson(data);
+  }
+
+  Future<String> createCheckoutSession({
+    required String planCode,
+    required String interval,
+  }) async {
+    final data = await postJson(
+      '/billing/checkout',
+      {'plan_code': planCode, 'interval': interval},
+      auth: true,
+    );
+    return data['checkout_url'] as String;
+  }
+
+  Future<String> createCustomerPortalSession() async {
+    final data = await postJson('/billing/portal', {}, auth: true);
+    return data['portal_url'] as String;
+  }
+
+  Future<SubscriptionModel> syncBillingSubscription({
+    String? checkoutSessionId,
+  }) async {
+    final body = <String, dynamic>{};
+    if (checkoutSessionId != null && checkoutSessionId.isNotEmpty) {
+      body['checkout_session_id'] = checkoutSessionId;
+    }
+    final data = await postJson('/billing/sync', body, auth: true);
     return SubscriptionModel.fromJson(data);
   }
 

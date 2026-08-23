@@ -5,11 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/auth_models.dart';
+import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/category_picker.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/form_widgets.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Logged-in users open a storefront on the same email/password account.
@@ -25,6 +28,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   final _description = TextEditingController();
   final _address = TextEditingController();
   final _phone = TextEditingController();
+  final List<CategoryModel> _selectedCategories = [];
   bool _loading = false;
 
   @override
@@ -45,7 +49,8 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
     }
     if (_businessName.text.trim().length < 2 ||
         _address.text.trim().length < 5 ||
-        _phone.text.trim().isEmpty) {
+        _phone.text.trim().isEmpty ||
+        _selectedCategories.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.completeRequiredStep)),
       );
@@ -64,6 +69,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
           latitude: coords.latitude,
           longitude: coords.longitude,
           phone: _phone.text.trim(),
+          categoryIds: _selectedCategories.map((category) => category.id).toList(),
         ),
       );
       final storage = ref.read(appStorageProvider);
@@ -94,6 +100,12 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final categoriesAsync = ref.watch(onboardingCategoriesProvider);
+    final locale = Localizations.localeOf(context).languageCode;
+    final categorySummary = _selectedCategories.isEmpty
+        ? l10n.businessCategoriesHint(maxSellerCategories)
+        : _selectedCategories.map((c) => c.localizedName(locale)).join(', ');
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.becomeSeller)),
       body: SafeArea(
@@ -114,6 +126,48 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
               controller: _description,
               maxLines: 3,
               decoration: InputDecoration(labelText: l10n.description),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            categoriesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Text(error.toString()),
+              data: (categories) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppTextField(
+                    label: l10n.businessCategories,
+                    hint: categorySummary,
+                    readOnly: true,
+                    prefixIcon: Icons.category_outlined,
+                    onTap: () async {
+                      final selected = await showCategoryMultiPicker(
+                        context,
+                        categories,
+                        selected: _selectedCategories,
+                      );
+                      if (selected.isNotEmpty) {
+                        setState(() {
+                          _selectedCategories
+                            ..clear()
+                            ..addAll(selected);
+                        });
+                      }
+                    },
+                  ),
+                  if (_selectedCategories.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _selectedCategories.map((category) {
+                        return Chip(
+                          label: Text(category.localizedName(locale)),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             TextField(

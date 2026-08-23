@@ -10,11 +10,15 @@ class NetworkImageView extends StatelessWidget {
     required this.url,
     this.fit = BoxFit.cover,
     this.placeholderIcon = Icons.image_outlined,
+    this.memCacheWidth,
+    this.memCacheHeight,
   });
 
   final String url;
   final BoxFit fit;
   final IconData placeholderIcon;
+  final int? memCacheWidth;
+  final int? memCacheHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +31,8 @@ class NetworkImageView extends StatelessWidget {
     return CachedNetworkImage(
       imageUrl: url,
       fit: fit,
+      memCacheWidth: memCacheWidth,
+      memCacheHeight: memCacheHeight,
       placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       errorWidget: (_, __, ___) => ColoredBox(
         color: AppColors.primary.withValues(alpha: 0.08),
