@@ -14,6 +14,8 @@ import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_email_screen.dart';
 import 'features/buyer/buyer_home_screen.dart';
+import 'features/community_chat/community_channel_screen.dart';
+import 'features/community_chat/community_city_screen.dart';
 import 'features/map/map_screen.dart';
 import 'features/messages/messages_inbox_screen.dart';
 import 'features/onboarding/account_type_onboarding_screen.dart';
@@ -25,9 +27,12 @@ import 'features/premium/premium_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/seller/product_detail_screen.dart';
 import 'features/seller/seller_catalog_screen.dart';
+import 'features/seller/seller_add_service_wizard.dart';
+import 'features/seller/seller_analytics_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
 import 'features/seller/seller_products_screen.dart';
+import 'features/seller/seller_services_screen.dart';
 import 'features/seller/seller_profile_screen.dart';
 import 'features/seller/seller_reviews_screen.dart';
 import 'features/seller/seller_settings_screen.dart';
@@ -48,12 +53,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       final path = state.matchedLocation;
       final isSellerManagement = path == '/seller/dashboard' ||
           path.startsWith('/seller/products') ||
+          path.startsWith('/seller/services') ||
+          path.startsWith('/seller/analytics') ||
           path.startsWith('/seller/profile') ||
           path.startsWith('/seller/reviews') ||
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings') ||
           path.startsWith('/seller/messages');
-      final isAuthProtected = isSellerManagement;
+      final isAuthProtected = isSellerManagement ||
+          path == '/premium' ||
+          path == '/profile' ||
+          path == '/favorites' ||
+          path.startsWith('/messages') ||
+          path.startsWith('/community/channels');
       final isAuthenticated = session != null && !session.isGuest;
       if (isAuthProtected && !isAuthenticated) {
         return '/login';
@@ -110,6 +122,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
       GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
+      GoRoute(
+        path: '/community/channels/:channelId',
+        builder: (_, state) {
+          final extra = state.extra;
+          final map = extra is Map ? extra : const {};
+          return CommunityChannelScreen(
+            channelId: state.pathParameters['channelId']!,
+            channelName: map['channelName'] as String? ?? '',
+            citySlug: map['citySlug'] as String? ?? '',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/community',
+        builder: (_, __) => const CommunityCityScreen(),
+      ),
+      GoRoute(
+        path: '/community/:citySlug',
+        builder: (_, state) => CommunityCityScreen(
+          citySlug: state.pathParameters['citySlug'],
+        ),
+      ),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
       GoRoute(path: '/premium', builder: (_, __) => const PremiumScreen()),
       GoRoute(path: '/profile', builder: (_, __) => const BuyerProfileScreen()),
@@ -139,10 +173,23 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/seller/products/new',
           builder: (_, __) => const SellerProductEditorScreen()),
       GoRoute(
-        path: '/seller/products/:productId',
-        builder: (_, state) => SellerProductEditorScreen(
-            productId: state.pathParameters['productId']),
+          path: '/seller/products/:productId',
+          builder: (_, state) => SellerProductEditorScreen(
+              productId: state.pathParameters['productId'])),
+      GoRoute(
+          path: '/seller/services',
+          builder: (_, __) => const SellerServicesRedirect()),
+      GoRoute(
+          path: '/seller/services/new',
+          builder: (_, __) => const SellerAddServiceWizard()),
+      GoRoute(
+        path: '/seller/services/:serviceId',
+        builder: (_, state) => SellerServiceEditorScreen(
+            serviceId: state.pathParameters['serviceId']),
       ),
+      GoRoute(
+          path: '/seller/analytics',
+          builder: (_, __) => const SellerAnalyticsScreen()),
       GoRoute(
           path: '/seller/profile',
           builder: (_, __) => const SellerProfileScreen()),
