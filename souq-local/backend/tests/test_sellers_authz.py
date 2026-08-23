@@ -5,6 +5,7 @@ from sqlalchemy import select
 import app.database as database
 from app.main import app
 from app.models import User
+from tests.factories import seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -28,17 +29,7 @@ async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
     created = await client.post(
         "/sellers",
         headers=headers,
-        json={
-            "business_name": name,
-            "description": "Nice",
-            "address": "2 Main Street",
-            "city": "Casablanca",
-            "latitude": 33.57,
-            "longitude": -7.62,
-            "phone": "+212600000010",
-            "cover_image_url": "",
-            "category_ids": [],
-        },
+        json=seller_create_payload(business_name=name),
     )
     assert created.status_code == 201, created.text
     return created.json()

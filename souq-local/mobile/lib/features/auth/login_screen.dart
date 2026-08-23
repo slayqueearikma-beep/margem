@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/validation/form_validators.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -12,6 +13,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
+import '../admin/admin_shell.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -29,9 +31,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    if (kDebugMode) {
-      debugPrint('MarGem API_BASE_URL=${AppConfig.apiBaseUrl}');
-    }
   }
 
   @override
@@ -43,10 +42,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     final l10n = context.l10n;
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty) {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.enterEmailPassword)));
+      return;
+    }
+    if (!FormValidators.isValidEmail(email)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.emailRequired)));
       return;
     }
 
@@ -113,7 +118,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ref.read(authSessionProvider.notifier).state = session;
 
         if (!mounted) return;
-        context.go(storage.homeRouteFor(userSession));
+        final destination = session.user.isStaff
+            ? staffHomeRoute()
+            : storage.homeRouteFor(userSession);
+        context.go(destination);
       });
     } on ApiException catch (e) {
       if (!mounted) return;

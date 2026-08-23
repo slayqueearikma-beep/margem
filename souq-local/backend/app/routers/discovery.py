@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth import get_current_user, get_current_user_optional
+from app.services.text_sanitizer import sanitize_free_text
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (
@@ -23,6 +24,7 @@ from app.models import (
     SellerProfile,
     User,
 )
+from app.services.premium import is_premium_active
 from app.services.seller_counters import (
     bump_contact_click,
     bump_favorite_count,
@@ -118,6 +120,8 @@ def _favorite_out(fav: Favorite) -> FavoriteOut:
 async def list_favorites(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
 ) -> list[FavoriteOut]:
     result = await session.execute(
         select(Favorite)
@@ -127,6 +131,8 @@ async def list_favorites(
         )
         .where(Favorite.user_id == user.id)
         .order_by(Favorite.created_at.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return [_favorite_out(f) for f in result.scalars().all()]
 
@@ -378,11 +384,18 @@ async def unfollow_seller(
 async def list_saved_searches(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
+    limit: int = Query(default=50, ge=1, le=100),
 ) -> list[SavedSearch]:
     result = await session.execute(
-        select(SavedSearch).where(SavedSearch.user_id == user.id).order_by(SavedSearch.created_at.desc())
+        select(SavedSearch)
+        .where(SavedSearch.user_id == user.id)
+        .order_by(SavedSearch.created_at.desc())
+        .limit(limit)
     )
     return list(result.scalars().all())
+
+
+_FREE_SAVED_SEARCH_LIMIT = 3
 
 
 @router.post("/saved-searches", response_model=SavedSearchOut, status_code=status.HTTP_201_CREATED)
@@ -391,6 +404,21 @@ async def create_saved_search(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> SavedSearch:
+    premium = is_premium_active(
+        is_premium=bool(user.is_premium),
+        premium_until=user.premium_until,
+    )
+    if not premium:
+        count = (
+            await session.execute(
+                select(SavedSearch).where(SavedSearch.user_id == user.id)
+            )
+        ).scalars().all()
+        if len(count) >= _FREE_SAVED_SEARCH_LIMIT:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Saved search limit reached. Upgrade to MarGem Plus for unlimited saved searches.",
+            )
     row = SavedSearch(
         id=uuid4(),
         user_id=user.id,
@@ -429,20 +457,40 @@ async def list_recently_viewed(
         .order_by(RecentlyViewed.viewed_at.desc())
         .limit(limit)
     )
+    rows = list(result.scalars().all())
+    product_ids = [r.product_id for r in rows if r.product_id]
+    seller_ids = [r.seller_id for r in rows if r.seller_id]
+
+    products_by_id: dict[UUID, Product] = {}
+    if product_ids:
+        products = (
+            await session.execute(select(Product).where(Product.id.in_(product_ids)))
+        ).scalars().all()
+        products_by_id = {p.id: p for p in products}
+        seller_ids.extend(p.seller_id for p in products if p.seller_id)
+
+    sellers_by_id: dict[UUID, SellerProfile] = {}
+    unique_seller_ids = {sid for sid in seller_ids if sid}
+    if unique_seller_ids:
+        sellers = (
+            await session.execute(select(SellerProfile).where(SellerProfile.id.in_(unique_seller_ids)))
+        ).scalars().all()
+        sellers_by_id = {s.id: s for s in sellers}
+
     items: list[RecentlyViewedOut] = []
-    for row in result.scalars().all():
+    for row in rows:
         title = ""
         image_url = ""
         subtitle = ""
         if row.product_id:
-            product = await session.get(Product, row.product_id)
+            product = products_by_id.get(row.product_id)
             if product:
                 title = product.name
                 image_url = product.image_url
-                seller = await session.get(SellerProfile, product.seller_id)
+                seller = sellers_by_id.get(product.seller_id)
                 subtitle = seller.business_name if seller else ""
         elif row.seller_id:
-            seller = await session.get(SellerProfile, row.seller_id)
+            seller = sellers_by_id.get(row.seller_id)
             if seller:
                 title = seller.business_name
                 image_url = seller.logo_image_url or seller.cover_image_url
@@ -496,7 +544,7 @@ async def create_report(
     request: Request,
     payload: ReportCreate,
     session: AsyncSession = Depends(get_db),
-    user: User | None = Depends(get_current_user_optional),
+    user: User = Depends(get_current_user),
 ) -> dict:
     if not payload.seller_id and not payload.product_id:
         raise HTTPException(status_code=400, detail="Provide seller_id or product_id")
@@ -508,16 +556,16 @@ async def create_report(
         seller = await session.get(SellerProfile, payload.seller_id)
         if seller is None:
             raise HTTPException(status_code=404, detail="Seller not found")
-    reason = payload.reason.strip()
-    if not reason or len(reason) > 80:
+    reason = sanitize_free_text(payload.reason, max_length=80)
+    if not reason:
         raise HTTPException(status_code=400, detail="Invalid report reason")
     report = Report(
         id=uuid4(),
-        reporter_id=user.id if user else None,
+        reporter_id=user.id,
         seller_id=payload.seller_id,
         product_id=payload.product_id,
         reason=reason,
-        details=(payload.details or "").strip()[:2000],
+        details=sanitize_free_text(payload.details or "", max_length=2000),
     )
     session.add(report)
     await session.commit()

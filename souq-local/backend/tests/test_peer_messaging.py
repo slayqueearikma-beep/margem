@@ -6,6 +6,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from tests.factories import seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -43,18 +44,13 @@ async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
     res = await client.post(
         "/sellers",
         headers=headers,
-        json={
-            "business_name": name,
-            "description": "Peer messaging test store",
-            "address": "12 Rue Example",
-            "city": "Casablanca",
-            "latitude": 33.57,
-            "longitude": -7.62,
-            "phone": "+212600000077",
-            "whatsapp_number": "+212600000077",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name=name,
+            description="Peer messaging test store",
+            address="12 Rue Example",
+            phone="+212600000077",
+            whatsapp_number="+212600000077",
+        ),
     )
     assert res.status_code == 201, res.text
     return res.json()

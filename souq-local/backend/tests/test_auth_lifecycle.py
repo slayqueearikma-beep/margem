@@ -11,6 +11,7 @@ import app.database as database
 from app.config import Settings
 from app.main import app
 from app.models import AuthToken, SellerProfile, User, UserStatus
+from tests.factories import seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -174,18 +175,13 @@ async def test_delete_account_removes_seller_storefront(client: AsyncClient):
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
-        json={
-            "business_name": "Delete Me Shop",
-            "description": "Temp",
-            "address": "12 Rue Example",
-            "city": "Casablanca",
-            "latitude": 33.5,
-            "longitude": -7.5,
-            "phone": "+212600000066",
-            "whatsapp_number": "+212600000066",
-            "payment_methods": ["cash"],
-            "delivery_methods": ["in_store"],
-        },
+        json=seller_create_payload(
+            business_name="Delete Me Shop",
+            description="Temp",
+            address="12 Rue Example",
+            phone="+212600000066",
+            whatsapp_number="+212600000066",
+        ),
     )
     assert profile.status_code == 201, profile.text
     seller_id = profile.json()["id"]
@@ -214,7 +210,7 @@ async def test_subscribe_premium_blocked_in_production(client: AsyncClient, monk
     from app.config import settings
 
     monkeypatch.setattr(settings, "app_env", "production")
-    user = await _register(client, "buyer")
-    res = await client.post("/subscriptions/subscribe/buyer_premium", headers=user["headers"])
-    assert res.status_code == 503
-    assert "billing" in res.json()["detail"].lower() or "provider" in res.json()["detail"].lower() or "admin" in res.json()["detail"].lower()
+    user = await _register(client, "seller")
+    res = await client.post("/subscriptions/subscribe/premium", headers=user["headers"])
+    assert res.status_code == 400
+    assert "checkout" in res.json()["detail"].lower()

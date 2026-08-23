@@ -2,22 +2,71 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Conversation, Message, SellerProfile, User, UserStatus
 from app.services.notifications import notify_user
 from app.services.seller_counters import bump_inquiry_count
 
+_MAX_MESSAGES_PER_MINUTE = 15
+_MAX_NEW_CONVERSATIONS_PER_DAY = 25
+
 
 def ordered_participants(user_a: UUID, user_b: UUID) -> tuple[UUID, UUID]:
     if user_a == user_b:
         raise ValueError("participants must be distinct")
     return (user_a, user_b) if user_a.hex < user_b.hex else (user_b, user_a)
+
+
+async def enforce_messaging_limits(
+    session: AsyncSession,
+    *,
+    sender_id: UUID,
+    is_new_conversation: bool,
+) -> None:
+    now = datetime.now(UTC)
+    minute_count = int(
+        (
+            await session.scalar(
+                select(func.count(Message.id)).where(
+                    Message.sender_id == sender_id,
+                    Message.created_at >= now - timedelta(minutes=1),
+                )
+            )
+        )
+        or 0
+    )
+    if minute_count >= _MAX_MESSAGES_PER_MINUTE:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many messages; slow down and try again",
+        )
+
+    if is_new_conversation:
+        day_count = int(
+            (
+                await session.scalar(
+                    select(func.count(Conversation.id)).where(
+                        Conversation.created_at >= now - timedelta(days=1),
+                        or_(
+                            Conversation.participant_a_id == sender_id,
+                            Conversation.participant_b_id == sender_id,
+                        ),
+                    )
+                )
+            )
+            or 0
+        )
+        if day_count >= _MAX_NEW_CONVERSATIONS_PER_DAY:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Daily new conversation limit reached",
+            )
 
 
 async def get_active_user(session: AsyncSession, user_id: UUID) -> User:
@@ -59,6 +108,8 @@ async def get_or_create_conversation(
             existing.context_seller_id = context_seller_id
         return existing, False
 
+    await enforce_messaging_limits(session, sender_id=initiator_id, is_new_conversation=True)
+
     a, b = ordered_participants(initiator_id, peer_user_id)
     conversation = Conversation(
         id=uuid4(),
@@ -82,6 +133,10 @@ async def send_message(
 ) -> Message:
     if not conversation.involves(sender.id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+
+    await enforce_messaging_limits(
+        session, sender_id=sender.id, is_new_conversation=is_new
+    )
 
     message = Message(
         id=uuid4(),

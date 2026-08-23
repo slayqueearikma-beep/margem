@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     # Defaults to the JWT key only in development for backwards compatibility.
     upload_token_secret: str = ""
     jwt_algorithm: str = "HS256"
-    jwt_access_expire_minutes: int = 60
+    jwt_access_expire_minutes: int = 30
     jwt_refresh_expire_days: int = 7
     bcrypt_rounds: int = 12
 
@@ -77,6 +77,10 @@ class Settings(BaseSettings):
     max_request_body_bytes: int = 1_048_576
     redis_url: str = ""
     allow_insecure_email_fallback: bool = False
+    # Number of trusted reverse-proxy hops that append X-Forwarded-For (0 = direct).
+    trusted_proxy_hops: int = 0
+    # Optional comma-separated extra hosts allowed for presigned upload URLs.
+    upload_allowed_hosts: list[str] = []
 
     smtp_host: str = ""
     smtp_port: int = 587
@@ -86,6 +90,31 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     public_app_url: str = "https://margem.ma"
     public_api_url: str = "http://localhost:8000"
+
+    # Stripe billing (business subscriptions — Basic / Premium / Enterprise)
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_publishable_key: str = ""
+    stripe_success_url: str = ""
+    stripe_cancel_url: str = ""
+    stripe_portal_return_url: str = ""
+    stripe_trial_enabled: bool = True
+
+    @property
+    def stripe_enabled(self) -> bool:
+        return bool(self.stripe_secret_key.strip())
+
+    @property
+    def stripe_checkout_success_url(self) -> str:
+        return self.stripe_success_url.strip() or f"{self.public_app_url.rstrip('/')}/premium/success"
+
+    @property
+    def stripe_checkout_cancel_url(self) -> str:
+        return self.stripe_cancel_url.strip() or f"{self.public_app_url.rstrip('/')}/premium/cancel"
+
+    @property
+    def stripe_customer_portal_return_url(self) -> str:
+        return self.stripe_portal_return_url.strip() or f"{self.public_app_url.rstrip('/')}/premium"
 
     default_cities: list[str] = [
         "Casablanca",
@@ -108,7 +137,7 @@ class Settings(BaseSettings):
             return value.strip().strip('"').strip("'")
         return value
 
-    @field_validator("cors_origins", "allowed_hosts", mode="before")
+    @field_validator("cors_origins", "allowed_hosts", "upload_allowed_hosts", mode="before")
     @classmethod
     def parse_string_list(cls, value: Any) -> list[str]:
         if isinstance(value, str):
@@ -187,6 +216,18 @@ class Settings(BaseSettings):
                     "PUBLIC_APP_URL must use HTTPS in production "
                     "(http is only allowed for localhost / private LAN IPs)"
                 )
+            if not self.redis_url:
+                logger.warning(
+                    "REDIS_URL is not set in production — rate limits are per-instance only. "
+                    "Set REDIS_URL when running more than one API replica."
+                )
+            if not self.stripe_secret_key:
+                logger.warning(
+                    "STRIPE_SECRET_KEY is not set — self-serve business subscriptions are disabled. "
+                    "Use admin grants or configure Stripe before launch."
+                )
+            if self.stripe_secret_key and not self.stripe_webhook_secret:
+                raise ValueError("STRIPE_WEBHOOK_SECRET is required in production when STRIPE_SECRET_KEY is set")
         return self
 
 

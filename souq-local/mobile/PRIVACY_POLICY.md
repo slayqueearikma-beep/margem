@@ -24,6 +24,10 @@ MarGem ("we", "our", "the app") is a marketplace that connects buyers with local
 - Images are stored in Azure Blob Storage.
 - Authentication tokens are stored locally on your device using encrypted storage.
 
+## Subscriptions
+
+MarGem offers free and paid business plans (Basic, Premium, and Enterprise). The Basic plan is free and assigned automatically to new businesses. Paid plans are processed by Stripe; we do not store full payment card numbers. See [Subscription Terms](../docs/SUBSCRIPTION_TERMS.md) for pricing and billing details.
+
 ## Sharing
 
 We do not sell your personal data. We share data only with service providers required to run the app (e.g. cloud hosting).

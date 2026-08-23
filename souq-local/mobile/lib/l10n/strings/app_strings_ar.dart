@@ -340,6 +340,11 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get businessCategory => 'فئة النشاط';
   @override
+  String get businessCategories => 'فئات النشاط';
+  @override
+  String businessCategoriesHint(int max) =>
+      'اختر من 1 إلى $max فئات (فئة واحدة على الأقل مطلوبة)';
+  @override
   String get fullAddress => 'العنوان الكامل';
   @override
   String get phoneNumber => 'رقم الهاتف';

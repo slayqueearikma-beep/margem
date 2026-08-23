@@ -352,6 +352,11 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get businessCategory => 'Catégorie';
   @override
+  String get businessCategories => 'Catégories';
+  @override
+  String businessCategoriesHint(int max) =>
+      'Choisissez 1 à $max catégories (au moins 1 obligatoire)';
+  @override
   String get fullAddress => 'Adresse complète';
   @override
   String get phoneNumber => 'Numéro de téléphone';
