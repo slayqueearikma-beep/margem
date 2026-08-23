@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
 
-import '../theme/app_colors.dart';
 
 /// Displays golden crowns (1 per 1000 five-star reviews) and leftover
 /// achievement stars (1 per 100 five-star reviews).
@@ -33,23 +33,23 @@ class AchievementBadges extends StatelessWidget {
           ...List.generate(
             goldenCrowns.clamp(0, maxCrowns),
             (_) => Padding(
-              padding: const EdgeInsets.only(left: 2),
+              padding: EdgeInsets.only(left: 2),
               child: Icon(
                 Icons.workspace_premium,
                 size: iconSize + 2,
-                color: AppColors.goldenCrown,
+                color: context.colors.highlight,
               ),
             ),
           ),
           if (goldenCrowns > maxCrowns)
             Padding(
-              padding: const EdgeInsets.only(left: 2),
+              padding: EdgeInsets.only(left: 2),
               child: Text(
                 '×$goldenCrowns',
                 style: TextStyle(
                   fontSize: iconSize * 0.7,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.goldenCrown,
+                  color: context.colors.highlight,
                 ),
               ),
             ),
@@ -58,11 +58,11 @@ class AchievementBadges extends StatelessWidget {
           ...List.generate(
             achievementStars.clamp(0, maxStars),
             (_) => Padding(
-              padding: const EdgeInsets.only(left: 2),
+              padding: EdgeInsets.only(left: 2),
               child: Icon(
                 Icons.star_rounded,
                 size: iconSize,
-                color: AppColors.star,
+                color: context.colors.star,
               ),
             ),
           ),
