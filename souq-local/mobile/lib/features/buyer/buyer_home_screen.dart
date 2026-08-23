@@ -13,6 +13,7 @@ import '../../core/navigation/app_back_handler.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/location_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
@@ -28,6 +29,16 @@ import '../settings/language_settings_tile.dart';
 final buyerCityProvider = StateProvider<String>((ref) {
   // Casablanca-only launch — ignore any other saved city.
   return AppConfig.launchCity;
+});
+
+/// Buyer origin for nearest-seller search (GPS, or city center fallback).
+final buyerSearchLocationProvider = FutureProvider.autoDispose<LatLng>((ref) async {
+  final position = await LocationService.getCurrentPosition();
+  if (position != null) {
+    return LatLng(position.latitude, position.longitude);
+  }
+  final city = ref.watch(buyerCityProvider);
+  return CityCoordinates.centerFor(city);
 });
 
 final buyerCategorySlugProvider = StateProvider<String?>((ref) => null);
@@ -371,6 +382,7 @@ class BuyerHomeScreen extends ConsumerWidget {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (e, _) => SliverFillRemaining(
+              hasScrollBody: true,
               child: AsyncErrorView.fromError(
                 e,
                 onRetry: () => ref.invalidate(buyerSellersProvider),
@@ -481,7 +493,10 @@ class _HomeTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 30),
+        AppBrandLogo.forContext(
+          AppBrandContext.compactBranding,
+          size: 28,
+        ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(

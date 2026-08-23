@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
 import '../models/models.dart';
+import 'secure_http_client.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -18,11 +19,28 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
+class SignupOtpSendResult {
+  SignupOtpSendResult({
+    required this.channel,
+    required this.destinationMasked,
+  });
+
+  final String channel;
+  final String destinationMasked;
+
+  factory SignupOtpSendResult.fromJson(Map<String, dynamic> json) {
+    return SignupOtpSendResult(
+      channel: json['channel'] as String,
+      destinationMasked: json['destination_masked'] as String,
+    );
+  }
+}
+
 typedef TokenRefreshCallback = Future<bool> Function();
 typedef SessionExpiredCallback = Future<void> Function();
 
 class ApiService {
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  ApiService({http.Client? client}) : _client = client ?? createSecureHttpClient();
 
   static const _requestTimeout = Duration(seconds: 15);
   static const _submitTimeout = Duration(seconds: 25);
@@ -63,6 +81,32 @@ class ApiService {
     if (body['database'] == 'error') {
       throw ApiException('API database is unavailable');
     }
+  }
+
+  Future<SignupOtpSendResult> sendSignupOtp({
+    required String email,
+    required String phone,
+    required String channel,
+  }) async {
+    final response = await postJson('/auth/signup/otp/send', {
+      'email': email,
+      'phone': phone,
+      'channel': channel,
+    });
+    return SignupOtpSendResult.fromJson(response);
+  }
+
+  Future<String> verifySignupOtp({
+    required String email,
+    required String code,
+    required String channel,
+  }) async {
+    final response = await postJson('/auth/signup/otp/verify', {
+      'email': email,
+      'code': code,
+      'channel': channel,
+    });
+    return response['signup_proof'] as String;
   }
 
   Future<Map<String, dynamic>> postJson(
@@ -236,10 +280,15 @@ class ApiService {
       return 'Cannot reach the server. Check your internet connection and try again.';
     }
     final base = AppConfig.apiBaseUrl;
-    final tip = RegExp(r':\d+$').hasMatch(base)
+    final tunnelHint = base.contains('trycloudflare.com')
+        ? '\n\nCloudflare quick tunnels expire when you stop cloudflared. '
+            'Restart the tunnel and update API_BASE_URL, or use your laptop IP:\n'
+            'flutter run --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000'
+        : '';
+    final portTip = RegExp(r':\d+$').hasMatch(base)
         ? ''
         : '\nTip: API_BASE_URL must include a colon before the port, e.g. http://192.168.1.10:8000';
-    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$tip';
+    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$portTip$tunnelHint';
   }
 
   Future<SellerModel> createSeller(SellerCreatePayload payload) async {
@@ -286,6 +335,31 @@ class ApiService {
 
   Future<void> deleteProduct(String sellerId, String productId) async {
     await deletePath('/sellers/$sellerId/products/$productId', auth: true);
+  }
+
+  Future<ServiceModel> addService(
+    String sellerId,
+    ServiceCreatePayload payload,
+  ) async {
+    final data = await postJson('/sellers/$sellerId/services', payload.toJson(), auth: true);
+    return ServiceModel.fromJson(data);
+  }
+
+  Future<ServiceModel> updateService(
+    String sellerId,
+    String serviceId,
+    ServiceUpdatePayload payload,
+  ) async {
+    final data = await patchJson(
+      '/sellers/$sellerId/services/$serviceId',
+      payload.toJson(),
+      auth: true,
+    );
+    return ServiceModel.fromJson(data);
+  }
+
+  Future<void> deleteService(String sellerId, String serviceId) async {
+    await deletePath('/sellers/$sellerId/services/$serviceId', auth: true);
   }
 
   Future<void> changePassword({
@@ -353,6 +427,8 @@ class ApiService {
     String? city,
     String? category,
     String sort = 'relevance',
+    double? lat,
+    double? lng,
     int offset = 0,
     int limit = 20,
   }) async {
@@ -364,6 +440,8 @@ class ApiService {
       'limit': '$limit',
       if (city != null && city.isNotEmpty) 'city': city,
       if (category != null && category.isNotEmpty) 'category': category,
+      if (lat != null) 'lat': '$lat',
+      if (lng != null) 'lng': '$lng',
     };
     final response = await _request(
       () => _get(_uri('/search', params), headers: _authHeaders),

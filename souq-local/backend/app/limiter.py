@@ -1,10 +1,10 @@
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from app.config import settings
+from app.services.client_ip import get_client_ip
 
 _kwargs: dict = {
-    "key_func": get_remote_address,
+    "key_func": get_client_ip,
     "default_limits": [settings.rate_limit],
 }
 if settings.redis_url.strip():

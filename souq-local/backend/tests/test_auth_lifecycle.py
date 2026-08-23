@@ -11,6 +11,7 @@ import app.database as database
 from app.config import Settings
 from app.main import app
 from app.models import AuthToken, SellerProfile, User, UserStatus
+from tests.auth_helpers import register_test_user
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -25,21 +26,18 @@ async def client():
 async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
     email = f"{account_type}-{uuid4().hex[:8]}@example.com"
     password = "SecurePass1"
-    res = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-            "account_type": account_type,
-            "display_name": account_type.title(),
-        },
+    body = await register_test_user(
+        client,
+        email=email,
+        password=password,
+        account_type=account_type,
+        display_name=account_type.title(),
     )
-    assert res.status_code == 201, res.text
     return {
         "email": email,
         "password": password,
-        "headers": {"Authorization": f"Bearer {res.json()['access_token']}"},
-        "refresh": res.json()["refresh_token"],
+        "headers": {"Authorization": f"Bearer {body['access_token']}"},
+        "refresh": body["refresh_token"],
     }
 
 
@@ -213,8 +211,8 @@ async def test_delete_account_removes_seller_storefront(client: AsyncClient):
 async def test_subscribe_premium_blocked_in_production(client: AsyncClient, monkeypatch):
     from app.config import settings
 
-    monkeypatch.setattr(settings, "app_env", "production")
     user = await _register(client, "buyer")
+    monkeypatch.setattr(settings, "app_env", "production")
     res = await client.post("/subscriptions/subscribe/buyer_premium", headers=user["headers"])
     assert res.status_code == 503
     assert "billing" in res.json()["detail"].lower() or "provider" in res.json()["detail"].lower() or "admin" in res.json()["detail"].lower()

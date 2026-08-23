@@ -16,6 +16,7 @@ dependencies:
   go_router: ^14.6.2
   google_maps_flutter: ^2.10.0
   http: ^1.2.2
+  crypto: ^3.0.6
   cached_network_image: ^3.4.1
   url_launcher: ^6.3.1
   flutter_rating_bar: ^4.0.1
