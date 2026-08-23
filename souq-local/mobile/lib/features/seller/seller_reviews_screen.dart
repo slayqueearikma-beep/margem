@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
 
@@ -18,7 +19,7 @@ class SellerReviewsScreen extends ConsumerWidget {
     final accountAsync = ref.watch(sellerAccountProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reviews)),
+      appBar: MarGemAppBar(semanticLabel: l10n.reviews),
       body: accountAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => AsyncErrorView.fromError(
@@ -83,49 +84,49 @@ class _ReviewsBodyState extends ConsumerState<_ReviewsBody> {
         return RefreshIndicator(
           onRefresh: _reload,
           child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+            padding: EdgeInsets.all(AppSpacing.screenHorizontal),
             children: [
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
-                      const Icon(Icons.star_rounded,
-                          color: AppColors.star, size: 28),
-                      const SizedBox(width: 8),
+                      Icon(Icons.star_rounded,
+                          color: context.colors.star, size: 28),
+                      SizedBox(width: 8),
                       Text(
                         widget.stats.averageRating.toStringAsFixed(1),
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 24, fontWeight: FontWeight.w700),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(l10n.reviewsCount(widget.stats.reviewCount)),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               ...reviews.map((review) {
                 return Card(
-                  margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  margin: EdgeInsets.only(bottom: AppSpacing.sm),
                   child: ListTile(
                     title: Row(
                       children: [
                         Expanded(
                           child: Text(
                             review.buyerDisplayName,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
                         Text(
                           review.overallRating.toStringAsFixed(1),
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+                          style: TextStyle(fontWeight: FontWeight.w700),
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         ...List.generate(
                           review.rating.clamp(0, 5),
-                          (_) => const Icon(Icons.star_rounded,
-                              size: 14, color: AppColors.star),
+                          (_) => Icon(Icons.star_rounded,
+                              size: 14, color: context.colors.star),
                         ),
                       ],
                     ),
@@ -186,8 +187,8 @@ class SellerNotificationsScreen extends ConsumerWidget {
     final notificationsAsync = ref.watch(notificationsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.notifications),
+      appBar: MarGemAppBar(
+        semanticLabel: l10n.notifications,
         actions: [
           TextButton(
             onPressed: () async {
@@ -253,9 +254,9 @@ class SellerNotificationsScreen extends ConsumerWidget {
                           },
                     leading: CircleAvatar(
                       backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.12),
+                          context.colors.primary.withValues(alpha: 0.12),
                       child: Icon(_notificationIcon(item.kind),
-                          color: AppColors.primary),
+                          color: context.colors.primary),
                     ),
                     title: Text(
                       item.title,
@@ -270,8 +271,8 @@ class SellerNotificationsScreen extends ConsumerWidget {
                     ),
                     trailing: item.isRead
                         ? null
-                        : const Icon(Icons.circle,
-                            size: 10, color: AppColors.primary),
+                        : Icon(Icons.circle,
+                            size: 10, color: context.colors.primary),
                   ),
                 );
               },
