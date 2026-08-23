@@ -7,11 +7,14 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/models/city_model.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
@@ -30,9 +33,27 @@ class _BuyerRegistrationScreenState
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final String _city = AppConfig.launchCity;
+  CityModel? _selectedCity;
   XFile? _profileImage;
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initDefaultCity());
+  }
+
+  Future<void> _initDefaultCity() async {
+    try {
+      final cities = await ref.read(citiesProvider.future);
+      if (!mounted || _selectedCity != null) return;
+      final defaultCity =
+          findCityByName(cities, AppConfig.launchCity) ?? cities.first;
+      setState(() => _selectedCity = defaultCity);
+    } on Object {
+      // City picker will load when API is available.
+    }
+  }
 
   @override
   void dispose() {
@@ -84,7 +105,7 @@ class _BuyerRegistrationScreenState
           name: session.user.displayName,
           email: session.user.email,
           accountType: AccountType.buyer,
-          city: _city,
+          city: _selectedCity?.nameEn ?? AppConfig.launchCity,
         );
 
         final guestItems = guestFavoritesMigrationPayload(storage);
@@ -96,6 +117,12 @@ class _BuyerRegistrationScreenState
         await storage.completeOnboarding();
         await storage.saveSession(userSession);
         await storage.saveAppMode(AppMode.buyer);
+        await storage.saveSelectedCity(
+          userSession.city ?? AppConfig.launchCity,
+        );
+        if (_selectedCity != null) {
+          await ref.read(buyerCityProvider.notifier).setCity(_selectedCity!);
+        }
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
 
@@ -184,11 +211,9 @@ class _BuyerRegistrationScreenState
             prefixIcon: Icons.lock_outline,
           ),
           const SizedBox(height: AppSpacing.md),
-          AppTextField(
-            label: l10n.city,
-            hint: AppConfig.launchCity,
-            readOnly: true,
-            prefixIcon: Icons.location_city_outlined,
+          CityPickerField(
+            selected: _selectedCity,
+            onSelected: (city) => setState(() => _selectedCity = city),
           ),
         ],
       ),

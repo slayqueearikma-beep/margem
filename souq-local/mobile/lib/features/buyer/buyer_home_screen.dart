@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/models.dart';
 import '../../core/navigation/app_back_handler.dart';
@@ -14,9 +13,11 @@ import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
+import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -24,11 +25,6 @@ import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
-
-final buyerCityProvider = StateProvider<String>((ref) {
-  // Casablanca-only launch — ignore any other saved city.
-  return AppConfig.launchCity;
-});
 
 final buyerCategorySlugProvider = StateProvider<String?>((ref) => null);
 
@@ -140,6 +136,9 @@ class BuyerHomeScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final city = ref.watch(buyerCityProvider);
+    final locale = Localizations.localeOf(context).languageCode;
+    final cityLabel = ref.watch(buyerCityModelProvider)?.localizedName(locale) ??
+        city;
     final sellersAsync = ref.watch(buyerSellersProvider);
     final categoriesAsync = ref.watch(buyerCategoriesProvider);
     final favoriteIds = ref.watch(buyerFavoriteSellerIdsProvider).valueOrNull ??
@@ -165,9 +164,18 @@ class BuyerHomeScreen extends ConsumerWidget {
                     greeting: l10n.goodMorning(
                       session?.name.split(' ').first ?? l10n.guestMode,
                     ),
-                    city: city,
+                    city: cityLabel,
                     isGuest: isGuest,
-                    onCityTap: null,
+                    onCityTap: () async {
+                      final picked = await showCityPickerSheet(
+                        context,
+                        ref,
+                        selected: ref.read(buyerCityModelProvider),
+                      );
+                      if (picked != null) {
+                        await ref.read(buyerCityProvider.notifier).setCity(picked);
+                      }
+                    },
                     onNotifications: () {
                       if (isGuest) {
                         context.push('/login');
@@ -979,6 +987,10 @@ class BuyerProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
+    final city = ref.watch(buyerCityProvider);
+    final locale = Localizations.localeOf(context).languageCode;
+    final cityLabel = ref.watch(buyerCityModelProvider)?.localizedName(locale) ??
+        city;
     final isGuest = session == null || session.isGuest;
     final hasSellerProfile = session?.hasSellerProfile ?? false;
     final displayName = (session?.name.trim().isNotEmpty ?? false)
@@ -1021,7 +1033,17 @@ class BuyerProfileScreen extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.location_city_outlined),
               title: Text(l10n.city),
-              subtitle: Text(session?.city ?? '—'),
+              subtitle: Text(cityLabel),
+              onTap: () async {
+                final picked = await showCityPickerSheet(
+                  context,
+                  ref,
+                  selected: ref.read(buyerCityModelProvider),
+                );
+                if (picked != null) {
+                  await ref.read(buyerCityProvider.notifier).setCity(picked);
+                }
+              },
             ),
             const LanguageSettingsTile(),
             if (!isGuest)

@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/auth_models.dart';
+import '../../core/models/city_model.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -25,7 +30,31 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   final _description = TextEditingController();
   final _address = TextEditingController();
   final _phone = TextEditingController();
+  CityModel? _selectedCity;
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initDefaultCity());
+  }
+
+  Future<void> _initDefaultCity() async {
+    try {
+      final cities = await ref.read(citiesProvider.future);
+      if (!mounted || _selectedCity != null) return;
+      final session = ref.read(userSessionProvider);
+      final savedCity = session?.city ??
+          ref.read(buyerCityProvider);
+      final defaultCity =
+          findCityByName(cities, savedCity ?? AppConfig.launchCity) ??
+          findCityByName(cities, AppConfig.launchCity) ??
+          cities.first;
+      setState(() => _selectedCity = defaultCity);
+    } on Object {
+      // City picker will load when API is available.
+    }
+  }
 
   @override
   void dispose() {
@@ -54,13 +83,16 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
 
     setState(() => _loading = true);
     try {
-      final coords = CityCoordinates.casablanca;
+      final city = _selectedCity;
+      final coords = city != null
+          ? LatLng(city.latitude, city.longitude)
+          : CityCoordinates.casablanca;
       final seller = await apiServiceProvider.createSeller(
         SellerCreatePayload(
           businessName: _businessName.text.trim(),
           description: _description.text.trim(),
           address: _address.text.trim(),
-          city: AppConfig.launchCity,
+          city: city?.nameEn ?? AppConfig.launchCity,
           latitude: coords.latitude,
           longitude: coords.longitude,
           phone: _phone.text.trim(),
@@ -121,9 +153,9 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
               decoration: InputDecoration(labelText: l10n.fullAddress),
             ),
             const SizedBox(height: AppSpacing.md),
-            InputDecorator(
-              decoration: InputDecoration(labelText: l10n.city),
-              child: const Text(AppConfig.launchCity),
+            CityPickerField(
+              selected: _selectedCity,
+              onSelected: (city) => setState(() => _selectedCity = city),
             ),
             const SizedBox(height: AppSpacing.md),
             TextField(

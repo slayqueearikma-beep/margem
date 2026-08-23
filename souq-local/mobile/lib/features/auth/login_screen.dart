@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -71,6 +72,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
 
         final existing = storage.getSession();
+        final selectedCity = storage.getSelectedCity() ??
+            existing?.city ??
+            ref.read(buyerCityProvider);
         var userSession = UserSession(
           name: session.user.displayName.isNotEmpty
               ? session.user.displayName
@@ -78,7 +82,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: session.user.email,
           accountType:
               session.user.canSell ? AccountType.seller : AccountType.buyer,
-          city: AppConfig.launchCity,
+          city: selectedCity,
           businessName: existing?.businessName,
           sellerId: existing?.sellerId,
         );
@@ -303,7 +307,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final storage = ref.read(appStorageProvider);
     if (storage == null) return;
     await storage.completeOnboarding();
-    await storage.saveGuestSession(city: AppConfig.launchCity);
+    await storage.saveGuestSession(
+      city: storage.getSelectedCity() ?? ref.read(buyerCityProvider),
+    );
     ref.read(userSessionProvider.notifier).state = storage.getSession();
     if (mounted) context.go('/buyer/home');
   }
