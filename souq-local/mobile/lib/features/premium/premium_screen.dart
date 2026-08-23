@@ -10,6 +10,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -70,15 +71,20 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
     final plansAsync = ref.watch(subscriptionPlansProvider);
     final subscriptionAsync = ref.watch(mySubscriptionProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.premium)),
+    return BuyerScreenScaffold(
+      appBar: BuyerAppBar(title: l10n.premium),
       body: plansAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.lavender),
+        ),
         error: (error, _) => AsyncErrorView.fromError(error,
             onRetry: () => ref.invalidate(subscriptionPlansProvider)),
         data: (plans) {
           if (plans.isEmpty) {
-            return Center(child: Text(l10n.noPremiumPlans));
+            return BuyerEmptyState(
+              icon: Icons.workspace_premium_outlined,
+              title: l10n.noPremiumPlans,
+            );
           }
           final active = subscriptionAsync.valueOrNull;
           return RefreshIndicator(
@@ -89,42 +95,67 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
             child: ListView(
               padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
               children: [
-                Card(
+                BuyerSurfaceCard(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.workspace_premium_outlined,
-                            color: AppColors.primary, size: 36),
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: AppColors.accentMuted(context),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.workspace_premium_rounded,
+                            color: AppColors.lavender,
+                            size: 32,
+                          ),
+                        ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           l10n.premiumTitle,
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                              ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           l10n.premiumSubtitle,
-                          style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant),
+                          style: TextStyle(color: AppColors.onSurfaceVariant(context)),
                         ),
                         if (active != null) ...[
                           const SizedBox(height: AppSpacing.md),
-                          Chip(
-                            avatar: const Icon(Icons.check_circle,
-                                color: AppColors.success),
-                            label: Text(l10n.activePlan(active.plan.name)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.successMuted,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppColors.success,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(l10n.activePlan(active.plan.name)),
+                              ],
+                            ),
                           ),
                         ] else if (session == null || session.isGuest) ...[
                           const SizedBox(height: AppSpacing.md),
                           TextButton.icon(
                             onPressed: () => context.push('/login'),
-                            icon: const Icon(Icons.login),
+                            icon: const Icon(Icons.login_rounded),
                             label: Text(l10n.signInToSubscribe),
                           ),
                         ],
@@ -169,38 +200,46 @@ class _PlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(plan.name,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: BuyerSurfaceCard(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      plan.name,
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w700)),
-                ),
-                if (active)
-                  const Icon(Icons.check_circle, color: AppColors.success),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(plan.description,
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              '${plan.priceMad.toStringAsFixed(0)} MAD / ${plan.billingPeriodDays} ${l10n.days}',
-              style: const TextStyle(
-                  color: AppColors.primary,
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  if (active)
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: AppColors.success,
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                plan.description,
+                style: TextStyle(color: AppColors.onSurfaceVariant(context)),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                '${plan.priceMad.toStringAsFixed(0)} MAD / ${plan.billingPeriodDays} ${l10n.days}',
+                style: const TextStyle(
+                  color: AppColors.lavender,
                   fontSize: 20,
-                  fontWeight: FontWeight.w700),
-            ),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             if (plan.features.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
               ...plan.features.map(
@@ -256,6 +295,7 @@ class _PlanCard extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

@@ -10,7 +10,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.models import RefreshToken
+from app.models import RefreshToken, User
 from app.services.audit import log_security_event
 
 pwd_context = CryptContext(
@@ -31,29 +31,35 @@ def verify_password(plain_password: str, password_hash: str) -> bool:
     return pwd_context.verify(plain_password, password_hash)
 
 
-def create_access_token(user_id: UUID) -> str:
+def create_access_token(user_id: UUID, *, token_version: int = 0) -> str:
     expire = datetime.now(UTC) + timedelta(minutes=settings.jwt_access_expire_minutes)
     payload = {
         "sub": str(user_id),
         "exp": expire,
         "type": "access",
+        "tv": token_version,
+        "iss": settings.jwt_issuer,
+        "aud": settings.jwt_audience,
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
-def decode_access_token(token: str) -> UUID | None:
+def decode_access_token(token: str) -> tuple[UUID, int] | None:
     try:
         payload = jwt.decode(
             token,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
+            audience=settings.jwt_audience,
+            issuer=settings.jwt_issuer,
+            options={"require": ["exp", "sub", "type", "tv", "iss", "aud"]},
         )
         if payload.get("type") != "access":
             return None
         sub = payload.get("sub")
         if not sub:
             return None
-        return UUID(sub)
+        return UUID(sub), int(payload.get("tv", 0))
     except (InvalidTokenError, ValueError, TypeError):
         return None
 
@@ -65,6 +71,9 @@ def _hash_refresh_token(token: str) -> str:
 async def revoke_all_refresh_tokens(session: AsyncSession, user_id: UUID) -> None:
     await session.execute(
         update(RefreshToken).where(RefreshToken.user_id == user_id).values(revoked=True)
+    )
+    await session.execute(
+        update(User).where(User.id == user_id).values(token_version=User.token_version + 1)
     )
 
 
@@ -94,8 +103,6 @@ async def issue_refresh_token(session: AsyncSession, user_id: UUID) -> str:
 
 async def rotate_refresh_token(session: AsyncSession, plain_token: str) -> tuple[UUID, str] | None:
     token_hash = _hash_refresh_token(plain_token)
-    # Lock the token row so parallel refresh requests cannot both rotate the
-    # same bearer credential before either transaction commits.
     result = await session.execute(
         select(RefreshToken)
         .where(RefreshToken.token_hash == token_hash)
@@ -105,7 +112,6 @@ async def rotate_refresh_token(session: AsyncSession, plain_token: str) -> tuple
     if stored is None:
         return None
 
-    # Reuse of a revoked refresh token => possible theft; revoke entire family.
     if stored.revoked:
         log_security_event("refresh_reuse_detected", user_id=str(stored.user_id))
         await revoke_all_refresh_tokens(session, stored.user_id)

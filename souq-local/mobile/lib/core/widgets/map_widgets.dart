@@ -3,28 +3,35 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../config/app_config.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../utils/directional_ui.dart';
 
 /// Full-screen map picker — never embed inside a [ScrollView].
 class MapLocationPickerPage extends StatefulWidget {
   const MapLocationPickerPage({
     super.key,
     required this.initial,
-    this.title = 'Set store location',
+    required this.title,
   });
 
   final LatLng initial;
   final String title;
 
-  static Future<LatLng?> open(BuildContext context, {required LatLng initial, String? title}) {
+  static Future<LatLng?> open(
+    BuildContext context, {
+    required LatLng initial,
+    String? title,
+  }) {
+    final l10n = AppLocalizations.get(context).strings;
     return Navigator.of(context).push<LatLng>(
       MaterialPageRoute(
         fullscreenDialog: true,
         builder: (_) => MapLocationPickerPage(
           initial: initial,
-          title: title ?? 'Set store location',
+          title: title ?? l10n.storeLocation,
         ),
       ),
     );
@@ -45,13 +52,17 @@ class _MapLocationPickerPageState extends State<MapLocationPickerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, _position),
-            child: const Text('Done', style: TextStyle(fontWeight: FontWeight.w700)),
+            child: Text(
+              l10n.done,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -63,7 +74,9 @@ class _MapLocationPickerPageState extends State<MapLocationPickerPage> {
                 Marker(markerId: const MarkerId('pick'), position: _position),
               }
             : {},
-        onTap: AppConfig.hasGoogleMapsApiKey ? (pos) => setState(() => _position = pos) : null,
+        onTap: AppConfig.hasGoogleMapsApiKey
+            ? (pos) => setState(() => _position = pos)
+            : null,
       ),
     );
   }
@@ -103,7 +116,9 @@ class SafeGoogleMap extends StatelessWidget {
       myLocationEnabled: myLocationEnabled,
       onMapCreated: onMapCreated,
       onTap: onTap,
-      gestureRecognizers: {Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer())},
+      gestureRecognizers: {
+        Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer())
+      },
     );
   }
 }
@@ -122,6 +137,7 @@ class MapUnavailablePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       color: AppColors.surfaceMuted,
       child: Center(
@@ -133,25 +149,37 @@ class MapUnavailablePlaceholder extends StatelessWidget {
               const Icon(Icons.map_outlined, size: 64, color: AppColors.primary),
               const SizedBox(height: AppSpacing.md),
               Text(
-                usingDemoData ? 'Demo map mode' : 'Map preview',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                usingDemoData ? l10n.mapDemoModeTitle : l10n.mapPreviewTitle,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 usingDemoData
-                    ? 'Showing sample businesses while the API is offline.'
-                    : 'Add GOOGLE_MAPS_API_KEY to android/local.properties',
+                    ? l10n.demoBusinessesMapHint
+                    : l10n.mapApiKeyHint,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.onSurfaceVariant(context)),
               ),
               if (markerCount > 0) ...[
                 const SizedBox(height: AppSpacing.md),
-                Text('$markerCount locations in this area', style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(
+                  l10n.mapLocationsInArea(markerCount),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ],
               const SizedBox(height: AppSpacing.sm),
               Text(
                 '${cityCenter.latitude.toStringAsFixed(4)}, ${cityCenter.longitude.toStringAsFixed(4)}',
-                style: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                style: const TextStyle(
+                  color: AppColors.textTertiary,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -181,14 +209,23 @@ class StoreLocationPickerTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null)
-          Text(label!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary)),
+          Text(
+            label!,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.onSurfaceVariant(context),
+                ),
+          ),
         if (label != null) const SizedBox(height: AppSpacing.sm),
         Material(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
           child: InkWell(
             onTap: () async {
-              final picked = await MapLocationPickerPage.open(context, initial: location, title: label);
+              final picked = await MapLocationPickerPage.open(
+                context,
+                initial: location,
+                title: label,
+              );
               if (picked != null) onLocationChanged(picked);
             },
             borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -207,7 +244,10 @@ class StoreLocationPickerTile extends StatelessWidget {
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.location_on_outlined, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.location_on_outlined,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
@@ -220,12 +260,18 @@ class StoreLocationPickerTile extends StatelessWidget {
                         ),
                         if (hint != null) ...[
                           const SizedBox(height: 4),
-                          Text(hint!, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                          Text(
+                            hint!,
+                            style: TextStyle(
+                              color: AppColors.onSurfaceVariant(context),
+                              fontSize: 13,
+                            ),
+                          ),
                         ],
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded),
+                  Icon(DirectionalUi.forwardChevron(context)),
                 ],
               ),
             ),

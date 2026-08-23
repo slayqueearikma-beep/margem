@@ -7,7 +7,10 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
+import '../models/city_model.dart';
+import '../models/community_models.dart';
 import '../models/models.dart';
+import 'secure_http_client.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -18,11 +21,28 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
+class SignupOtpSendResult {
+  SignupOtpSendResult({
+    required this.channel,
+    required this.destinationMasked,
+  });
+
+  final String channel;
+  final String destinationMasked;
+
+  factory SignupOtpSendResult.fromJson(Map<String, dynamic> json) {
+    return SignupOtpSendResult(
+      channel: json['channel'] as String,
+      destinationMasked: json['destination_masked'] as String,
+    );
+  }
+}
+
 typedef TokenRefreshCallback = Future<bool> Function();
 typedef SessionExpiredCallback = Future<void> Function();
 
 class ApiService {
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  ApiService({http.Client? client}) : _client = client ?? createSecureHttpClient();
 
   static const _requestTimeout = Duration(seconds: 15);
   static const _submitTimeout = Duration(seconds: 25);
@@ -63,6 +83,32 @@ class ApiService {
     if (body['database'] == 'error') {
       throw ApiException('API database is unavailable');
     }
+  }
+
+  Future<SignupOtpSendResult> sendSignupOtp({
+    required String email,
+    required String phone,
+    required String channel,
+  }) async {
+    final response = await postJson('/auth/signup/otp/send', {
+      'email': email,
+      'phone': phone,
+      'channel': channel,
+    });
+    return SignupOtpSendResult.fromJson(response);
+  }
+
+  Future<String> verifySignupOtp({
+    required String email,
+    required String code,
+    required String channel,
+  }) async {
+    final response = await postJson('/auth/signup/otp/verify', {
+      'email': email,
+      'code': code,
+      'channel': channel,
+    });
+    return response['signup_proof'] as String;
   }
 
   Future<Map<String, dynamic>> postJson(
@@ -236,10 +282,15 @@ class ApiService {
       return 'Cannot reach the server. Check your internet connection and try again.';
     }
     final base = AppConfig.apiBaseUrl;
-    final tip = RegExp(r':\d+$').hasMatch(base)
+    final tunnelHint = base.contains('trycloudflare.com')
+        ? '\n\nCloudflare quick tunnels expire when you stop cloudflared. '
+            'Restart the tunnel and update API_BASE_URL, or use your laptop IP:\n'
+            'flutter run --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000'
+        : '';
+    final portTip = RegExp(r':\d+$').hasMatch(base)
         ? ''
         : '\nTip: API_BASE_URL must include a colon before the port, e.g. http://192.168.1.10:8000';
-    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$tip';
+    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$portTip$tunnelHint';
   }
 
   Future<SellerModel> createSeller(SellerCreatePayload payload) async {
@@ -288,6 +339,31 @@ class ApiService {
     await deletePath('/sellers/$sellerId/products/$productId', auth: true);
   }
 
+  Future<ServiceModel> addService(
+    String sellerId,
+    ServiceCreatePayload payload,
+  ) async {
+    final data = await postJson('/sellers/$sellerId/services', payload.toJson(), auth: true);
+    return ServiceModel.fromJson(data);
+  }
+
+  Future<ServiceModel> updateService(
+    String sellerId,
+    String serviceId,
+    ServiceUpdatePayload payload,
+  ) async {
+    final data = await patchJson(
+      '/sellers/$sellerId/services/$serviceId',
+      payload.toJson(),
+      auth: true,
+    );
+    return ServiceModel.fromJson(data);
+  }
+
+  Future<void> deleteService(String sellerId, String serviceId) async {
+    await deletePath('/sellers/$sellerId/services/$serviceId', auth: true);
+  }
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -325,6 +401,20 @@ class ApiService {
     return null;
   }
 
+  Future<List<CityModel>> fetchCities({String? query}) async {
+    final params = <String, String>{'country': 'MA'};
+    if (query != null && query.trim().isNotEmpty) {
+      params['q'] = query.trim();
+    }
+    final response = await _get(_uri('/geography/cities', params));
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final items = data['items'] as List<dynamic>? ?? const [];
+    return items
+        .map((e) => CityModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<SellerModel>> fetchSellers({
     String? city,
     String? category,
@@ -353,6 +443,8 @@ class ApiService {
     String? city,
     String? category,
     String sort = 'relevance',
+    double? lat,
+    double? lng,
     int offset = 0,
     int limit = 20,
   }) async {
@@ -364,6 +456,8 @@ class ApiService {
       'limit': '$limit',
       if (city != null && city.isNotEmpty) 'city': city,
       if (category != null && category.isNotEmpty) 'category': category,
+      if (lat != null) 'lat': '$lat',
+      if (lng != null) 'lng': '$lng',
     };
     final response = await _request(
       () => _get(_uri('/search', params), headers: _authHeaders),
@@ -654,6 +748,146 @@ class ApiService {
       auth: true,
     );
     return ChatMessageModel.fromJson(data);
+  }
+
+  // ——— City community chat ———
+
+  Future<List<CommunityCityModel>> fetchCommunityCities({bool auth = false}) async {
+    final data = await getJsonList('/community/cities', auth: auth);
+    return data
+        .map((item) =>
+            CommunityCityModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CommunityDiscoverModel> fetchCommunityDiscover({bool auth = false}) async {
+    final data = await getJson('/community/discover', auth: auth);
+    return CommunityDiscoverModel.fromJson(data);
+  }
+
+  Future<CommunityCityModel> fetchCommunityCity(String slug, {bool auth = false}) async {
+    final data = await getJson('/community/cities/$slug', auth: auth);
+    return CommunityCityModel.fromJson(data);
+  }
+
+  Future<CommunityCityModel> joinCommunityCity(
+    String slug, {
+    bool isHomeCity = false,
+  }) async {
+    final data = await postJson(
+      '/community/cities/$slug/join',
+      {'is_home_city': isHomeCity},
+      auth: true,
+    );
+    return CommunityCityModel.fromJson(data);
+  }
+
+  Future<List<CommunityChannelModel>> fetchCommunityChannels(
+    String citySlug, {
+    bool auth = false,
+  }) async {
+    final data =
+        await getJsonList('/community/cities/$citySlug/channels', auth: auth);
+    return data
+        .map((item) =>
+            CommunityChannelModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<CommunityMessageModel>> fetchCommunityMessages(
+    String channelId, {
+    String? beforeId,
+    String? query,
+    bool verifiedOnly = false,
+    bool trustedOnly = false,
+  }) async {
+    final queryParams = <String, String>{
+      if (beforeId != null) 'before_id': beforeId,
+      if (query != null && query.isNotEmpty) 'q': query,
+      if (verifiedOnly) 'verified_only': 'true',
+      if (trustedOnly) 'trusted_only': 'true',
+    };
+    final data = await getJsonList(
+      '/community/channels/$channelId/messages${queryParams.isEmpty ? '' : '?${Uri(queryParameters: queryParams).query}'}',
+      auth: true,
+    );
+    return data
+        .map((item) =>
+            CommunityMessageModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CommunityMessageModel> postCommunityMessage({
+    required String channelId,
+    required String body,
+    String? replyToId,
+    List<Map<String, dynamic>> attachments = const [],
+  }) async {
+    final data = await postJson(
+      '/community/channels/$channelId/messages',
+      {
+        'body': body,
+        if (replyToId != null) 'reply_to_id': replyToId,
+        if (attachments.isNotEmpty) 'attachments': attachments,
+      },
+      auth: true,
+    );
+    return CommunityMessageModel.fromJson(data);
+  }
+
+  Future<CommunityMessageModel> editCommunityMessage(
+    String messageId,
+    String body,
+  ) async {
+    final data = await patchJson(
+      '/community/messages/$messageId',
+      {'body': body},
+      auth: true,
+    );
+    return CommunityMessageModel.fromJson(data);
+  }
+
+  Future<void> deleteCommunityMessage(String messageId) {
+    return deletePath('/community/messages/$messageId', auth: true);
+  }
+
+  Future<List<CommunityReactionModel>> reactCommunityMessage(
+    String messageId,
+    String emoji,
+  ) async {
+    final response = await _request(
+      () => _post(
+        _uri('/community/messages/$messageId/reactions'),
+        headers: _jsonHeaders(auth: true),
+        body: jsonEncode({'emoji': emoji}),
+      ),
+      auth: true,
+    );
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => CommunityReactionModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> reportCommunityMessage(
+    String messageId, {
+    required String reason,
+    String details = '',
+  }) {
+    return postVoid(
+      '/community/messages/$messageId/report',
+      {'reason': reason, 'details': details},
+      auth: true,
+    );
+  }
+
+  Future<void> blockCommunityUser(String userId) {
+    return postVoid('/community/users/block', {'user_id': userId}, auth: true);
+  }
+
+  Future<void> muteCommunityUser(String userId) {
+    return postVoid('/community/users/mute', {'user_id': userId}, auth: true);
   }
 
   Future<List<SubscriptionPlanModel>> fetchSubscriptionPlans() async {

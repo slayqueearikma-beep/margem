@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth import get_current_user, get_current_user_optional
+from app.services.text_sanitizer import sanitize_free_text
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (
@@ -508,8 +509,8 @@ async def create_report(
         seller = await session.get(SellerProfile, payload.seller_id)
         if seller is None:
             raise HTTPException(status_code=404, detail="Seller not found")
-    reason = payload.reason.strip()
-    if not reason or len(reason) > 80:
+    reason = sanitize_free_text(payload.reason, max_length=80)
+    if not reason:
         raise HTTPException(status_code=400, detail="Invalid report reason")
     report = Report(
         id=uuid4(),
@@ -517,7 +518,7 @@ async def create_report(
         seller_id=payload.seller_id,
         product_id=payload.product_id,
         reason=reason,
-        details=(payload.details or "").strip()[:2000],
+        details=sanitize_free_text(payload.details or "", max_length=2000),
     )
     session.add(report)
     await session.commit()
