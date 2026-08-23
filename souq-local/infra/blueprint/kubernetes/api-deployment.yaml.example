@@ -1,0 +1,79 @@
+# Kubernetes manifests — EXAMPLES ONLY
+# Not applied by Terraform or CI. Deploy manually when AKS module is active.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: margem-api
+  labels:
+    app: margem-api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: margem-api
+  template:
+    metadata:
+      labels:
+        app: margem-api
+    spec:
+      serviceAccountName: margem-api
+      containers:
+        - name: api
+          image: ${ACR}.azurecr.io/margem-api:${VERSION}
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: margem-api-secrets
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: 8000
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: margem-api
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: margem-api
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: margem-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: margem-api
+  minReplicas: 3
+  maxReplicas: 100
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

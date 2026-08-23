@@ -17,6 +17,29 @@ _MAX_FILENAME_LENGTH = 120
 _AZURE_BLOB_HOST_SUFFIX = ".blob.core.windows.net"
 
 
+def validate_presign_upload_url(
+    upload_url: str,
+    *,
+    public_api_url: str,
+    allowed_hosts: list[str] | None = None,
+) -> None:
+    """Ensure presigned upload targets only our API or Azure Blob storage."""
+    parsed = urlparse(upload_url.strip())
+    if parsed.scheme not in {"http", "https"}:
+        raise ValueError("Upload URL must use http(s)")
+
+    host = (parsed.hostname or "").lower()
+    if not host:
+        raise ValueError("Upload URL host is missing")
+
+    api_host = (urlparse(public_api_url.rstrip("/")).hostname or "").lower()
+    extra_hosts = {h.lower() for h in (allowed_hosts or []) if h}
+
+    if host == api_host or host.endswith(_AZURE_BLOB_HOST_SUFFIX) or host in extra_hosts:
+        return
+    raise ValueError("Upload URL host is not allowed")
+
+
 def sanitize_upload_filename(filename: str) -> str:
     name = PurePosixPath(filename).name
     name = re.sub(r"[^A-Za-z0-9._-]", "_", name).strip("._")
