@@ -229,15 +229,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                               borderRadius: BorderRadius.circular(16),
                               child: MarketSectionCard(
                                 title: l10n.seller,
-                                trailing: const Icon(
+                                trailing: Icon(
                                   Icons.chevron_right_rounded,
-                                  color: AppColors.textSecondary,
+                                  color: AppColors.onSurfaceVariant(context),
                                 ),
                                 child: Row(
                                   children: [
                                     CircleAvatar(
                                       radius: 24,
-                                      backgroundColor: AppColors.cardSelected,
+                                      backgroundColor: AppColors.mutedSurface(context),
                                       child: ClipOval(
                                         child: SizedBox(
                                           width: 48,
@@ -285,8 +285,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                           Text(
                                             l10n.reviewsCount(
                                                 seller.reviewCount),
-                                            style: const TextStyle(
-                                              color: AppColors.textSecondary,
+                                            style: TextStyle(
+                                              color: AppColors.onSurfaceVariant(context),
                                               fontSize: 13,
                                             ),
                                           ),

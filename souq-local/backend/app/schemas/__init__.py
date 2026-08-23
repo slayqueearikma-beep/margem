@@ -3,9 +3,10 @@ from enum import Enum
 from urllib.parse import urlparse
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.services.password_policy import validate_password_strength
+from app.services.service_pricing import PricingModel, normalize_service_pricing
 
 
 def _validate_http_url(value: str, *, field_name: str = "url") -> str:
@@ -37,12 +38,31 @@ class UserRegister(BaseModel):
     # Optional — defaults to buyer. Sellers unlock storefront later on the same account.
     account_type: AccountType = AccountType.BUYER
     display_name: str = Field(default="", max_length=120)
+    signup_proof: str = Field(min_length=20, max_length=128)
 
     @field_validator("password")
     @classmethod
     def strong_password(cls, value: str) -> str:
         validate_password_strength(value)
         return value
+
+
+class SignupOtpSendRequest(BaseModel):
+    email: EmailStr
+    phone: str = Field(default="", max_length=32)
+    channel: str = Field(pattern=r"^(email|phone)$")
+
+
+class SignupOtpVerifyRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    channel: str = Field(pattern=r"^(email|phone)$")
+
+
+class SignupOtpSendResponse(BaseModel):
+    channel: str
+    destination_masked: str
+    dev_code: str | None = None
 
 
 class UserRegisterFirebase(BaseModel):
@@ -94,11 +114,36 @@ class UserOut(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
+    access_token: str = ""
+    refresh_token: str = ""
     token_type: str = "bearer"
-    expires_in: int
-    user: UserOut
+    expires_in: int = 0
+    user: UserOut | None = None
+    mfa_required: bool = False
+    mfa_token: str | None = None
+
+
+class MfaEnrollOut(BaseModel):
+    secret: str
+    otpauth_uri: str
+
+
+class MfaConfirmOut(BaseModel):
+    recovery_codes: list[str]
+
+
+class MfaCodeRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=16)
+
+
+class MfaLoginRequest(BaseModel):
+    mfa_token: str = Field(min_length=6, max_length=256)
+    code: str = Field(min_length=6, max_length=16)
+
+
+class MfaDisableRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=16)
+    password: str = Field(min_length=1, max_length=128)
 
 
 class RefreshRequest(BaseModel):
@@ -216,7 +261,10 @@ class ProductOut(BaseModel):
 class ServiceCreate(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     description: str = ""
+    pricing_model: PricingModel = PricingModel.FIXED_PRICE
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    price_min_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    price_max_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     price_negotiable: bool = False
     coverage_areas: list[str] = Field(default_factory=list)
     image_url: str = ""
@@ -227,11 +275,28 @@ class ServiceCreate(BaseModel):
     def validate_image_url(cls, value: str) -> str:
         return _validate_http_url(value)
 
+    @model_validator(mode="before")
+    @classmethod
+    def legacy_pricing_fields(cls, data):
+        if not isinstance(data, dict) or "pricing_model" in data:
+            return data
+        if data.get("price_negotiable"):
+            data["pricing_model"] = PricingModel.NEGOTIABLE
+        elif data.get("price_mad") is None:
+            data["pricing_model"] = PricingModel.REQUEST_QUOTE
+        return data
+
+    def normalized_pricing(self) -> dict:
+        return normalize_service_pricing(self.model_dump())
+
 
 class ServiceUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
     description: str | None = None
+    pricing_model: PricingModel | None = None
     price_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    price_min_mad: float | None = Field(default=None, ge=0, le=10_000_000)
+    price_max_mad: float | None = Field(default=None, ge=0, le=10_000_000)
     price_negotiable: bool | None = None
     coverage_areas: list[str] | None = None
     image_url: str | None = None
@@ -250,7 +315,10 @@ class ServiceOut(BaseModel):
     id: UUID
     name: str
     description: str
+    pricing_model: PricingModel = PricingModel.FIXED_PRICE
     price_mad: float | None
+    price_min_mad: float | None = None
+    price_max_mad: float | None = None
     price_negotiable: bool = False
     coverage_areas: list = Field(default_factory=list)
     image_url: str
@@ -303,16 +371,10 @@ class SellerCreate(BaseModel):
 
     @field_validator("city")
     @classmethod
-    def launch_city_only(cls, value: str) -> str:
-        from app.config import settings
+    def validate_city(cls, value: str) -> str:
+        from app.services.geography import resolve_city_name
 
-        cleaned = value.strip()
-        for city in settings.default_cities:
-            if city.casefold() == cleaned.casefold():
-                return city
-        raise ValueError(
-            f"MarGem currently supports {', '.join(settings.default_cities)} only"
-        )
+        return resolve_city_name(value)
 
 
 class SellerUpdate(BaseModel):
@@ -339,18 +401,12 @@ class SellerUpdate(BaseModel):
 
     @field_validator("city")
     @classmethod
-    def launch_city_only(cls, value: str | None) -> str | None:
+    def validate_city(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        from app.config import settings
+        from app.services.geography import resolve_city_name
 
-        cleaned = value.strip()
-        for city in settings.default_cities:
-            if city.casefold() == cleaned.casefold():
-                return city
-        raise ValueError(
-            f"MarGem currently supports {', '.join(settings.default_cities)} only"
-        )
+        return resolve_city_name(value)
 
 
 class SellerSummary(BaseModel):
@@ -374,6 +430,7 @@ class SellerSummary(BaseModel):
     verification_status: str = "unverified"
     avg_response_minutes: int = 0
     categories: list[CategoryOut]
+    distance_km: float | None = None
 
     model_config = {"from_attributes": True}
 

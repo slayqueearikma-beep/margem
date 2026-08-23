@@ -19,6 +19,10 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/map_widgets.dart';
+import '../../core/models/city_model.dart';
+import '../../core/providers/city_providers.dart';
+import '../../core/widgets/city_picker_field.dart';
+import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/services/upload_service.dart';
 
@@ -44,7 +48,7 @@ class _SellerRegistrationScreenState
 
   // Step 2
   String _category = 'Food';
-  final String _city = AppConfig.launchCity;
+  CityModel? _selectedCity;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   LatLng _location = CityCoordinates.casablanca;
@@ -142,18 +146,29 @@ class _SellerRegistrationScreenState
   }
 
   Future<void> _submit() async {
-    setState(() => _loading = true);
     final l10n = context.l10n;
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    final signupProof = await showSignupVerificationFlow(
+      context: context,
+      email: email,
+      phone: phone,
+    );
+    if (!mounted || signupProof == null) return;
+
+    setState(() => _loading = true);
     try {
       await apiServiceProvider.runSubmit(() async {
         await apiServiceProvider.checkHealth();
 
         final auth = ref.read(authServiceProvider);
         final session = await auth.register(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text,
           accountType: 'seller',
           displayName: _ownerNameController.text.trim(),
+          signupProof: signupProof,
         );
 
         final prefs = await ref.read(sharedPreferencesProvider.future);
@@ -177,7 +192,7 @@ class _SellerRegistrationScreenState
             businessName: _businessNameController.text.trim(),
             description: _descriptionController.text.trim(),
             address: _addressController.text.trim(),
-            city: _city,
+            city: _selectedCity?.nameEn ?? AppConfig.launchCity,
             latitude: _location.latitude,
             longitude: _location.longitude,
             phone: _phoneController.text.trim(),
@@ -224,7 +239,7 @@ class _SellerRegistrationScreenState
           name: _ownerNameController.text.trim(),
           email: session.user.email,
           accountType: AccountType.seller,
-          city: _city,
+          city: _selectedCity?.nameEn ?? AppConfig.launchCity,
           businessName: _businessNameController.text.trim(),
           sellerId: sellerId,
         );
@@ -254,6 +269,12 @@ class _SellerRegistrationScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final cities = ref.watch(citiesProvider).valueOrNull;
+    if (_selectedCity == null && cities != null && cities.isNotEmpty) {
+      _selectedCity =
+          findCityByName(cities, AppConfig.launchCity) ?? cities.first;
+      _location = LatLng(_selectedCity!.latitude, _selectedCity!.longitude);
+    }
     return OnboardingScaffold(
       showBack: true,
       onBack: _back,
@@ -348,11 +369,12 @@ class _SellerRegistrationScreenState
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(
-          label: l10n.city,
-          hint: AppConfig.launchCity,
-          readOnly: true,
-          prefixIcon: Icons.location_city_outlined,
+        CityPickerField(
+          selected: _selectedCity,
+          onSelected: (city) => setState(() {
+            _selectedCity = city;
+            _location = LatLng(city.latitude, city.longitude);
+          }),
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
@@ -526,7 +548,7 @@ class _SellerRegistrationScreenState
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
         _ReviewRow(l10n.email, _emailController.text),
         _ReviewRow(l10n.reviewCategory, l10n.categoryLabel(_category)),
-        _ReviewRow(l10n.reviewCity, _city),
+        _ReviewRow(l10n.reviewCity, _selectedCity?.nameEn ?? AppConfig.launchCity),
         _ReviewRow(l10n.reviewAddress, _addressController.text),
         _ReviewRow(l10n.reviewPhone, _phoneController.text),
         _ReviewRow(l10n.reviewProducts, l10n.itemsCount(productCount)),
@@ -542,7 +564,8 @@ class _SellerRegistrationScreenState
               const Icon(Icons.info_outline, color: AppColors.primary),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                  child: Text(l10n.sellerVisibilityNote(_city),
+                  child: Text(l10n.sellerVisibilityNote(
+                      _selectedCity?.nameEn ?? AppConfig.launchCity),
                       style: Theme.of(context).textTheme.bodySmall)),
             ],
           ),
