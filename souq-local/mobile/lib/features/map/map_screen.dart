@@ -12,6 +12,7 @@ import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
@@ -139,32 +140,61 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               top: MediaQuery.of(context).padding.top + 12,
               left: AppSpacing.screenHorizontal,
               right: AppSpacing.screenHorizontal,
-              child: Card(
+              child: BuyerSurfaceCard(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, color: AppColors.primary),
+                      const Icon(
+                        Icons.location_on_rounded,
+                        color: AppColors.lavender,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
-                      Text(city, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(
+                        city,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
                       const Spacer(),
                       if (usingDemo)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.warning.withValues(alpha: 0.15),
+                            color: AppColors.warningMuted,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text('Demo', style: TextStyle(color: AppColors.warning, fontSize: 12)),
+                          child: const Text(
+                            'Demo',
+                            style: TextStyle(
+                              color: AppColors.warning,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         )
                       else if (warnings.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.danger.withValues(alpha: 0.12),
+                            color: AppColors.dangerMuted,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(l10n.warningZones(warnings.length), style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+                          child: Text(
+                            l10n.warningZones(warnings.length),
+                            style: const TextStyle(
+                              color: AppColors.danger,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                     ],
                   ),
@@ -176,7 +206,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 bottom: AppSpacing.lg,
                 left: AppSpacing.screenHorizontal,
                 right: AppSpacing.screenHorizontal,
-                child: Card(
+                child: BuyerSurfaceCard(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     child: Text(

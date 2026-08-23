@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/app_logo_placeholder.dart';
+import '../../core/widgets/margem_background.dart';
 import '../../l10n/app_localizations.dart';
 
 class LanguageOption {
@@ -72,8 +73,10 @@ class _LanguageSelectionScreenState
     final l10n = context.l10n;
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
+      backgroundColor: Colors.transparent,
+      body: MargemBackground(
+        child: SafeArea(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (widget.fromSettings)
@@ -93,9 +96,15 @@ class _LanguageSelectionScreenState
                   children: [
                     if (!widget.fromSettings)
                       const SizedBox(height: AppSpacing.md),
-                    const Center(
-                        child: AppBrandLogo(
-                            variant: AppBrandLogoVariant.full, width: 200)),
+                    Center(
+                      child: AppBrandLogo.forContext(
+                        widget.fromSettings
+                            ? AppBrandContext.compactBranding
+                            : AppBrandContext.settingsBranding,
+                        size: widget.fromSettings ? 48 : 96,
+                        showTagline: !widget.fromSettings,
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.lg),
                     Text(
                       l10n.selectLanguage,
@@ -144,6 +153,7 @@ class _LanguageSelectionScreenState
           ],
         ),
       ),
+    ),
     );
   }
 }

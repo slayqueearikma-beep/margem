@@ -8,6 +8,7 @@ import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -30,9 +31,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   void initState() {
     super.initState();
     _tokenController = TextEditingController(text: widget.initialToken);
-    if (widget.initialToken.trim().isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _confirm());
-    }
   }
 
   @override
@@ -108,7 +106,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final canResend = session != null && !session.isGuest;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.verifyEmailTitle)),
+      appBar: BuyerAppBar(title: l10n.verifyEmailTitle),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
@@ -116,10 +114,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: AppSpacing.lg),
-              const Center(
-                child: AppBrandLogo(
-                  variant: AppBrandLogoVariant.icon,
-                  iconSize: 56,
+              Center(
+                child: AppBrandLogo.forContext(
+                  AppBrandContext.compactBranding,
+                  size: 56,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
