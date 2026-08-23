@@ -139,6 +139,78 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get navMessages => 'Messages';
   @override
+  String get navDashboard => 'Tableau de bord';
+  @override
+  String get navServices => 'Services';
+  @override
+  String get navBookings => 'Réservations';
+  @override
+  String get navMore => 'Plus';
+  @override
+  String get earnings => 'Revenus';
+  @override
+  String get gallery => 'Galerie';
+  @override
+  String get businessInfo => 'Infos commerce';
+  @override
+  String get helpSupport => 'Aide & support';
+  @override
+  String get comingSoon => 'Bientôt';
+  @override
+  String get upcomingBookings => 'Réservations à venir';
+  @override
+  String get viewAll => 'Tout voir';
+  @override
+  String get highlightServices => 'Services en vedette';
+  @override
+  String get upcoming => 'À venir';
+  @override
+  String filterAll(int count) => 'Tous ($count)';
+  @override
+  String filterActive(int count) => 'Actifs ($count)';
+  @override
+  String filterInactive(int count) => 'Inactifs ($count)';
+  @override
+  String bookingsUpcoming(int count) =>
+      count > 0 ? 'À venir ($count)' : 'À venir';
+  @override
+  String bookingsCompleted(int count) =>
+      count > 0 ? 'Terminées ($count)' : 'Terminées';
+  @override
+  String bookingsCancelled(int count) =>
+      count > 0 ? 'Annulées ($count)' : 'Annulées';
+  @override
+  String get noBookingsYet =>
+      'Aucune réservation. Les demandes clients apparaîtront ici.';
+  @override
+  String get noBookingsInCategory => 'Rien dans cette catégorie.';
+  @override
+  String get bookingsInquiryHint =>
+      'Ouvrez les messages pour répondre aux clients.';
+  @override
+  String get viewMessages => 'Voir les messages';
+  @override
+  String get today => 'Aujourd\'hui';
+  @override
+  String favoritesCount(int count) => '$count favoris sur votre vitrine';
+  @override
+  String get stepBasicInfo => 'Infos de base';
+  @override
+  String get stepPricing => 'Tarification';
+  @override
+  String get stepDetails => 'Détails';
+  @override
+  String get customersWillSee => 'Les clients verront :';
+  @override
+  String get nextStep => 'Continuer';
+  @override
+  String get publishService => 'Publier le service';
+  @override
+  String get serviceStatusLive => 'Service en ligne';
+  @override
+  String get serviceDetailsHint =>
+      'Vous pouvez modifier la disponibilité et les tarifs à tout moment.';
+  @override
   String get margemMember => 'Membre MarGem';
   @override
   String get allCategories => 'Tous';
@@ -199,6 +271,8 @@ class AppStringsFr extends AppStringsEn {
   String get businessKeyword => 'Nom du commerce ou mot-clé';
   @override
   String get noBusinessesFound => 'Aucun commerce trouvé';
+  @override
+  String get searchSortedByNearest => 'Résultats les plus proches';
   @override
   String warningZones(int count) => '$count zone(s) d\'alerte';
   @override
@@ -306,6 +380,25 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get productDeleted => 'Produit supprimé';
   @override
+  String get serviceManagement => 'Gestion des services';
+  @override
+  String get serviceManagementSub => 'Ajouter, modifier ou supprimer des services et tarifs';
+  @override
+  String get addService => 'Ajouter un service';
+  @override
+  String get editService => 'Modifier le service';
+  @override
+  String get deleteService => 'Supprimer le service';
+  @override
+  String get deleteServiceConfirm =>
+      'Supprimer ce service ? Les acheteurs ne le verront plus sur votre vitrine.';
+  @override
+  String get noServicesYet => 'Aucun service. Ajoutez votre premier service.';
+  @override
+  String get serviceSaved => 'Service enregistré';
+  @override
+  String get serviceDeleted => 'Service supprimé';
+  @override
   String get profileSaved => 'Profil mis à jour';
   @override
   String get storeVisible => 'Boutique visible pour les acheteurs';
@@ -390,6 +483,8 @@ class AppStringsFr extends AppStringsEn {
   String get description => 'Description';
   @override
   String get priceOptional => 'Prix (MAD, optionnel)';
+  @override
+  String get priceMad => 'Prix (MAD)';
   @override
   String get addAnotherItem => 'Ajouter un autre article';
   @override
@@ -534,6 +629,69 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get priceNegotiable => 'Prix négociable';
   @override
+  String get pricingModel => 'Modèle de tarification';
+  @override
+  String get pricingModelFixedPrice => 'Prix fixe';
+  @override
+  String get pricingModelStartingFrom => 'À partir de';
+  @override
+  String get pricingModelPriceRange => 'Fourchette de prix';
+  @override
+  String get pricingModelHourly => 'Horaire';
+  @override
+  String get pricingModelDaily => 'Journalier';
+  @override
+  String get pricingModelWeekly => 'Hebdomadaire';
+  @override
+  String get pricingModelMonthly => 'Mensuel';
+  @override
+  String get pricingModelPerPerson => 'Par personne';
+  @override
+  String get pricingModelPerUnit => 'Par unité';
+  @override
+  String get pricingModelPerSqm => 'Par m²';
+  @override
+  String get pricingModelPerKm => 'Par km';
+  @override
+  String get pricingModelRequestQuote => 'Demander un devis';
+  @override
+  String get pricingModelContactForPrice => 'Contacter pour le prix';
+  @override
+  String get pricingModelNegotiable => 'Négociable';
+  @override
+  String get pricingModelFree => 'Gratuit';
+  @override
+  String get minPrice => 'Prix minimum (MAD)';
+  @override
+  String get maxPrice => 'Prix maximum (MAD)';
+  @override
+  String priceStartingFrom(String amount) => 'À partir de $amount';
+  @override
+  String priceRangeLabel(String min, String max) => '$min – $max';
+  @override
+  String pricePerHour(String amount) => '$amount / heure';
+  @override
+  String pricePerDay(String amount) => '$amount / jour';
+  @override
+  String pricePerWeek(String amount) => '$amount / semaine';
+  @override
+  String pricePerMonth(String amount) => '$amount / mois';
+  @override
+  String pricePerPerson(String amount) => '$amount / personne';
+  @override
+  String pricePerUnit(String amount) => '$amount / unité';
+  @override
+  String pricePerSqm(String amount) => '$amount / m²';
+  @override
+  String pricePerKm(String amount) => '$amount / km';
+  @override
+  String priceNegotiableWithAmount(String amount) => '$amount · négociable';
+  @override
+  String get enterValidPrice => 'Entrez un prix valide';
+  @override
+  String get minPriceExceedsMax =>
+      'Le prix minimum ne peut pas dépasser le prix maximum';
+  @override
   String get acceptedPaymentMethods => 'Moyens de paiement acceptés';
   @override
   @override
@@ -617,8 +775,6 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get writeYourMessage => 'Écrivez votre message...';
   @override
-  String favoritesCount(int count) =>
-      count == 1 ? '1 favori' : '$count favoris';
   @override
   String followersCount(int count) =>
       count == 1 ? '1 abonné' : '$count abonnés';
@@ -733,6 +889,35 @@ class AppStringsFr extends AppStringsEn {
   String get verificationEmailSent => 'E-mail de vérification envoyé';
   @override
   String get resendVerificationEmail => 'Renvoyer l’e-mail de vérification';
+  @override
+  String get signupOtpChannelTitle => 'Où envoyer votre code à 6 chiffres ?';
+  @override
+  String get signupOtpChannelSubtitle =>
+      'Choisissez comment vérifier votre identité pour continuer.';
+  @override
+  String get signupOtpSendPhone => 'Envoyer au téléphone';
+  @override
+  String get signupOtpSendEmail => 'Envoyer par e-mail';
+  @override
+  String get signupOtpPrivacyNote => 'Nous ne partagerons jamais votre code.';
+  @override
+  String get signupOtpCodeTitle => 'Entrez le code à 6 chiffres';
+  @override
+  String signupOtpCodeSentTo(String destination) =>
+      'Nous avons envoyé un code à 6 chiffres à $destination. ';
+  @override
+  String get signupOtpChange => 'Modifier';
+  @override
+  String get signupOtpCodeInvalid => 'Entrez le code à 6 chiffres.';
+  @override
+  String get signupOtpDidntReceive => 'Vous n’avez pas reçu le code ?';
+  @override
+  String signupOtpResendCountdown(int seconds) =>
+      'Renvoyer le code (00:${seconds.toString().padLeft(2, '0')})';
+  @override
+  String get signupOtpResend => 'Renvoyer le code';
+  @override
+  String get signupOtpVerify => 'Vérifier';
   @override
   String get premiumTitle => 'Développez-vous avec MarGem Premium';
   @override

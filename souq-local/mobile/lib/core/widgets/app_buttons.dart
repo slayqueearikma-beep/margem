@@ -101,7 +101,12 @@ class AppScreenHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (showLogo) ...[
-          const Center(child: AppBrandLogo(variant: AppBrandLogoVariant.icon, iconSize: 56)),
+          Center(
+            child: AppBrandLogo.forContext(
+              AppBrandContext.compactBranding,
+              size: 56,
+            ),
+          ),
           const SizedBox(height: AppSpacing.lg),
         ],
         Text(

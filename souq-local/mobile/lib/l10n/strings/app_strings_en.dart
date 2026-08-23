@@ -137,6 +137,77 @@ class AppStringsEn extends AppStrings {
   @override
   String get navMessages => 'Messages';
   @override
+  String get navDashboard => 'Dashboard';
+  @override
+  String get navServices => 'Services';
+  @override
+  String get navBookings => 'Bookings';
+  @override
+  String get navMore => 'More';
+  @override
+  String get earnings => 'Earnings';
+  @override
+  String get gallery => 'Gallery';
+  @override
+  String get businessInfo => 'Business info';
+  @override
+  String get helpSupport => 'Help & support';
+  @override
+  String get comingSoon => 'Soon';
+  @override
+  String get upcomingBookings => 'Upcoming bookings';
+  @override
+  String get viewAll => 'View all';
+  @override
+  String get highlightServices => 'Highlight services';
+  @override
+  String get upcoming => 'Upcoming';
+  @override
+  String filterAll(int count) => 'All ($count)';
+  @override
+  String filterActive(int count) => 'Active ($count)';
+  @override
+  String filterInactive(int count) => 'Inactive ($count)';
+  @override
+  String bookingsUpcoming(int count) =>
+      count > 0 ? 'Upcoming ($count)' : 'Upcoming';
+  @override
+  String bookingsCompleted(int count) =>
+      count > 0 ? 'Completed ($count)' : 'Completed';
+  @override
+  String bookingsCancelled(int count) =>
+      count > 0 ? 'Cancelled ($count)' : 'Cancelled';
+  @override
+  String get noBookingsYet => 'No bookings yet. Customer inquiries appear here.';
+  @override
+  String get noBookingsInCategory => 'Nothing in this category yet.';
+  @override
+  String get bookingsInquiryHint =>
+      'Open messages to respond to customer inquiries.';
+  @override
+  String get viewMessages => 'View messages';
+  @override
+  String get today => 'Today';
+  @override
+  String favoritesCount(int count) => '$count favorites on your storefront';
+  @override
+  String get stepBasicInfo => 'Basic info';
+  @override
+  String get stepPricing => 'Pricing';
+  @override
+  String get stepDetails => 'Details';
+  @override
+  String get customersWillSee => 'Customers will see:';
+  @override
+  String get nextStep => 'Continue';
+  @override
+  String get publishService => 'Publish service';
+  @override
+  String get serviceStatusLive => 'Service is live';
+  @override
+  String get serviceDetailsHint =>
+      'You can update availability and pricing anytime from the services tab.';
+  @override
   String get margemMember => 'MarGem member';
   @override
   String get allCategories => 'All';
@@ -194,6 +265,8 @@ class AppStringsEn extends AppStrings {
   String get businessKeyword => 'Business name or keyword';
   @override
   String get noBusinessesFound => 'No businesses found';
+  @override
+  String get searchSortedByNearest => 'Showing nearest matches';
   @override
   String warningZones(int count) => '$count warning zone(s)';
   @override
@@ -297,6 +370,25 @@ class AppStringsEn extends AppStrings {
   @override
   String get productDeleted => 'Product deleted';
   @override
+  String get serviceManagement => 'Service management';
+  @override
+  String get serviceManagementSub => 'Add, edit, or remove services and pricing';
+  @override
+  String get addService => 'Add service';
+  @override
+  String get editService => 'Edit service';
+  @override
+  String get deleteService => 'Delete service';
+  @override
+  String get deleteServiceConfirm =>
+      'Delete this service? Buyers will no longer see it on your storefront.';
+  @override
+  String get noServicesYet => 'No services yet. Add your first service.';
+  @override
+  String get serviceSaved => 'Service saved';
+  @override
+  String get serviceDeleted => 'Service deleted';
+  @override
   String get profileSaved => 'Profile updated';
   @override
   String get storeVisible => 'Store is visible to buyers';
@@ -379,6 +471,8 @@ class AppStringsEn extends AppStrings {
   String get description => 'Description';
   @override
   String get priceOptional => 'Price (MAD, optional)';
+  @override
+  String get priceMad => 'Price (MAD)';
   @override
   String get addAnotherItem => 'Add another item';
   @override
@@ -522,6 +616,68 @@ class AppStringsEn extends AppStrings {
   @override
   String get priceNegotiable => 'Price negotiable';
   @override
+  String get pricingModel => 'Pricing model';
+  @override
+  String get pricingModelFixedPrice => 'Fixed price';
+  @override
+  String get pricingModelStartingFrom => 'Starting from';
+  @override
+  String get pricingModelPriceRange => 'Price range';
+  @override
+  String get pricingModelHourly => 'Hourly';
+  @override
+  String get pricingModelDaily => 'Daily';
+  @override
+  String get pricingModelWeekly => 'Weekly';
+  @override
+  String get pricingModelMonthly => 'Monthly';
+  @override
+  String get pricingModelPerPerson => 'Per person';
+  @override
+  String get pricingModelPerUnit => 'Per unit';
+  @override
+  String get pricingModelPerSqm => 'Per m²';
+  @override
+  String get pricingModelPerKm => 'Per km';
+  @override
+  String get pricingModelRequestQuote => 'Request quote';
+  @override
+  String get pricingModelContactForPrice => 'Contact for price';
+  @override
+  String get pricingModelNegotiable => 'Negotiable';
+  @override
+  String get pricingModelFree => 'Free';
+  @override
+  String get minPrice => 'Minimum price (MAD)';
+  @override
+  String get maxPrice => 'Maximum price (MAD)';
+  @override
+  String priceStartingFrom(String amount) => 'From $amount';
+  @override
+  String priceRangeLabel(String min, String max) => '$min – $max';
+  @override
+  String pricePerHour(String amount) => '$amount / hour';
+  @override
+  String pricePerDay(String amount) => '$amount / day';
+  @override
+  String pricePerWeek(String amount) => '$amount / week';
+  @override
+  String pricePerMonth(String amount) => '$amount / month';
+  @override
+  String pricePerPerson(String amount) => '$amount / person';
+  @override
+  String pricePerUnit(String amount) => '$amount / unit';
+  @override
+  String pricePerSqm(String amount) => '$amount / m²';
+  @override
+  String pricePerKm(String amount) => '$amount / km';
+  @override
+  String priceNegotiableWithAmount(String amount) => '$amount · negotiable';
+  @override
+  String get enterValidPrice => 'Enter a valid price';
+  @override
+  String get minPriceExceedsMax => 'Minimum price cannot exceed maximum price';
+  @override
   String get acceptedPaymentMethods => 'Accepted payment methods';
   @override
   @override
@@ -602,9 +758,6 @@ class AppStringsEn extends AppStrings {
   String get moreFromSeller => 'More from this seller';
   @override
   String get writeYourMessage => 'Write your message...';
-  @override
-  String favoritesCount(int count) =>
-      count == 1 ? '1 favorite' : '$count favorites';
   @override
   String followersCount(int count) =>
       count == 1 ? '1 follower' : '$count followers';
@@ -719,6 +872,35 @@ class AppStringsEn extends AppStrings {
   String get verificationEmailSent => 'Verification email sent';
   @override
   String get resendVerificationEmail => 'Resend verification email';
+  @override
+  String get signupOtpChannelTitle => 'Where should we send your 6-digit code?';
+  @override
+  String get signupOtpChannelSubtitle =>
+      'Choose how you want to verify your identity to continue.';
+  @override
+  String get signupOtpSendPhone => 'Send to phone';
+  @override
+  String get signupOtpSendEmail => 'Send to email';
+  @override
+  String get signupOtpPrivacyNote => 'We’ll never share your code with anyone.';
+  @override
+  String get signupOtpCodeTitle => 'Enter the 6-digit code';
+  @override
+  String signupOtpCodeSentTo(String destination) =>
+      'We’ve sent a 6-digit code to $destination. ';
+  @override
+  String get signupOtpChange => 'Change';
+  @override
+  String get signupOtpCodeInvalid => 'Enter the 6-digit code.';
+  @override
+  String get signupOtpDidntReceive => 'Didn’t receive the code?';
+  @override
+  String signupOtpResendCountdown(int seconds) =>
+      'Resend code (00:${seconds.toString().padLeft(2, '0')})';
+  @override
+  String get signupOtpResend => 'Resend code';
+  @override
+  String get signupOtpVerify => 'Verify';
   @override
   String get premiumTitle => 'Grow with MarGem Premium';
   @override

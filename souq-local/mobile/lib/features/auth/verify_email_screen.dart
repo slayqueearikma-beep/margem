@@ -30,9 +30,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   void initState() {
     super.initState();
     _tokenController = TextEditingController(text: widget.initialToken);
-    if (widget.initialToken.trim().isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _confirm());
-    }
   }
 
   @override
@@ -116,10 +113,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: AppSpacing.lg),
-              const Center(
-                child: AppBrandLogo(
-                  variant: AppBrandLogoVariant.icon,
-                  iconSize: 56,
+              Center(
+                child: AppBrandLogo.forContext(
+                  AppBrandContext.compactBranding,
+                  size: 56,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
