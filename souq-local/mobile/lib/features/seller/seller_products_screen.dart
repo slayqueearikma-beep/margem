@@ -9,8 +9,8 @@ import '../../core/models/auth_models.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/upload_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -86,7 +86,7 @@ class SellerProductsScreen extends ConsumerWidget {
                 final product = products[index];
                 return Card(
                   child: ListTile(
-                    contentPadding: const EdgeInsets.all(AppSpacing.sm),
+                    contentPadding: EdgeInsets.all(AppSpacing.sm),
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: SizedBox(
@@ -98,7 +98,7 @@ class SellerProductsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    title: Text(product.name, style: TextStyle(fontWeight: FontWeight.w600)),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -107,7 +107,7 @@ class SellerProductsScreen extends ConsumerWidget {
                         Text(
                           product.isAvailable ? l10n.available : l10n.unavailable,
                           style: TextStyle(
-                            color: product.isAvailable ? AppColors.success : AppColors.warning,
+                            color: product.isAvailable ? context.colors.success : context.colors.warning,
                             fontSize: 12,
                           ),
                         ),

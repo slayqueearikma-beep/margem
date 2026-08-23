@@ -7,7 +7,10 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
+import '../models/community_models.dart';
+import '../models/bundle_models.dart';
 import '../models/models.dart';
+import 'secure_http_client.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -18,11 +21,28 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
-typedef TokenRefreshCallback = Future<bool> Function();
+class SignupOtpSendResult {
+  SignupOtpSendResult({
+    required this.channel,
+    required this.destinationMasked,
+  });
+
+  final String channel;
+  final String destinationMasked;
+
+  factory SignupOtpSendResult.fromJson(Map<String, dynamic> json) {
+    return SignupOtpSendResult(
+      channel: json['channel'] as String,
+      destinationMasked: json['destination_masked'] as String,
+    );
+  }
+}
+
+typedef TokenRefreshCallback = Future<bool?> Function();
 typedef SessionExpiredCallback = Future<void> Function();
 
 class ApiService {
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  ApiService({http.Client? client}) : _client = client ?? createSecureHttpClient();
 
   static const _requestTimeout = Duration(seconds: 15);
   static const _submitTimeout = Duration(seconds: 25);
@@ -63,6 +83,32 @@ class ApiService {
     if (body['database'] == 'error') {
       throw ApiException('API database is unavailable');
     }
+  }
+
+  Future<SignupOtpSendResult> sendSignupOtp({
+    required String email,
+    required String phone,
+    required String channel,
+  }) async {
+    final response = await postJson('/auth/signup/otp/send', {
+      'email': email,
+      'phone': phone,
+      'channel': channel,
+    });
+    return SignupOtpSendResult.fromJson(response);
+  }
+
+  Future<String> verifySignupOtp({
+    required String email,
+    required String code,
+    required String channel,
+  }) async {
+    final response = await postJson('/auth/signup/otp/verify', {
+      'email': email,
+      'code': code,
+      'channel': channel,
+    });
+    return response['signup_proof'] as String;
   }
 
   Future<Map<String, dynamic>> postJson(
@@ -193,9 +239,9 @@ class ApiService {
       _refreshInProgress = true;
       try {
         final refreshed = await onTokenRefresh!();
-        if (refreshed) {
+        if (refreshed == true) {
           response = await _send(send);
-        } else if (onSessionExpired != null) {
+        } else if (refreshed == false && onSessionExpired != null) {
           await onSessionExpired!();
         }
       } finally {
@@ -206,18 +252,43 @@ class ApiService {
   }
 
   Future<http.Response> _send(Future<http.Response> Function() request) async {
-    try {
-      return await request().timeout(_requestTimeout);
-    } on TimeoutException {
-      throw ApiException(_connectionErrorMessage);
-    } on SocketException {
-      throw ApiException(_connectionErrorMessage);
-    } on http.ClientException {
-      throw ApiException(_connectionErrorMessage);
-    } on ApiException {
-      rethrow;
-    } on Object {
-      throw ApiException(_connectionErrorMessage);
+    const maxAttempts = 3;
+    var attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        final response = await request().timeout(_requestTimeout);
+        if (attempt < maxAttempts &&
+            (response.statusCode == 502 ||
+                response.statusCode == 503 ||
+                response.statusCode == 504)) {
+          await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+          continue;
+        }
+        return response;
+      } on TimeoutException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on SocketException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on http.ClientException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on ApiException {
+        rethrow;
+      } on Object {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_connectionErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      }
     }
   }
 
@@ -236,10 +307,15 @@ class ApiService {
       return 'Cannot reach the server. Check your internet connection and try again.';
     }
     final base = AppConfig.apiBaseUrl;
-    final tip = RegExp(r':\d+$').hasMatch(base)
+    final tunnelHint = base.contains('trycloudflare.com')
+        ? '\n\nCloudflare quick tunnels expire when you stop cloudflared. '
+            'Restart the tunnel and update API_BASE_URL, or use your laptop IP:\n'
+            'flutter run --dart-define=API_BASE_URL=http://YOUR_PC_IP:8000'
+        : '';
+    final portTip = RegExp(r':\d+$').hasMatch(base)
         ? ''
         : '\nTip: API_BASE_URL must include a colon before the port, e.g. http://192.168.1.10:8000';
-    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$tip';
+    return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$portTip$tunnelHint';
   }
 
   Future<SellerModel> createSeller(SellerCreatePayload payload) async {
@@ -288,6 +364,31 @@ class ApiService {
     await deletePath('/sellers/$sellerId/products/$productId', auth: true);
   }
 
+  Future<ServiceModel> addService(
+    String sellerId,
+    ServiceCreatePayload payload,
+  ) async {
+    final data = await postJson('/sellers/$sellerId/services', payload.toJson(), auth: true);
+    return ServiceModel.fromJson(data);
+  }
+
+  Future<ServiceModel> updateService(
+    String sellerId,
+    String serviceId,
+    ServiceUpdatePayload payload,
+  ) async {
+    final data = await patchJson(
+      '/sellers/$sellerId/services/$serviceId',
+      payload.toJson(),
+      auth: true,
+    );
+    return ServiceModel.fromJson(data);
+  }
+
+  Future<void> deleteService(String sellerId, String serviceId) async {
+    await deletePath('/sellers/$sellerId/services/$serviceId', auth: true);
+  }
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -317,22 +418,50 @@ class ApiService {
     return deletePath('/auth/sessions/$sessionId', auth: true);
   }
 
-  Future<String?> categoryIdForSlug(String slug) async {
-    final categories = await fetchCategories();
+  Future<String?> categoryIdForSlug(String slug, {String? marketplace}) async {
+    final categories = marketplace != null && marketplace.isNotEmpty
+        ? await fetchMarketplaceCategories(marketplace)
+        : await fetchCategories();
     for (final cat in categories) {
       if (cat.slug == slug) return cat.id;
     }
     return null;
   }
 
+  Future<List<MarketplaceVenueModel>> fetchMarketplaces({String? city}) async {
+    final params = <String, String>{'active_only': 'true'};
+    if (city != null && city.isNotEmpty) params['city'] = city;
+    final response = await _get(_uri('/marketplaces', params));
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => MarketplaceVenueModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<CategoryModel>> fetchMarketplaceCategories(String marketplaceSlug) async {
+    final response = await _get(
+      _uri('/marketplaces/$marketplaceSlug/categories', {'active_only': 'true'}),
+    );
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<SellerModel>> fetchSellers({
     String? city,
     String? category,
+    String? marketplace,
     String? query,
   }) async {
     final params = <String, String>{};
     if (city != null && city.isNotEmpty) params['city'] = city;
     if (category != null && category.isNotEmpty) params['category'] = category;
+    if (marketplace != null && marketplace.isNotEmpty) {
+      params['marketplace'] = marketplace;
+    }
     if (query != null && query.isNotEmpty) params['q'] = query;
 
     final response = await _request(
@@ -350,8 +479,110 @@ class ApiService {
   Future<MarketplaceSearchPage> searchMarketplace({
     required String query,
     required String mode,
-    String? city,
     String? category,
+    String? marketplace,
+    double? minPrice,
+    double? maxPrice,
+    double? minRating,
+    bool? deliveryAvailable,
+    bool? pickupOnly,
+    String sort = 'relevance',
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    try {
+      return await _searchMarketplaceRequest(
+        query: query,
+        mode: _normalizeSearchMode(mode),
+        category: category,
+        marketplace: marketplace,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        minRating: minRating,
+        deliveryAvailable: deliveryAvailable,
+        pickupOnly: pickupOnly,
+        sort: sort,
+        offset: offset,
+        limit: limit,
+      );
+    } on ApiException catch (error) {
+      if (error.statusCode == 422 && mode != 'all') {
+        final fallbackMode = _legacySearchMode(mode);
+        if (fallbackMode != mode) {
+          final page = await _searchMarketplaceRequest(
+            query: query,
+            mode: fallbackMode,
+            category: category,
+            marketplace: marketplace,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            minRating: minRating,
+            deliveryAvailable: deliveryAvailable,
+            pickupOnly: pickupOnly,
+            sort: sort,
+            offset: offset,
+            limit: limit,
+          );
+          return _filterSearchPage(page, mode);
+        }
+      }
+      rethrow;
+    }
+  }
+
+  String _normalizeSearchMode(String mode) {
+    return switch (mode) {
+      'providers' => 'sellers',
+      _ => mode,
+    };
+  }
+
+  String _legacySearchMode(String mode) {
+    return switch (mode) {
+      'providers' => 'sellers',
+      'services' => 'all',
+      _ => 'all',
+    };
+  }
+
+  MarketplaceSearchPage _filterSearchPage(MarketplaceSearchPage page, String mode) {
+    return switch (mode) {
+      'services' => MarketplaceSearchPage(
+          products: const [],
+          services: page.services,
+          sellers: const [],
+          totalProducts: 0,
+          totalServices: page.services.length,
+          totalSellers: 0,
+          limit: page.limit,
+          offset: page.offset,
+          hasMore: page.hasMore,
+        ),
+      'providers' => MarketplaceSearchPage(
+          products: const [],
+          services: const [],
+          sellers: page.sellers,
+          totalProducts: 0,
+          totalServices: 0,
+          totalSellers: page.sellers.length,
+          limit: page.limit,
+          offset: page.offset,
+          hasMore: page.hasMore,
+        ),
+      _ => page,
+    };
+  }
+
+  Future<MarketplaceSearchPage> _searchMarketplaceRequest({
+    required String query,
+    required String mode,
+    String? category,
+    String? marketplace,
+    double? minPrice,
+    double? maxPrice,
+    double? minRating,
+    bool? deliveryAvailable,
+    bool? pickupOnly,
     String sort = 'relevance',
     int offset = 0,
     int limit = 20,
@@ -362,8 +593,13 @@ class ApiService {
       'sort': sort,
       'offset': '$offset',
       'limit': '$limit',
-      if (city != null && city.isNotEmpty) 'city': city,
       if (category != null && category.isNotEmpty) 'category': category,
+      if (marketplace != null && marketplace.isNotEmpty) 'marketplace': marketplace,
+      if (minPrice != null) 'min_price': '$minPrice',
+      if (maxPrice != null) 'max_price': '$maxPrice',
+      if (minRating != null) 'min_rating': '$minRating',
+      if (deliveryAvailable == true) 'delivery_available': 'true',
+      if (pickupOnly == true) 'pickup_only': 'true',
     };
     final response = await _request(
       () => _get(_uri('/search', params), headers: _authHeaders),
@@ -385,11 +621,17 @@ class ApiService {
         jsonDecode(response.body) as Map<String, dynamic>);
   }
 
-  Future<List<MapPinModel>> fetchMapPins(
-      {String? city, String? category}) async {
+  Future<List<MapPinModel>> fetchMapPins({
+    String? city,
+    String? category,
+    String? marketplace,
+  }) async {
     final params = <String, String>{};
     if (city != null && city.isNotEmpty) params['city'] = city;
     if (category != null && category.isNotEmpty) params['category'] = category;
+    if (marketplace != null && marketplace.isNotEmpty) {
+      params['marketplace'] = marketplace;
+    }
 
     final response =
         await _get(_uri('/sellers/map', params.isEmpty ? null : params));
@@ -656,6 +898,146 @@ class ApiService {
     return ChatMessageModel.fromJson(data);
   }
 
+  // ——— City community chat ———
+
+  Future<List<CommunityCityModel>> fetchCommunityCities({bool auth = false}) async {
+    final data = await getJsonList('/community/cities', auth: auth);
+    return data
+        .map((item) =>
+            CommunityCityModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CommunityDiscoverModel> fetchCommunityDiscover({bool auth = false}) async {
+    final data = await getJson('/community/discover', auth: auth);
+    return CommunityDiscoverModel.fromJson(data);
+  }
+
+  Future<CommunityCityModel> fetchCommunityCity(String slug, {bool auth = false}) async {
+    final data = await getJson('/community/cities/$slug', auth: auth);
+    return CommunityCityModel.fromJson(data);
+  }
+
+  Future<CommunityCityModel> joinCommunityCity(
+    String slug, {
+    bool isHomeCity = false,
+  }) async {
+    final data = await postJson(
+      '/community/cities/$slug/join',
+      {'is_home_city': isHomeCity},
+      auth: true,
+    );
+    return CommunityCityModel.fromJson(data);
+  }
+
+  Future<List<CommunityChannelModel>> fetchCommunityChannels(
+    String citySlug, {
+    bool auth = false,
+  }) async {
+    final data =
+        await getJsonList('/community/cities/$citySlug/channels', auth: auth);
+    return data
+        .map((item) =>
+            CommunityChannelModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<CommunityMessageModel>> fetchCommunityMessages(
+    String channelId, {
+    String? beforeId,
+    String? query,
+    bool verifiedOnly = false,
+    bool trustedOnly = false,
+  }) async {
+    final queryParams = <String, String>{
+      if (beforeId != null) 'before_id': beforeId,
+      if (query != null && query.isNotEmpty) 'q': query,
+      if (verifiedOnly) 'verified_only': 'true',
+      if (trustedOnly) 'trusted_only': 'true',
+    };
+    final data = await getJsonList(
+      '/community/channels/$channelId/messages${queryParams.isEmpty ? '' : '?${Uri(queryParameters: queryParams).query}'}',
+      auth: true,
+    );
+    return data
+        .map((item) =>
+            CommunityMessageModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CommunityMessageModel> postCommunityMessage({
+    required String channelId,
+    required String body,
+    String? replyToId,
+    List<Map<String, dynamic>> attachments = const [],
+  }) async {
+    final data = await postJson(
+      '/community/channels/$channelId/messages',
+      {
+        'body': body,
+        if (replyToId != null) 'reply_to_id': replyToId,
+        if (attachments.isNotEmpty) 'attachments': attachments,
+      },
+      auth: true,
+    );
+    return CommunityMessageModel.fromJson(data);
+  }
+
+  Future<CommunityMessageModel> editCommunityMessage(
+    String messageId,
+    String body,
+  ) async {
+    final data = await patchJson(
+      '/community/messages/$messageId',
+      {'body': body},
+      auth: true,
+    );
+    return CommunityMessageModel.fromJson(data);
+  }
+
+  Future<void> deleteCommunityMessage(String messageId) {
+    return deletePath('/community/messages/$messageId', auth: true);
+  }
+
+  Future<List<CommunityReactionModel>> reactCommunityMessage(
+    String messageId,
+    String emoji,
+  ) async {
+    final response = await _request(
+      () => _post(
+        _uri('/community/messages/$messageId/reactions'),
+        headers: _jsonHeaders(auth: true),
+        body: jsonEncode({'emoji': emoji}),
+      ),
+      auth: true,
+    );
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => CommunityReactionModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> reportCommunityMessage(
+    String messageId, {
+    required String reason,
+    String details = '',
+  }) {
+    return postVoid(
+      '/community/messages/$messageId/report',
+      {'reason': reason, 'details': details},
+      auth: true,
+    );
+  }
+
+  Future<void> blockCommunityUser(String userId) {
+    return postVoid('/community/users/block', {'user_id': userId}, auth: true);
+  }
+
+  Future<void> muteCommunityUser(String userId) {
+    return postVoid('/community/users/mute', {'user_id': userId}, auth: true);
+  }
+
   Future<List<SubscriptionPlanModel>> fetchSubscriptionPlans() async {
     final data = await getJsonList('/subscriptions/plans');
     return data
@@ -679,6 +1061,23 @@ class ApiService {
     final data =
         await postEmpty('/subscriptions/subscribe/$planCode', auth: true);
     return SubscriptionModel.fromJson(data);
+  }
+
+  Future<BillingStatusModel> fetchBillingStatus() async {
+    final data = await getJson('/subscriptions/billing/status', auth: false);
+    return BillingStatusModel.fromJson(data);
+  }
+
+  Future<BillingCheckoutResult> checkoutSubscription(String planCode) async {
+    final data = await postJson(
+      '/subscriptions/checkout/$planCode',
+      {
+        'success_url': 'margem://premium/success',
+        'cancel_url': 'margem://premium/cancel',
+      },
+      auth: true,
+    );
+    return BillingCheckoutResult.fromJson(data);
   }
 
   Future<void> requestPasswordReset(String email) {
@@ -736,6 +1135,10 @@ class ApiService {
                 if (item is Map<String, dynamic>) {
                   final msg = item['msg']?.toString();
                   if (msg == null || msg.isEmpty) return null;
+                  if (msg.contains('should match pattern') ||
+                      msg.contains('validation error')) {
+                    return null;
+                  }
                   final loc = item['loc'];
                   if (loc is List && loc.isNotEmpty) {
                     return '${loc.last}: $msg';
@@ -747,12 +1150,47 @@ class ApiService {
               .whereType<String>()
               .toList();
           if (messages.isNotEmpty) return messages.join('\n');
+          return 'Request could not be processed.';
         }
       }
     } on Object {
       // Fall through.
     }
     return 'Request failed (${response.statusCode})';
+  }
+
+  Future<List<BundleTemplateModel>> fetchBundleTemplates({String? marketplace}) async {
+    final params = marketplace != null && marketplace.isNotEmpty
+        ? {'marketplace': marketplace}
+        : null;
+    final response = await _get(_uri('/bundles/templates', params));
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => BundleTemplateModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<BundleResolveResultModel> resolveBundle({
+    required String marketplace,
+    required List<BundleSlotTemplateModel> slots,
+    String? templateSlug,
+    double minSellerRating = 0,
+  }) async {
+    final response = await _post(
+      _uri('/bundles/resolve'),
+      headers: _jsonHeaders(),
+      body: jsonEncode({
+        'marketplace': marketplace,
+        if (templateSlug != null) 'template_slug': templateSlug,
+        'min_seller_rating': minSellerRating,
+        'slots': slots.map((slot) => slot.toJson()).toList(),
+      }),
+    );
+    _ensureSuccess(response);
+    return BundleResolveResultModel.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 }
 

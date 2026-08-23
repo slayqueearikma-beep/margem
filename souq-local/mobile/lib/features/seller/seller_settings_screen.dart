@@ -6,8 +6,8 @@ import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
@@ -71,7 +71,7 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(l10n.deleteAccountConfirm),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: controller,
               obscureText: true,
@@ -82,7 +82,7 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            style: FilledButton.styleFrom(backgroundColor: context.colors.error),
             onPressed: () => Navigator.pop(context, true),
             child: Text(l10n.deleteAccount),
           ),
@@ -140,18 +140,18 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
               ref.read(themeModeProvider.notifier).setThemeMode(values.first);
             },
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xl),
           Text(l10n.verifyEmailTitle, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.mark_email_unread_outlined),
+            leading: Icon(Icons.mark_email_unread_outlined),
             title: Text(l10n.resendVerificationEmail),
             onTap: () => context.push('/verify-email'),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xl),
           Text(l10n.changePassword, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           TextField(
             controller: _currentPasswordController,
             obscureText: _obscureCurrent,
@@ -163,7 +163,7 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           TextField(
             controller: _newPasswordController,
             obscureText: _obscureNew,
@@ -175,15 +175,15 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           PrimaryButton(
             label: l10n.changePassword,
             onPressed: _changePassword,
             isLoading: _loadingPassword,
           ),
-          const SizedBox(height: AppSpacing.xxl),
+          SizedBox(height: AppSpacing.xxl),
           OutlinedButton(
-            style: OutlinedButton.styleFrom(foregroundColor: AppColors.danger),
+            style: OutlinedButton.styleFrom(foregroundColor: context.colors.error),
             onPressed: _confirmDeleteAccount,
             child: Text(l10n.deleteAccount),
           ),
