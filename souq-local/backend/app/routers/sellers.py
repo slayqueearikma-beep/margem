@@ -396,8 +396,10 @@ async def add_product(
     product_data["media_urls"] = _validate_owner_media_list(list(payload.media_urls or []), user.id)
     product_data["video_url"] = _validate_owner_media(payload.video_url or "", user.id)
     if payload.is_featured and not user.is_premium:
-        # Featured placement is a premium visibility perk.
-        product_data["is_featured"] = False
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Featured placement requires a premium subscription",
+        )
     product = Product(seller_id=seller_id, **product_data)
     session.add(product)
     await session.commit()
@@ -445,7 +447,10 @@ async def update_product(
     if "video_url" in data:
         data["video_url"] = _validate_owner_media(data["video_url"] or "", user.id)
     if data.get("is_featured") is True and not user.is_premium:
-        data["is_featured"] = False
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Featured placement requires a premium subscription",
+        )
 
     for key, value in data.items():
         setattr(product, key, value)

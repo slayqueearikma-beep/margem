@@ -175,6 +175,7 @@ async def test_guest_favorites_migrate_and_report(client: AsyncClient):
 
     report = await client.post(
         "/reports",
+        headers=buyer["headers"],
         json={
             "seller_id": seller_body["id"],
             "reason": "spam",
@@ -182,6 +183,16 @@ async def test_guest_favorites_migrate_and_report(client: AsyncClient):
         },
     )
     assert report.status_code == 201, report.text
+
+
+@pytest.mark.asyncio
+async def test_report_requires_auth(client: AsyncClient):
+    _, seller_body, _ = await _create_seller_with_product(client)
+    report = await client.post(
+        "/reports",
+        json={"seller_id": seller_body["id"], "reason": "spam", "details": "x"},
+    )
+    assert report.status_code == 401
 
 
 @pytest.mark.asyncio

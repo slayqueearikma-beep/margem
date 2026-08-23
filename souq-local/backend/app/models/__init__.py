@@ -39,7 +39,9 @@ class UserRole(str, enum.Enum):
     BUYER = "buyer"
     SELLER = "seller"
     ADMIN = "admin"
-    SUPPORT = "support"
+    MODERATOR = "moderator"
+    SUPER_ADMIN = "super_admin"
+    SUPPORT = "support"  # legacy read-only staff; prefer MODERATOR
 
 
 class SubscriptionStatus(str, enum.Enum):
@@ -91,7 +93,9 @@ class User(Base):
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     premium_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(80), unique=True, nullable=True, index=True)
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    token_version: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     seller_profile: Mapped["SellerProfile | None"] = relationship(back_populates="user", uselist=False)
@@ -127,6 +131,7 @@ class AuthToken(Base):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    failed_attempts: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -151,6 +156,7 @@ class Category(Base):
     name_fr: Mapped[str] = mapped_column(String(80), default="")
     name_ar: Mapped[str] = mapped_column(String(80), default="")
     icon: Mapped[str] = mapped_column(String(32), default="store")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     sellers: Mapped[list["SellerProfile"]] = relationship(
         secondary="seller_categories", back_populates="categories"
@@ -458,7 +464,14 @@ class SubscriptionPlan(Base):
     name: Mapped[str] = mapped_column(String(80))
     description: Mapped[str] = mapped_column(Text, default="")
     price_mad: Mapped[float] = mapped_column(Numeric(12, 2, asdecimal=False))
+    price_mad_yearly: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
     billing_period_days: Mapped[int] = mapped_column(Integer, default=30)
+    tier_level: Mapped[int] = mapped_column(Integer, default=1)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    trial_days: Mapped[int] = mapped_column(Integer, default=0)
+    stripe_product_id: Mapped[str] = mapped_column(String(80), default="")
+    stripe_price_id_monthly: Mapped[str] = mapped_column(String(80), default="")
+    stripe_price_id_yearly: Mapped[str] = mapped_column(String(80), default="")
     features: Mapped[list] = mapped_column(JSONB, default=list)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -477,9 +490,21 @@ class Subscription(Base):
     current_period_end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     provider: Mapped[str] = mapped_column(String(40), default="manual")
     provider_reference: Mapped[str] = mapped_column(String(120), default="")
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(80), unique=True, nullable=True, index=True)
+    billing_interval: Mapped[str] = mapped_column(String(20), default="monthly")
+    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     plan: Mapped[SubscriptionPlan] = relationship()
+
+
+class StripeWebhookEvent(Base):
+    __tablename__ = "stripe_webhook_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_id: Mapped[str] = mapped_column(String(80), unique=True)
+    event_type: Mapped[str] = mapped_column(String(80))
+    processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class AdminAuditLog(Base):
@@ -491,4 +516,21 @@ class AdminAuditLog(Base):
     target_type: Mapped[str] = mapped_column(String(40), default="")
     target_id: Mapped[str] = mapped_column(String(64), default="")
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+    ip_address: Mapped[str] = mapped_column(String(64), default="")
+    user_agent: Mapped[str] = mapped_column(String(255), default="")
+    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    previous_value: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    new_value: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AdminLoginLog(Base):
+    __tablename__ = "admin_login_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    ip_address: Mapped[str] = mapped_column(String(64), default="")
+    user_agent: Mapped[str] = mapped_column(String(255), default="")
+    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    failure_reason: Mapped[str] = mapped_column(String(120), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

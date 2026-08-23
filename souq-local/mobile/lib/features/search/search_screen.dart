@@ -25,9 +25,22 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   String _debounced = '';
   Timer? _timer;
-  Future<MarketplaceSearchPage>? _future;
   final _focusNode = FocusNode();
   var _mode = 'products';
+  var _offset = 0;
+  static const _pageSize = 20;
+  MarketplaceSearchPage? _page;
+  var _loading = true;
+  var _loadingMore = false;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _load(reset: true);
+    });
+  }
 
   @override
   void dispose() {
@@ -48,22 +61,61 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
   }
 
-  Future<MarketplaceSearchPage> _load() {
-    final city = ref.read(buyerCityProvider);
-    return apiServiceProvider.searchMarketplace(
-      query: _debounced,
-      mode: _mode,
-      city: city,
-    );
+  Future<void> _load({required bool reset}) async {
+    if (reset) {
+      setState(() {
+        _offset = 0;
+        _loading = true;
+        _error = null;
+      });
+    } else {
+      setState(() => _loadingMore = true);
+    }
+
+    try {
+      final city = ref.read(buyerCityProvider);
+      final result = await apiServiceProvider.searchMarketplace(
+        query: _debounced,
+        mode: _mode,
+        city: city,
+        offset: reset ? 0 : _offset,
+        limit: _pageSize,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (reset || _page == null) {
+          _page = result;
+        } else {
+          _page = MarketplaceSearchPage(
+            sellers: [..._page!.sellers, ...result.sellers],
+            products: [..._page!.products, ...result.products],
+            totalSellers: result.totalSellers,
+            totalProducts: result.totalProducts,
+            limit: result.limit,
+            offset: result.offset,
+            hasMore: result.hasMore,
+          );
+        }
+        _offset = _mode == 'products' ? _page!.products.length : _page!.sellers.length;
+        _loading = false;
+        _loadingMore = false;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadingMore = false;
+        _error = e;
+      });
+    }
   }
 
   void _onQueryChanged(String value) {
     _timer?.cancel();
     _timer = Timer(const Duration(milliseconds: 350), () {
-      setState(() {
-        _debounced = value.trim();
-        _future = _load();
-      });
+      setState(() => _debounced = value.trim());
+      _load(reset: true);
     });
   }
 
@@ -73,10 +125,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final city = ref.watch(buyerCityProvider);
     ref.listen(buyerCityProvider, (previous, next) {
       if (previous != next) {
-        setState(() => _future = _load());
+        _load(reset: true);
       }
     });
-    _future ??= _load();
 
     return SafeArea(
       child: Column(
@@ -125,47 +176,52 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   ],
                   selected: {_mode},
                   onSelectionChanged: (values) {
-                    setState(() {
-                      _mode = values.first;
-                      _future = _load();
-                    });
+                    setState(() => _mode = values.first);
+                    _load(reset: true);
                   },
                 ),
               ],
             ),
           ),
           Expanded(
-            child: FutureBuilder<MarketplaceSearchPage>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            child: Builder(
+              builder: (context) {
+                if (_loading && _page == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) {
+                if (_error != null && _page == null) {
                   return AsyncErrorView.fromError(
-                    snapshot.error!,
-                    onRetry: () {
-                      setState(() {
-                        _future = _load();
-                      });
-                    },
+                    _error!,
+                    onRetry: () => _load(reset: true),
                   );
                 }
-                final page = snapshot.data;
+                final page = _page;
                 final isProducts = _mode == 'products';
-                final count = isProducts
-                    ? (page?.products.length ?? 0)
-                    : (page?.sellers.length ?? 0);
-                if (count == 0) {
+                final items = isProducts ? page?.products ?? [] : page?.sellers ?? [];
+                final total = isProducts ? page?.totalProducts ?? 0 : page?.totalSellers ?? 0;
+                if (items.isEmpty) {
                   return Center(child: Text(l10n.noBusinessesFound));
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.screenHorizontal),
-                  itemCount: count,
+                  itemCount: items.length + (_page?.hasMore == true ? 1 : 0),
                   separatorBuilder: (_, __) =>
                       const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (_, index) {
+                    if (index == items.length) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        child: Center(
+                          child: _loadingMore
+                              ? const CircularProgressIndicator()
+                              : OutlinedButton(
+                                  onPressed: () => _load(reset: false),
+                                  child: Text('Load more ($total total)'),
+                                ),
+                        ),
+                      );
+                    }
                     if (isProducts) {
                       final product = page!.products[index];
                       return ListTile(
@@ -180,6 +236,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             child: NetworkImageView(
                               url: product.imageUrl,
                               placeholderIcon: Icons.inventory_2_outlined,
+                              memCacheWidth: 104,
+                              memCacheHeight: 104,
                             ),
                           ),
                         ),
@@ -212,6 +270,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           child: NetworkImageView(
                             url: seller.coverImageUrl,
                             placeholderIcon: Icons.storefront_rounded,
+                            memCacheWidth: 88,
+                            memCacheHeight: 88,
                           ),
                         ),
                       ),

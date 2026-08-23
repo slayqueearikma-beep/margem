@@ -17,10 +17,26 @@ from app.services.local_storage import (
 from app.services.upload_security import (
     sanitize_upload_filename,
     validate_image_bytes,
+    validate_presign_upload_url,
     validate_upload_content_type,
 )
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
+
+
+def _validate_presign_response(response: PresignResponse) -> PresignResponse:
+    try:
+        validate_presign_upload_url(
+            response.upload_url,
+            public_api_url=settings.public_api_url,
+            allowed_hosts=settings.upload_allowed_hosts,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Storage returned an invalid upload URL",
+        ) from exc
+    return response
 
 
 def _presign_local(user: User, *, safe_filename: str, content_type: str) -> PresignResponse:
@@ -90,15 +106,19 @@ async def presign_upload(
 
     try:
         if settings.storage_backend == "local":
-            return _presign_local(
+            return _validate_presign_response(
+                _presign_local(
+                    user,
+                    safe_filename=safe_filename,
+                    content_type=payload.content_type,
+                )
+            )
+        return _validate_presign_response(
+            await _presign_azure(
                 user,
                 safe_filename=safe_filename,
                 content_type=payload.content_type,
             )
-        return await _presign_azure(
-            user,
-            safe_filename=safe_filename,
-            content_type=payload.content_type,
         )
     except HTTPException:
         raise
