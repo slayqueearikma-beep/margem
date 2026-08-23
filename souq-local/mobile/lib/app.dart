@@ -61,7 +61,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isSellerManagement &&
           isAuthenticated &&
           !session.hasSellerProfile &&
-          session.accountType != AccountType.seller) {
+          session.accountType != AccountType.provider) {
         return '/buyer/home';
       }
       return null;

@@ -37,7 +37,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
   void initState() {
     super.initState();
     final session = ref.read(userSessionProvider);
-    final asOwner = session?.accountType == AccountType.seller;
+    final asOwner = session?.accountType == AccountType.provider;
     _sellerFuture =
         apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
     _reviewsFuture = apiServiceProvider.fetchReviews(widget.sellerId);
@@ -45,7 +45,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
 
   void _reload() {
     final session = ref.read(userSessionProvider);
-    final asOwner = session?.accountType == AccountType.seller;
+    final asOwner = session?.accountType == AccountType.provider;
     setState(() {
       _sellerFuture =
           apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);

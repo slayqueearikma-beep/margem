@@ -51,7 +51,7 @@ class _AccountTypeOnboardingScreenState
             onPressed: _selected == null
                 ? null
                 : () {
-                    if (_selected == AccountType.buyer) {
+                    if (_selected == AccountType.customer) {
                       context.push('/onboarding/buyer-register');
                     } else {
                       context.push('/onboarding/seller-register');
@@ -76,7 +76,7 @@ class _AccountTypeOnboardingScreenState
             title: l10n.buyer,
             subtitle: l10n.buyerSubtitle,
             icon: Icons.shopping_bag_outlined,
-            selected: _selected == AccountType.buyer,
+            selected: _selected == AccountType.customer,
             accentColor: const Color(0xFF4D96FF),
             bulletPoints: [
               l10n.buyerBullet1,
@@ -84,14 +84,14 @@ class _AccountTypeOnboardingScreenState
               l10n.buyerBullet3,
               l10n.buyerBullet4
             ],
-            onTap: () => setState(() => _selected = AccountType.buyer),
+            onTap: () => setState(() => _selected = AccountType.customer),
           ),
           const SizedBox(height: AppSpacing.md),
           SelectionCard(
             title: l10n.seller,
             subtitle: l10n.sellerSubtitle,
             icon: Icons.store_mall_directory_outlined,
-            selected: _selected == AccountType.seller,
+            selected: _selected == AccountType.provider,
             accentColor: AppColors.primary,
             bulletPoints: [
               l10n.sellerBullet1,
@@ -99,7 +99,7 @@ class _AccountTypeOnboardingScreenState
               l10n.sellerBullet3,
               l10n.sellerBullet4
             ],
-            onTap: () => setState(() => _selected = AccountType.seller),
+            onTap: () => setState(() => _selected = AccountType.provider),
           ),
         ],
       ),

@@ -72,12 +72,12 @@ class AppStringsEn extends AppStrings {
   String get chooseAccountTypeSubtitle =>
       'One account for both. Start as a shopper or set up a business — you can switch anytime with the same email and password.';
   @override
-  String get buyer => 'Buyer';
+  String get buyer => 'Customer';
   @override
   String get buyerSubtitle =>
       'Discover and support local businesses in your city.';
   @override
-  String get seller => 'Seller';
+  String get seller => 'Provider';
   @override
   String get sellerSubtitle =>
       'Create your online presence and reach more customers.';
@@ -201,7 +201,7 @@ class AppStringsEn extends AppStrings {
   @override
   String get darkMode => 'Dark mode';
   @override
-  String get buyerLabel => 'Buyer';
+  String get buyerLabel => 'Customer';
   @override
   String get sellerDashboard => 'Seller Dashboard';
   @override
@@ -519,6 +519,30 @@ class AppStringsEn extends AppStrings {
   String get addedToFavorites => 'Added to favorites';
   @override
   String get priceOnRequest => 'Price on request';
+  @override
+  String get pricingFixed => 'Fixed price';
+  @override
+  String get pricingOffer => 'Offer';
+  @override
+  String get deliveryAvailable => 'Delivery available';
+  @override
+  String get pickupOnly => 'Pickup only';
+  @override
+  String get searchFilters => 'Filters';
+  @override
+  String get minPrice => 'Min price (MAD)';
+  @override
+  String get maxPrice => 'Max price (MAD)';
+  @override
+  String get minRating => 'Min rating';
+  @override
+  String get provider => 'Providers';
+  @override
+  String get productCategory => 'Category';
+  @override
+  String get applyFilters => 'Apply';
+  @override
+  String get clearFilters => 'Clear';
   @override
   String get priceNegotiable => 'Price negotiable';
   @override

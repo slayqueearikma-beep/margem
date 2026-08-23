@@ -102,7 +102,9 @@ class SellerProductsScreen extends ConsumerWidget {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (product.priceMad != null)
+                        if (product.isOffer)
+                          Text(l10n.pricingOffer)
+                        else if (product.priceMad != null)
                           Text('${product.priceMad!.toStringAsFixed(0)} MAD'),
                         Text(
                           product.isAvailable ? l10n.available : l10n.unavailable,
@@ -147,6 +149,33 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
   String _imageUrl = '';
   XFile? _pickedImage;
   ProductModel? _existing;
+  PricingType _pricingType = PricingType.fixed;
+  String? _categorySlug;
+  bool _deliveryAvailable = false;
+  bool _pickupOnly = true;
+  List<CategoryModel> _categories = const [];
+  bool _categoriesLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await apiServiceProvider.fetchCategories();
+      if (!mounted) return;
+      setState(() {
+        _categories = categories;
+        _categorySlug ??=
+            categories.isNotEmpty ? categories.first.slug : null;
+        _categoriesLoading = false;
+      });
+    } on Object {
+      if (mounted) setState(() => _categoriesLoading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -166,6 +195,10 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
         product.priceMad! % 1 == 0 ? 0 : 2,
       );
     }
+    _pricingType = product.pricingType;
+    _categorySlug = product.categorySlug.isNotEmpty ? product.categorySlug : _categorySlug;
+    _deliveryAvailable = product.deliveryAvailable;
+    _pickupOnly = product.pickupOnly;
     _available = product.isAvailable;
     _imageUrl = product.imageUrl;
     _initialized = true;
@@ -197,10 +230,20 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
         }
 
         final priceText = _priceController.text.trim();
-        final price = priceText.isEmpty ? null : double.tryParse(priceText);
-        if (priceText.isNotEmpty && price == null) {
-          throw ApiException('Enter a valid price');
+        final isOffer = _pricingType == PricingType.offer;
+        double? price;
+        if (!isOffer) {
+          price = priceText.isEmpty ? null : double.tryParse(priceText);
+          if (priceText.isNotEmpty && price == null) {
+            throw ApiException('Enter a valid price');
+          }
+          if (price == null) {
+            throw ApiException('Fixed price listings require a price in MAD');
+          }
         }
+
+        final pricingType = isOffer ? 'offer' : 'fixed';
+        final categorySlug = _categorySlug ?? '';
 
         if (widget.isEditing) {
           await apiServiceProvider.updateProduct(
@@ -209,8 +252,12 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
             ProductUpdatePayload(
               name: name,
               description: _descriptionController.text.trim(),
+              pricingType: pricingType,
               priceMad: price,
-              clearPrice: priceText.isEmpty,
+              clearPrice: isOffer,
+              categorySlug: categorySlug,
+              deliveryAvailable: _deliveryAvailable,
+              pickupOnly: _pickupOnly,
               imageUrl: imageUrl,
               isAvailable: _available,
             ),
@@ -221,7 +268,11 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
             ProductCreatePayload(
               name: name,
               description: _descriptionController.text.trim(),
+              pricingType: pricingType,
               priceMad: price,
+              categorySlug: categorySlug,
+              deliveryAvailable: _deliveryAvailable,
+              pickupOnly: _pickupOnly,
               imageUrl: imageUrl,
             ),
           );
@@ -361,11 +412,99 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
             maxLines: 3,
           ),
           const SizedBox(height: AppSpacing.md),
-          TextField(
-            controller: _priceController,
-            enabled: !_loading,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: l10n.priceOptional),
+          Text(l10n.productCategory,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: AppSpacing.sm),
+          if (_categoriesLoading)
+            const LinearProgressIndicator(minHeight: 2)
+          else if (_categories.isEmpty)
+            Text(l10n.somethingWentWrong)
+          else
+            DropdownButtonFormField<String>(
+              value: _categorySlug,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
+                ),
+              ),
+              items: _categories
+                  .map(
+                    (cat) => DropdownMenuItem(
+                      value: cat.slug,
+                      child: Text(cat.localizedName(
+                        Localizations.localeOf(context).languageCode,
+                      )),
+                    ),
+                  )
+                  .toList(),
+              onChanged: _loading
+                  ? null
+                  : (value) => setState(() => _categorySlug = value),
+            ),
+          const SizedBox(height: AppSpacing.md),
+          Text(l10n.priceOptional,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: AppSpacing.sm),
+          RadioListTile<PricingType>(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.pricingFixed),
+            value: PricingType.fixed,
+            groupValue: _pricingType,
+            onChanged: _loading
+                ? null
+                : (value) => setState(() => _pricingType = value!),
+          ),
+          if (_pricingType == PricingType.fixed)
+            Padding(
+              padding: const EdgeInsets.only(left: AppSpacing.md),
+              child: TextField(
+                controller: _priceController,
+                enabled: !_loading,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'MAD',
+                  hintText: l10n.priceHint,
+                ),
+              ),
+            ),
+          RadioListTile<PricingType>(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.pricingOffer),
+            value: PricingType.offer,
+            groupValue: _pricingType,
+            onChanged: _loading
+                ? null
+                : (value) => setState(() => _pricingType = value!),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.deliveryAvailable),
+            value: _deliveryAvailable,
+            onChanged: _loading
+                ? null
+                : (value) => setState(() {
+                      _deliveryAvailable = value;
+                      if (value) _pickupOnly = false;
+                    }),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.pickupOnly),
+            value: _pickupOnly,
+            onChanged: _loading
+                ? null
+                : (value) => setState(() {
+                      _pickupOnly = value;
+                      if (value) _deliveryAvailable = false;
+                    }),
           ),
           if (widget.isEditing) ...[
             const SizedBox(height: AppSpacing.md),

@@ -22,7 +22,7 @@ async def client():
         yield ac
 
 
-async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
+async def _register(client: AsyncClient, account_type: str = "customer") -> dict:
     email = f"{account_type}-{uuid4().hex[:8]}@example.com"
     res = await client.post(
         "/auth/register",
@@ -48,7 +48,7 @@ async def _set_role(email: str, role: UserRole) -> None:
 
 
 async def _create_pending_seller(client: AsyncClient) -> UUID:
-    seller = await _register(client, "seller")
+    seller = await _register(client, "provider")
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
@@ -78,7 +78,7 @@ async def _create_pending_seller(client: AsyncClient) -> UUID:
 @pytest.mark.asyncio
 async def test_support_can_list_pending_but_cannot_verify(client: AsyncClient):
     seller_id = await _create_pending_seller(client)
-    support = await _register(client, "buyer")
+    support = await _register(client, "customer")
     await _set_role(support["email"], UserRole.SUPPORT)
 
     pending = await client.get("/admin/sellers/pending", headers=support["headers"])
@@ -96,7 +96,7 @@ async def test_support_can_list_pending_but_cannot_verify(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_admin_can_verify_seller(client: AsyncClient):
     seller_id = await _create_pending_seller(client)
-    admin = await _register(client, "buyer")
+    admin = await _register(client, "customer")
     await _set_role(admin["email"], UserRole.ADMIN)
 
     verify = await client.post(
@@ -113,7 +113,7 @@ async def test_admin_can_verify_seller(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_favorite_count_increments_atomically(client: AsyncClient):
-    seller = await _register(client, "seller")
+    seller = await _register(client, "provider")
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
@@ -133,8 +133,8 @@ async def test_favorite_count_increments_atomically(client: AsyncClient):
     assert profile.status_code == 201, profile.text
     seller_id = profile.json()["id"]
 
-    buyer_a = await _register(client, "buyer")
-    buyer_b = await _register(client, "buyer")
+    buyer_a = await _register(client, "customer")
+    buyer_b = await _register(client, "customer")
     for buyer in (buyer_a, buyer_b):
         res = await client.post(f"/favorites/sellers/{seller_id}", headers=buyer["headers"])
         assert res.status_code == 201, res.text
@@ -161,7 +161,7 @@ async def test_request_body_too_large_returns_413(client: AsyncClient, monkeypat
         json={
             "email": f"big-{uuid4().hex[:6]}@example.com",
             "password": "SecurePass1",
-            "account_type": "buyer",
+            "account_type": "customer",
             "display_name": huge,
         },
     )
@@ -171,8 +171,8 @@ async def test_request_body_too_large_returns_413(client: AsyncClient, monkeypat
 
 @pytest.mark.asyncio
 async def test_admin_can_grant_premium(client: AsyncClient):
-    target = await _register(client, "buyer")
-    admin = await _register(client, "buyer")
+    target = await _register(client, "customer")
+    admin = await _register(client, "customer")
     await _set_role(admin["email"], UserRole.ADMIN)
 
     me = await client.get("/auth/me", headers=target["headers"])
@@ -194,7 +194,7 @@ async def test_admin_can_grant_premium(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_suspended_user_cannot_refresh(client: AsyncClient):
-    user = await _register(client, "buyer")
+    user = await _register(client, "customer")
     login = await client.post(
         "/auth/login",
         json={"email": user["email"], "password": "SecurePass1"},
@@ -202,7 +202,7 @@ async def test_suspended_user_cannot_refresh(client: AsyncClient):
     assert login.status_code == 200, login.text
     refresh = login.json()["refresh_token"]
 
-    admin = await _register(client, "buyer")
+    admin = await _register(client, "customer")
     await _set_role(admin["email"], UserRole.ADMIN)
     me = await client.get("/auth/me", headers=user["headers"])
     user_id = me.json()["id"]
@@ -220,7 +220,7 @@ async def test_suspended_user_cannot_refresh(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_whitespace_message_rejected(client: AsyncClient):
-    seller = await _register(client, "seller")
+    seller = await _register(client, "provider")
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
@@ -238,7 +238,7 @@ async def test_whitespace_message_rejected(client: AsyncClient):
         },
     )
     assert profile.status_code == 201, profile.text
-    buyer = await _register(client, "buyer")
+    buyer = await _register(client, "customer")
     res = await client.post(
         f"/messages/sellers/{profile.json()['id']}",
         headers=buyer["headers"],

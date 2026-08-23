@@ -31,7 +31,7 @@ void main() {
     await storage.saveSession(const UserSession(
       name: 'Private Name',
       email: 'private@example.com',
-      accountType: AccountType.buyer,
+      accountType: AccountType.customer,
       sellerId: 'seller-123',
     ));
 

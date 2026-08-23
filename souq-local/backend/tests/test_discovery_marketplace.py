@@ -35,7 +35,7 @@ async def _register(client: AsyncClient, account_type: str, email: str | None = 
 
 
 async def _create_seller_with_product(client: AsyncClient) -> tuple[dict, dict, dict]:
-    seller = await _register(client, "seller")
+    seller = await _register(client, "provider")
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
@@ -61,10 +61,8 @@ async def _create_seller_with_product(client: AsyncClient) -> tuple[dict, dict, 
         json={
             "name": "Ceramic Bowl",
             "description": "Hand-thrown",
-            "price_mad": 120,
-            "price_negotiable": True,
-            "accepted_payment_methods": ["cash"],
-            "delivery_options": ["pickup"],
+            "pricing_type": "offer",
+            "category_slug": "home",
         },
     )
     assert product.status_code == 201, product.text
@@ -89,7 +87,7 @@ async def test_global_search_returns_paginated_products_and_sellers(client: Asyn
 @pytest.mark.asyncio
 async def test_favorites_follow_contact_and_messaging(client: AsyncClient):
     seller, seller_body, product = await _create_seller_with_product(client)
-    buyer = await _register(client, "buyer")
+    buyer = await _register(client, "customer")
 
     fav = await client.post(
         f"/favorites/products/{product['id']}",
@@ -163,7 +161,7 @@ async def test_favorites_follow_contact_and_messaging(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_guest_favorites_migrate_and_report(client: AsyncClient):
     _, seller_body, product = await _create_seller_with_product(client)
-    buyer = await _register(client, "buyer")
+    buyer = await _register(client, "customer")
 
     migrated = await client.post(
         "/favorites/migrate-guest",
@@ -201,6 +199,7 @@ async def test_product_rejects_invalid_media_url(client: AsyncClient):
         headers=seller["headers"],
         json={
             "name": "Bad Media",
+            "pricing_type": "offer",
             "media_urls": ["javascript:alert(1)"],
         },
     )
@@ -209,7 +208,7 @@ async def test_product_rejects_invalid_media_url(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_subscribe_premium_visibility(client: AsyncClient):
-    seller = await _register(client, "seller")
+    seller = await _register(client, "provider")
     plans = await client.get("/subscriptions/plans")
     assert plans.status_code == 200
     assert len(plans.json()) >= 1
@@ -223,7 +222,7 @@ async def test_subscribe_premium_visibility(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_ecommerce_endpoints_removed(client: AsyncClient):
-    buyer = await _register(client, "buyer")
+    buyer = await _register(client, "customer")
     for path in ("/cart", "/checkout", "/orders", "/wishlist", "/buyer/addresses"):
         res = await client.get(path, headers=buyer["headers"])
         assert res.status_code == 404, path

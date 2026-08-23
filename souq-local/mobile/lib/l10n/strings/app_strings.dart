@@ -249,6 +249,18 @@ abstract class AppStrings {
   String get addToFavorites;
   String get addedToFavorites;
   String get priceOnRequest;
+  String get pricingFixed;
+  String get pricingOffer;
+  String get deliveryAvailable;
+  String get pickupOnly;
+  String get searchFilters;
+  String get minPrice;
+  String get maxPrice;
+  String get minRating;
+  String get provider;
+  String get productCategory;
+  String get applyFilters;
+  String get clearFilters;
   String get priceNegotiable;
   String get acceptedPaymentMethods;
   String get contactSeller;

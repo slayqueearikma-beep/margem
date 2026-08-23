@@ -4,7 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum AccountType { buyer, seller, guest }
+enum AccountType { customer, provider, guest }
+
+AccountType parseAccountType(String typeName) {
+  switch (typeName) {
+    case 'customer':
+    case 'buyer':
+      return AccountType.customer;
+    case 'provider':
+    case 'seller':
+      return AccountType.provider;
+    case 'guest':
+      return AccountType.guest;
+    default:
+      return AccountType.customer;
+  }
+}
 
 /// Client preference for which shell to show. Capability still comes from sellerId/profile.
 enum AppMode { buyer, seller }
@@ -147,7 +162,7 @@ class AppStorage {
     final s = session ?? getSession();
     if (s != null &&
         s.hasSellerProfile &&
-        s.accountType == AccountType.seller) {
+        s.accountType == AccountType.provider) {
       return AppMode.seller;
     }
     return AppMode.buyer;
@@ -236,10 +251,7 @@ class AppStorage {
     if (!isLoggedIn) return null;
     final typeName = _prefs.getString(_accountTypeKey);
     if (typeName == null) return null;
-    final accountType = AccountType.values.firstWhere(
-      (type) => type.name == typeName,
-      orElse: () => AccountType.buyer,
-    );
+    final accountType = parseAccountType(typeName);
     return UserSession(
       name: _prefs.getString(_userNameKey) ??
           (accountType == AccountType.guest ? 'Guest' : 'User'),

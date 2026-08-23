@@ -73,12 +73,12 @@ class AppStringsFr extends AppStringsEn {
   String get chooseAccountTypeSubtitle =>
       'Un seul compte pour les deux. Commencez comme acheteur ou créez une boutique — changez à tout moment avec le même e-mail et mot de passe.';
   @override
-  String get buyer => 'Acheteur';
+  String get buyer => 'Client';
   @override
   String get buyerSubtitle =>
       'Découvrez et soutenez les commerces locaux de votre ville.';
   @override
-  String get seller => 'Vendeur';
+  String get seller => 'Prestataire';
   @override
   String get sellerSubtitle =>
       'Créez votre présence en ligne et touchez plus de clients.';
@@ -206,7 +206,7 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get darkMode => 'Mode sombre';
   @override
-  String get buyerLabel => 'Acheteur';
+  String get buyerLabel => 'Client';
   @override
   String get sellerDashboard => 'Tableau de bord vendeur';
   @override
@@ -531,6 +531,30 @@ class AppStringsFr extends AppStringsEn {
   String get addedToFavorites => 'Ajouté aux favoris';
   @override
   String get priceOnRequest => 'Prix sur demande';
+  @override
+  String get pricingFixed => 'Prix fixe';
+  @override
+  String get pricingOffer => 'Offre';
+  @override
+  String get deliveryAvailable => 'Livraison disponible';
+  @override
+  String get pickupOnly => 'Retrait sur place uniquement';
+  @override
+  String get searchFilters => 'Filtres';
+  @override
+  String get minPrice => 'Prix min (MAD)';
+  @override
+  String get maxPrice => 'Prix max (MAD)';
+  @override
+  String get minRating => 'Note minimale';
+  @override
+  String get provider => 'Prestataires';
+  @override
+  String get productCategory => 'Catégorie';
+  @override
+  String get applyFilters => 'Appliquer';
+  @override
+  String get clearFilters => 'Effacer';
   @override
   String get priceNegotiable => 'Prix négociable';
   @override

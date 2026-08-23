@@ -21,7 +21,7 @@ async def test_register_requires_strong_password():
             json={
                 "email": "user@example.com",
                 "password": "short",
-                "account_type": "buyer",
+                "account_type": "customer",
                 "display_name": "Test",
             },
         )
@@ -41,7 +41,7 @@ async def test_register_and_login_flow():
             json={
                 "email": email,
                 "password": password,
-                "account_type": "buyer",
+                "account_type": "customer",
                 "display_name": "Prod Test",
             },
         )
@@ -81,7 +81,7 @@ async def test_register_email_case_insensitive():
             json={
                 "email": "Case@Example.com",
                 "password": "SecurePass1",
-                "account_type": "buyer",
+                "account_type": "customer",
                 "display_name": "Case User",
             },
         )
@@ -92,7 +92,7 @@ async def test_register_email_case_insensitive():
             json={
                 "email": "case@example.com",
                 "password": "SecurePass1",
-                "account_type": "buyer",
+                "account_type": "customer",
                 "display_name": "Dup",
             },
         )

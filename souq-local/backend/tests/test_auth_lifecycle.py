@@ -22,7 +22,7 @@ async def client():
         yield ac
 
 
-async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
+async def _register(client: AsyncClient, account_type: str = "customer") -> dict:
     email = f"{account_type}-{uuid4().hex[:8]}@example.com"
     password = "SecurePass1"
     res = await client.post(
@@ -104,7 +104,7 @@ def test_production_rejects_http_public_urls():
 
 @pytest.mark.asyncio
 async def test_email_verify_request_and_confirm(client: AsyncClient):
-    user = await _register(client, "buyer")
+    user = await _register(client, "customer")
     req = await client.post("/auth/verify-email/request", headers=user["headers"])
     assert req.status_code == 204, req.text
 
@@ -139,7 +139,7 @@ async def test_email_verify_request_and_confirm(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_password_reset_flow(client: AsyncClient):
-    user = await _register(client, "buyer")
+    user = await _register(client, "customer")
     requested = await client.post("/auth/password-reset/request", json={"email": user["email"]})
     assert requested.status_code == 204, requested.text
 
@@ -170,7 +170,7 @@ async def test_password_reset_flow(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_delete_account_removes_seller_storefront(client: AsyncClient):
-    seller = await _register(client, "seller")
+    seller = await _register(client, "provider")
     profile = await client.post(
         "/sellers",
         headers=seller["headers"],
@@ -214,7 +214,7 @@ async def test_subscribe_premium_blocked_in_production(client: AsyncClient, monk
     from app.config import settings
 
     monkeypatch.setattr(settings, "app_env", "production")
-    user = await _register(client, "buyer")
+    user = await _register(client, "customer")
     res = await client.post("/subscriptions/subscribe/buyer_premium", headers=user["headers"])
     assert res.status_code == 503
     assert "billing" in res.json()["detail"].lower() or "provider" in res.json()["detail"].lower() or "admin" in res.json()["detail"].lower()

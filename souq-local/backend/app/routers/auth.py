@@ -149,7 +149,7 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
 
 
 def _role_for_account(account_type: AccountType) -> UserRole:
-    return UserRole.SELLER if account_type == AccountType.SELLER else UserRole.BUYER
+    return UserRole.PROVIDER if account_type == AccountType.PROVIDER else UserRole.CUSTOMER
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)

@@ -62,8 +62,8 @@ async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
 
 @pytest.mark.asyncio
 async def test_seller_to_seller_shares_one_conversation(client: AsyncClient):
-    seller_a = await _register(client, "seller", "Seller A")
-    seller_b = await _register(client, "seller", "Seller B")
+    seller_a = await _register(client, "provider", "Seller A")
+    seller_b = await _register(client, "provider", "Seller B")
     store_a = await _create_store(client, seller_a["headers"], "Store Alpha")
     store_b = await _create_store(client, seller_b["headers"], "Store Beta")
 
@@ -101,8 +101,8 @@ async def test_seller_to_seller_shares_one_conversation(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_user_to_user_messaging(client: AsyncClient):
-    buyer_a = await _register(client, "buyer", "Buyer A")
-    buyer_b = await _register(client, "buyer", "Buyer B")
+    buyer_a = await _register(client, "customer", "Buyer A")
+    buyer_b = await _register(client, "customer", "Buyer B")
 
     started = await client.post(
         f"/messages/users/{buyer_b['user_id']}",

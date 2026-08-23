@@ -73,11 +73,11 @@ class AppStringsAr extends AppStringsEn {
   String get chooseAccountTypeSubtitle =>
       'حساب واحد للاثنين. ابدأ كمتسوّق أو أنشئ متجراً — يمكنك التبديل في أي وقت بنفس البريد وكلمة المرور.';
   @override
-  String get buyer => 'مشتري';
+  String get buyer => 'عميل';
   @override
   String get buyerSubtitle => 'اكتشف وادعم المحلات المحلية في مدينتك.';
   @override
-  String get seller => 'بائع';
+  String get seller => 'مزوّد';
   @override
   String get sellerSubtitle => 'أنشئ حضورك الرقمي واصل إلى المزيد من العملاء.';
   @override
@@ -200,7 +200,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get darkMode => 'الوضع الداكن';
   @override
-  String get buyerLabel => 'مشتري';
+  String get buyerLabel => 'عميل';
   @override
   String get sellerDashboard => 'لوحة البائع';
   @override
@@ -516,6 +516,30 @@ class AppStringsAr extends AppStringsEn {
   String get addedToFavorites => 'تمت الإضافة إلى المفضلة';
   @override
   String get priceOnRequest => 'السعر عند الطلب';
+  @override
+  String get pricingFixed => 'سعر ثابت';
+  @override
+  String get pricingOffer => 'عرض';
+  @override
+  String get deliveryAvailable => 'التوصيل متاح';
+  @override
+  String get pickupOnly => 'الاستلام من المتجر فقط';
+  @override
+  String get searchFilters => 'الفلاتر';
+  @override
+  String get minPrice => 'أدنى سعر (درهم)';
+  @override
+  String get maxPrice => 'أقصى سعر (درهم)';
+  @override
+  String get minRating => 'أدنى تقييم';
+  @override
+  String get provider => 'المزوّدون';
+  @override
+  String get productCategory => 'الفئة';
+  @override
+  String get applyFilters => 'تطبيق';
+  @override
+  String get clearFilters => 'مسح';
   @override
   String get priceNegotiable => 'السعر قابل للتفاوض';
   @override
