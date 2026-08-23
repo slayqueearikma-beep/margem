@@ -28,6 +28,26 @@ Common fixes:
 - Ensure USB debugging works: `adb devices` shows `device`
 - Free RAM if Gradle cannot start (heap is capped at 4G)
 
+### JDK 17 (one-time, Linux)
+
+Gradle/Flutter need JDK 17. Pick **one** approach:
+
+**A. Persist for all terminals (recommended):**
+
+```bash
+cd souq-local/mobile
+./scripts/install_java_env_to_shell.sh
+source ~/.bashrc
+```
+
+**B. Gradle only** — copy `android/local.properties.example` to `android/local.properties` and add:
+
+```properties
+org.gradle.java.home=/usr/lib/jvm/java-17-openjdk-amd64
+```
+
+(`local.properties` is gitignored — machine-specific, do not commit.)
+
 Optional demo map when API is offline (dev only):
 
 ```bash
