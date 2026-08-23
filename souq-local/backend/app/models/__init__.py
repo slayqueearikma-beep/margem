@@ -25,8 +25,8 @@ class Base(DeclarativeBase):
 
 
 class AccountType(str, enum.Enum):
-    BUYER = "buyer"
-    SELLER = "seller"
+    CUSTOMER = "customer"
+    PROVIDER = "provider"
 
 
 class UserStatus(str, enum.Enum):
@@ -36,10 +36,15 @@ class UserStatus(str, enum.Enum):
 
 
 class UserRole(str, enum.Enum):
-    BUYER = "buyer"
-    SELLER = "seller"
+    CUSTOMER = "customer"
+    PROVIDER = "provider"
     ADMIN = "admin"
     SUPPORT = "support"
+
+
+class PricingType(str, enum.Enum):
+    FIXED = "fixed"
+    OFFER = "offer"
 
 
 class SubscriptionStatus(str, enum.Enum):
@@ -71,6 +76,7 @@ def _enum(enum_cls: type[enum.Enum], name: str) -> Enum:
 account_type_enum = _enum(AccountType, "accounttype")
 user_status_enum = _enum(UserStatus, "userstatus")
 user_role_enum = _enum(UserRole, "userrole")
+pricing_type_enum = _enum(PricingType, "pricingtype")
 subscription_status_enum = _enum(SubscriptionStatus, "subscriptionstatus")
 verification_status_enum = _enum(VerificationStatus, "verificationstatus")
 
@@ -87,11 +93,14 @@ class User(Base):
     phone: Mapped[str] = mapped_column(String(32), default="")
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[UserStatus] = mapped_column(user_status_enum, default=UserStatus.ACTIVE)
-    role: Mapped[UserRole] = mapped_column(user_role_enum, default=UserRole.BUYER)
+    role: Mapped[UserRole] = mapped_column(user_role_enum, default=UserRole.CUSTOMER)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     premium_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    token_version: Mapped[int] = mapped_column(Integer, default=0)
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     seller_profile: Mapped["SellerProfile | None"] = relationship(back_populates="user", uselist=False)
@@ -127,6 +136,23 @@ class AuthToken(Base):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    failed_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class SignupVerification(Base):
+    __tablename__ = "signup_verifications"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(255), index=True)
+    phone: Mapped[str] = mapped_column(String(32), default="")
+    channel: Mapped[str] = mapped_column(String(16))  # email | phone
+    code_hash: Mapped[str] = mapped_column(String(64))
+    proof_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    failed_attempts: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -139,6 +165,16 @@ class MfaFactor(Base):
     secret_encrypted: Mapped[str] = mapped_column(String(512))
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     disabled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class MfaRecoveryCode(Base):
+    __tablename__ = "mfa_recovery_codes"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    code_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -173,6 +209,9 @@ class SellerProfile(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     address: Mapped[str] = mapped_column(String(255))
     city: Mapped[str] = mapped_column(String(80), index=True)
+    marketplace_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("marketplaces.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
     phone: Mapped[str] = mapped_column(String(32), default="")
@@ -208,6 +247,7 @@ class SellerProfile(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="seller_profile")
+    marketplace: Mapped["Marketplace | None"] = relationship(back_populates="sellers")
     categories: Mapped[list[Category]] = relationship(
         secondary="seller_categories", back_populates="sellers"
     )
@@ -224,10 +264,14 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String(160))
     description: Mapped[str] = mapped_column(Text, default="")
     price_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
+    pricing_type: Mapped[PricingType] = mapped_column(pricing_type_enum, default=PricingType.FIXED)
     price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
     availability_note: Mapped[str] = mapped_column(String(160), default="")
+    warranty_note: Mapped[str] = mapped_column(String(160), default="")
     accepted_payment_methods: Mapped[list] = mapped_column(JSONB, default=list)
     delivery_options: Mapped[list] = mapped_column(JSONB, default=list)
+    delivery_available: Mapped[bool] = mapped_column(Boolean, default=False)
+    pickup_only: Mapped[bool] = mapped_column(Boolean, default=True)
     image_url: Mapped[str] = mapped_column(String(512), default="")
     media_urls: Mapped[list] = mapped_column(JSONB, default=list)
     video_url: Mapped[str] = mapped_column(String(512), default="")
@@ -250,7 +294,12 @@ class Service(Base):
     name: Mapped[str] = mapped_column(String(160))
     description: Mapped[str] = mapped_column(Text, default="")
     price_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
+    price_min_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
+    price_max_mad: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
+    pricing_model: Mapped[str] = mapped_column(String(32), default="fixed_price")
+    pricing_type: Mapped[PricingType] = mapped_column(pricing_type_enum, default=PricingType.FIXED)
     price_negotiable: Mapped[bool] = mapped_column(Boolean, default=False)
+    category_slug: Mapped[str] = mapped_column(String(80), default="")
     coverage_areas: Mapped[list] = mapped_column(JSONB, default=list)
     image_url: Mapped[str] = mapped_column(String(512), default="")
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -376,9 +425,26 @@ class Report(Base):
         ForeignKey("seller_profiles.id", ondelete="CASCADE"), nullable=True
     )
     product_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), nullable=True)
+    reported_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     reason: Mapped[str] = mapped_column(String(80))
     details: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(32), default="open", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserBlock(Base):
+    __tablename__ = "user_blocks"
+    __table_args__ = (UniqueConstraint("blocker_id", "blocked_id", name="uq_user_block"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    blocker_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    blocked_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -492,3 +558,33 @@ class AdminAuditLog(Base):
     target_id: Mapped[str] = mapped_column(String(64), default="")
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# Re-export community models for Alembic metadata and imports.
+from app.models.community import (  # noqa: E402,F401
+    City,
+    CommunityChannel,
+    CommunityChannelCategory,
+    CommunityCityBan,
+    CommunityMembership,
+    CommunityMessage,
+    CommunityMessageStatus,
+    CommunityModerationLog,
+    CommunityReaction,
+    CommunityReport,
+    CommunityReportStatus,
+    CommunityUserBlock,
+    CommunityUserMute,
+    DEFAULT_CHANNEL_SPECS,
+)
+from app.models.marketplace import Marketplace, MarketplaceCategory  # noqa: E402,F401
+from app.models.marketplace_community import (  # noqa: E402,F401
+    MarketplaceCommunityBan,
+    MarketplaceCommunityChannel,
+    MarketplaceCommunityMembership,
+    MarketplaceCommunityMessage,
+    MarketplaceCommunityModerationLog,
+    MarketplaceCommunityReaction,
+    MarketplaceCommunityReport,
+    MarketplaceCommunitySpamState,
+)
