@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/auth_models.dart';
+import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -16,9 +17,11 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/category_picker.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/map_widgets.dart';
+import '../../core/widgets/legal_consent_checkbox.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/services/upload_service.dart';
 
@@ -35,6 +38,7 @@ class _SellerRegistrationScreenState
   static const _totalSteps = 5;
   int _step = 1;
   bool _loading = false;
+  bool _acceptedTerms = false;
 
   // Step 1
   final _businessNameController = TextEditingController();
@@ -43,7 +47,7 @@ class _SellerRegistrationScreenState
   final _passwordController = TextEditingController();
 
   // Step 2
-  String _category = 'Food';
+  CategoryModel? _selectedCategory;
   final String _city = AppConfig.launchCity;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -67,17 +71,6 @@ class _SellerRegistrationScreenState
 
   // Step 4
   final List<_ProductDraft> _products = [_ProductDraft()];
-
-  static const _categories = [
-    'Food',
-    'Clothing',
-    'Electronics',
-    'Beauty',
-    'Services',
-    'Home & Garden',
-    'Health',
-    'Sports',
-  ];
 
   @override
   void dispose() {
@@ -103,12 +96,14 @@ class _SellerRegistrationScreenState
   bool _validateStep() {
     switch (_step) {
       case 1:
-        return _businessNameController.text.trim().isNotEmpty &&
+        return _acceptedTerms &&
+            _businessNameController.text.trim().isNotEmpty &&
             _ownerNameController.text.trim().isNotEmpty &&
             _emailController.text.trim().isNotEmpty &&
             _passwordController.text.length >= 8;
       case 2:
-        return _addressController.text.trim().isNotEmpty &&
+        return _selectedCategory != null &&
+            _addressController.text.trim().isNotEmpty &&
             _phoneController.text.trim().isNotEmpty;
       case 3:
         return _descriptionController.text.trim().isNotEmpty;
@@ -159,8 +154,9 @@ class _SellerRegistrationScreenState
         final prefs = await ref.read(sharedPreferencesProvider.future);
         await auth.persistToken(prefs);
 
-        final slug = sellerCategorySlugMap[_category] ?? 'food';
-        final categoryId = await apiServiceProvider.categoryIdForSlug(slug);
+        if (_selectedCategory == null) {
+          throw ApiException('Please select a business category');
+        }
 
         final uploader = ref.read(uploadServiceProvider);
         String coverUrl = '';
@@ -190,7 +186,7 @@ class _SellerRegistrationScreenState
               'close':
                   '${_closeTime.hour.toString().padLeft(2, '0')}:${_closeTime.minute.toString().padLeft(2, '0')}',
             },
-            categoryIds: categoryId != null ? [categoryId] : [],
+            categoryIds: [_selectedCategory!.id],
           ),
         );
         final sellerId = seller.id;
@@ -316,11 +312,20 @@ class _SellerRegistrationScreenState
             controller: _passwordController,
             hint: l10n.passwordHint,
             obscureText: true),
+        const SizedBox(height: AppSpacing.md),
+        LegalConsentCheckbox(
+          value: _acceptedTerms,
+          onChanged: (v) => setState(() => _acceptedTerms = v ?? false),
+        ),
       ],
     );
   }
 
   Widget _buildStep2(AppStrings l10n) {
+    final categoriesAsync = ref.watch(onboardingCategoriesProvider);
+    final locale = Localizations.localeOf(context).languageCode;
+    final categoryLabel = _selectedCategory?.localizedName(locale) ?? '';
+
     return Column(
       key: const ValueKey(2),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,24 +333,25 @@ class _SellerRegistrationScreenState
         AppScreenHeader(
             title: l10n.sellerStep2Title, subtitle: l10n.sellerStep2Subtitle),
         const SizedBox(height: AppSpacing.xl),
-        AppTextField(
-          label: l10n.businessCategory,
-          hint: l10n.categoryLabel(_category),
-          readOnly: true,
-          prefixIcon: Icons.category_outlined,
-          onTap: () async {
-            final selected = await showModalBottomSheet<String>(
-              context: context,
-              builder: (ctx) => ListView(
-                children: _categories
-                    .map((c) => ListTile(
-                        title: Text(l10n.categoryLabel(c)),
-                        onTap: () => Navigator.pop(ctx, c)))
-                    .toList(),
-              ),
-            );
-            if (selected != null) setState(() => _category = selected);
-          },
+        categoriesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Text(error.toString()),
+          data: (categories) => AppTextField(
+            label: l10n.businessCategory,
+            hint: categoryLabel.isEmpty ? l10n.businessCategory : categoryLabel,
+            readOnly: true,
+            prefixIcon: Icons.category_outlined,
+            onTap: () async {
+              final selected = await showCategoryPicker(
+                context,
+                categories,
+                selected: _selectedCategory,
+              );
+              if (selected != null) {
+                setState(() => _selectedCategory = selected);
+              }
+            },
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
@@ -525,7 +531,13 @@ class _SellerRegistrationScreenState
         _ReviewRow(l10n.reviewBusiness, _businessNameController.text),
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
         _ReviewRow(l10n.email, _emailController.text),
-        _ReviewRow(l10n.reviewCategory, l10n.categoryLabel(_category)),
+        _ReviewRow(
+          l10n.reviewCategory,
+          _selectedCategory?.localizedName(
+                Localizations.localeOf(context).languageCode,
+              ) ??
+              '',
+        ),
         _ReviewRow(l10n.reviewCity, _city),
         _ReviewRow(l10n.reviewAddress, _addressController.text),
         _ReviewRow(l10n.reviewPhone, _phoneController.text),

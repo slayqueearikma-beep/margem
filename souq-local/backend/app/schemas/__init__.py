@@ -128,6 +128,7 @@ class CategoryOut(BaseModel):
     name_fr: str
     name_ar: str
     icon: str
+    accent_color: str = "#5B6CFF"
 
     model_config = {"from_attributes": True}
 

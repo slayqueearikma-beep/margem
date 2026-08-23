@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/validation/form_validators.dart';
 import '../../core/config/app_config.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -14,6 +15,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
+import '../../core/widgets/legal_consent_checkbox.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -33,6 +35,7 @@ class _BuyerRegistrationScreenState
   final String _city = AppConfig.launchCity;
   XFile? _profileImage;
   bool _loading = false;
+  bool _acceptedTerms = false;
 
   @override
   void dispose() {
@@ -50,9 +53,15 @@ class _BuyerRegistrationScreenState
 
   Future<void> _submit() async {
     final l10n = context.l10n;
+    if (!_acceptedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please accept the Terms and Privacy Policy')),
+      );
+      return;
+    }
     if (_nameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
-        _passwordController.text.length < 8) {
+        !FormValidators.isValidEmail(_emailController.text.trim()) ||
+        !FormValidators.isValidPassword(_passwordController.text)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
       return;
@@ -182,6 +191,11 @@ class _BuyerRegistrationScreenState
             hint: l10n.passwordHint,
             obscureText: true,
             prefixIcon: Icons.lock_outline,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          LegalConsentCheckbox(
+            value: _acceptedTerms,
+            onChanged: (v) => setState(() => _acceptedTerms = v ?? false),
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(

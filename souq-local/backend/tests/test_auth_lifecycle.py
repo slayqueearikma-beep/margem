@@ -214,7 +214,7 @@ async def test_subscribe_premium_blocked_in_production(client: AsyncClient, monk
     from app.config import settings
 
     monkeypatch.setattr(settings, "app_env", "production")
-    user = await _register(client, "buyer")
-    res = await client.post("/subscriptions/subscribe/buyer_premium", headers=user["headers"])
-    assert res.status_code == 503
-    assert "billing" in res.json()["detail"].lower() or "provider" in res.json()["detail"].lower() or "admin" in res.json()["detail"].lower()
+    user = await _register(client, "seller")
+    res = await client.post("/subscriptions/subscribe/premium", headers=user["headers"])
+    assert res.status_code == 400
+    assert "checkout" in res.json()["detail"].lower()
