@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/validation/form_validators.dart';
 import '../../core/config/app_config.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -15,6 +16,7 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
+import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../l10n/app_localizations.dart';
 
 class BuyerRegistrationScreen extends ConsumerStatefulWidget {
@@ -51,12 +53,20 @@ class _BuyerRegistrationScreenState
   Future<void> _submit() async {
     final l10n = context.l10n;
     if (_nameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
-        _passwordController.text.length < 8) {
+        !FormValidators.isValidEmail(_emailController.text.trim()) ||
+        !FormValidators.isValidPassword(_passwordController.text)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
       return;
     }
+
+    final email = _emailController.text.trim();
+    final signupProof = await showSignupVerificationFlow(
+      context: context,
+      email: email,
+      phone: '',
+    );
+    if (!mounted || signupProof == null) return;
 
     setState(() => _loading = true);
     try {
@@ -65,10 +75,11 @@ class _BuyerRegistrationScreenState
 
         final auth = ref.read(authServiceProvider);
         final session = await auth.register(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text,
           accountType: 'buyer',
           displayName: _nameController.text.trim(),
+          signupProof: signupProof,
         );
 
         final prefs = await ref.read(sharedPreferencesProvider.future);

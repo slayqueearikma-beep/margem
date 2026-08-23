@@ -13,7 +13,7 @@ os.environ["AUTH_DEV_BYPASS"] = "false"
 os.environ["DEBUG"] = "false"
 
 import pytest_asyncio
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -35,8 +35,6 @@ async def prepare_database():
     )
 
     async with database.engine.begin() as conn:
-        # Drop legacy ecommerce tables that may still exist from older migrations
-        # before recreating the discovery-platform schema.
         for table in (
             "order_items",
             "orders",
@@ -44,37 +42,57 @@ async def prepare_database():
             "wishlist_items",
             "buyer_addresses",
             "coupons",
+            "community_reports",
+            "community_message_reactions",
+            "community_messages",
+            "community_channels",
+            "community_memberships",
+            "community_user_blocks",
+            "community_user_mutes",
+            "cities",
+            "countries",
+            "signup_verifications",
         ):
             await conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS orderstatus CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS paymentstatus CASCADE"))
-        await conn.run_sync(Base.metadata.drop_all)
+        await conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+        await conn.execute(text("CREATE SCHEMA public"))
+        await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
         await conn.run_sync(Base.metadata.create_all)
 
     async with database.SessionLocal() as session:
-        session.add_all(
-            [
-                SubscriptionPlan(
-                    id=uuid4(),
-                    code="buyer_premium",
-                    name="MarGem Plus",
-                    description="Personalized discovery",
-                    price_mad=49,
-                    billing_period_days=30,
-                    features=["Personalized recommendations", "Priority support"],
-                ),
-                SubscriptionPlan(
-                    id=uuid4(),
-                    code="seller_pro",
-                    name="Seller Pro",
-                    description="Seller visibility boost",
-                    price_mad=199,
-                    billing_period_days=30,
-                    features=["Featured placement", "Analytics", "Premium badge"],
-                ),
-            ]
-        )
-        await session.commit()
+        existing = (
+            await session.execute(
+                select(SubscriptionPlan.code).where(
+                    SubscriptionPlan.code.in_(["buyer_premium", "seller_pro"])
+                )
+            )
+        ).scalars().all()
+        if not existing:
+            session.add_all(
+                [
+                    SubscriptionPlan(
+                        id=uuid4(),
+                        code="buyer_premium",
+                        name="MarGem Plus",
+                        description="Personalized discovery",
+                        price_mad=49,
+                        billing_period_days=30,
+                        features=["Personalized recommendations", "Priority support"],
+                    ),
+                    SubscriptionPlan(
+                        id=uuid4(),
+                        code="seller_pro",
+                        name="Seller Pro",
+                        description="Seller visibility boost",
+                        price_mad=199,
+                        billing_period_days=30,
+                        features=["Featured placement", "Analytics", "Premium badge"],
+                    ),
+                ]
+            )
+            await session.commit()
 
     yield
     async with database.engine.begin() as conn:
@@ -91,6 +109,7 @@ async def prepare_database():
             "notifications",
             "messages",
             "conversations",
+            "mfa_recovery_codes",
             "mfa_factors",
             "auth_tokens",
             "refresh_tokens",

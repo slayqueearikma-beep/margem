@@ -1,4 +1,6 @@
 /// App configuration — update for your environment.
+import 'package:flutter/foundation.dart';
+
 class AppConfig {
   /// Production API URL. Set at build time:
   /// `flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000`
@@ -64,15 +66,18 @@ class AppConfig {
     defaultValue: '',
   );
 
-  static bool get hasGoogleMapsApiKey =>
-      mapsEnabled &&
-      googleMapsApiKey.isNotEmpty &&
-      googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY';
+  static bool get hasGoogleMapsApiKey {
+    if (googleMapsApiKey.isNotEmpty &&
+        googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY') {
+      return mapsEnabled;
+    }
+    return mapsEnabled && !kIsWeb;
+  }
 
-  /// Maps are opt-in. Pass --dart-define=ENABLE_MAPS=true with a valid key.
+  /// Maps are enabled by default on native when the manifest supplies a key.
   static const bool mapsEnabled = bool.fromEnvironment(
     'ENABLE_MAPS',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   static const bool isProduction = bool.fromEnvironment(
@@ -103,4 +108,21 @@ class AppConfig {
 
   /// Launch city — MarGem is Casablanca-only for now.
   static const String launchCity = 'Casablanca';
+
+  /// Extra hosts permitted for presigned image uploads (comma-separated define).
+  static List<String> get allowedUploadHosts {
+    const raw = String.fromEnvironment('ALLOWED_UPLOAD_HOSTS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((h) => h.trim().toLowerCase()).where((h) => h.isNotEmpty).toList();
+  }
+
+  /// Optional SHA-256 certificate pins for release TLS pinning.
+  static List<String> get certificatePins {
+    const raw = String.fromEnvironment('CERTIFICATE_PINS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+  }
+
+  /// Maximum guest favorites stored locally before login.
+  static const int maxGuestFavorites = 50;
 }
