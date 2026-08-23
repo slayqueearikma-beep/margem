@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Privacy Policy — MarGem</title>
+<style>
+:root { --text:#1a1a2e; --muted:#5c5c7a; --border:#e8e8f0; --accent:#6b5ce7; --bg:#faf9f7; }
+* { box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
+  line-height: 1.65; color: var(--text); background: var(--bg); margin: 0; padding: 0; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+header { border-bottom: 1px solid var(--border); margin-bottom: 2rem; padding-bottom: 1rem; }
+h1 { font-size: 1.75rem; margin: 0 0 .5rem; letter-spacing: -0.02em; }
+.meta { color: var(--muted); font-size: .9rem; }
+h2 { font-size: 1.15rem; margin: 2rem 0 .75rem; color: var(--text); }
+p, li { font-size: .98rem; }
+ul { padding-inline-start: 1.25rem; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 1rem 0; }
+th, td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: start; vertical-align: top; }
+th { background: #f3f2ff; }
+.note { background: #fff8e6; border: 1px solid #f0d78c; border-radius: 8px; padding: .85rem 1rem; font-size: .92rem; }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
+.lang-nav { margin-top: .75rem; font-size: .88rem; }
+.lang-nav a { color: var(--accent); margin-inline-end: .75rem; }
+[dir="rtl"] body { text-align: right; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>Privacy Policy</h1>
+<p class="meta">MarGem · Version 1.1.0 · Effective August 1, 2026 · Last updated August 10, 2026</p>
+<p class="lang-nav"><a href="/legal/fr/privacy">Français</a> · <a href="/legal/ar/privacy">العربية</a></p>
+</header>
+<main>
+
+<p>MarGem ("we", "us") operates a local discovery and marketplace platform for Morocco (Android, iOS, and Web). This Privacy Policy explains how we collect, use, retain, and protect personal information.</p>
+<div class="note"><strong>Legal notice:</strong> MarGem is subject to Morocco's Law 09-08 on the protection of individuals with regard to the processing of personal data. We have <strong>not</strong> confirmed CNDP registration or authorization in this repository — counsel must verify before publication.</div>
+<h2>1. Data we collect</h2>
+<ul>
+<li><strong>Account:</strong> email, display name, password (stored as a bcrypt hash), account type, optional phone, email verification status</li>
+<li><strong>Seller profile:</strong> business name, description, address, city, coordinates, contact links, images, listings, hours, payment/delivery options (display only)</li>
+<li><strong>User content:</strong> reviews, buyer–seller messages, city community messages, reports, favorites, follows, saved searches</li>
+<li><strong>Automatic:</strong> device/OS, app version, language, IP address, request IDs, refresh-token metadata (device name, IP, user agent, last seen)</li>
+<li><strong>Location:</strong> only with your permission, to show nearby businesses on the map</li>
+<li><strong>Guests:</strong> favorites and preferences stored locally on the device until you sign in</li>
+</ul>
+<h2>2. Why we process data</h2>
+<p>We use data to provide accounts, listings, messaging, community channels, verification, notifications, discovery, security, fraud prevention, analytics, legal compliance, and premium features. We do <strong>not</strong> sell personal information or run third-party ad networks.</p>
+<h2>3. Third-party services (actual)</h2>
+<table>
+<tr><th>Service</th><th>Purpose</th></tr>
+<tr><td>PostgreSQL</td><td>Primary database</td></tr>
+<tr><td>Azure Blob Storage or local media storage</td><td>Uploaded images/media</td></tr>
+<tr><td>SMTP (optional)</td><td>Verification, password reset, service email</td></tr>
+<tr><td>Firebase Admin (optional)</td><td>Identity token verification only if enabled</td></tr>
+<tr><td>Google Maps (optional, ENABLE_MAPS)</td><td>Map display when configured</td></tr>
+<tr><td>Sentry (optional)</td><td>Crash/error reporting when SENTRY_DSN is set</td></tr>
+<tr><td>Azure Application Insights (optional)</td><td>Performance telemetry when configured</td></tr>
+<tr><td>Redis (optional)</td><td>Rate limiting / caching</td></tr>
+</table>
+<p>Payments for subscriptions are <strong>not</strong> processed in-app today; billing is manual/admin-assisted. Off-platform payments between buyers and sellers are arranged directly between users.</p>
+<h2>4. International transfers</h2>
+<p>MarGem is based in Morocco. Data may be processed in Morocco and in countries where our infrastructure providers operate (for example Microsoft Azure regions). Transfers outside Morocco or the EEA use appropriate safeguards where required by law.</p>
+<h2>5. Retention & deletion</h2>
+<p>We keep data only as long as needed for the purposes above. When you delete your account, we anonymize your profile (email becomes <code>deleted+{uuid}@invalid.local</code>), remove storefronts, listings, messages, favorites, and tokens, and anonymize community messages. Limited records (billing, security logs, backups up to 90 days, legal holds) may be retained as described in our Account Deletion Policy.</p>
+<h2>6. Your rights (Morocco Law 09-08)</h2>
+<p>You may request access, rectification, opposition, and deletion. Contact <a href="mailto:privacy@margem.app">privacy@margem.app</a> or use in-app deletion. Data export is available via <code>GET /auth/me/export</code> when signed in.</p>
+<h2>7. Security</h2>
+<p>We use TLS in transit, bcrypt password hashing, encrypted token storage on mobile, access controls, audit logging, and rate limiting. No system is completely secure.</p>
+<h2>8. Children</h2>
+<p>MarGem is not directed to children under 16. We do not knowingly collect children's data.</p>
+<h2>9. Contact</h2>
+<p>Privacy: <a href="mailto:privacy@margem.app">privacy@margem.app</a> · DPO: <a href="mailto:dpo@margem.app">dpo@margem.app</a></p>
+
+</main>
+<footer>
+<p><a href="/legal/en/terms">Terms</a> · <a href="/legal/en/cookies">Cookies</a> · <a href="/legal/en/account-deletion">Account deletion</a></p>
+<p>© MarGem · <a href="mailto:privacy@margem.app">privacy@margem.app</a></p>
+</footer>
+</div>
+</body>
+</html>

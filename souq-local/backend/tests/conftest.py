@@ -35,8 +35,6 @@ async def prepare_database():
     )
 
     async with database.engine.begin() as conn:
-        # Drop legacy ecommerce tables that may still exist from older migrations
-        # before recreating the discovery-platform schema.
         for table in (
             "order_items",
             "orders",
@@ -48,7 +46,9 @@ async def prepare_database():
             await conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS orderstatus CASCADE"))
         await conn.execute(text("DROP TYPE IF EXISTS paymentstatus CASCADE"))
-        await conn.run_sync(Base.metadata.drop_all)
+        await conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+        await conn.execute(text("CREATE SCHEMA public"))
+        await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
         await conn.run_sync(Base.metadata.create_all)
 
     async with database.SessionLocal() as session:
@@ -76,6 +76,13 @@ async def prepare_database():
         )
         await session.commit()
 
+        from app.services.community_chat import ensure_all_city_communities
+        from app.services.geography import ensure_geography_seeded, seed_morocco_cities_if_empty
+
+        await seed_morocco_cities_if_empty(session)
+        await ensure_all_city_communities(session)
+        await ensure_geography_seeded(session)
+
     yield
     async with database.engine.begin() as conn:
         for table in (
@@ -91,6 +98,7 @@ async def prepare_database():
             "notifications",
             "messages",
             "conversations",
+            "mfa_recovery_codes",
             "mfa_factors",
             "auth_tokens",
             "refresh_tokens",

@@ -91,8 +91,32 @@ class AppConfig {
   /// Privacy policy URL for Play Store listing and in-app link.
   static const String privacyPolicyUrl = String.fromEnvironment(
     'PRIVACY_POLICY_URL',
-    defaultValue: 'https://margem.app/privacy',
+    defaultValue: '',
   );
+
+  /// Localized legal document URL served by the API (`/legal/{lang}/{doc}`).
+  static String legalDocumentUrl(String doc, String languageCode) {
+    const supported = {'en', 'fr', 'ar'};
+    final lang = supported.contains(languageCode) ? languageCode : 'en';
+    final override = privacyPolicyUrl;
+    if (doc == 'privacy' && override.isNotEmpty) {
+      return override;
+    }
+    final origin = Uri.parse(apiBaseUrl).origin;
+    return '$origin/legal/$lang/$doc';
+  }
+
+  static String privacyPolicyUrlFor(String languageCode) =>
+      legalDocumentUrl('privacy', languageCode);
+
+  static String termsUrlFor(String languageCode) =>
+      legalDocumentUrl('terms', languageCode);
+
+  static String cookiePolicyUrlFor(String languageCode) =>
+      legalDocumentUrl('cookies', languageCode);
+
+  static String accountDeletionUrlFor(String languageCode) =>
+      legalDocumentUrl('account-deletion', languageCode);
 
   static const String appName = 'MarGem';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';
@@ -103,4 +127,21 @@ class AppConfig {
 
   /// Launch city — MarGem is Casablanca-only for now.
   static const String launchCity = 'Casablanca';
+
+  /// Extra hosts permitted for presigned image uploads (comma-separated define).
+  static List<String> get allowedUploadHosts {
+    const raw = String.fromEnvironment('ALLOWED_UPLOAD_HOSTS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((h) => h.trim().toLowerCase()).where((h) => h.isNotEmpty).toList();
+  }
+
+  /// Optional SHA-256 certificate pins for release TLS pinning.
+  static List<String> get certificatePins {
+    const raw = String.fromEnvironment('CERTIFICATE_PINS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+  }
+
+  /// Maximum guest favorites stored locally before login.
+  static const int maxGuestFavorites = 50;
 }

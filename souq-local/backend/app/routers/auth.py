@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,14 +19,36 @@ from app.schemas import (
     DeleteAccountRequest,
     LoginRequest,
     LogoutRequest,
+    MfaCodeRequest,
+    MfaConfirmOut,
+    MfaDisableRequest,
+    MfaEnrollOut,
+    MfaLoginRequest,
     RefreshRequest,
+    SignupOtpSendRequest,
+    SignupOtpSendResponse,
+    SignupOtpVerifyRequest,
     TokenResponse,
     UserOut,
     UserRegister,
     UserRegisterFirebase,
 )
 from app.services.audit import log_security_event
+from app.services.client_ip import get_client_ip
 from app.services.email import email_service
+from app.services.login_lockout import (
+    is_account_locked,
+    lockout_remaining_seconds,
+    record_failed_login,
+    record_successful_login,
+)
+from app.services.mfa import (
+    begin_totp_enrollment,
+    confirm_totp_enrollment,
+    disable_mfa,
+    verify_user_mfa,
+)
+from app.services.signup_verification import consume_signup_proof, send_signup_otp, verify_signup_otp
 from app.services.password_policy import validate_password_strength
 from app.services.security import (
     create_access_token,
@@ -39,6 +61,10 @@ from app.services.security import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def _request_ip(request: Request) -> str:
+    return get_client_ip(request)
 
 
 def _auth_action_body(*, path: str, token: str, intro: str) -> str:
@@ -83,7 +109,17 @@ def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-async def _issue_auth_token(session: AsyncSession, user_id: UUID, purpose: str, hours: int = 24) -> str:
+async def _issue_auth_token(
+    session: AsyncSession,
+    user_id: UUID,
+    purpose: str,
+    *,
+    hours: int | None = None,
+    minutes: int | None = None,
+) -> str:
+    ttl = timedelta(hours=hours or 0, minutes=minutes or 0)
+    if hours is None and minutes is None:
+        ttl = timedelta(hours=24)
     # A short code is convenient for users, but the token hash is globally
     # unique. Generate and reserve it inside a savepoint to safely retry the
     # rare six-digit collision without rolling back the caller's transaction.
@@ -101,7 +137,7 @@ async def _issue_auth_token(session: AsyncSession, user_id: UUID, purpose: str, 
                         user_id=user_id,
                         purpose=purpose,
                         token_hash=_hash_token(plain),
-                        expires_at=datetime.now(UTC) + timedelta(hours=hours),
+                        expires_at=datetime.now(UTC) + ttl,
                     )
                 )
                 await session.flush()
@@ -141,7 +177,7 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
     has_store = await user_has_seller_profile(session, user.id)
     await session.commit()
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(user.id, token_version=getattr(user, "token_version", 0)),
         refresh_token=refresh_token,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -152,6 +188,44 @@ def _role_for_account(account_type: AccountType) -> UserRole:
     return UserRole.SELLER if account_type == AccountType.SELLER else UserRole.BUYER
 
 
+class SignupOtpProofResponse(BaseModel):
+    signup_proof: str
+
+
+@router.post("/signup/otp/send", response_model=SignupOtpSendResponse)
+@limiter.limit(settings.auth_rate_limit)
+async def signup_otp_send(
+    request: Request,
+    payload: SignupOtpSendRequest,
+    session: AsyncSession = Depends(get_db),
+) -> SignupOtpSendResponse:
+    _ = request
+    result = await send_signup_otp(
+        session,
+        email=str(payload.email),
+        phone=payload.phone,
+        channel=payload.channel,
+    )
+    return SignupOtpSendResponse(**result)
+
+
+@router.post("/signup/otp/verify", response_model=SignupOtpProofResponse)
+@limiter.limit(settings.auth_rate_limit)
+async def signup_otp_verify(
+    request: Request,
+    payload: SignupOtpVerifyRequest,
+    session: AsyncSession = Depends(get_db),
+) -> SignupOtpProofResponse:
+    _ = request
+    proof = await verify_signup_otp(
+        session,
+        email=str(payload.email),
+        code=payload.code,
+        channel=payload.channel,
+    )
+    return SignupOtpProofResponse(signup_proof=proof)
+
+
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit(settings.auth_rate_limit)
 async def register(
@@ -160,6 +234,7 @@ async def register(
     session: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     email = payload.email.lower()
+    await consume_signup_proof(session, email=email, proof=payload.signup_proof)
     existing = await session.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
         log_security_event("register_conflict", email=email)
@@ -178,7 +253,7 @@ async def register(
     session.add(user)
     await session.flush()
 
-    verify_token = await _issue_auth_token(session, user.id, "email_verify", hours=0.25)
+    verify_token = await _issue_auth_token(session, user.id, "email_verify", minutes=15)
     delivery = email_service.send(
         to=user.email,
         subject="Verify your MarGem email",
@@ -203,19 +278,35 @@ async def login(
     payload: LoginRequest,
     session: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
+    ip = _request_ip(request)
     result = await session.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
     if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
-        log_security_event(
-            "login_failed",
-            email=payload.email.lower(),
-            client=request.client.host if request.client else "unknown",
-        )
+        await record_failed_login(session, user, email=payload.email.lower(), ip=ip)
+        await session.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    if is_account_locked(user):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Account temporarily locked. Try again in {lockout_remaining_seconds(user)} seconds.",
+        )
     if user.status == UserStatus.SUSPENDED:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account suspended")
     if user.status == UserStatus.DELETED:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    await record_successful_login(session, user)
+
+    if user.mfa_enabled:
+        mfa_token = await _issue_auth_token(session, user.id, "mfa_challenge", minutes=5)
+        await session.commit()
+        log_security_event("login_mfa_challenge", user_id=str(user.id))
+        return TokenResponse(
+            mfa_required=True,
+            mfa_token=mfa_token,
+            expires_in=300,
+            user=UserOut.from_user(user, has_seller_profile=False),
+        )
 
     log_security_event("login_success", user_id=str(user.id))
     return await _token_response(session, user, request)
@@ -252,7 +343,7 @@ async def refresh_tokens(
 
     has_store = await user_has_seller_profile(session, user.id)
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(user.id, token_version=getattr(user, "token_version", 0)),
         refresh_token=new_refresh,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -392,7 +483,16 @@ async def request_email_verification(
 ) -> None:
     if user.email_verified_at is not None:
         return
-    token = await _issue_auth_token(session, user.id, "email_verify", hours=0.25)
+    await session.execute(
+        update(AuthToken)
+        .where(
+            AuthToken.user_id == user.id,
+            AuthToken.purpose == "email_verify",
+            AuthToken.used_at.is_(None),
+        )
+        .values(used_at=datetime.now(UTC))
+    )
+    token = await _issue_auth_token(session, user.id, "email_verify", minutes=15)
     await session.commit()
     email_service.send(
         to=user.email,
@@ -405,8 +505,12 @@ async def request_email_verification(
     )
 
 
+_MAX_EMAIL_VERIFY_ATTEMPTS = 10
+
+
 @router.post("/verify-email/confirm", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("5/minute")
+@limiter.limit("30/hour")
 async def confirm_email_verification(
     request: Request,
     payload: TokenConfirmRequest,
@@ -419,8 +523,28 @@ async def confirm_email_verification(
         ).with_for_update()
     )
     token = result.scalar_one_or_none()
-    if token is None or token.used_at is not None or token.expires_at < datetime.now(UTC):
+    if token is None:
+        log_security_event(
+            "email_verify_failed",
+            ip_address=_request_ip(request),
+            detail="invalid_or_expired_token",
+        )
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    if token.used_at is not None or token.expires_at < datetime.now(UTC):
+        token.failed_attempts += 1
+        if token.failed_attempts >= _MAX_EMAIL_VERIFY_ATTEMPTS:
+            token.used_at = datetime.now(UTC)
+        await session.commit()
+        log_security_event(
+            "email_verify_failed",
+            ip_address=_request_ip(request),
+            detail="invalid_or_expired_token",
+        )
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    if token.failed_attempts >= _MAX_EMAIL_VERIFY_ATTEMPTS:
+        token.used_at = datetime.now(UTC)
+        await session.commit()
+        raise HTTPException(status_code=429, detail="Too many verification attempts")
     user = await session.get(User, token.user_id)
     if user is None:
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")
@@ -441,6 +565,15 @@ async def request_password_reset(
     user = result.scalar_one_or_none()
     if user is None or not user.password_hash:
         return
+    await session.execute(
+        update(AuthToken)
+        .where(
+            AuthToken.user_id == user.id,
+            AuthToken.purpose == "password_reset",
+            AuthToken.used_at.is_(None),
+        )
+        .values(used_at=datetime.now(UTC))
+    )
     token = await _issue_auth_token(session, user.id, "password_reset", hours=2)
     await session.commit()
     email_service.send(
@@ -485,6 +618,138 @@ async def confirm_password_reset(
     log_security_event("password_reset", user_id=str(user.id))
 
 
+@router.post("/mfa/login", response_model=TokenResponse)
+@limiter.limit("10/minute")
+async def complete_mfa_login(
+    request: Request,
+    payload: MfaLoginRequest,
+    session: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    result = await session.execute(
+        select(AuthToken).where(
+            AuthToken.token_hash == _hash_token(payload.mfa_token),
+            AuthToken.purpose == "mfa_challenge",
+        ).with_for_update()
+    )
+    challenge = result.scalar_one_or_none()
+    if challenge is None or challenge.used_at is not None or challenge.expires_at < datetime.now(UTC):
+        raise HTTPException(status_code=401, detail="Invalid or expired MFA challenge")
+    user = await session.get(User, challenge.user_id)
+    if user is None or not user.mfa_enabled:
+        raise HTTPException(status_code=401, detail="Invalid or expired MFA challenge")
+    if not await verify_user_mfa(session, user, payload.code):
+        challenge.failed_attempts += 1
+        if challenge.failed_attempts >= 5:
+            challenge.used_at = datetime.now(UTC)
+        await session.commit()
+        raise HTTPException(status_code=401, detail="Invalid MFA code")
+    challenge.used_at = datetime.now(UTC)
+    log_security_event("login_success", user_id=str(user.id), mfa=True)
+    return await _token_response(session, user, request)
+
+
+@router.post("/mfa/enroll", response_model=MfaEnrollOut)
+@limiter.limit(settings.auth_rate_limit)
+async def enroll_mfa(
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> MfaEnrollOut:
+    try:
+        secret, uri = await begin_totp_enrollment(session, user)
+        await session.commit()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return MfaEnrollOut(secret=secret, otpauth_uri=uri)
+
+
+@router.post("/mfa/confirm", response_model=MfaConfirmOut)
+@limiter.limit(settings.auth_rate_limit)
+async def confirm_mfa(
+    request: Request,
+    payload: MfaCodeRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> MfaConfirmOut:
+    try:
+        recovery_codes = await confirm_totp_enrollment(session, user, payload.code)
+        await session.commit()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return MfaConfirmOut(recovery_codes=recovery_codes)
+
+
+@router.post("/mfa/disable", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.auth_rate_limit)
+async def disable_user_mfa(
+    request: Request,
+    payload: MfaDisableRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    if not user.password_hash or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid password")
+    try:
+        await disable_mfa(session, user, code=payload.code)
+        await session.commit()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/me/export")
+@limiter.limit("3/hour")
+async def export_my_data(
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    from app.models import Favorite, Notification, SellerProfile, Subscription
+
+    seller = (
+        await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
+    ).scalar_one_or_none()
+    favorites = (
+        await session.execute(select(Favorite).where(Favorite.user_id == user.id).limit(500))
+    ).scalars().all()
+    notifications = (
+        await session.execute(select(Notification).where(Notification.user_id == user.id).limit(200))
+    ).scalars().all()
+    subscriptions = (
+        await session.execute(select(Subscription).where(Subscription.user_id == user.id))
+    ).scalars().all()
+
+    return {
+        "exported_at": datetime.now(UTC).isoformat(),
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "display_name": user.display_name,
+            "account_type": user.account_type.value,
+            "role": user.role.value,
+            "email_verified": user.email_verified_at is not None,
+            "created_at": user.created_at.isoformat(),
+        },
+        "seller_profile": (
+            {
+                "business_name": seller.business_name,
+                "city": seller.city,
+                "verification_status": seller.verification_status.value,
+            }
+            if seller
+            else None
+        ),
+        "favorites_count": len(favorites),
+        "notifications_count": len(notifications),
+        "subscriptions": [
+            {
+                "status": sub.status.value,
+                "period_end": sub.current_period_end.isoformat(),
+            }
+            for sub in subscriptions
+        ],
+    }
+
+
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(settings.auth_rate_limit)
 async def delete_account(
@@ -496,19 +761,28 @@ async def delete_account(
     if not user.password_hash or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
 
-    from sqlalchemy import delete as sql_delete
+    from sqlalchemy import delete as sql_delete, update
 
     from app.models import (
         AuthToken,
         Conversation,
         Favorite,
         Message,
+        MfaFactor,
+        MfaRecoveryCode,
         Notification,
         RecentlyViewed,
         Review,
         SavedSearch,
         SellerFollow,
         Subscription,
+    )
+    from app.models.community import (
+        CommunityMembership,
+        CommunityMessage,
+        CommunityMessageStatus,
+        CommunityReaction,
+        CommunityReport,
     )
 
     seller = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
@@ -546,14 +820,38 @@ async def delete_account(
         (Subscription, Subscription.user_id),
         (AuthToken, AuthToken.user_id),
         (Review, Review.buyer_id),
+        (MfaFactor, MfaFactor.user_id),
+        (MfaRecoveryCode, MfaRecoveryCode.user_id),
+        (CommunityMembership, CommunityMembership.user_id),
+        (CommunityReaction, CommunityReaction.user_id),
+        (CommunityReport, CommunityReport.reporter_id),
     ):
         await session.execute(sql_delete(model).where(column == user.id))
+
+    # Anonymize community messages instead of hard-deleting (preserves thread structure).
+    await session.execute(
+        update(CommunityMessage)
+        .where(CommunityMessage.sender_id == user.id)
+        .values(
+            body="[deleted]",
+            attachments=[],
+            mentions=[],
+            hashtags=[],
+            status=CommunityMessageStatus.DELETED,
+            deleted_at=datetime.now(UTC),
+            deleted_by_id=user.id,
+        )
+    )
 
     await revoke_all_refresh_tokens(session, user.id)
     user.status = UserStatus.DELETED
     user.email = f"deleted+{user.id}@invalid.local"
     user.display_name = "Deleted user"
+    user.phone = ""
     user.password_hash = None
+    user.firebase_uid = f"deleted-{user.id}"
+    user.email_verified_at = None
+    user.mfa_enabled = False
     user.is_premium = False
     user.premium_until = None
     await session.commit()

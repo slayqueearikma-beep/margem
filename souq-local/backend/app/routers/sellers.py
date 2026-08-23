@@ -11,6 +11,7 @@ from app.auth import get_current_user, get_current_user_optional, require_seller
 from app.config import settings
 from app.database import get_db
 from app.limiter import limiter
+from app.services.service_pricing import normalize_service_pricing
 from app.models import Category, Product, Review, SellerFollow, SellerProfile, Service, User
 from app.schemas import (
     MapPin,
@@ -417,6 +418,7 @@ async def add_service(
     image_url = _validate_owner_media(payload.image_url, user.id)
     service_data = payload.model_dump()
     service_data["image_url"] = image_url
+    service_data.update(payload.normalized_pricing())
     service = Service(seller_id=seller_id, **service_data)
     session.add(service)
     await session.commit()
@@ -525,6 +527,17 @@ async def update_service(
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
         data["image_url"] = _validate_owner_media(data["image_url"] or "", user.id)
+
+    pricing_keys = {"pricing_model", "price_mad", "price_min_mad", "price_max_mad", "price_negotiable"}
+    if pricing_keys & data.keys():
+        merged = {
+            "pricing_model": data.get("pricing_model", service.pricing_model),
+            "price_mad": data["price_mad"] if "price_mad" in data else service.price_mad,
+            "price_min_mad": data["price_min_mad"] if "price_min_mad" in data else service.price_min_mad,
+            "price_max_mad": data["price_max_mad"] if "price_max_mad" in data else service.price_max_mad,
+            "price_negotiable": data.get("price_negotiable", service.price_negotiable),
+        }
+        data.update(normalize_service_pricing(merged))
 
     for key, value in data.items():
         setattr(service, key, value)
