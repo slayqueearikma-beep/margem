@@ -1,0 +1,282 @@
+\chapter{Entrepreneuriat et stratégie de lancement}
+\label{ch:entrepreneuriat}
+
+\section{Introduction}
+
+Lancer une place de marché numérique au Maroc ne relève pas uniquement d'un exercice technologique : c'est un parcours entrepreneurial qui exige vision, résilience, validation marché et discipline financière. Ce chapitre documente la démarche entrepreneuriale derrière MABRID (MarGem), depuis l'identification de l'opportunité jusqu'aux mécanismes de croissance durable. Il complète le chapitre~\ref{ch:business-vision} en approfondissant le \emph{comment entreprendre} : modèles économiques, hypothèses testables, acquisition clients et gestion des risques propres aux startups de plateforme.
+
+\section{Contexte entrepreneurial marocain}
+
+\subsection{Écosystème et soutiens publics}
+
+Le Maroc a structuré son écosystème entrepreneurial autour de programmes nationaux (Maroc Numeric, programmes d'accompagnement des PME, incubateurs universitaires et structures telles que l'ANPME) \parencite{mcit2020digital,morocco2025digital}. Ces dispositifs réduisent les frictions d'entrée : formalisation, accès au mentorat et visibilité internationale. Toutefois, le financement en amorçage reste concentré sur quelques fonds et business angels, ce qui impose aux fondateurs une rigueur accrue sur les métriques et la preuve de traction.
+
+\subsection{Spécificités du commerce local}
+
+L'entrepreneur qui cible la découverte locale doit composer avec :
+\begin{itemize}
+  \item une forte dimension relationnelle et de proximité géographique ;
+  \item une concurrence informelle (réseaux sociaux, messagerie instantanée) ;
+  \item une méfiance légitime des consommateurs envers les annonces non vérifiées ;
+  \item des contraintes réglementaires (loi 09-08, protection du consommateur) développées au chapitre juridique.
+\end{itemize}
+
+MABRID transforme ces contraintes en avantage : la confiance institutionnalisée devient le produit différenciant.
+
+\subsection{Profil entrepreneurial du projet}
+
+Le porteur de projet combine compétences en systèmes d'information, cybersécurité et management. Cette triangulation est rare dans l'écosystème local et justifie un positionnement \emph{trust-first} : la sécurité n'est pas un ajout tardif mais un levier commercial et un prérequis réglementaire.
+
+\figureplaceholder{H}{figures/ch02-entrepreneur-journey.pdf}{0.88}{Parcours entrepreneurial : idée, validation, MVP, lancement, scale}
+
+\section{De l'idée à l'opportunité validée}
+
+\subsection{Constat initial}
+
+Les acheteurs urbains moroccains recherchent des commerces locaux fiables via des canaux fragmentés. Les vendeurs, notamment les TPE/PME, peinent à construire une présence numérique crédible sans budget marketing conséquent. L'idée MABRID émerge de ce double pain point : \emph{réduire le coût de la confiance} pour les deux côtés du marché.
+
+\subsection{Hypothèses fondatrices}
+
+La méthode \emph{Lean Startup} \parencite{ries2011lean} structure la validation :
+\begin{enumerate}
+  \item \textbf{Hypothèse de problème} --- les utilisateurs éprouvent des difficultés à identifier des commerces fiables par ville.
+  \item \textbf{Hypothèse de solution} --- une application mobile avec profils vérifiés, avis structurés et communautés par ville améliore la découverte.
+  \item \textbf{Hypothèse de monétisation} --- les vendeurs paieront pour visibilité, vérification et abonnements premium.
+  \item \textbf{Hypothèse de canal} --- l'acquisition mobile-first et le bouche-à-oreille local dominent la publicité payante au lancement.
+\end{enumerate}
+
+Chaque hypothèse est associée à des expériences mesurables (entretiens, landing pages, cohortes pilotes) avant engagement de ressources massives.
+
+\subsection{Proposition de valeur unique}
+
+\begin{table}[H]
+  \centering
+  \caption{Carte de proposition de valeur MABRID}
+  \label{tab:value-prop-entrepreneur}
+  \begin{tabularx}{\textwidth}{@{}lXX@{}}
+    \toprule
+    \textbf{Segment} & \textbf{Jobs-to-be-done} & \textbf{Gain créé} \\
+    \midrule
+    Acheteur & Trouver un commerce fiable près de chez soi & Gain de temps, réduction du risque \\
+    Vendeur & Être découvert sans site web coûteux & Visibilité, crédibilité, leads qualifiés \\
+    Partenaire & Toucher des PME digitales & Canal de distribution B2B2C \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Business Model Canvas}
+
+\subsection{Vue d'ensemble}
+
+Le \emph{Business Model Canvas} \parencite{osterwalder2010business} formalise les neuf blocs du modèle MABRID :
+
+\paragraph{Segments de clientèle.} Acheteurs urbains smartphone, micro-entreprises et PME locales, franchises multi-sites (phase ultérieure).
+
+\paragraph{Proposition de valeur.} Découverte locale de confiance, communautés par ville, vérification vendeur, messagerie sécurisée.
+
+\paragraph{Canaux.} Application mobile (iOS/Android), réseaux sociaux, partenariats chambres de commerce, référencement organique.
+
+\paragraph{Relations clients.} Support réactif, modération communautaire, programme vendeur premium, contenus éducatifs (onboarding vendeur).
+
+\paragraph{Sources de revenus.} Abonnements vendeur (MarGem Plus, Seller Pro), services de vérification, mises en avant, partenariats entreprise --- sans intermédiation de paiement entre acheteurs et vendeurs au lancement.
+
+\paragraph{Ressources clés.} Plateforme technique, équipe modération, marque, données d'engagement, documentation juridique.
+
+\paragraph{Activités clés.} Développement produit, acquisition vendeurs, trust \& safety, conformité CNDP.
+
+\paragraph{Partenaires clés.} Hébergeur cloud (Azure), conseil juridique, éventuels opérateurs télécoms.
+
+\paragraph{Structure de coûts.} Infrastructure cloud, salaires, marketing, juridique, assurance cyber.
+
+\figureplaceholder{H}{figures/ch02-bmc.pdf}{0.95}{Business Model Canvas MABRID (neuf blocs)}
+
+\subsection{Flux de revenus détaillés}
+
+\begin{table}[H]
+  \centering
+  \caption{Sources de revenus et logique unitaire}
+  \label{tab:revenue-streams}
+  \begin{tabularx}{\textwidth}{@{}lXl@{}}
+    \toprule
+    \textbf{Flux} & \textbf{Description} & \textbf{Maturité} \\
+    \midrule
+    Abonnement vendeur & Accès analytics, badge, priorité support & Lancement \\
+    Vérification & Contrôle identité / documents professionnels & M+3 \\
+    Mise en avant & Placement catégorie ou ville & M+6 \\
+    Partenariat entreprise & Multi-boutiques, API gouvernée & M+12 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Stratégie de financement}
+
+\subsection{Phases de capital}
+
+\begin{enumerate}
+  \item \textbf{Bootstrap / love money (0--6 mois)} --- financement fondateur et réseau proche pour MVP et premières villes pilotes.
+  \item \textbf{Pré-seed / angels (6--18 mois)} --- levée ciblée une fois preuves de rétention et cohortes vendeurs actives.
+  \item \textbf{Seed (18--36 mois)} --- accélération géographique et renforcement trust \& safety.
+\end{enumerate}
+
+Les investisseurs évaluent le \gls{tam}, la rétention, le \gls{cac}/\gls{clv} et le \emph{moat} de confiance --- domaines où la documentation sécurité et conformité de ce rapport renforce la crédibilité.
+
+\subsection{Utilisation des fonds (illustration seed)}
+
+\begin{table}[H]
+  \centering
+  \caption{Répartition indicative d'une levée seed}
+  \label{tab:use-of-funds}
+  \begin{tabular}{lr}
+    \toprule
+    \textbf{Poste} & \textbf{Part} \\
+    \midrule
+    Produit et ingénierie & 40\% \\
+    Acquisition et marketing & 25\% \\
+    Opérations et modération & 15\% \\
+    Juridique et conformité & 10\% \\
+    Infrastructure et sécurité & 10\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Discipline financière}
+
+Dès le stade MVP, MABRID suit une logique \emph{unit economics} : coût cloud par utilisateur actif, coût support par ticket, marge brute par abonnement vendeur. L'objectif est d'atteindre une contribution margin positive sur les coûts variables avant expansion nationale agressive \parencite{skok2014saas}.
+
+\section{Go-to-market et croissance}
+
+\subsection{Stratégie ville par ville}
+
+Inspirée des marketplaces à effets de réseau \parencite{chen2018liquidity}, la stratégie refuse la couverture nationale prématurée :
+\begin{itemize}
+  \item \textbf{Phase 1} --- Casablanca et Rabat : densité vendeurs vérifiés, modération renforcée.
+  \item \textbf{Phase 2} --- Marrakech, Tanger, Fès, Agadir.
+  \item \textbf{Phase 3} --- vingt villes selon critères de liquidité (offre/demande équilibrée).
+\end{itemize}
+
+Chaque ville dispose d'une communauté dédiée dans l'application, renforçant l'engagement hyper-local.
+
+\subsection{Boucles de croissance}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.4cm,
+    box/.style={draw=mabridblue, thick, rounded corners, minimum width=3.2cm, minimum height=0.85cm, align=center, font=\small},
+    arrow/.style={-{Stealth[length=2mm]}, thick}
+  ]
+    \node[box] (sellers) {Vendeurs\\vérifiés};
+    \node[box, right=of sellers] (listings) {Offre\\qualitative};
+    \node[box, right=of listings] (buyers) {Acheteurs\\actifs};
+    \node[box, below=of listings] (reviews) {Avis et\\confiance};
+    \draw[arrow] (sellers) -- (listings);
+    \draw[arrow] (listings) -- (buyers);
+    \draw[arrow] (buyers) -- (reviews);
+    \draw[arrow] (reviews) -- (sellers);
+    \node[below=0.2cm of reviews,font=\footnotesize] {Boucle de confiance};
+  \end{tikzpicture}
+  \caption{Boucle de croissance MABRID}
+  \label{fig:growth-loop}
+\end{figure}
+
+\subsection{Acquisition et rétention}
+
+\paragraph{Acquisition vendeurs.} Prospection terrain, partenariats associations professionnelles, onboarding assisté, offre de lancement (période premium offerte).
+
+\paragraph{Acquisition acheteurs.} Référencement local, contenu SEO ville + catégorie, parrainage, présence réseaux sociaux.
+
+\paragraph{Rétention.} Notifications pertinentes, communautés actives, résolution rapide des litiges, qualité constante des listings.
+
+Le \gls{cac} par canal est suivi mensuellement ; les canaux dont le \gls{clv}/\gls{cac} $< 3$ sont réalloués ou arrêtés.
+
+\section{Gestion des risques entrepreneuriaux}
+
+\begin{table}[H]
+  \centering
+  \caption{Matrice des risques entrepreneuriaux}
+  \label{tab:entrepreneur-risks}
+  \small
+  \begin{tabularx}{\textwidth}{@{}lccX@{}}
+    \toprule
+    \textbf{Risque} & \textbf{Prob.} & \textbf{Impact} & \textbf{Mitigation} \\
+    \midrule
+    Liquidité insuffisante & Élevée & Critique & Lancement par ville, KPI liquidité \\
+    Concurrence prix & Moyenne & Élevé & Différenciation confiance, pas course au volume \\
+    Fraude vendeur & Moyenne & Élevé & Vérification, modération, scores confiance \\
+    Burn rate excessif & Moyenne & Élevé & Unit economics, jalons de levée \\
+    Évolution réglementaire & Faible & Élevé & Veille juridique, CNDP \\
+    Incident sécurité & Faible & Critique & Architecture Zero Trust, chapitre sécurité \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Organisation startup et exécution}
+
+\subsection{Équipe fondatrice et recrutement}
+
+Les premiers recrutements priorisent : développement mobile/backend, modération communautaire, support vendeur. Les fonctions CISO et CLO peuvent être assurées par le fondateur avec conseil externe jusqu'à la série A.
+
+\subsection{Cadence opérationnelle}
+
+\begin{itemize}
+  \item \textbf{Hebdomadaire} --- revue KPI produit (DAU, listings, messages, churn vendeur).
+  \item \textbf{Mensuelle} --- comité risques (sécurité, conformité, modération).
+  \item \textbf{Trimestrielle} --- revue stratégique investisseurs / advisors.
+\end{itemize}
+
+\subsection{Culture d'entreprise}
+
+La culture MABRID repose sur trois piliers : \emph{transparence} (politiques publiques), \emph{responsabilité} (sécurité by design) et \emph{proximité} (écoute des vendeurs locaux). Cette culture se traduit dans le produit : pas de dark patterns, suppression de compte accessible, modération explicable.
+
+\section{Feuille de route entrepreneuriale 36 mois}
+
+\begin{table}[H]
+  \centering
+  \caption{Jalons entrepreneuriaux sur 36 mois}
+  \label{tab:entrepreneur-roadmap}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Période} & \textbf{Jalons} \\
+    \midrule
+    M0--M6 & MVP mobile, 2 villes, 200 vendeurs, politiques juridiques publiées \\
+    M6--M12 & 5 villes, premiers revenus récurrents, audit sécurité externe \\
+    M12--M18 & 10 villes, partenariat chambre commerce, préparation ISO 27001 \\
+    M18--M24 & 15 villes, marge contribution positive, levée seed \\
+    M24--M36 & 20+ villes, programme entreprise, expansion Maghreb étudiée \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\figureplaceholder{H}{figures/ch02-entrepreneur-timeline.pdf}{0.92}{Chronologie entrepreneuriale MABRID (36 mois)}
+
+\section{Indicateurs de succès entrepreneuriaux}
+
+Au-delà des \gls{kpi} business du chapitre~\ref{ch:business-vision}, le fondateur suit :
+
+\begin{itemize}
+  \item \textbf{North Star Metric} --- nombre de mises en relation qualifiées acheteur--vendeur par semaine.
+  \item \textbf{Taux d'activation vendeur} --- vendeur publiant au moins un listing actif sous 7 jours.
+  \item \textbf{NPS acheteur} --- satisfaction et recommandation.
+  \item \textbf{Temps médian de réponse vendeur} --- proxy de qualité de service.
+  \item \textbf{Taux de conversion premium} --- validation du modèle économique.
+  \item \textbf{Coût cloud / MAU} --- discipline technique.
+\end{itemize}
+
+\section{Leçons entrepreneuriales du projet}
+
+\subsection{Ce qui a guidé les choix}
+
+\begin{enumerate}
+  \item \textbf{Sécurité tôt} --- investir dans l'authentification, la modération et la conformité avant la scale évite des refontes coûteuses.
+  \item \textbf{Scope maîtrisé} --- pas de paiement intégré au lancement : réduction de la complexité réglementaire PCI.
+  \item \textbf{Confiance locale} --- communautés par ville plutôt qu'un feed national générique.
+  \item \textbf{Documentation} --- ce rapport sert de support investisseur et régulateur, pas seulement académique.
+\end{enumerate}
+
+\subsection{Compétences développées}
+
+Le parcours combine entrepreneuriat numérique, architecture sécurité, rédaction juridique de politiques et gestion de produit mobile --- un profil \emph{founder-engineer} adapté aux marchés émergents où les ressources spécialisées sont rares.
+
+\section{Conclusion du chapitre}
+
+L'entrepreneuriat MABRID s'inscrit dans une logique de validation progressive, de financement discipliné et de différenciation par la confiance. Le Business Model Canvas, les boucles de croissance locale et la matrice de risques fournissent un cadre opérationnel pour passer de l'idée à une entreprise scalable. Les chapitres suivants détaillent la gouvernance institutionnelle, l'architecture de sécurité et --- de manière centrale pour ce mémoire --- la sécurisation concrète de l'application MarGem.

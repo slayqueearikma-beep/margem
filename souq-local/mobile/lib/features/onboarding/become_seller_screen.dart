@@ -10,7 +10,11 @@ import '../../core/services/app_storage.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
+import '../legal/legal_config.dart';
+import '../legal/legal_documents.dart';
+import '../legal/legal_document_screen.dart';
 
 /// Logged-in users open a storefront on the same email/password account.
 class BecomeSellerScreen extends ConsumerStatefulWidget {
@@ -26,6 +30,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   final _address = TextEditingController();
   final _phone = TextEditingController();
   bool _loading = false;
+  bool _sellerTermsAccepted = false;
 
   @override
   void dispose() {
@@ -51,10 +56,17 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
       );
       return;
     }
+    if (!_sellerTermsAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.completeRequiredStep)),
+      );
+      return;
+    }
 
     setState(() => _loading = true);
     try {
       final coords = CityCoordinates.casablanca;
+      final locale = Localizations.localeOf(context).languageCode;
       final seller = await apiServiceProvider.createSeller(
         SellerCreatePayload(
           businessName: _businessName.text.trim(),
@@ -64,6 +76,8 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
           latitude: coords.latitude,
           longitude: coords.longitude,
           phone: _phone.text.trim(),
+          sellerTermsAcknowledged: true,
+          acceptanceLanguage: LegalConfig.authoritativeLanguageCode,
         ),
       );
       final storage = ref.read(appStorageProvider);
@@ -95,7 +109,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.becomeSeller)),
+      appBar: MarGemAppBar(semanticLabel: l10n.becomeSeller),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
@@ -131,11 +145,39 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(labelText: l10n.phoneNumber),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            CheckboxListTile(
+              value: _sellerTermsAccepted,
+              onChanged: _loading
+                  ? null
+                  : (value) => setState(() => _sellerTermsAccepted = value ?? false),
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text('${l10n.signupTermsPrefix} '),
+                  InkWell(
+                    onTap: () =>
+                        openLegalDocument(context, LegalDocumentId.sellerTerms),
+                    child: Text(
+                      l10n.sellerTerms,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                  Text(l10n.signupTermsSuffix),
+                ],
+              ),
+            ),
             const SizedBox(height: AppSpacing.xl),
             PrimaryButton(
               label: l10n.openStorefront,
               isLoading: _loading,
-              onPressed: _loading ? null : _submit,
+              onPressed: _loading || !_sellerTermsAccepted ? null : _submit,
             ),
           ],
         ),
