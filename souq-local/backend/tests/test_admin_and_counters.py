@@ -11,6 +11,7 @@ import app.database as database
 from app.main import app
 from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.models import SellerProfile, User, UserRole, VerificationStatus
+from tests.auth_helpers import register_test_user
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -24,19 +25,15 @@ async def client():
 
 async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
     email = f"{account_type}-{uuid4().hex[:8]}@example.com"
-    res = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": "SecurePass1",
-            "account_type": account_type,
-            "display_name": account_type.title(),
-        },
+    body = await register_test_user(
+        client,
+        email=email,
+        account_type=account_type,
+        display_name=account_type.title(),
     )
-    assert res.status_code == 201, res.text
     return {
         "email": email,
-        "headers": {"Authorization": f"Bearer {res.json()['access_token']}"},
+        "headers": {"Authorization": f"Bearer {body['access_token']}"},
     }
 
 
@@ -63,6 +60,8 @@ async def _create_pending_seller(client: AsyncClient) -> UUID:
             "whatsapp_number": "+212600000099",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert profile.status_code == 201, profile.text
@@ -91,6 +90,32 @@ async def test_support_can_list_pending_but_cannot_verify(client: AsyncClient):
         params={"approve": "true"},
     )
     assert verify.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_staff_can_list_all_users(client: AsyncClient):
+    buyer = await _register(client, "buyer")
+    seller = await _register(client, "seller")
+    admin = await _register(client, "buyer")
+    await _set_role(admin["email"], UserRole.ADMIN)
+
+    listed = await client.get("/admin/users", headers=admin["headers"])
+    assert listed.status_code == 200, listed.text
+    body = listed.json()
+    assert body["total"] >= 3
+    assert len(body["items"]) >= 3
+    emails = {item["email"] for item in body["items"]}
+    assert buyer["email"] in emails
+    assert seller["email"] in emails
+
+    filtered = await client.get(
+        "/admin/users",
+        headers=admin["headers"],
+        params={"q": buyer["email"]},
+    )
+    assert filtered.status_code == 200
+    assert filtered.json()["total"] >= 1
+    assert all(buyer["email"] in item["email"] for item in filtered.json()["items"])
 
 
 @pytest.mark.asyncio
@@ -128,6 +153,8 @@ async def test_favorite_count_increments_atomically(client: AsyncClient):
             "whatsapp_number": "+212600000088",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert profile.status_code == 201, profile.text
@@ -235,6 +262,8 @@ async def test_whitespace_message_rejected(client: AsyncClient):
             "whatsapp_number": "+212600000077",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert profile.status_code == 201, profile.text

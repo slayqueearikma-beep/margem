@@ -1,78 +1,45 @@
-from uuid import uuid4
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user
 from app.config import settings
+from app.database import get_db
 from app.limiter import limiter
 from app.models import User
 from app.schemas import PresignRequest, PresignResponse
-from app.services.azure_storage import ensure_blob_container, extract_azure_account_key
 from app.services.local_storage import (
     public_media_url,
-    sign_upload_token,
     verify_upload_token,
     write_local_blob,
+)
+from app.services.storage_provider import (
+    get_storage_provider,
+    purpose_from_string,
 )
 from app.services.upload_security import (
     sanitize_upload_filename,
     validate_image_bytes,
+    validate_presign_upload_url,
     validate_upload_content_type,
 )
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
 
-def _presign_local(user: User, *, safe_filename: str, content_type: str) -> PresignResponse:
-    blob_name = f"{user.id}/{uuid4()}-{safe_filename}"
-    token = sign_upload_token(
-        blob_name=blob_name,
-        content_type=content_type,
-        user_id=str(user.id),
-    )
-    base = settings.public_api_url.rstrip("/")
-    return PresignResponse(
-        upload_url=f"{base}/uploads/local/{token}",
-        public_url=public_media_url(blob_name),
-    )
-
-
-async def _presign_azure(user: User, *, safe_filename: str, content_type: str) -> PresignResponse:
-    from datetime import datetime, timedelta, timezone
-
-    from azure.storage.blob import BlobSasPermissions, generate_blob_sas
-    from azure.storage.blob.aio import BlobServiceClient
-
-    conn = (settings.azure_storage_connection_string or "").strip().strip('"').strip("'")
-    if not conn:
+def _validate_presign_response(response: PresignResponse) -> PresignResponse:
+    try:
+        validate_presign_upload_url(
+            response.upload_url,
+            public_api_url=settings.public_api_url,
+            allowed_hosts=settings.upload_allowed_hosts,
+        )
+    except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Storage is not configured. Set AZURE_STORAGE_CONNECTION_STRING on the API.",
-        )
-
-    blob_name = f"{user.id}/{uuid4()}-{safe_filename}"
-    async with BlobServiceClient.from_connection_string(conn) as client:
-        container = client.get_container_client(settings.azure_storage_container)
-        await ensure_blob_container(container)
-        blob_client = container.get_blob_client(blob_name)
-
-        account_name = client.account_name
-        if not account_name:
-            raise ValueError("Storage account name missing from connection string")
-        account_key = extract_azure_account_key(client.credential)
-
-        sas_write = generate_blob_sas(
-            account_name=account_name,
-            container_name=settings.azure_storage_container,
-            blob_name=blob_name,
-            account_key=account_key,
-            permission=BlobSasPermissions(write=True, create=True),
-            expiry=datetime.now(timezone.utc) + timedelta(minutes=15),
-        )
-        return PresignResponse(
-            upload_url=f"{blob_client.url}?{sas_write}",
-            public_url=blob_client.url,
-        )
+            detail="Storage returned an invalid upload URL",
+        ) from exc
+    return response
 
 
 @router.post("/presign", response_model=PresignResponse)
@@ -88,21 +55,24 @@ async def presign_upload(
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
+    purpose = purpose_from_string(payload.purpose)
+    provider = get_storage_provider()
+
     try:
-        if settings.storage_backend == "local":
-            return _presign_local(
-                user,
-                safe_filename=safe_filename,
-                content_type=payload.content_type,
-            )
-        return await _presign_azure(
-            user,
-            safe_filename=safe_filename,
+        result = await provider.presign_upload(
+            user=user,
+            filename=safe_filename,
             content_type=payload.content_type,
+            purpose=purpose,
+        )
+        provider.log_event("storage_upload_success", user_id=user.id, purpose=purpose.value)
+        return _validate_presign_response(
+            PresignResponse(upload_url=result.upload_url, public_url=result.public_url)
         )
     except HTTPException:
         raise
     except ValueError as exc:
+        provider.log_event("storage_upload_failure", user_id=user.id, detail=str(exc))
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Storage configuration error: {exc}",
@@ -111,13 +81,11 @@ async def presign_upload(
         import logging
 
         logging.getLogger("margem.storage").exception("presign_failed")
+        provider.log_event("storage_upload_failure", user_id=user.id, detail=type(exc).__name__)
         hint = type(exc).__name__
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=(
-                "Storage service unavailable. Check AZURE_STORAGE_CONNECTION_STRING, "
-                f"container '{settings.azure_storage_container}', and API network access to Azure ({hint})."
-            ),
+            detail=f"Storage service unavailable ({hint}).",
         ) from exc
 
 
@@ -127,9 +95,10 @@ async def put_local_upload(
     token: str,
     request: Request,
     user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ) -> Response:
-    """Receive a PUT from the mobile client for STORAGE_BACKEND=local."""
-    if settings.storage_backend != "local":
+    """Receive a PUT from the mobile client for STORAGE_PROVIDER=local."""
+    if settings.effective_storage_provider != "local":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local storage disabled")
 
     try:
@@ -155,9 +124,121 @@ async def put_local_upload(
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
+    from app.services.image_processing import sanitize_image_bytes
+
     try:
-        write_local_blob(meta["blob_name"], body)
+        sanitized = sanitize_image_bytes(body, content_type=content_type)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
+    try:
+        write_local_blob(meta["blob_name"], sanitized.data)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    from app.services.media_lifecycle import log_media_event
+    from app.services.media_registry import register_media_object
+
+    public_url = public_media_url(meta["blob_name"])
+    await register_media_object(
+        session,
+        user_id=user.id,
+        public_url=public_url,
+        purpose="upload",
+        content_type=sanitized.content_type,
+        bytes_size=len(sanitized.data),
+    )
+    await session.commit()
+    log_media_event(
+        "profile_photo_uploaded",
+        user_id=user.id,
+        purpose="upload",
+        detail=f"bytes={len(sanitized.data)}",
+    )
+
     return Response(status_code=status.HTTP_201_CREATED)
+
+
+class ValidateUploadRequest(BaseModel):
+    public_url: str = Field(max_length=2048)
+    content_type: str = Field(max_length=64)
+
+
+@router.post("/validate")
+@limiter.limit("30/minute")
+async def validate_uploaded_blob(
+    request: Request,
+    payload: ValidateUploadRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    """Server-side validation for direct-to-storage uploads."""
+    from app.services.image_processing import sanitize_image_bytes
+    from app.services.media_registry import register_media_object
+    from app.services.media_urls import parse_media_url
+    from app.services.storage_provider import get_storage_provider
+
+    provider = get_storage_provider()
+    try:
+        validate_upload_content_type(payload.content_type)
+        provider.validate_owner_url(payload.public_url, owner_user_id=user.id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    parsed = parse_media_url(payload.public_url)
+    body: bytes
+    if settings.effective_storage_provider == "local":
+        from app.services.local_storage import media_root
+
+        if parsed and parsed[0] == "local":
+            key = parsed[1]
+        else:
+            raise HTTPException(status_code=400, detail="Invalid media URL")
+        path = (media_root() / key).resolve()
+        if not path.is_file():
+            raise HTTPException(status_code=400, detail="Uploaded blob is not readable")
+        body = path.read_bytes()
+    elif settings.effective_storage_provider == "selfhosted":
+        from app.services.minio_storage import all_buckets, get_object_bytes
+
+        if not parsed or parsed[0] not in all_buckets():
+            raise HTTPException(status_code=400, detail="Invalid media URL")
+        bucket, object_key = parsed
+        try:
+            body, _ = get_object_bytes(bucket=bucket, object_key=object_key)
+        except Exception as exc:
+            provider.log_event("storage_upload_failure", user_id=user.id, detail="object_unreadable")
+            raise HTTPException(status_code=400, detail="Uploaded blob is not readable") from exc
+    elif parsed and parsed[0] == settings.azure_storage_container:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(payload.public_url)
+            if response.status_code != 200:
+                raise HTTPException(status_code=400, detail="Uploaded blob is not readable")
+            body = response.content
+    else:
+        raise HTTPException(status_code=400, detail="Validation not supported for this storage backend")
+
+    if len(body) > settings.max_upload_bytes:
+        raise HTTPException(status_code=413, detail="Image too large")
+    try:
+        validate_image_bytes(body, payload.content_type)
+        sanitized = sanitize_image_bytes(body, content_type=payload.content_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    await register_media_object(
+        session,
+        user_id=user.id,
+        public_url=payload.public_url,
+        purpose="upload_validated",
+        content_type=sanitized.content_type,
+        bytes_size=len(sanitized.data),
+    )
+    await session.commit()
+    provider.log_event("storage_upload_success", user_id=user.id, detail="validated")
+    return {"status": "valid", "bytes": len(sanitized.data)}
+
+
+__all__ = ["router"]

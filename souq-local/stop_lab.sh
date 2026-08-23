@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MarGem local lab — stop backend + Flutter
+# Dribex local lab — stop backend + Flutter
 # Usage: ./stop_lab.sh
 
 set -euo pipefail
@@ -7,7 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo ""
-echo "=== MarGem Lab — stopping ==="
+echo "=== Dribex Lab — stopping ==="
 echo ""
 
 cd "$ROOT"

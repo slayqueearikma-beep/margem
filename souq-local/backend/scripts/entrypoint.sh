@@ -38,7 +38,42 @@ asyncio.run(wait_for_db())
 PY
 
 echo "Running database migrations..."
+python /app/scripts/normalize_env_lists.py
 alembic upgrade head
 
-echo "Starting MarGem API..."
+if [ "${STORAGE_PROVIDER:-selfhosted}" = "local" ] || [ "${STORAGE_BACKEND:-}" = "local" ]; then
+  MEDIA_DIR="${LOCAL_MEDIA_ROOT:-/data/media}"
+  if ! python - <<'PY'
+import os
+import sys
+root = os.environ.get("LOCAL_MEDIA_ROOT", "/data/media")
+try:
+    os.makedirs(root, exist_ok=True)
+    probe = os.path.join(root, ".writable_probe")
+    with open(probe, "w", encoding="utf-8") as fh:
+        fh.write("ok")
+    os.remove(probe)
+except OSError as exc:
+    uid = os.getuid()
+    gid = os.getgid()
+    print(f"Media directory not writable: {root} ({exc})", file=sys.stderr)
+    print(
+        "Fix volume ownership from the host (volume name is usually souq-local_margem_home_media):",
+        file=sys.stderr,
+    )
+    print(
+        f'  docker run --rm --user root -v souq-local_margem_home_media:/data alpine '
+        f'sh -c "chown -R {uid}:{gid} /data && chmod -R u+rwX /data"',
+        file=sys.stderr,
+    )
+    sys.exit(1)
+print(f"Media directory OK: {root}")
+PY
+  then
+    echo "Local media storage is not writable — see the chown command printed above." >&2
+    exit 1
+  fi
+fi
+
+echo "Starting Dribex API..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000
