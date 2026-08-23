@@ -304,7 +304,7 @@ def upgrade() -> None:
         """
         INSERT INTO subscription_plans (id, code, name, description, price_mad, billing_period_days, features, is_active)
         VALUES
-        (gen_random_uuid(), 'buyer_premium', 'MarGem Plus', 'Buyer premium: exclusive deals, priority support, wishlist sync', 49, 30,
+        (gen_random_uuid(), 'buyer_premium', 'Dribex Plus', 'Buyer premium: exclusive deals, priority support, wishlist sync', 49, 30,
          '["Exclusive deals","Priority support","Unlimited wishlist","Early access"]'::jsonb, true),
         (gen_random_uuid(), 'seller_pro', 'Seller Pro', 'Boosted visibility, analytics, coupons, featured placement', 199, 30,
          '["Featured placement","Advanced analytics","Unlimited coupons","Priority verification"]'::jsonb, true)

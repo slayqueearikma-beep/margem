@@ -57,7 +57,7 @@ variable "upload_token_secret" {
 }
 
 variable "api_image" {
-  description = "Container image for the MarGem API (ACR or Docker Hub)"
+  description = "Container image for the Dribex API (ACR or Docker Hub)"
   type        = string
   default     = "margemapi:latest"
 }
@@ -128,13 +128,13 @@ variable "allowed_hosts" {
 variable "public_app_url" {
   description = "Public app / deep-link base URL used in transactional emails"
   type        = string
-  default     = "https://margem.ma"
+  default     = "https://dribex.ma"
 }
 
 variable "public_api_url" {
   description = "Public HTTPS API base URL"
   type        = string
-  default     = "https://api.margem.ma"
+  default     = "https://api.dribex.ma"
 }
 
 variable "smtp_host" {
@@ -165,7 +165,7 @@ variable "smtp_password" {
 variable "smtp_from" {
   description = "From header for transactional email"
   type        = string
-  default     = "MarGem <noreply@margem.ma>"
+  default     = "Dribex <noreply@dribex.ma>"
 }
 
 variable "smtp_use_tls" {
