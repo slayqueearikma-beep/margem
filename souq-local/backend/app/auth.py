@@ -1,7 +1,7 @@
 import secrets
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +20,10 @@ async def _resolve_user_from_credentials(
     *,
     required: bool,
 ) -> User | None:
-    if settings.auth_dev_bypass and settings.app_env not in {"production", "prod"}:
+    if (
+        settings.auth_dev_bypass
+        and settings.app_env in {"development", "dev"}
+    ):
         result = await session.execute(select(User).limit(1))
         user = result.scalar_one_or_none()
         if user is None and required:
@@ -38,14 +41,27 @@ async def _resolve_user_from_credentials(
     token = credentials.credentials
 
     # MarGem JWT (email/password accounts)
-    user_id = decode_access_token(token)
-    if user_id is not None:
+    decoded = decode_access_token(token)
+    if decoded is not None:
+        user_id, token_version, session_id = decoded
         result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user is None:
             if required:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
             return None
+        if getattr(user, "token_version", 0) != token_version:
+            if required:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
+            return None
+        if session_id is not None:
+            from app.models import RefreshToken
+
+            refresh_row = await session.get(RefreshToken, session_id)
+            if refresh_row is None or refresh_row.user_id != user.id or refresh_row.revoked:
+                if required:
+                    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked")
+                return None
         return user
 
     # Invalid/expired local JWTs must not fall through to Firebase and surface 503
@@ -70,6 +86,27 @@ async def _resolve_user_from_credentials(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not registered")
         return None
     return user
+
+
+async def resolve_user_from_access_token(token: str, session: AsyncSession) -> User | None:
+    """Validate a bearer JWT and return the user, or None when invalid/revoked."""
+    decoded = decode_access_token(token)
+    if decoded is None:
+        return None
+    user_id, token_version, session_id = decoded
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        return None
+    if getattr(user, "token_version", 0) != token_version:
+        return None
+    if session_id is not None:
+        from app.models import RefreshToken
+
+        refresh_row = await session.get(RefreshToken, session_id)
+        if refresh_row is None or refresh_row.user_id != user.id or refresh_row.revoked:
+            return None
+    return await _enforce_account_state(user, session)
 
 
 async def _enforce_account_state(user: User, session: AsyncSession) -> User:
@@ -99,13 +136,56 @@ async def _enforce_account_state(user: User, session: AsyncSession) -> User:
     return user
 
 
+_LEGAL_ACCEPTANCE_EXEMPT_EXACT = (
+    "/auth/me",
+    "/auth/logout",
+    "/auth/logout-all",
+    "/auth/refresh",
+    "/auth/register",
+    "/auth/login",
+    "/auth/register-firebase",
+    "/auth/signup/otp/send",
+    "/auth/signup/otp/verify",
+    "/auth/mfa/login",
+    "/legal/accept",
+    "/legal/accept/status",
+)
+
+_LEGAL_ACCEPTANCE_EXEMPT_PREFIXES = (
+    "/auth/sessions",
+    "/auth/verify-email/",
+    "/auth/password-reset/",
+    "/auth/mfa/",
+    "/legal/",
+)
+
+
+def _requires_legal_acceptance(path: str) -> bool:
+    if path in _LEGAL_ACCEPTANCE_EXEMPT_EXACT:
+        return False
+    if any(path.startswith(prefix) for prefix in _LEGAL_ACCEPTANCE_EXEMPT_PREFIXES):
+        return False
+    return True
+
+
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     session: AsyncSession = Depends(get_db),
 ) -> User:
     user = await _resolve_user_from_credentials(credentials, session, required=True)
     assert user is not None
-    return await _enforce_account_state(user, session)
+    user = await _enforce_account_state(user, session)
+    if _requires_legal_acceptance(request.url.path):
+        from app.services.legal_acceptance import get_pending_policy_ids
+
+        pending = await get_pending_policy_ids(session, user.id)
+        if pending:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="legal_acceptance_required",
+            )
+    return user
 
 
 async def get_current_user_optional(
@@ -169,7 +249,7 @@ async def require_seller(user: User = Depends(get_current_user), session: AsyncS
     if await user_has_seller_profile(session, user.id):
         return user
     # Legacy: seller accounts mid-onboarding before profile creation still pass.
-    if user.account_type == AccountType.SELLER:
+    if user.account_type == AccountType.PROVIDER:
         return user
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Seller storefront required")
 
@@ -184,6 +264,7 @@ async def require_admin(user: User = Depends(get_current_user)) -> User:
 
     if user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    _enforce_staff_mfa(user)
     return user
 
 
@@ -193,7 +274,20 @@ async def require_staff(user: User = Depends(get_current_user)) -> User:
 
     if user.role not in {UserRole.ADMIN, UserRole.SUPPORT}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Staff access required")
+    _enforce_staff_mfa(user)
     return user
+
+
+def _enforce_staff_mfa(user: User) -> None:
+    if not settings.staff_mfa_required and not settings.admin_require_staff_mfa:
+        return
+    if settings.app_env not in {"production", "prod", "staging", "preprod"} and not settings.admin_require_staff_mfa:
+        return
+    if not user.mfa_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Staff accounts must enable MFA before accessing admin tools",
+        )
 
 
 def new_local_firebase_uid() -> str:

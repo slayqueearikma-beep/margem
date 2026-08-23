@@ -11,13 +11,15 @@ from app.config import settings
 
 logger = logging.getLogger("margem.email")
 
-# Redact reset/verify tokens from log previews so they cannot be scraped from logs.
+# Redact reset/verify tokens and short OTP codes from log previews.
 _TOKEN_RE = re.compile(r"(token=)([A-Za-z0-9_\-]{8,})", re.IGNORECASE)
 _BEARERISH_RE = re.compile(r"\b([A-Za-z0-9_\-]{24,})\b")
+_OTP_RE = re.compile(r"\b\d{6}\b")
 
 
 def _safe_preview(text: str, limit: int = 200) -> str:
     redacted = _TOKEN_RE.sub(r"\1[REDACTED]", text)
+    redacted = _OTP_RE.sub("[REDACTED]", redacted)
     # Avoid dumping long opaque secrets in the middle of bodies.
     if "token" in text.lower() or "reset" in text.lower() or "verify" in text.lower():
         redacted = _BEARERISH_RE.sub("[REDACTED]", redacted)

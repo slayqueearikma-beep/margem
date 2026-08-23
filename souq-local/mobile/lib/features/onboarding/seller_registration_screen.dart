@@ -12,13 +12,20 @@ import '../../core/models/auth_models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/navigation/post_auth_navigation.dart';
+import '../../core/services/legal_acceptance_service.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
+import '../../features/legal/signup_terms_footer.dart';
 import '../../core/widgets/map_widgets.dart';
+import '../../core/models/city_model.dart';
+import '../../core/providers/city_providers.dart';
+import '../../core/widgets/city_picker_field.dart';
+import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/services/upload_service.dart';
 
@@ -44,7 +51,7 @@ class _SellerRegistrationScreenState
 
   // Step 2
   String _category = 'Food';
-  final String _city = AppConfig.launchCity;
+  CityModel? _selectedCity;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   LatLng _location = CityCoordinates.casablanca;
@@ -142,18 +149,29 @@ class _SellerRegistrationScreenState
   }
 
   Future<void> _submit() async {
-    setState(() => _loading = true);
     final l10n = context.l10n;
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    final signupProof = await showSignupVerificationFlow(
+      context: context,
+      email: email,
+      phone: phone,
+    );
+    if (!mounted || signupProof == null) return;
+
+    setState(() => _loading = true);
     try {
       await apiServiceProvider.runSubmit(() async {
         await apiServiceProvider.checkHealth();
 
         final auth = ref.read(authServiceProvider);
         final session = await auth.register(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text,
           accountType: 'seller',
           displayName: _ownerNameController.text.trim(),
+          signupProof: signupProof,
         );
 
         final prefs = await ref.read(sharedPreferencesProvider.future);
@@ -177,7 +195,7 @@ class _SellerRegistrationScreenState
             businessName: _businessNameController.text.trim(),
             description: _descriptionController.text.trim(),
             address: _addressController.text.trim(),
-            city: _city,
+            city: _selectedCity?.nameEn ?? AppConfig.launchCity,
             latitude: _location.latitude,
             longitude: _location.longitude,
             phone: _phoneController.text.trim(),
@@ -216,15 +234,14 @@ class _SellerRegistrationScreenState
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException(
-              'App storage is not ready. Please restart the app.');
+          throw ApiException(l10n.appStorageNotReady);
         }
 
         final userSession = UserSession(
           name: _ownerNameController.text.trim(),
           email: session.user.email,
           accountType: AccountType.seller,
-          city: _city,
+          city: _selectedCity?.nameEn ?? AppConfig.launchCity,
           businessName: _businessNameController.text.trim(),
           sellerId: sellerId,
         );
@@ -234,9 +251,10 @@ class _SellerRegistrationScreenState
         await storage.saveAppMode(AppMode.seller);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
+        syncLegalAcceptanceFromAuthUser(ref, session.user);
 
         if (!mounted) return;
-        context.go('/seller/dashboard');
+        context.go(await resolveAuthenticatedDestination(ref, storage, userSession));
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -254,6 +272,12 @@ class _SellerRegistrationScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final cities = ref.watch(citiesProvider).valueOrNull;
+    if (_selectedCity == null && cities != null && cities.isNotEmpty) {
+      _selectedCity =
+          findCityByName(cities, AppConfig.launchCity) ?? cities.first;
+      _location = LatLng(_selectedCity!.latitude, _selectedCity!.longitude);
+    }
     return OnboardingScaffold(
       showBack: true,
       onBack: _back,
@@ -261,6 +285,10 @@ class _SellerRegistrationScreenState
       progressTotal: _totalSteps,
       bottom: Column(
         children: [
+          if (_step == _totalSteps) ...[
+            const SignupTermsFooter(),
+            const SizedBox(height: AppSpacing.sm),
+          ],
           PrimaryButton(
             label: _step == _totalSteps ? l10n.submitCreateAccount : l10n.next,
             onPressed: _next,
@@ -348,11 +376,12 @@ class _SellerRegistrationScreenState
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(
-          label: l10n.city,
-          hint: AppConfig.launchCity,
-          readOnly: true,
-          prefixIcon: Icons.location_city_outlined,
+        CityPickerField(
+          selected: _selectedCity,
+          onSelected: (city) => setState(() {
+            _selectedCity = city;
+            _location = LatLng(city.latitude, city.longitude);
+          }),
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
@@ -488,14 +517,14 @@ class _SellerRegistrationScreenState
                           const TextInputType.numberWithOptions(decimal: true)),
                   if (_products.length > 1)
                     Align(
-                      alignment: Alignment.centerRight,
+                      alignment: AlignmentDirectional.centerEnd,
                       child: TextButton(
                         onPressed: () => setState(() {
                           product.dispose();
                           _products.removeAt(index);
                         }),
                         child: Text(l10n.remove,
-                            style: const TextStyle(color: AppColors.danger)),
+                            style: TextStyle(color: context.colors.error)),
                       ),
                     ),
                 ],
@@ -513,36 +542,41 @@ class _SellerRegistrationScreenState
   }
 
   Widget _buildStep5(AppStrings l10n) {
+    final locale = Localizations.localeOf(context).languageCode;
+    final cityLabel = _selectedCity?.localizedName(locale) ??
+        findCityByName(ref.watch(citiesProvider).valueOrNull ?? [], AppConfig.launchCity)
+            ?.localizedName(locale) ??
+        AppConfig.launchCity;
     final productCount =
         _products.where((p) => p.nameController.text.isNotEmpty).length;
     return Column(
-      key: const ValueKey(5),
+      key: ValueKey(5),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppScreenHeader(
             title: l10n.sellerStep5Title, subtitle: l10n.sellerStep5Subtitle),
-        const SizedBox(height: AppSpacing.xl),
+        SizedBox(height: AppSpacing.xl),
         _ReviewRow(l10n.reviewBusiness, _businessNameController.text),
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
         _ReviewRow(l10n.email, _emailController.text),
         _ReviewRow(l10n.reviewCategory, l10n.categoryLabel(_category)),
-        _ReviewRow(l10n.reviewCity, _city),
+        _ReviewRow(l10n.reviewCity, cityLabel),
         _ReviewRow(l10n.reviewAddress, _addressController.text),
         _ReviewRow(l10n.reviewPhone, _phoneController.text),
         _ReviewRow(l10n.reviewProducts, l10n.itemsCount(productCount)),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: AppSpacing.lg),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
+            color: context.colors.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, color: AppColors.primary),
+              Icon(Icons.info_outline, color: context.colors.primary),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                  child: Text(l10n.sellerVisibilityNote(_city),
+                  child: Text(l10n.sellerVisibilityNote(cityLabel),
                       style: Theme.of(context).textTheme.bodySmall)),
             ],
           ),
@@ -561,14 +595,14 @@ class _ReviewRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
               width: 100,
               child: Text(label,
-                  style: const TextStyle(color: AppColors.textSecondary))),
+                  style: TextStyle(color: context.colors.textSecondary))),
           Expanded(
               child: Text(value.isEmpty ? '—' : value,
                   style: const TextStyle(fontWeight: FontWeight.w500))),
@@ -596,8 +630,8 @@ class _ImagePickerBox extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
-                ?.copyWith(color: AppColors.textSecondary)),
-        const SizedBox(height: AppSpacing.sm),
+                ?.copyWith(color: context.colors.textSecondary)),
+        SizedBox(height: AppSpacing.sm),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -605,7 +639,7 @@ class _ImagePickerBox extends StatelessWidget {
             height: height,
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.colors.border),
               borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               color: Theme.of(context).inputDecorationTheme.fillColor,
             ),
@@ -617,12 +651,12 @@ class _ImagePickerBox extends StatelessWidget {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.add_photo_alternate_outlined,
-                          color: AppColors.textSecondary),
-                      const SizedBox(height: 4),
+                      Icon(Icons.add_photo_alternate_outlined,
+                          color: context.colors.textSecondary),
+                      SizedBox(height: 4),
                       Text(context.l10n.upload,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.textSecondary)),
+                          style: TextStyle(
+                              fontSize: 12, color: context.colors.textSecondary)),
                     ],
                   ),
           ),
