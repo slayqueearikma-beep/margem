@@ -16,6 +16,8 @@ import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
 import '../../l10n/app_localizations.dart';
 import '../wishlist/wishlist_screen.dart';
+import '../partnerships/partnership_models.dart';
+import '../partnerships/partnership_widgets.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({
@@ -39,11 +41,17 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   bool _isFavorite = false;
   final _galleryController = PageController();
   var _galleryIndex = 0;
+  PublicPartnershipModel? _partnership;
 
   @override
   void initState() {
     super.initState();
     _future = apiServiceProvider.fetchSeller(widget.sellerId);
+    apiServiceProvider
+        .fetchProductPartnership(widget.productId)
+        .then((p) {
+      if (mounted) setState(() => _partnership = p);
+    }).catchError((_) {});
     final session = ref.read(userSessionProvider);
     if (session != null && !session.isGuest) {
       apiServiceProvider
@@ -222,6 +230,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                 ),
                               ],
                             ),
+                            if (_partnership != null) ...[
+                              const SizedBox(height: AppSpacing.md),
+                              PartnershipBadge(partnership: _partnership!),
+                            ],
                             const SizedBox(height: AppSpacing.lg),
                             InkWell(
                               onTap: () =>

@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
 import '../models/models.dart';
+import '../../features/partnerships/partnership_models.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -704,6 +705,96 @@ class ApiService {
   Future<void> confirmEmailVerification(String token) {
     return postVoid('/auth/verify-email/confirm', {'token': token},
         auth: false);
+  }
+
+  // --- Partnerships ---
+
+  Future<List<PartnershipModel>> fetchPartnerships() async {
+    final data = await getJsonList('/partnerships', auth: true);
+    return data
+        .map((e) => PartnershipModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<PartnershipModel> fetchPartnership(String id) async {
+    final data = await getJson('/partnerships/$id', auth: true);
+    return PartnershipModel.fromJson(data);
+  }
+
+  Future<PartnershipModel> createPartnership({
+    required String name,
+    String description = '',
+    required String partnershipType,
+    String marketplaceSlug = '',
+    List<String> categorySlugs = const [],
+  }) async {
+    final data = await postJson(
+      '/partnerships',
+      {
+        'name': name,
+        'description': description,
+        'partnership_type': partnershipType,
+        'marketplace_slug': marketplaceSlug,
+        'category_slugs': categorySlugs,
+      },
+      auth: true,
+    );
+    return PartnershipModel.fromJson(data);
+  }
+
+  Future<List<PartnershipInvitationModel>> fetchPartnershipInvitations() async {
+    final data = await getJsonList('/partnerships/me/invitations', auth: true);
+    return data
+        .map((e) =>
+            PartnershipInvitationModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> acceptPartnershipInvitation(String invitationId) {
+    return postVoid('/partnerships/me/invitations/$invitationId/accept', const {},
+        auth: true);
+  }
+
+  Future<void> declinePartnershipInvitation(String invitationId) {
+    return postVoid('/partnerships/me/invitations/$invitationId/decline', const {},
+        auth: true);
+  }
+
+  Future<PartnershipAnalyticsModel> fetchPartnershipAnalytics(
+      String partnershipId) async {
+    final data =
+        await getJson('/partnerships/$partnershipId/analytics', auth: true);
+    return PartnershipAnalyticsModel.fromJson(data);
+  }
+
+  Future<List<PartnershipChatMessageModel>> fetchPartnershipChat(
+      String partnershipId) async {
+    final data =
+        await getJsonList('/partnerships/$partnershipId/chat/messages', auth: true);
+    return data
+        .map((e) =>
+            PartnershipChatMessageModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> sendPartnershipChat(String partnershipId, String body) {
+    return postVoid(
+      '/partnerships/$partnershipId/chat/messages',
+      {'body': body},
+      auth: true,
+    );
+  }
+
+  Future<PublicPartnershipModel?> fetchProductPartnership(String productId) async {
+    final response = await _request(
+      () => _get(_uri('/partnerships/public/product/$productId')),
+      auth: false,
+    );
+    if (response.statusCode == 200 && response.body.isNotEmpty && response.body != 'null') {
+      return PublicPartnershipModel.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
+    }
+    return null;
   }
 
   void _ensureSuccess(http.Response response) {

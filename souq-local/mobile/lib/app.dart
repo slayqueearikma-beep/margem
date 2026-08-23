@@ -21,6 +21,8 @@ import 'features/onboarding/become_seller_screen.dart';
 import 'features/onboarding/buyer_registration_screen.dart';
 import 'features/onboarding/onboarding_welcome_screen.dart';
 import 'features/onboarding/seller_registration_screen.dart';
+import 'features/partnerships/partnership_detail_screen.dart';
+import 'features/partnerships/partnership_hub_screen.dart';
 import 'features/premium/premium_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/seller/product_detail_screen.dart';
@@ -52,7 +54,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           path.startsWith('/seller/reviews') ||
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings') ||
-          path.startsWith('/seller/messages');
+          path.startsWith('/seller/messages') ||
+          path.startsWith('/seller/partnerships');
       final isAuthProtected = isSellerManagement;
       final isAuthenticated = session != null && !session.isGuest;
       if (isAuthProtected && !isAuthenticated) {
@@ -155,6 +158,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: '/seller/settings',
           builder: (_, __) => const SellerSettingsScreen()),
+      GoRoute(
+          path: '/seller/partnerships',
+          builder: (_, __) => const PartnershipHubScreen()),
+      GoRoute(
+        path: '/seller/partnerships/:partnershipId',
+        builder: (_, state) => PartnershipDetailScreen(
+          partnershipId: state.pathParameters['partnershipId']!,
+        ),
+      ),
       GoRoute(
         path: '/seller/:id',
         builder: (_, state) =>

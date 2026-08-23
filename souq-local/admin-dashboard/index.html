@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MarGem Admin — Partnerships</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">MarGem</span>
+      <span class="subtitle">Admin Dashboard</span>
+    </div>
+    <div class="auth">
+      <input id="apiBase" type="text" placeholder="API base (empty = same origin)" />
+      <input id="token" type="password" placeholder="Admin bearer token" />
+      <button id="saveAuth">Connect</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <nav>
+        <button class="nav-item active" data-section="partnerships">Partnerships</button>
+      </nav>
+    </aside>
+
+    <section class="content">
+      <div id="partnershipsSection">
+        <div class="section-header">
+          <h1>Partnerships</h1>
+          <select id="statusFilter">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="ended">Ended</option>
+          </select>
+          <button id="refreshBtn" class="primary">Refresh</button>
+        </div>
+
+        <div id="alert" class="alert hidden"></div>
+
+        <div class="grid two-col">
+          <div class="card">
+            <h2>All partnerships</h2>
+            <div id="partnershipList" class="list"></div>
+          </div>
+          <div class="card">
+            <h2 id="detailTitle">Details</h2>
+            <div id="partnershipDetail" class="detail empty">Select a partnership</div>
+            <div id="detailActions" class="actions hidden">
+              <button id="approveBtn" class="primary">Approve</button>
+              <button id="suspendBtn" class="danger">Suspend</button>
+              <button id="reactivateBtn">Reactivate</button>
+            </div>
+            <h3>Audit log</h3>
+            <div id="auditLog" class="list compact"></div>
+            <h3>Revenue records</h3>
+            <div id="revenueRecords" class="list compact"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
