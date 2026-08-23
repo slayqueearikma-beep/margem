@@ -26,7 +26,7 @@ import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
-import '../premium/premium_screen.dart';
+import '../../core/providers/subscription_providers.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
 
@@ -1072,6 +1072,7 @@ class BuyerProfileScreen extends ConsumerWidget {
                       await ref.read(sharedPreferencesProvider.future);
                   await ref.read(authServiceProvider).logout(prefs);
                   await ref.read(appStorageProvider)?.logout();
+                  invalidateSubscriptionProviders(ref);
                   ref.read(userSessionProvider.notifier).state = null;
                   ref.read(authSessionProvider.notifier).state = null;
                   if (context.mounted) context.go('/login');

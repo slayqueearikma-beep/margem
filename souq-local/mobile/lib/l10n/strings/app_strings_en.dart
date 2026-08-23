@@ -1524,6 +1524,8 @@ class AppStringsEn extends AppStrings {
 
   @override
   String get subscriptionManagementTitle => 'Your subscription';
+  @override
+  String get paymentHistoryTitle => 'Payment history';
 
   @override
   String get subscriptionRenewsUntil => 'Access until';

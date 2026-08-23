@@ -983,6 +983,7 @@ class SubscriptionPlanModel {
   /// User-facing plan label (legacy API rows may still say MarGem Plus).
   String get displayName {
     if (code == 'buyer_premium' || name == 'MarGem Plus') return 'Dribex Plus';
+    if (code == 'seller_pro' || name == 'Seller Pro') return 'Dribex Pro';
     return name;
   }
 
@@ -1122,6 +1123,31 @@ class PlatformPaymentModel {
       providerReference: json['provider_reference'] as String? ?? '',
       createdAt: json['created_at'] as String? ?? '',
       paidAt: json['paid_at'] as String?,
+    );
+  }
+}
+
+class SellerVideoQuotaModel {
+  const SellerVideoQuotaModel({
+    required this.isPremium,
+    required this.activeVideos,
+    this.limit,
+    this.remaining,
+  });
+
+  final bool isPremium;
+  final int activeVideos;
+  final int? limit;
+  final int? remaining;
+
+  bool get isAtLimit => !isPremium && remaining != null && remaining! <= 0;
+
+  factory SellerVideoQuotaModel.fromJson(Map<String, dynamic> json) {
+    return SellerVideoQuotaModel(
+      isPremium: json['is_premium'] as bool? ?? false,
+      activeVideos: json['active_videos'] as int? ?? 0,
+      limit: json['limit'] as int?,
+      remaining: json['remaining'] as int?,
     );
   }
 }
