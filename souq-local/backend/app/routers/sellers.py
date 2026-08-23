@@ -35,6 +35,7 @@ from app.services.ratings import (
     rounded_overall,
 )
 from app.services.reviews import get_review_eligibility
+from app.services.seller_categories import resolve_seller_categories
 from app.services.upload_security import validate_media_url
 
 router = APIRouter(prefix="/sellers", tags=["sellers"])
@@ -280,10 +281,7 @@ async def create_seller(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Seller profile already exists")
 
-    categories = []
-    if payload.category_ids:
-        result = await session.execute(select(Category).where(Category.id.in_(payload.category_ids)))
-        categories = list(result.scalars().all())
+    categories = await resolve_seller_categories(session, payload.category_ids)
 
     cover = _validate_owner_media(payload.cover_image_url, user.id)
     logo = _validate_owner_media(payload.logo_image_url, user.id)
@@ -314,6 +312,10 @@ async def create_seller(
     # Dual-mode: keep one identity; mark account as seller-capable.
     user.account_type = AccountType.SELLER
     user.role = UserRole.SELLER
+    await session.flush()
+    from app.services.subscription_plans import assign_basic_plan
+
+    await assign_basic_plan(session, user, provider="system")
     await session.commit()
     return await _load_seller_detail(session, seller.id)
 
@@ -374,8 +376,7 @@ async def update_seller(
         setattr(seller, key, value)
 
     if category_ids is not None:
-        result = await session.execute(select(Category).where(Category.id.in_(category_ids)))
-        seller.categories = list(result.scalars().all())
+        seller.categories = await resolve_seller_categories(session, category_ids)
 
     await session.commit()
     return await _load_seller_detail(session, seller_id)
@@ -396,8 +397,10 @@ async def add_product(
     product_data["media_urls"] = _validate_owner_media_list(list(payload.media_urls or []), user.id)
     product_data["video_url"] = _validate_owner_media(payload.video_url or "", user.id)
     if payload.is_featured and not user.is_premium:
-        # Featured placement is a premium visibility perk.
-        product_data["is_featured"] = False
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Featured placement requires a premium subscription",
+        )
     product = Product(seller_id=seller_id, **product_data)
     session.add(product)
     await session.commit()
@@ -445,7 +448,10 @@ async def update_product(
     if "video_url" in data:
         data["video_url"] = _validate_owner_media(data["video_url"] or "", user.id)
     if data.get("is_featured") is True and not user.is_premium:
-        data["is_featured"] = False
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Featured placement requires a premium subscription",
+        )
 
     for key, value in data.items():
         setattr(product, key, value)

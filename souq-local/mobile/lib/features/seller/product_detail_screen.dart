@@ -17,6 +17,13 @@ import '../../core/widgets/product_carousel_card.dart';
 import '../../l10n/app_localizations.dart';
 import '../wishlist/wishlist_screen.dart';
 
+bool _isStoreOwner(UserSession? session, String sellerId) {
+  final ownedSellerId = session?.sellerId;
+  return ownedSellerId != null &&
+      ownedSellerId.isNotEmpty &&
+      ownedSellerId == sellerId;
+}
+
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({
     super.key,
@@ -43,14 +50,33 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _future = apiServiceProvider.fetchSeller(widget.sellerId);
     final session = ref.read(userSessionProvider);
+    final asOwner = _isStoreOwner(session, widget.sellerId);
+    _future = apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
+    if (session == null || session.isGuest) {
+      final storage = ref.read(appStorageProvider);
+      _isFavorite = storage
+              ?.getGuestFavoriteItems()
+              .any((item) => item.productId == widget.productId) ??
+          false;
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _syncFavoriteState());
+    }
     if (session != null && !session.isGuest) {
       apiServiceProvider
           .trackRecentlyViewed(
               sellerId: widget.sellerId, productId: widget.productId)
           .catchError((_) {});
     }
+  }
+
+  Future<void> _syncFavoriteState() async {
+    try {
+      final favorites = await ref.read(favoritesProvider.future);
+      final found =
+          favorites.any((favorite) => favorite.productId == widget.productId);
+      if (mounted) setState(() => _isFavorite = found);
+    } catch (_) {}
   }
 
   @override
@@ -82,7 +108,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             body: AsyncErrorView.fromError(
               snapshot.error ?? Exception(context.l10n.somethingWentWrong),
               onRetry: () => setState(() {
-                _future = apiServiceProvider.fetchSeller(widget.sellerId);
+                final session = ref.read(userSessionProvider);
+                _future = apiServiceProvider.fetchSeller(
+                  widget.sellerId,
+                  auth: _isStoreOwner(session, widget.sellerId),
+                );
               }),
             ),
           );
@@ -469,15 +499,26 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   Future<void> _openChat(SellerModel seller) async {
     final l10n = context.l10n;
+    final session = ref.read(userSessionProvider);
+    if (session == null || session.isGuest) {
+      if (mounted) await context.push('/login');
+      return;
+    }
+    final mySellerId = session.sellerId;
+    if (mySellerId != null &&
+        mySellerId.isNotEmpty &&
+        mySellerId == seller.id) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.cannotMessageOwnStore)),
+        );
+      }
+      return;
+    }
     setState(() => _contacting = true);
     try {
       await apiServiceProvider.createContactEvent(
           sellerId: seller.id, channel: 'message');
-      final session = ref.read(userSessionProvider);
-      if (session == null || session.isGuest) {
-        if (mounted) await context.push('/login');
-        return;
-      }
       final conversation =
           await apiServiceProvider.openSellerConversation(seller.id);
       if (!mounted) return;
@@ -493,11 +534,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 
   Future<void> _callSeller(SellerModel seller) async {
+    final phone = seller.phone.trim();
+    if (phone.isEmpty) return;
     try {
       await apiServiceProvider.createContactEvent(
           sellerId: seller.id, channel: 'call');
     } catch (_) {}
-    final uri = Uri(scheme: 'tel', path: seller.phone);
+    final uri = Uri(scheme: 'tel', path: phone);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else if (mounted) {

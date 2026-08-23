@@ -26,6 +26,7 @@ from app.schemas import (
     UserRegisterFirebase,
 )
 from app.services.audit import log_security_event
+from app.services.client_ip import get_client_ip
 from app.services.email import email_service
 from app.services.password_policy import validate_password_strength
 from app.services.security import (
@@ -39,6 +40,10 @@ from app.services.security import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def _request_ip(request: Request) -> str:
+    return get_client_ip(request)
 
 
 def _auth_action_body(*, path: str, token: str, intro: str) -> str:
@@ -113,16 +118,17 @@ async def _issue_auth_token(session: AsyncSession, user_id: UUID, purpose: str, 
 
 async def _token_response(session: AsyncSession, user: User, request: Request | None = None) -> TokenResponse:
     from app.auth import user_has_seller_profile
+    from app.services.admin_login import is_staff_role, record_staff_login
 
     device = ""
     ip = ""
     ua = ""
     if request is not None:
-        ip = request.client.host if request.client else ""
+        ip = _request_ip(request)
         ua = (request.headers.get("user-agent") or "")[:255]
         device = (request.headers.get("x-device-name") or ua[:80] or "Device")[:120]
 
-    refresh_token = await issue_refresh_token(session, user.id)
+    refresh_token, refresh_token_id = await issue_refresh_token(session, user.id)
     # Attach device metadata to newest refresh token
     result = await session.execute(
         select(RefreshToken)
@@ -138,10 +144,16 @@ async def _token_response(session: AsyncSession, user: User, request: Request | 
         stored.last_seen_at = datetime.now(UTC)
 
     user.last_login_at = datetime.now(UTC)
+    if is_staff_role(user.role):
+        await record_staff_login(session, user_id=user.id, request=request, success=True)
     has_store = await user_has_seller_profile(session, user.id)
     await session.commit()
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(
+            user.id,
+            token_version=getattr(user, "token_version", 0),
+            session_id=refresh_token_id,
+        ),
         refresh_token=refresh_token,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -203,13 +215,24 @@ async def login(
     payload: LoginRequest,
     session: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
+    from app.services.admin_login import is_staff_role, record_staff_login
+
     result = await session.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
     if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
+        if user is not None and is_staff_role(user.role):
+            await record_staff_login(
+                session,
+                user_id=user.id,
+                request=request,
+                success=False,
+                failure_reason="invalid_credentials",
+            )
+            await session.commit()
         log_security_event(
             "login_failed",
             email=payload.email.lower(),
-            client=request.client.host if request.client else "unknown",
+            client=_request_ip(request) or "unknown",
         )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     if user.status == UserStatus.SUSPENDED:
@@ -230,10 +253,10 @@ async def refresh_tokens(
 ) -> TokenResponse:
     rotated = await rotate_refresh_token(session, payload.refresh_token)
     if rotated is None:
-        log_security_event("refresh_failed", client=request.client.host if request.client else "unknown")
+        log_security_event("refresh_failed", client=_request_ip(request) or "unknown")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
 
-    user_id, new_refresh = rotated
+    user_id, new_refresh, session_id = rotated
     result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user is None:
@@ -252,7 +275,11 @@ async def refresh_tokens(
 
     has_store = await user_has_seller_profile(session, user.id)
     return TokenResponse(
-        access_token=create_access_token(user.id),
+        access_token=create_access_token(
+            user.id,
+            token_version=getattr(user, "token_version", 0),
+            session_id=session_id,
+        ),
         refresh_token=new_refresh,
         expires_in=settings.jwt_access_expire_minutes * 60,
         user=UserOut.from_user(user, has_seller_profile=has_store),
@@ -268,7 +295,7 @@ async def logout(
 ) -> None:
     await revoke_refresh_token(session, payload.refresh_token)
     await session.commit()
-    log_security_event("logout", client=request.client.host if request.client else "unknown")
+    log_security_event("logout", client=_request_ip(request) or "unknown")
 
 
 @router.post("/register-firebase", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -405,8 +432,12 @@ async def request_email_verification(
     )
 
 
+_MAX_EMAIL_VERIFY_ATTEMPTS = 10
+
+
 @router.post("/verify-email/confirm", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("5/minute")
+@limiter.limit("30/hour")
 async def confirm_email_verification(
     request: Request,
     payload: TokenConfirmRequest,
@@ -419,8 +450,28 @@ async def confirm_email_verification(
         ).with_for_update()
     )
     token = result.scalar_one_or_none()
-    if token is None or token.used_at is not None or token.expires_at < datetime.now(UTC):
+    if token is None:
+        log_security_event(
+            "email_verify_failed",
+            ip_address=_request_ip(request),
+            detail="invalid_or_expired_token",
+        )
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    if token.used_at is not None or token.expires_at < datetime.now(UTC):
+        token.failed_attempts += 1
+        if token.failed_attempts >= _MAX_EMAIL_VERIFY_ATTEMPTS:
+            token.used_at = datetime.now(UTC)
+        await session.commit()
+        log_security_event(
+            "email_verify_failed",
+            ip_address=_request_ip(request),
+            detail="invalid_or_expired_token",
+        )
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+    if token.failed_attempts >= _MAX_EMAIL_VERIFY_ATTEMPTS:
+        token.used_at = datetime.now(UTC)
+        await session.commit()
+        raise HTTPException(status_code=429, detail="Too many verification attempts")
     user = await session.get(User, token.user_id)
     if user is None:
         raise HTTPException(status_code=400, detail="Invalid or expired verification token")
@@ -485,6 +536,90 @@ async def confirm_password_reset(
     log_security_event("password_reset", user_id=str(user.id))
 
 
+@router.get("/me/export")
+@limiter.limit("5/hour")
+async def export_my_data(
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    """GDPR/Law 09-08 data portability — returns a JSON export of user data."""
+    from app.auth import user_has_seller_profile
+    from app.models import Favorite, Notification, Review, SavedSearch, SellerFollow, Subscription
+    from sqlalchemy.orm import selectinload
+
+    has_store = await user_has_seller_profile(session, user.id)
+
+    favorites = (
+        await session.execute(select(Favorite).where(Favorite.user_id == user.id))
+    ).scalars().all()
+    saved = (
+        await session.execute(select(SavedSearch).where(SavedSearch.user_id == user.id))
+    ).scalars().all()
+    follows = (
+        await session.execute(select(SellerFollow).where(SellerFollow.user_id == user.id))
+    ).scalars().all()
+    reviews = (
+        await session.execute(select(Review).where(Review.buyer_id == user.id))
+    ).scalars().all()
+    notifications = (
+        await session.execute(select(Notification).where(Notification.user_id == user.id).limit(100))
+    ).scalars().all()
+    subscriptions = (
+        await session.execute(
+            select(Subscription).where(Subscription.user_id == user.id).options(
+                selectinload(Subscription.plan)
+            )
+        )
+    ).scalars().all()
+
+    seller_data = None
+    if has_store:
+        profile = (
+            await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
+        ).scalar_one_or_none()
+        if profile:
+            seller_data = {
+                "business_name": profile.business_name,
+                "city": profile.city,
+                "verification_status": profile.verification_status.value,
+            }
+
+    return {
+        "exported_at": datetime.now(UTC).isoformat(),
+        "account": {
+            "id": str(user.id),
+            "email": user.email,
+            "display_name": user.display_name,
+            "account_type": user.account_type.value,
+            "role": user.role.value,
+            "status": user.status.value,
+            "email_verified": user.email_verified_at is not None,
+            "is_premium": user.is_premium,
+            "premium_until": user.premium_until.isoformat() if user.premium_until else None,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "has_seller_profile": has_store,
+        },
+        "seller": seller_data,
+        "favorites_count": len(favorites),
+        "saved_searches": [
+            {"query": s.query, "city": s.city, "category": s.category} for s in saved
+        ],
+        "follows_count": len(follows),
+        "reviews_count": len(reviews),
+        "notifications_count": len(notifications),
+        "subscriptions": [
+            {
+                "plan_code": sub.plan.code if sub.plan else "",
+                "status": sub.status.value,
+                "started_at": sub.current_period_start.isoformat() if sub.current_period_start else None,
+                "expires_at": sub.current_period_end.isoformat() if sub.current_period_end else None,
+            }
+            for sub in subscriptions
+        ],
+    }
+
+
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(settings.auth_rate_limit)
 async def delete_account(
@@ -496,65 +631,7 @@ async def delete_account(
     if not user.password_hash or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
 
-    from sqlalchemy import delete as sql_delete
+    from app.services.account_lifecycle import soft_delete_user
 
-    from app.models import (
-        AuthToken,
-        Conversation,
-        Favorite,
-        Message,
-        Notification,
-        RecentlyViewed,
-        Review,
-        SavedSearch,
-        SellerFollow,
-        Subscription,
-    )
-
-    seller = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-    profile = seller.scalar_one_or_none()
-
-    # Remove message history the user authored, then any peer conversations they belong to.
-    await session.execute(sql_delete(Message).where(Message.sender_id == user.id))
-    peer_conversations = (
-        await session.execute(
-            select(Conversation.id).where(
-                (Conversation.participant_a_id == user.id) | (Conversation.participant_b_id == user.id)
-            )
-        )
-    ).scalars().all()
-    if peer_conversations:
-        await session.execute(sql_delete(Message).where(Message.conversation_id.in_(peer_conversations)))
-        await session.execute(sql_delete(Conversation).where(Conversation.id.in_(peer_conversations)))
-
-    if profile is not None:
-        from app.models import Product, SellerCategory, Service
-
-        # Clear association + owned rows before deleting the storefront (no ON DELETE CASCADE).
-        await session.execute(sql_delete(SellerCategory).where(SellerCategory.seller_id == profile.id))
-        await session.execute(sql_delete(Product).where(Product.seller_id == profile.id))
-        await session.execute(sql_delete(Service).where(Service.seller_id == profile.id))
-        await session.execute(sql_delete(Review).where(Review.seller_id == profile.id))
-        await session.delete(profile)
-
-    for model, column in (
-        (Favorite, Favorite.user_id),
-        (SellerFollow, SellerFollow.user_id),
-        (SavedSearch, SavedSearch.user_id),
-        (RecentlyViewed, RecentlyViewed.user_id),
-        (Notification, Notification.user_id),
-        (Subscription, Subscription.user_id),
-        (AuthToken, AuthToken.user_id),
-        (Review, Review.buyer_id),
-    ):
-        await session.execute(sql_delete(model).where(column == user.id))
-
-    await revoke_all_refresh_tokens(session, user.id)
-    user.status = UserStatus.DELETED
-    user.email = f"deleted+{user.id}@invalid.local"
-    user.display_name = "Deleted user"
-    user.password_hash = None
-    user.is_premium = False
-    user.premium_until = None
+    await soft_delete_user(session, user)
     await session.commit()
-    log_security_event("account_deleted", user_id=str(user.id))

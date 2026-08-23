@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/validation/form_validators.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_brand_logo.dart';
@@ -45,7 +46,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _requestReset() async {
     final l10n = context.l10n;
     final email = _emailController.text.trim();
-    if (email.isEmpty) {
+    if (email.isEmpty || !FormValidators.isValidEmail(email)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.emailRequired)));
       return;
@@ -67,7 +68,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _confirmReset() async {
     final l10n = context.l10n;
     if (_tokenController.text.trim().isEmpty ||
-        _passwordController.text.length < 8) {
+        !FormValidators.isValidPassword(_passwordController.text)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.resetPasswordValidation)));
       return;

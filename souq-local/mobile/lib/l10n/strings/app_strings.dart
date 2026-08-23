@@ -162,6 +162,8 @@ abstract class AppStrings {
   String get sellerStep2Title;
   String get sellerStep2Subtitle;
   String get businessCategory;
+  String get businessCategories;
+  String businessCategoriesHint(int max);
   String get fullAddress;
   String get phoneNumber;
   String get storeLocation;

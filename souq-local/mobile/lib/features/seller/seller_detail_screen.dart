@@ -33,11 +33,16 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
   var _following = false;
   var _messaging = false;
 
+  bool _isStoreOwner(UserSession? session) {
+    final sellerId = session?.sellerId;
+    return sellerId != null && sellerId.isNotEmpty && sellerId == widget.sellerId;
+  }
+
   @override
   void initState() {
     super.initState();
     final session = ref.read(userSessionProvider);
-    final asOwner = session?.accountType == AccountType.seller;
+    final asOwner = _isStoreOwner(session);
     _sellerFuture =
         apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
     _reviewsFuture = apiServiceProvider.fetchReviews(widget.sellerId);
@@ -45,7 +50,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
 
   void _reload() {
     final session = ref.read(userSessionProvider);
-    final asOwner = session?.accountType == AccountType.seller;
+    final asOwner = _isStoreOwner(session);
     setState(() {
       _sellerFuture =
           apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
@@ -90,6 +95,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
           await apiServiceProvider.openSellerConversation(seller.id);
       if (!mounted) return;
       context.push('/messages/${conversation.id}', extra: conversation);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: error.message);
     } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
@@ -134,6 +143,10 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
         SnackBar(content: Text(l10n.nowFollowing(seller.businessName))),
       );
       _reload();
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: error.message);
     } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
@@ -190,7 +203,11 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
           ),
         );
       }
-    } on Object catch (_) {
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      await showAppErrorDialog(context,
+          title: l10n.somethingWentWrong, message: error.message);
+    } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
           title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);
