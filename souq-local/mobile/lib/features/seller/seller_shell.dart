@@ -131,9 +131,9 @@ class SellerShell extends ConsumerWidget {
               ),
               const SizedBox(width: 56),
               _SellerNavItem(
-                icon: Icons.event_note_outlined,
-                selectedIcon: Icons.event_note_rounded,
-                label: l10n.navBookings,
+                icon: Icons.chat_bubble_outline,
+                selectedIcon: Icons.chat_bubble_rounded,
+                label: l10n.inquiries,
                 selected: index == 2,
                 onTap: () => _selectTab(ref, 2),
               ),
@@ -149,19 +149,6 @@ class SellerShell extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  String _titleForTab(AppStrings l10n, int index) {
-    switch (index) {
-      case 0:
-        return l10n.navDashboard;
-      case 1:
-        return l10n.navServices;
-      case 2:
-        return l10n.navBookings;
-      default:
-        return l10n.navMore;
-    }
   }
 
   List<Widget>? _actionsForTab(

@@ -323,45 +323,61 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
                 error: (_, __) => Text(l10n.somethingWentWrong),
               ),
               const SizedBox(height: AppSpacing.md),
-              Text(
-                l10n.shopLocationTitle,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _marketGalleryController,
-                enabled: !_loading,
-                decoration: InputDecoration(labelText: '${l10n.shopLocationTitle} — Gallery'),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _shopNumberController,
-                enabled: !_loading,
-                decoration: InputDecoration(labelText: '${l10n.shopLocationTitle} — Shop #'),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _marketZoneController,
-                enabled: !_loading,
-                decoration: const InputDecoration(labelText: 'Zone / Section'),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _marketStreetController,
-                enabled: !_loading,
-                decoration: const InputDecoration(labelText: 'Street'),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _marketFloorController,
-                enabled: !_loading,
-                decoration: const InputDecoration(labelText: 'Floor'),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _nearbyLandmarkController,
-                enabled: !_loading,
-                decoration: const InputDecoration(labelText: 'Nearby landmark'),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(
+                  l10n.shopLocationTitle,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                subtitle: Text(
+                  l10n.shopLocationTitle,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+                children: [
+                  TextField(
+                    controller: _marketGalleryController,
+                    enabled: !_loading,
+                    decoration: InputDecoration(
+                      labelText: '${l10n.shopLocationTitle} — Gallery',
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _shopNumberController,
+                    enabled: !_loading,
+                    decoration: InputDecoration(
+                      labelText: '${l10n.shopLocationTitle} — Shop #',
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _marketZoneController,
+                    enabled: !_loading,
+                    decoration: const InputDecoration(labelText: 'Zone / Section'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _marketStreetController,
+                    enabled: !_loading,
+                    decoration: const InputDecoration(labelText: 'Street'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _marketFloorController,
+                    enabled: !_loading,
+                    decoration: const InputDecoration(labelText: 'Floor'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _nearbyLandmarkController,
+                    enabled: !_loading,
+                    decoration: const InputDecoration(labelText: 'Nearby landmark'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(

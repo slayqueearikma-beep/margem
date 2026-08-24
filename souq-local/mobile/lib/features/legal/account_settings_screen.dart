@@ -42,12 +42,6 @@ class AccountSettingsScreen extends ConsumerWidget {
                   title: l10n.verifyEmailTitle,
                   onTap: () => context.push('/verify-email'),
                 ),
-              if (!isGuest)
-                BuyerMenuTile(
-                  icon: Icons.lock_outline_rounded,
-                  title: l10n.changePassword,
-                  onTap: () => context.push('/profile'),
-                ),
             ],
           ),
           _SettingsSection(

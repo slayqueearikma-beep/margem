@@ -37,7 +37,6 @@ import 'features/seller/seller_catalog_screen.dart';
 import 'features/seller/seller_add_service_wizard.dart';
 import 'features/seller/seller_add_video_screen.dart';
 import 'features/seller/seller_video_record_screen.dart';
-import 'features/seller/seller_analytics_screen.dart';
 import 'features/seller/seller_boost_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
@@ -309,7 +308,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
           path: '/seller/analytics',
-          builder: (_, __) => const SellerAnalyticsScreen()),
+          redirect: (_, __) => '/seller/dashboard'),
       GoRoute(
           path: '/seller/profile',
           builder: (_, __) => const SellerProfileScreen()),

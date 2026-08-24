@@ -10,7 +10,6 @@ import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
-import '../settings/language_settings_tile.dart';
 import 'seller_account_provider.dart';
 import 'seller_navigation.dart';
 
@@ -109,11 +108,6 @@ class SellerDrawer extends ConsumerWidget {
                     onTap: () => _goTab(context, ref, 1),
                   ),
                   _DrawerItem(
-                    icon: Icons.event_note_outlined,
-                    label: l10n.navBookings,
-                    onTap: () => _goTab(context, ref, 2),
-                  ),
-                  _DrawerItem(
                     icon: Icons.chat_bubble_outline,
                     label: l10n.messages,
                     badge: stats != null && stats.inquiryCount > 0
@@ -125,27 +119,6 @@ class SellerDrawer extends ConsumerWidget {
                     icon: Icons.rate_review_outlined,
                     label: l10n.reviews,
                     onTap: () => _push(context, '/seller/reviews'),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.payments_outlined,
-                    label: l10n.earnings,
-                    comingSoon: true,
-                    onTap: () {},
-                  ),
-                  _DrawerItem(
-                    icon: Icons.rocket_launch_outlined,
-                    label: l10n.navBoost,
-                    onTap: () => _push(context, '/seller/boost'),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.query_stats_outlined,
-                    label: l10n.analytics,
-                    onTap: () => _push(context, '/seller/analytics'),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.photo_library_outlined,
-                    label: l10n.gallery,
-                    onTap: () => _push(context, '/seller/products'),
                   ),
                   _DrawerItem(
                     icon: Icons.business_outlined,
@@ -234,14 +207,12 @@ class _DrawerItem extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.badge,
-    this.comingSoon = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final String? badge;
-  final bool comingSoon;
 
   @override
   Widget build(BuildContext context) {
@@ -254,33 +225,17 @@ class _DrawerItem extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      trailing: comingSoon
-          ? Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: context.colors.primaryMuted,
-                borderRadius: BorderRadius.circular(12),
-              ),
+      trailing: badge != null
+          ? CircleAvatar(
+              radius: 12,
+              backgroundColor: context.colors.error,
               child: Text(
-                context.l10n.comingSoon,
-                style: TextStyle(
-                  color: context.colors.primary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
+                badge!,
+                style: const TextStyle(color: Colors.white, fontSize: 11),
               ),
             )
-          : badge != null
-              ? CircleAvatar(
-                  radius: 12,
-                  backgroundColor: context.colors.error,
-                  child: Text(
-                    badge!,
-                    style: const TextStyle(color: Colors.white, fontSize: 11),
-                  ),
-                )
-              : null,
-      onTap: comingSoon ? null : onTap,
+          : null,
+      onTap: onTap,
     );
   }
 }

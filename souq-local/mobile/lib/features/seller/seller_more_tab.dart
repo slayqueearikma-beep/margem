@@ -33,18 +33,6 @@ class SellerMoreTab extends ConsumerWidget {
       ),
       children: [
           DashboardMenuTile(
-            title: l10n.analytics,
-            subtitle: l10n.analyticsSub,
-            icon: Icons.query_stats_outlined,
-            onTap: () => context.push('/seller/analytics'),
-          ),
-          DashboardMenuTile(
-            title: l10n.productManagement,
-            subtitle: l10n.productManagementSub,
-            icon: Icons.inventory_2_outlined,
-            onTap: () => context.push('/seller/products'),
-          ),
-          DashboardMenuTile(
             title: l10n.profileManagement,
             subtitle: l10n.profileManagementSub,
             icon: Icons.business_outlined,
@@ -77,6 +65,12 @@ class SellerMoreTab extends ConsumerWidget {
             subtitle: l10n.premiumUpgradeSub,
             icon: Icons.workspace_premium_outlined,
             onTap: () => context.push('/premium'),
+          ),
+          DashboardMenuTile(
+            title: l10n.navBoost,
+            subtitle: l10n.boostSubtitle,
+            icon: Icons.rocket_launch_outlined,
+            onTap: () => context.push('/seller/boost'),
           ),
           DashboardMenuTile(
             title: l10n.accountSecurity,

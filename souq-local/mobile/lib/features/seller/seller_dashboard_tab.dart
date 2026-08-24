@@ -21,7 +21,6 @@ class SellerDashboardTab extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final accountAsync = ref.watch(sellerAccountProvider);
-    final analyticsAsync = ref.watch(sellerAnalyticsProvider);
 
     return accountAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -32,18 +31,13 @@ class SellerDashboardTab extends ConsumerWidget {
       ),
       data: (account) {
         final stats = account.stats;
-        final analytics = analyticsAsync.valueOrNull;
-        final profileViews =
-            analytics?.profileViewCount ?? stats.profileViewCount;
-        final inquiryCount = analytics?.inquiryCount ?? stats.inquiryCount;
-        final reviewCount = analytics?.reviewCount ?? stats.reviewCount;
-        final favoriteCount = analytics?.favoriteCount ?? stats.favoriteCount;
-        final sparkline = _sparklineFromViews(profileViews);
+        final profileViews = stats.profileViewCount;
+        final inquiryCount = stats.inquiryCount;
+        final reviewCount = stats.reviewCount;
 
         return RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(sellerAccountProvider);
-            ref.invalidate(sellerAnalyticsProvider);
             await ref.read(sellerAccountProvider.future);
           },
           child: ListView(
@@ -73,14 +67,6 @@ class SellerDashboardTab extends ConsumerWidget {
                     ),
               ),
               SizedBox(height: AppSpacing.md),
-              SellerHeroMetricCard(
-                title: l10n.profileViews,
-                value: '$profileViews',
-                deltaLabel: '—',
-                positive: profileViews > 0,
-                child: SellerMiniSparkline(values: sparkline),
-              ),
-              SizedBox(height: AppSpacing.md),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -90,24 +76,17 @@ class SellerDashboardTab extends ConsumerWidget {
                 childAspectRatio: 1.35,
                 children: [
                   SellerMetricTile(
-                    label: l10n.navBookings,
+                    label: l10n.profileViews,
+                    value: '$profileViews',
+                    icon: Icons.visibility_outlined,
+                  ),
+                  SellerMetricTile(
+                    label: l10n.inquiries,
                     value: '$inquiryCount',
-                    icon: Icons.event_available_outlined,
+                    icon: Icons.chat_bubble_outline,
                     subtitle: l10n.inquiriesSub,
                     onTap: () =>
                         ref.read(sellerTabIndexProvider.notifier).state = 2,
-                  ),
-                  SellerMetricTile(
-                    label: l10n.messages,
-                    value: '$inquiryCount',
-                    icon: Icons.chat_bubble_outline,
-                    onTap: () => context.push('/seller/messages'),
-                  ),
-                  SellerMetricTile(
-                    label: l10n.earnings,
-                    value: '—',
-                    icon: Icons.payments_outlined,
-                    subtitle: l10n.comingSoon,
                   ),
                   SellerMetricTile(
                     label: l10n.reviews,
@@ -122,7 +101,7 @@ class SellerDashboardTab extends ConsumerWidget {
               ),
               SizedBox(height: AppSpacing.lg),
               SellerSectionHeader(
-                title: l10n.upcomingBookings,
+                title: l10n.inquiries,
                 actionLabel: l10n.viewAll,
                 onAction: () =>
                     ref.read(sellerTabIndexProvider.notifier).state = 2,
@@ -199,24 +178,11 @@ class SellerDashboardTab extends ConsumerWidget {
                     },
                   ),
                 ),
-              if (favoriteCount > 0) ...[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  l10n.favoritesCount(favoriteCount),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
             ],
           ),
         );
       },
     );
-  }
-
-  List<double> _sparklineFromViews(int views) {
-    if (views <= 0) return const [2, 3, 2, 4, 3, 5, 4];
-    final base = views / 7.0;
-    return List<double>.generate(7, (i) => base * (0.7 + i * 0.08));
   }
 }
 
