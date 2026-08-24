@@ -35,6 +35,7 @@ async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
             "phone": "+212600000010",
             "cover_image_url": "",
             "category_ids": [],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },

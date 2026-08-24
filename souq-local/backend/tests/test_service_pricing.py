@@ -4,6 +4,7 @@ from pydantic import ValidationError
 
 from app.main import app
 from tests.auth_helpers import register_test_user
+from tests.seller_helpers import create_test_seller, seller_create_payload
 from app.services.service_pricing import PricingModel, normalize_service_pricing
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
@@ -19,31 +20,29 @@ async def _register(client: AsyncClient, email: str) -> dict:
 
 
 async def _create_seller(client: AsyncClient, token: str) -> dict:
-    response = await client.post(
-        "/sellers",
-        headers={"Authorization": f"Bearer {token}"},
-        json={
-            "business_name": "Service Shop",
-            "description": "Desc",
-            "address": "1 Main Street",
-            "city": "Casablanca",
-            "latitude": 33.5,
-            "longitude": -7.6,
-            "phone": "+212600000000",
-            "cover_image_url": "",
-            "logo_image_url": "",
-            "opening_hours": {
-                "days": {"Mon": True, "Tue": True, "Wed": True, "Thu": True, "Fri": True, "Sat": True, "Sun": False},
+    return await create_test_seller(
+        client,
+        {"Authorization": f"Bearer {token}"},
+        **seller_create_payload(
+            business_name="Service Shop",
+            cover_image_url="",
+            logo_image_url="",
+            opening_hours={
+                "days": {
+                    "Mon": True,
+                    "Tue": True,
+                    "Wed": True,
+                    "Thu": True,
+                    "Fri": True,
+                    "Sat": True,
+                    "Sun": False,
+                },
                 "open": "09:00",
                 "close": "21:00",
-            "seller_terms_acknowledged": True,
-            "acceptance_language": "en"
             },
-            "category_ids": [],
-        },
+            category_ids=[],
+        ),
     )
-    assert response.status_code == 201, response.text
-    return response.json()
 
 
 @pytest.mark.parametrize(

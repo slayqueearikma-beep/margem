@@ -64,6 +64,7 @@ async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
             "whatsapp_number": "+212600000088",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },
@@ -100,6 +101,7 @@ async def test_seller_can_review_another_business(client: AsyncClient):
             "whatsapp_number": "+212600000091",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },
@@ -120,6 +122,7 @@ async def test_seller_can_review_another_business(client: AsyncClient):
             "whatsapp_number": "+212600000092",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },

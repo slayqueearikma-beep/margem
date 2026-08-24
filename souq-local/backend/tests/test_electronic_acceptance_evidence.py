@@ -75,6 +75,7 @@ async def test_seller_onboarding_records_seller_terms(client: AsyncClient):
             "latitude": 33.5731,
             "longitude": -7.5898,
             "phone": "+212600000001",
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "fr",
         },
