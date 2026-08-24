@@ -947,7 +947,7 @@ class ApiService {
         'reason': reason,
         'details': details,
       },
-      auth: _authHeaders.isNotEmpty,
+      auth: true,
     );
   }
 

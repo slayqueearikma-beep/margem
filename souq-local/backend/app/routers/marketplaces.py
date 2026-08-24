@@ -113,8 +113,7 @@ async def list_marketplace_categories(
 def _seller_summary_out(seller: SellerProfile) -> SellerSummary:
     attach_marketplace_metadata(seller)
     setattr(seller, "stall_location_summary", format_stall_location(seller))
-    owner = getattr(seller, "user", None)
-    setattr(seller, "phone_verified", bool(getattr(owner, "email_verified", False)))
+    setattr(seller, "phone_verified", False)
     return SellerSummary.model_validate(seller)
 
 

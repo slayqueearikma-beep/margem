@@ -88,8 +88,7 @@ async def _load_seller_detail(session: AsyncSession, seller_id: UUID) -> SellerP
 
     attach_marketplace_metadata(seller)
     setattr(seller, "stall_location_summary", format_stall_location(seller))
-    owner = getattr(seller, "user", None)
-    setattr(seller, "phone_verified", bool(getattr(owner, "email_verified", False)))
+    setattr(seller, "phone_verified", False)
     return seller
 
 
@@ -167,13 +166,16 @@ def _validate_optional_http_url(url: str, *, field: str) -> str:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
-def _require_premium_seller(user: User, seller: SellerProfile) -> None:
-    apply_seller_premium_expiry(seller, persist=False)
-    active = is_premium_active(
-        is_premium=bool(user.is_premium or seller.is_premium),
-        premium_until=user.premium_until,
+def _has_seller_pro_entitlement(user: User, seller: SellerProfile) -> bool:
+    """Seller Pro / storefront premium — not buyer (Dribex Plus) membership."""
+    return is_premium_active(
+        is_premium=bool(seller.is_premium),
+        premium_until=user.premium_until if seller.is_premium else None,
     )
-    if not active:
+
+
+def _require_premium_seller(user: User, seller: SellerProfile) -> None:
+    if not _has_seller_pro_entitlement(user, seller):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Premium membership is required for this feature",
@@ -182,11 +184,7 @@ def _require_premium_seller(user: User, seller: SellerProfile) -> None:
 
 async def _enforce_video_quota(session: AsyncSession, user: User, seller: SellerProfile) -> None:
     """Free sellers: up to N active videos. Premium: unlimited."""
-    apply_seller_premium_expiry(seller, persist=False)
-    if is_premium_active(
-        is_premium=bool(user.is_premium or seller.is_premium),
-        premium_until=user.premium_until,
-    ):
+    if _has_seller_pro_entitlement(user, seller):
         return
     active_count = await session.scalar(
         select(func.count(SellerVideo.id)).where(
@@ -267,8 +265,7 @@ async def list_sellers(
     for seller in sellers:
         attach_marketplace_metadata(seller)
         setattr(seller, "stall_location_summary", format_stall_location(seller))
-        owner = getattr(seller, "user", None)
-        setattr(seller, "phone_verified", bool(getattr(owner, "email_verified", False)))
+        setattr(seller, "phone_verified", False)
     # Prefer still-premium first after expiry corrections.
     sellers.sort(key=lambda s: (not s.is_premium, -(s.average_rating or 0.0)))
     return sellers
@@ -532,7 +529,7 @@ async def add_product(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Product:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
 
     image_url = await _validate_owner_media_registered(session, payload.image_url, user.id)
     product_data = payload.model_dump(exclude={"pricing_type", "price_mad"})
@@ -543,7 +540,7 @@ async def add_product(
     product_data["video_url"] = await _validate_owner_media_registered(
         session, payload.video_url or "", user.id
     )
-    if payload.is_featured and not user.is_premium:
+    if payload.is_featured and not _has_seller_pro_entitlement(user, seller):
         product_data["is_featured"] = False
     product = Product(seller_id=seller_id, **product_data)
     from app.models import PricingType
@@ -647,11 +644,7 @@ async def seller_video_quota(
     session: AsyncSession = Depends(get_db),
 ) -> dict:
     seller = await _owned_seller(seller_id, user, session)
-    apply_seller_premium_expiry(seller, persist=False)
-    premium = is_premium_active(
-        is_premium=bool(user.is_premium or seller.is_premium),
-        premium_until=user.premium_until,
-    )
+    premium = _has_seller_pro_entitlement(user, seller)
     active_count = await session.scalar(
         select(func.count(SellerVideo.id)).where(
             SellerVideo.seller_id == seller.id,
@@ -708,7 +701,7 @@ async def update_product(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Product:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
     product = await session.get(Product, product_id)
     if product is None or product.seller_id != seller_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
@@ -722,7 +715,7 @@ async def update_product(
         )
     if "video_url" in data:
         data["video_url"] = await _validate_owner_media_registered(session, data["video_url"] or "", user.id)
-    if data.get("is_featured") is True and not user.is_premium:
+    if data.get("is_featured") is True and not _has_seller_pro_entitlement(user, seller):
         data["is_featured"] = False
 
     for key, value in data.items():
