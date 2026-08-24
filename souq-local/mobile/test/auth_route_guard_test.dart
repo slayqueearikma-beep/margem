@@ -11,6 +11,7 @@ void main() {
     test('blocks guest seller management and premium', () {
       expect(isAuthProtectedLocation('/seller/dashboard'), isTrue);
       expect(isAuthProtectedLocation('/premium'), isTrue);
+      expect(isAuthProtectedLocation('/settings/billing'), isTrue);
     });
 
     test('blocks guest messaging and community channels', () {

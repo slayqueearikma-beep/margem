@@ -51,6 +51,18 @@ class AccountSettingsScreen extends ConsumerWidget {
             ],
           ),
           _SettingsSection(
+            title: l10n.billingSectionTitle,
+            children: [
+              if (!isGuest)
+                BuyerMenuTile(
+                  icon: Icons.receipt_long_outlined,
+                  title: l10n.billingSettingsTitle,
+                  subtitle: l10n.billingSectionSubtitle,
+                  onTap: () => context.push('/settings/billing'),
+                ),
+            ],
+          ),
+          _SettingsSection(
             title: l10n.notificationsSectionTitle,
             children: [
               BuyerMenuTile(

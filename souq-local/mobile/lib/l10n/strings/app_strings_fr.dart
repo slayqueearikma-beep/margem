@@ -1524,6 +1524,44 @@ class AppStringsFr extends AppStringsEn {
   String get paymentHistoryTitle => 'Historique des paiements';
 
   @override
+  String get billingSettingsTitle => 'Facturation et abonnement';
+
+  @override
+  String get billingSettingsSubtitle =>
+      'Gérez votre abonnement Dribex, les annulations et l’historique des paiements plateforme.';
+
+  @override
+  String get billingSectionTitle => 'Facturation et abonnement';
+
+  @override
+  String get billingSectionSubtitle =>
+      'Statut d’abonnement et historique des paiements';
+
+  @override
+  String get noActiveSubscription => 'Aucun abonnement actif';
+
+  @override
+  String get noPaymentHistory => 'Aucun paiement pour le moment';
+
+  @override
+  String get viewPremiumPlans => 'Voir les offres premium';
+
+  @override
+  String get billingProviderLabel => 'Prestataire de paiement';
+
+  @override
+  String get paymentStatusSuccess => 'Payé';
+
+  @override
+  String get paymentStatusFailed => 'Échoué';
+
+  @override
+  String get paymentStatusCancelled => 'Annulé';
+
+  @override
+  String get paymentStatusPending => 'En attente';
+
+  @override
   String get subscriptionRenewsUntil => 'Accès jusqu’au';
 
   @override

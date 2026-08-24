@@ -1528,6 +1528,43 @@ class AppStringsEn extends AppStrings {
   String get paymentHistoryTitle => 'Payment history';
 
   @override
+  String get billingSettingsTitle => 'Billing & subscription';
+
+  @override
+  String get billingSettingsSubtitle =>
+      'Manage your Dribex subscription, cancellations, and platform payment records.';
+
+  @override
+  String get billingSectionTitle => 'Billing & subscription';
+
+  @override
+  String get billingSectionSubtitle => 'Subscription status and payment history';
+
+  @override
+  String get noActiveSubscription => 'No active subscription';
+
+  @override
+  String get noPaymentHistory => 'No payments yet';
+
+  @override
+  String get viewPremiumPlans => 'View premium plans';
+
+  @override
+  String get billingProviderLabel => 'Payment provider';
+
+  @override
+  String get paymentStatusSuccess => 'Paid';
+
+  @override
+  String get paymentStatusFailed => 'Failed';
+
+  @override
+  String get paymentStatusCancelled => 'Cancelled';
+
+  @override
+  String get paymentStatusPending => 'Pending';
+
+  @override
   String get subscriptionRenewsUntil => 'Access until';
 
   @override

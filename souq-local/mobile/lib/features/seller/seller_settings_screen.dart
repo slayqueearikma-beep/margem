@@ -91,6 +91,16 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
             onTap: () => context.push('/verify-email'),
           ),
           SizedBox(height: AppSpacing.xl),
+          Text(l10n.billingSectionTitle, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          SizedBox(height: AppSpacing.sm),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.receipt_long_outlined),
+            title: Text(l10n.billingSettingsTitle),
+            subtitle: Text(l10n.billingSectionSubtitle),
+            onTap: () => context.push('/settings/billing'),
+          ),
+          SizedBox(height: AppSpacing.xl),
           Text(l10n.changePassword, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           SizedBox(height: AppSpacing.md),
           TextField(
