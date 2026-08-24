@@ -43,6 +43,7 @@ async def _create_seller(client: AsyncClient, token: str) -> dict:
                 },
                 "open": "09:00",
                 "close": "21:00",
+                "marketplace_slug": "other-casablanca-markets",
                 "seller_terms_acknowledged": True,
                 "acceptance_language": "en",
             },

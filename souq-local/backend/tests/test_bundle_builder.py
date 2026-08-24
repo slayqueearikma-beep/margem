@@ -41,3 +41,20 @@ async def test_bundle_resolve_returns_410(client: AsyncClient):
     )
     assert response.status_code == 410
     assert "Bundle Builder" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_seller_analytics_returns_410(client: AsyncClient):
+    from tests.auth_helpers import register_test_user
+
+    body = await register_test_user(
+        client,
+        email="analytics-retired@example.com",
+        account_type="seller",
+    )
+    response = await client.get(
+        "/seller/analytics",
+        headers={"Authorization": f"Bearer {body['access_token']}"},
+    )
+    assert response.status_code == 410
+    assert "sellers/me/dashboard" in response.json()["detail"]

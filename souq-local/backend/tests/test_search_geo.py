@@ -46,6 +46,7 @@ async def _create_seller(
             "whatsapp_number": "+212600000001",
             "payment_methods": ["cash"],
             "delivery_methods": ["pickup"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },

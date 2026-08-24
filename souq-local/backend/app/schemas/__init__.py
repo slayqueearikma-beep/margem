@@ -488,9 +488,13 @@ class SellerCreate(BaseModel):
     @field_validator("city")
     @classmethod
     def validate_city(cls, value: str) -> str:
+        from app.data.marketplace_constants import LAUNCH_CITY
         from app.services.geography import resolve_city_name
 
-        return resolve_city_name(value)
+        resolved = resolve_city_name(value)
+        if resolved.casefold() != LAUNCH_CITY.casefold():
+            raise ValueError(f"Dribex currently operates in {LAUNCH_CITY} only")
+        return resolved
 
     @model_validator(mode="after")
     def require_marketplace(self) -> "SellerCreate":
@@ -538,9 +542,13 @@ class SellerUpdate(BaseModel):
     def validate_city(cls, value: str | None) -> str | None:
         if value is None:
             return None
+        from app.data.marketplace_constants import LAUNCH_CITY
         from app.services.geography import resolve_city_name
 
-        return resolve_city_name(value)
+        resolved = resolve_city_name(value)
+        if resolved.casefold() != LAUNCH_CITY.casefold():
+            raise ValueError(f"Dribex currently operates in {LAUNCH_CITY} only")
+        return resolved
 
 
 class SellerSummary(BaseModel):

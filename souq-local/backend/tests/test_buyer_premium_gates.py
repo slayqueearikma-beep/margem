@@ -108,6 +108,7 @@ async def test_buyer_premium_does_not_unlock_seller_video_quota(monkeypatch):
                 "whatsapp_number": "+212600000088",
                 "payment_methods": ["cash"],
                 "delivery_methods": ["in_store"],
+                "marketplace_slug": "other-casablanca-markets",
                 "seller_terms_acknowledged": True,
                 "acceptance_language": "en",
                 "custom_marketplace_name": "Test Market",

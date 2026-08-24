@@ -60,6 +60,7 @@ async def _create_pending_seller(client: AsyncClient) -> UUID:
             "whatsapp_number": "+212600000099",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },
@@ -153,6 +154,7 @@ async def test_favorite_count_increments_atomically(client: AsyncClient):
             "whatsapp_number": "+212600000088",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },
@@ -262,6 +264,7 @@ async def test_whitespace_message_rejected(client: AsyncClient):
             "whatsapp_number": "+212600000077",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },

@@ -7,6 +7,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from tests.auth_helpers import register_test_user
+from tests.seller_helpers import create_test_seller
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -39,27 +40,20 @@ async def _register(client: AsyncClient, account_type: str, email: str | None = 
 
 async def _create_seller_with_product(client: AsyncClient) -> tuple[dict, dict, dict]:
     seller = await _register(client, "seller")
-    profile = await client.post(
-        "/sellers",
-        headers=seller["headers"],
-        json={
-            "business_name": "Atlas Crafts",
-            "description": "Handmade goods",
-            "address": "12 Medina Street",
-            "city": "Casablanca",
-            "latitude": 31.63,
-            "longitude": -8.0,
-            "phone": "+212600000001",
-            "whatsapp_number": "+212600000001",
-            "payment_methods": ["cash", "bank_transfer"],
-            "delivery_methods": ["in_store", "local_delivery"],
-            "website_url": "https://example.com",
-            "seller_terms_acknowledged": True,
-            "acceptance_language": "en"
-        },
+    seller_body = await create_test_seller(
+        client,
+        seller["headers"],
+        business_name="Atlas Crafts",
+        description="Handmade goods",
+        address="12 Medina Street",
+        latitude=31.63,
+        longitude=-8.0,
+        phone="+212600000001",
+        whatsapp_number="+212600000001",
+        payment_methods=["cash", "bank_transfer"],
+        delivery_methods=["in_store", "local_delivery"],
+        website_url="https://example.com",
     )
-    assert profile.status_code == 201, profile.text
-    seller_body = profile.json()
     product = await client.post(
         f"/sellers/{seller_body['id']}/products",
         headers=seller["headers"],
@@ -74,8 +68,6 @@ async def _create_seller_with_product(client: AsyncClient) -> tuple[dict, dict, 
     )
     assert product.status_code == 201, product.text
     return seller, seller_body, product.json()
-
-
 @pytest.mark.asyncio
 async def test_global_search_returns_paginated_products_and_sellers(client: AsyncClient):
     _, seller, product = await _create_seller_with_product(client)

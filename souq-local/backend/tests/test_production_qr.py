@@ -43,6 +43,7 @@ async def test_share_link_resolve_seller():
                     "close": "21:00",
                 },
                 "category_ids": [],
+                "marketplace_slug": "other-casablanca-markets",
                 "seller_terms_acknowledged": True,
                 "acceptance_language": "en",
             },

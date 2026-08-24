@@ -177,3 +177,18 @@ async def test_reaction_and_report(client: AsyncClient):
         json={"reason": "spam", "details": "test"},
     )
     assert report.status_code == 201
+
+
+@pytest.mark.asyncio
+async def test_ensure_all_city_communities_is_idempotent():
+    import app.database as database
+    from app.services.community_chat import ensure_all_city_communities
+
+    async with database.SessionLocal() as session:
+        await ensure_all_city_communities(session)
+        first_count = len((await session.scalars(select(CommunityChannel))).all())
+        assert first_count > 0
+
+        await ensure_all_city_communities(session)
+        second_count = len((await session.scalars(select(CommunityChannel))).all())
+        assert second_count == first_count

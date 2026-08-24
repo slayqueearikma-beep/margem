@@ -12,6 +12,7 @@ from app.main import app
 from app.services.geo import validate_morocco_coordinates
 from app.services.url_security import reject_private_or_internal_url
 from tests.auth_helpers import register_test_user
+from tests.seller_helpers import create_test_seller, seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -38,31 +39,21 @@ def _jpeg_bytes() -> bytes:
 
 
 async def _create_seller(client: AsyncClient, token: str) -> dict:
-    response = await client.post(
-        "/sellers",
-        headers={"Authorization": f"Bearer {token}"},
-        json={
-            "business_name": "Secure Shop",
-            "description": "Desc",
-            "address": "1 Main Street",
-            "city": "Casablanca",
-            "latitude": 33.5,
-            "longitude": -7.6,
-            "phone": "+212600000000",
-            "cover_image_url": "",
-            "logo_image_url": "",
-            "opening_hours": {
+    return await create_test_seller(
+        client,
+        {"Authorization": f"Bearer {token}"},
+        **seller_create_payload(
+            business_name="Secure Shop",
+            cover_image_url="",
+            logo_image_url="",
+            opening_hours={
                 "days": {"Mon": True},
                 "open": "09:00",
                 "close": "21:00",
-                "seller_terms_acknowledged": True,
-                "acceptance_language": "en",
             },
-            "category_ids": [],
-        },
+            category_ids=[],
+        ),
     )
-    assert response.status_code == 201, response.text
-    return response.json()
 
 
 @pytest.mark.asyncio
@@ -137,25 +128,21 @@ async def test_seller_rejects_coordinates_outside_morocco(client: AsyncClient):
     blocked = await client.post(
         "/sellers",
         headers=headers,
-        json={
-            "business_name": "Paris Shop",
-            "description": "Desc",
-            "address": "Paris",
-            "city": "Paris",
-            "latitude": 48.8566,
-            "longitude": 2.3522,
-            "phone": "+212600000000",
-            "cover_image_url": "",
-            "logo_image_url": "",
-            "opening_hours": {
+        json=seller_create_payload(
+            business_name="Paris Shop",
+            address="Paris",
+            city="Paris",
+            latitude=48.8566,
+            longitude=2.3522,
+            cover_image_url="",
+            logo_image_url="",
+            opening_hours={
                 "days": {"Mon": True},
                 "open": "09:00",
                 "close": "21:00",
-                "seller_terms_acknowledged": True,
-                "acceptance_language": "en",
             },
-            "category_ids": [],
-        },
+            category_ids=[],
+        ),
     )
     assert blocked.status_code in {400, 422}
 

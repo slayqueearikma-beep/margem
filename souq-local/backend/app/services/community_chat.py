@@ -107,25 +107,33 @@ async def ensure_default_cities(session: AsyncSession) -> None:
 
 async def ensure_all_city_communities(session: AsyncSession) -> None:
     """Create default channels for geography cities missing community setup."""
+    from sqlalchemy.exc import IntegrityError
+
     result = await session.execute(select(City).where(City.is_active.is_(True)))
     cities = list(result.scalars().all())
     for city in cities:
-        channel_count = await session.scalar(
-            select(func.count())
-            .select_from(CommunityChannel)
-            .where(CommunityChannel.city_id == city.id)
-        )
-        if channel_count == 0:
-            for category, channel_name, channel_desc in DEFAULT_CHANNEL_SPECS:
-                session.add(
-                    CommunityChannel(
-                        id=uuid4(),
-                        city_id=city.id,
-                        category=category,
-                        name=channel_name,
-                        description=channel_desc,
-                    )
+        for category, channel_name, channel_desc in DEFAULT_CHANNEL_SPECS:
+            existing = await session.scalar(
+                select(CommunityChannel.id).where(
+                    CommunityChannel.city_id == city.id,
+                    CommunityChannel.category == category,
                 )
+            )
+            if existing is not None:
+                continue
+            try:
+                async with session.begin_nested():
+                    session.add(
+                        CommunityChannel(
+                            id=uuid4(),
+                            city_id=city.id,
+                            category=category,
+                            name=channel_name,
+                            description=channel_desc,
+                        )
+                    )
+            except IntegrityError:
+                continue
     await session.commit()
 
 

@@ -196,6 +196,7 @@ async def test_delete_account_removes_seller_storefront(client: AsyncClient):
             "whatsapp_number": "+212600000066",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en"
         },

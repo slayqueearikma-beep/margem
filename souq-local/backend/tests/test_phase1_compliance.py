@@ -108,6 +108,7 @@ async def test_discovery_report_admin_workflow(client: AsyncClient):
             "whatsapp_number": "+212600000099",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
             "seller_terms_acknowledged": True,
             "acceptance_language": "en",
         },
