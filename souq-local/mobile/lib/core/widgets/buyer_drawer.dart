@@ -113,29 +113,14 @@ class BuyerDrawer extends ConsumerWidget {
                     onTap: () => closeAnd(() => context.push('/profile')),
                   ),
                   _DrawerTile(
-                    icon: Icons.settings_outlined,
-                    label: l10n.settingsTitle,
-                    onTap: () => closeAnd(() => context.push('/settings')),
-                  ),
-                  _DrawerTile(
                     icon: Icons.favorite_border_rounded,
                     label: l10n.favorites,
                     onTap: () => closeAnd(() => context.push('/favorites')),
                   ),
                   _DrawerTile(
-                    icon: Icons.inventory_2_outlined,
-                    label: l10n.bundleBuilderTitle,
-                    onTap: () => closeAnd(() => context.push('/bundle')),
-                  ),
-                  _DrawerTile(
                     icon: Icons.map_outlined,
                     label: l10n.exploreOnMap,
                     onTap: () => closeAnd(() => context.push('/map')),
-                  ),
-                  _DrawerTile(
-                    icon: Icons.groups_rounded,
-                    label: l10n.communityHomeCardTitle,
-                    onTap: () => closeAnd(() => context.push('/community')),
                   ),
                   _DrawerTile(
                     icon: Icons.chat_bubble_outline_rounded,
@@ -153,35 +138,23 @@ class BuyerDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
-              child: isGuest
-                  ? FilledButton(
-                      onPressed: () =>
-                          closeAnd(() => context.push('/onboarding/account-type')),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: context.colors.primary,
-                        foregroundColor: Colors.white,
-                        minimumSize: Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                      child: Text(l10n.createAccount),
-                    )
-                  : OutlinedButton(
-                      onPressed: () => closeAnd(() => context.push('/profile')),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: context.colors.primary,
-                        side: BorderSide(color: context.colors.primary),
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                      child: Text(l10n.navProfile),
+            if (isGuest)
+              Padding(
+                padding: EdgeInsets.all(AppSpacing.md),
+                child: FilledButton(
+                  onPressed: () =>
+                      closeAnd(() => context.push('/onboarding/account-type')),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: context.colors.primary,
+                    foregroundColor: Colors.white,
+                    minimumSize: Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
                     ),
-            ),
+                  ),
+                  child: Text(l10n.createAccount),
+                ),
+              ),
           ],
         ),
       ),

@@ -472,33 +472,6 @@ class BuyerHomeScreen extends ConsumerWidget {
             loading: () => const SliverToBoxAdapter(child: SizedBox(height: 8)),
             error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.lg,
-                AppSpacing.screenHorizontal,
-                0,
-              ),
-              child: BuyerPromoCarousel(
-                slides: [
-                  BuyerPromoBanner(
-                    title: l10n.promoBannerTitle,
-                    subtitle: l10n.promoBannerSubtitle,
-                    ctaLabel: l10n.exploreNow,
-                    onTap: () =>
-                        ref.read(buyerTabIndexProvider.notifier).state = 1,
-                  ),
-                  BuyerPromoBanner(
-                    title: l10n.exploreOnMap,
-                    subtitle: l10n.exploreOnMapSubtitle(city),
-                    ctaLabel: l10n.exploreNow,
-                    onTap: () => context.push('/map'),
-                  ),
-                ],
-              ),
-            ),
-          ),
           sellersAsync.when(
             data: (sellers) {
               if (sellers.isEmpty) {

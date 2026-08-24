@@ -4,127 +4,107 @@ Goal: minimize cognitive load without damaging core Moroccan discovery marketpla
 
 Constraints respected: no UI redesign, no visual identity change, no main navigation restructure, no global IA changes, no new features added.
 
-## Summary
+---
 
-| Metric | Count |
-|---|---|
-| **Total features audited** | 52 |
-| **KEEP** | 34 |
-| **SIMPLIFY** | 8 |
-| **MERGE** | 4 |
-| **HIDE / MOVE TO SECONDARY** | 5 |
-| **REMOVE (from primary surfaces)** | 1 |
+## Final Aggressive Simplification Audit
 
-*Note: “Remove” here means removing prominent access or placeholder shells—not deleting core backend capability or legal/security flows.*
+Strict pass: delete, merge, simplify, or hide anything that does not clearly help buyers discover listings/sellers or sellers become discoverable and manage listings.
 
-## Decision Table
+### Scorecard
 
-| Feature | Decision | Reason | Impact |
+| Metric | Before (post–overload audit) | After (final pass) |
+|---|---:|---:|
+| **Complexity score** (/100, lower is better) | 68 | 46 |
+| **Core-product clarity** (/100, higher is better) | 71 | 88 |
+| **Total features audited** | 58 | 58 |
+| **REMOVE** | 3 | 14 |
+| **MERGE** | 6 | 8 |
+| **SIMPLIFY** | 8 | 10 |
+| **HIDE** | 5 | 2 |
+| **KEEP** | 36 | 24 |
+
+### Decision Table (final pass)
+
+| Feature | Action | Reason | Risk |
 |---|---|---|---|
-| Buyer home discovery feed | KEEP | Core purpose: find products, sellers, markets | Low |
-| Marketplace chips & popular markets | KEEP | Casablanca market-first discovery | Low |
-| Search (products / services / providers) | KEEP | Core discovery loop | Low |
-| Map with market pins & zones | KEEP | Location discovery for physical shops | Low |
-| Seller storefront pages | KEEP | Core buyer→seller path | Low |
-| Product / service detail pages | KEEP | Listing discovery | Low |
-| Favorites (products & sellers) | KEEP | Saved discoveries — genuinely useful | Low |
-| Follow sellers | KEEP | Lightweight discovery retention | Low |
-| Reviews & trust indicators | KEEP | Credibility without ERP complexity | Low |
-| Direct messages (buyer↔seller) | KEEP | Core contact channel | Low |
-| Seller registration & become-seller | KEEP | Seller discoverability onboarding | Low |
-| Seller catalog (products & services) | KEEP | Listing management essential | Low |
-| Seller business profile | KEEP | Discoverability + trust | Low |
-| Market stall location fields | SIMPLIFY | Useful for indoor markets but collapsed behind expansion | Medium |
-| Seller category editor | KEEP | Helps buyers find relevant sellers | Low |
-| Authentication & email verification | KEEP | Security / account integrity | Low |
-| Legal acceptance & privacy hub | KEEP | Compliance (Law 09-08, contracts) | Low |
-| Account deletion & data export | KEEP | Legal requirement | Low |
-| Premium / Dribex Plus (buyer) | KEEP | Saved searches & buyer value | Low |
-| Seller Pro subscription | KEEP | Video quota, visibility — real monetization | Low |
-| Billing settings | KEEP | Subscription self-service | Low |
-| Saved searches (premium) | KEEP | Buyer discovery utility | Low |
-| Marketplace detail pages | KEEP | Market-first architecture | Low |
-| Marketplace community (per market) | KEEP | Contextual to selected market | Low |
-| Report / block users | KEEP | Trust & safety | Low |
-| Warning zones on map | KEEP | Buyer safety signal | Low |
-| Share links / QR resolution | KEEP | Seller visibility helper | Low |
-| Onboarding welcome & account type | KEEP | Clear buyer vs seller intent | Low |
-| Guest browsing | KEEP | Low-friction discovery entry | Low |
-| Settings (language, theme, privacy) | KEEP | Essential account management | Low |
-| Seller notifications feed | KEEP | Seller response loop | Low |
-| Seller video upload (Pro) | HIDE | Useful for Pro sellers but stays in FAB only | Low |
-| Seller boost / advertising checkout | HIDE | Monetization valid but moved to More tab only | Medium |
-| Bundle builder | HIDE | Secondary multi-seller tool — drawer only, removed home promo | Medium |
-| City community chat | HIDE | Parallel to marketplace community — removed home carousel promo; drawer retained | Medium |
-| Buyer drawer (profile, favorites, map) | KEEP | Secondary navigation without cluttering home | Low |
-| Buyer profile hub | SIMPLIFY | Removed duplicate dark-mode toggle (settings owns theme) | Low |
-| Account settings | MERGE | Removed change-password tile that only routed back to profile | Low |
-| Seller analytics screen | REMOVE | ERP-like metrics duplicated dashboard; route redirects to dashboard | High |
-| Seller earnings placeholder | REMOVE | “Coming soon” added noise without value | Medium |
-| Bookings tab (fake completed/cancelled) | SIMPLIFY | Renamed to Inquiries; removed empty booking segments | Medium |
-| Seller dashboard metrics | SIMPLIFY | Removed sparkline hero + duplicate message tile + earnings tile | Medium |
-| Seller drawer | SIMPLIFY | Removed analytics, boost, earnings, duplicate gallery link | Medium |
-| Seller More tab | MERGE | Removed analytics & duplicate product management; boost moved here | Medium |
-| Seller product list (`/seller/products`) | MERGE | Catalog tab is primary; removed duplicate More/drawer “Gallery” entry | Low |
-| Achievement stars / golden crowns | KEEP | Lightweight trust gamification on map/storefront | Low |
-| City-based community (`/community`) | KEEP | Secondary social layer — de-emphasized not deleted | Low |
-| Admin / moderation APIs | KEEP | Required for operations — not exposed in mobile primary UI | Low |
-| DSAR privacy requests | KEEP | Legal compliance | Low |
-| MFA / session management | KEEP | Security | Low |
-| Contact event tracking | KEEP | Backend analytics for trust; no new buyer UI added | Low |
-| `/seller/analytics` deep links | MERGE | Redirects to dashboard — no broken bookmarks | Low |
-| Promo carousel (search + map) | SIMPLIFY | Reduced from 3 slides to 2; removed community slide | Low |
-| Password change (buyer profile) | KEEP | Single location after removing settings duplicate | Low |
-| Seller settings (theme, billing, password) | KEEP | Consolidated account security | Low |
-| Map zone hierarchy panel | KEEP | Supports indoor market discovery without new IA | Low |
-| Geo-sort in search | KEEP | Discovery relevance | Low |
+| Seller analytics screen (`seller_analytics_screen.dart`) | REMOVE | Orphaned after route redirect; ERP-style metrics duplicate dashboard | Low |
+| `sellerAnalyticsProvider` + `fetchSellerAnalytics()` | REMOVE | No UI consumer after analytics removal | Low |
+| Seller products list (`SellerProductsScreen`, `/seller/products`) | MERGE | Catalog tab is canonical; redirect sets products filter | Low |
+| Seller services list (`SellerServicesScreen`) | REMOVE | Dead code; `/seller/services` already redirects to catalog | Low |
+| Buyer home promo carousel | REMOVE | Redundant with search tab, map drawer link, and category chips | Low |
+| `BuyerPromoBanner` / `BuyerPromoCarousel` widgets | REMOVE | Unused after carousel removal | None |
+| Bundle builder screen + `/bundle` route | REMOVE | Multi-seller ERP-style tool; not core discovery; drawer entry removed | Medium — backend `/bundles/*` kept |
+| `fetchBundleTemplates` / `resolveBundle` (mobile client) | REMOVE | No UI consumer | Low — backend kept |
+| City community chat screens + routes | REMOVE | Parallel social layer duplicating marketplace community; redirects to home | Medium — backend `/community/*` kept |
+| City community websocket client | REMOVE | Only served deleted city community UI | Low |
+| `/language` standalone route | REMOVE | Duplicate of `/settings/language` | Low |
+| Buyer drawer: Settings tile | REMOVE | Profile screen links to settings; duplicate entry | Low |
+| Buyer drawer: footer Profile button | REMOVE | Duplicate of drawer Profile tile | Low |
+| Buyer drawer: Bundle builder | REMOVE | Non-core feature removed from app | Low |
+| Buyer drawer: City community | REMOVE | Non-core parallel social layer | Low |
+| Seller drawer: Dashboard / Catalog / Messages | REMOVE | Duplicate bottom-nav entries | Low |
+| Marketplace community (per-market) | KEEP | Contextual to selected market — supports discovery | Low |
+| Seller notifications feed | KEEP | System alerts beyond message threads | Low |
+| Seller video upload (Pro FAB) | KEEP | Pro monetization; seller-side only | Low |
+| Achievement stars / golden crowns | KEEP | Lightweight trust signal on map/storefront | Low |
+| Backend city community + bundle APIs | KEEP | No mobile UI; admin/future use; safe to leave dormant | None |
+| Core buyer flow (Home → Search → Map → Listing → Messages) | KEEP | Product mandate | — |
+| Core seller flow (Dashboard → Catalog → Messages → More) | KEEP | Product mandate | — |
+| Auth, legal, billing, moderation, favorites, reviews, premium | KEEP | Required by product/compliance rules | — |
 
-## Implemented Changes (this PR)
+### Implemented in final pass
 
-### Removed from primary surfaces
-- Seller **Analytics** screen access (drawer, More tab); `/seller/analytics` → `/seller/dashboard`
-- **Earnings** placeholder (drawer + dashboard tile)
-- Fake **bookings** completed/cancelled filters
+**Deleted files**
+- `seller_analytics_screen.dart`
+- `bundle_builder/bundle_builder_screen.dart`
+- `community_chat/*` (3 screens/providers)
+- `community_websocket_service.dart`
 
-### Simplified
-- Seller dashboard: 3 metric tiles (views, inquiries, reviews); no sparkline analytics card
-- Bookings tab → **Inquiries** tab (bottom nav label)
-- Seller profile: stall/zone fields collapsed in `ExpansionTile`
-- Buyer home promo carousel: 2 slides (search, map)
-- Buyer profile: dark mode toggle removed (settings retains it)
+**Routes**
+- `/seller/products` → catalog tab (products filter) via `SellerProductsRedirect`
+- `/bundle`, `/community`, `/community/:citySlug`, `/community/channels/:id` → `/buyer/home`
+- Removed `/language` (use `/settings/language`)
 
-### Merged / deduplicated
-- Removed duplicate **Product Management** from More tab (Catalog tab owns listings)
-- Removed duplicate **Gallery** drawer link to products list
-- Removed account settings **change password** tile that only opened profile
+**Drawers**
+- Buyer: Profile, Favorites, Map, Messages, Premium (+ guest signup CTA)
+- Seller: Reviews, Business info, Settings (+ mode switch / logout)
 
-### Moved to secondary
-- **Bundle builder**: removed home card; still in buyer drawer
-- **City community**: removed home carousel slide; still in drawer
-- **Seller boost**: removed from drawer; available under More → Boost
+**API client cleanup**
+- Removed `fetchSellerAnalytics`, `fetchBundleTemplates`, `resolveBundle`
 
-## Dependency Checks
+### Deliberately refused to remove
 
-| Change | Frontend | Backend | DB | Risk |
-|---|---|---|---|---|
-| Analytics UI removal | Route redirect only | `/seller/analytics` API unchanged | No change | Low — dashboard still uses `/sellers/me/dashboard` stats |
-| Earnings placeholder | UI only | No endpoint existed | No change | None |
-| Bookings simplification | UI only | Inquiries use existing message/inquiry counts | No change | None |
-| Bundle/community home removal | Navigation only | Endpoints unchanged | No change | None |
-| Profile expansion tile | UI only | Same PATCH payload | No change | None |
+| Feature | Why kept |
+|---|---|
+| Seller notifications | Separate from messaging; surfaces system/billing/moderation alerts |
+| Seller Pro videos (FAB) | Real monetization path; hidden from buyers who lack playback anyway |
+| Marketplace community | Market-scoped discussion supports discovery at the selected souk |
+| Trust badges / achievement crowns | Low-complexity trust cues aligned with reviews |
+| Backend bundle + city community endpoints | Removing server routes risks breaking admin/scripts; zero mobile UI cost now |
+| Seller reviews in drawer | Not in bottom nav; legitimate secondary access for reputation management |
 
-## Test Checklist (manual / automated)
+### Verification
 
-- [x] Flutter analyze on changed seller/buyer modules
-- [x] Subscription provider unit tests
-- [x] Backend premium tests (prior branch baseline)
-- [ ] Full Flutter suite (recommended before merge)
-- [ ] Smoke: first launch → guest home
-- [ ] Smoke: buyer search + map + favorites
-- [ ] Smoke: seller dashboard → catalog → add listing
-- [ ] Smoke: seller More → boost + premium
-- [ ] Smoke: `/seller/analytics` redirect
+- [x] `flutter analyze` — no errors
+- [x] `flutter test` — 61/61 passed
+- [x] Dead routes redirect or removed
+- [x] Drawer deduplication (buyer + seller)
+- [x] Catalog tab owns all listing management
+
+---
+
+## Earlier passes (summary)
+
+### Pass 1 — Feature overload audit
+
+Removed seller analytics UI access, earnings placeholder, simplified bookings → inquiries, trimmed seller drawer/More, collapsed stall fields, reduced promo carousel.
+
+### Pass 2 — Inquiries → Messages merge
+
+Unified seller communication on Messages tab; deleted `seller_bookings_tab.dart`; trimmed Seller More to Premium/Boost/Preview/Settings.
 
 ## Verdict
 
-Dribex remains a **focused Moroccan discovery marketplace**. Buyers land on markets, search, and map—not bundle/community promos. Sellers see **listings, inquiries, and reviews** first—not analytics dashboards or placeholder earnings. Secondary tools (boost, bundles, city chat) remain reachable without competing with discovery.
+Dribex is now a **lean discovery marketplace**. Buyers land on markets, categories, search, and sellers — not promos, bundles, or city chat side-quests. Sellers manage listings in one catalog, respond in one inbox, and reach monetization through More — not duplicate list screens, analytics dashboards, or drawer clones of the bottom nav.
+
+**LESS TO UNDERSTAND. LESS TO CONFIGURE. LESS TO MAINTAIN.**

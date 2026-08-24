@@ -9,9 +9,7 @@ import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
-import '../messages/messages_inbox_screen.dart';
 import 'seller_account_provider.dart';
-import 'seller_navigation.dart';
 
 class SellerDrawer extends ConsumerWidget {
   const SellerDrawer({super.key});
@@ -24,8 +22,6 @@ class SellerDrawer extends ConsumerWidget {
     final account = ref.watch(sellerAccountProvider).valueOrNull;
     final stats = account?.stats;
     final profile = account?.profile;
-    final unread = ref.watch(conversationsUnreadCountProvider).valueOrNull ?? 0;
-
     return Drawer(
       backgroundColor: context.colors.surfaceVariant,
       shape: RoundedRectangleBorder(),
@@ -99,22 +95,6 @@ class SellerDrawer extends ConsumerWidget {
                 padding: EdgeInsets.symmetric(vertical: 8),
                 children: [
                   _DrawerItem(
-                    icon: Icons.dashboard_outlined,
-                    label: l10n.navDashboard,
-                    onTap: () => _goTab(context, ref, 0),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.handyman_outlined,
-                    label: l10n.navServices,
-                    onTap: () => _goTab(context, ref, 1),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.chat_bubble_outline,
-                    label: l10n.navMessages,
-                    badge: unread > 0 ? (unread > 99 ? '99+' : '$unread') : null,
-                    onTap: () => _goTab(context, ref, 2),
-                  ),
-                  _DrawerItem(
                     icon: Icons.rate_review_outlined,
                     label: l10n.reviews,
                     onTap: () => _push(context, '/seller/reviews'),
@@ -171,15 +151,6 @@ class SellerDrawer extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  void _goTab(BuildContext context, WidgetRef ref, int index) {
-    Navigator.pop(context);
-    ref.read(sellerTabIndexProvider.notifier).state = index;
-    final path = GoRouterState.of(context).matchedLocation;
-    if (path != '/seller/dashboard') {
-      context.go('/seller/dashboard');
-    }
   }
 
   void _push(BuildContext context, String route) {

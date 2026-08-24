@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../models/auth_models.dart';
-import '../models/bundle_models.dart';
 import '../models/city_model.dart';
 import '../models/community_models.dart';
 import '../models/marketplace_community_models.dart';
@@ -1019,11 +1018,6 @@ class ApiService {
     ).then(_ensureSuccess);
   }
 
-  Future<SellerAnalyticsModel> fetchSellerAnalytics() async {
-    final data = await getJson('/seller/analytics', auth: true);
-    return SellerAnalyticsModel.fromJson(data);
-  }
-
   Future<List<AppNotificationModel>> fetchNotifications() async {
     final data = await getJsonList('/notifications', auth: true);
     return data
@@ -1517,40 +1511,6 @@ class ApiService {
       // Fall through.
     }
     return 'Request failed (${response.statusCode})';
-  }
-
-  Future<List<BundleTemplateModel>> fetchBundleTemplates({String? marketplace}) async {
-    final params = marketplace != null && marketplace.isNotEmpty
-        ? {'marketplace': marketplace}
-        : null;
-    final response = await _get(_uri('/bundles/templates', params));
-    _ensureSuccess(response);
-    final data = jsonDecode(response.body) as List<dynamic>;
-    return data
-        .map((e) => BundleTemplateModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<BundleResolveResultModel> resolveBundle({
-    required String marketplace,
-    required List<BundleSlotTemplateModel> slots,
-    String? templateSlug,
-    double minSellerRating = 0,
-  }) async {
-    final response = await _post(
-      _uri('/bundles/resolve'),
-      headers: _jsonHeaders(),
-      body: jsonEncode({
-        'marketplace': marketplace,
-        if (templateSlug != null) 'template_slug': templateSlug,
-        'min_seller_rating': minSellerRating,
-        'slots': slots.map((slot) => slot.toJson()).toList(),
-      }),
-    );
-    _ensureSuccess(response);
-    return BundleResolveResultModel.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
   }
 }
 

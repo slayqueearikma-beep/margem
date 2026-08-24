@@ -16,94 +16,9 @@ import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
-import '../../core/widgets/service_card.dart';
 import '../../core/widgets/service_pricing_fields.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
-
-class SellerServicesScreen extends ConsumerWidget {
-  const SellerServicesScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final accountAsync = ref.watch(sellerAccountProvider);
-
-    return Scaffold(
-      appBar: MarGemAppBar(
-        semanticLabel: l10n.serviceManagement,
-        actions: [
-          IconButton(
-            tooltip: l10n.addService,
-            onPressed: () => context.push('/seller/services/new'),
-            icon: const Icon(Icons.add_rounded),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/seller/services/new'),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addService),
-      ),
-      body: accountAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => AsyncErrorView.fromError(
-          error,
-          onRetry: () => ref.invalidate(sellerAccountProvider),
-        ),
-        data: (account) {
-          final services = account.profile.services;
-          if (services.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.handyman_outlined,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(l10n.noServicesYet, textAlign: TextAlign.center),
-                    const SizedBox(height: AppSpacing.lg),
-                    FilledButton(
-                      onPressed: () => context.push('/seller/services/new'),
-                      child: Text(l10n.addService),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(sellerAccountProvider),
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.md,
-                AppSpacing.screenHorizontal,
-                100,
-              ),
-              itemCount: services.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                final service = services[index];
-                return ServiceCard(
-                  service: service,
-                  showAvailability: true,
-                  onTap: () => context.push('/seller/services/${service.id}'),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
 
 class SellerServiceEditorScreen extends ConsumerStatefulWidget {
   const SellerServiceEditorScreen({super.key, this.serviceId});
@@ -224,7 +139,6 @@ class _SellerServiceEditorScreenState
       });
 
       ref.invalidate(sellerAccountProvider);
-      ref.invalidate(sellerAnalyticsProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.serviceSaved)),
