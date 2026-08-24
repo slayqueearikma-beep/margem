@@ -1608,6 +1608,73 @@ class AppStringsEn extends AppStrings {
   String boostDurationDays(int days) => 'Duration: $days day${days == 1 ? '' : 's'}';
 
   @override
+  String get marketDiscoveryTitle => 'Markets';
+
+  @override
+  String get marketDiscoveryHomeSubtitle =>
+      'Discover Casablanca markets and find shops before you go.';
+
+  @override
+  String get marketDiscoverySearchHint =>
+      'Search products, services or shops';
+
+  @override
+  String get popularMarketsTitle => 'Popular markets in Casablanca';
+
+  @override
+  String marketSellerCount(int count) =>
+      count == 1 ? '1 shop listed' : '$count shops listed';
+
+  @override
+  String get marketKnownFor => 'Known for';
+
+  @override
+  String searchThisMarketHint(String marketName) => 'Search in $marketName';
+
+  @override
+  String get openMarketMap => 'Open map';
+
+  @override
+  String get marketCategoriesTitle => 'Categories in this market';
+
+  @override
+  String get featuredSellersTitle => 'Featured sellers';
+
+  @override
+  String get sponsoredLabel => 'Sponsored';
+
+  @override
+  String get marketShopsTitle => 'Shops in this market';
+
+  @override
+  String get noSellersInMarket => 'No shops listed yet';
+
+  @override
+  String get noSellersInMarketSubtitle =>
+      'Seller listings in this market will appear here as they join Dribex.';
+
+  @override
+  String get verificationUnverified => 'Unverified';
+
+  @override
+  String get verificationPending => 'Verification pending';
+
+  @override
+  String get verificationBusinessVerified => 'Business verified';
+
+  @override
+  String get verificationRejected => 'Verification rejected';
+
+  @override
+  String get verificationPhoneVerified => 'Phone verified';
+
+  @override
+  String get chooseMarketLabel => 'Choose your market';
+
+  @override
+  String get shopLocationTitle => 'Shop location in market';
+
+  @override
   String get requestAccountErasure => 'Request account erasure';
 
   @override

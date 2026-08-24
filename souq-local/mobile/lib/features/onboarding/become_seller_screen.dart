@@ -11,6 +11,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/margem_app_bar.dart';
+import '../../features/buyer/buyer_home_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../legal/legal_config.dart';
 import '../legal/legal_documents.dart';
@@ -29,6 +30,9 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   final _description = TextEditingController();
   final _address = TextEditingController();
   final _phone = TextEditingController();
+  final _shopNumber = TextEditingController();
+  final _marketGallery = TextEditingController();
+  String? _selectedMarketSlug;
   bool _loading = false;
   bool _sellerTermsAccepted = false;
 
@@ -38,6 +42,8 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
     _description.dispose();
     _address.dispose();
     _phone.dispose();
+    _shopNumber.dispose();
+    _marketGallery.dispose();
     super.dispose();
   }
 
@@ -48,9 +54,12 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
       context.push('/login');
       return;
     }
+    final marketSlug = _selectedMarketSlug;
     if (_businessName.text.trim().length < 2 ||
         _address.text.trim().length < 5 ||
-        _phone.text.trim().isEmpty) {
+        _phone.text.trim().isEmpty ||
+        marketSlug == null ||
+        marketSlug.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.completeRequiredStep)),
       );
@@ -76,6 +85,9 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
           latitude: coords.latitude,
           longitude: coords.longitude,
           phone: _phone.text.trim(),
+          marketplaceSlug: _selectedMarketSlug,
+          shopNumber: _shopNumber.text.trim(),
+          marketGallery: _marketGallery.text.trim(),
           sellerTermsAcknowledged: true,
           acceptanceLanguage: LegalConfig.authoritativeLanguageCode,
         ),
@@ -108,6 +120,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final marketsAsync = ref.watch(buyerMarketplacesProvider);
     return Scaffold(
       appBar: MarGemAppBar(semanticLabel: l10n.becomeSeller),
       body: SafeArea(
@@ -128,6 +141,41 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
               controller: _description,
               maxLines: 3,
               decoration: InputDecoration(labelText: l10n.description),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            marketsAsync.when(
+              data: (markets) {
+                if (markets.isEmpty) {
+                  return Text(l10n.somethingWentWrong);
+                }
+                return DropdownButtonFormField<String>(
+                  value: _selectedMarketSlug ?? markets.first.slug,
+                  decoration: InputDecoration(labelText: l10n.chooseMarketLabel),
+                  items: markets
+                      .map(
+                        (market) => DropdownMenuItem(
+                          value: market.slug,
+                          child: Text(market.displayName),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _loading
+                      ? null
+                      : (value) => setState(() => _selectedMarketSlug = value),
+                );
+              },
+              loading: () => const LinearProgressIndicator(),
+              error: (_, __) => Text(l10n.somethingWentWrong),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: _marketGallery,
+              decoration: InputDecoration(labelText: '${l10n.shopLocationTitle} — Gallery'),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: _shopNumber,
+              decoration: InputDecoration(labelText: '${l10n.shopLocationTitle} — Shop #'),
             ),
             const SizedBox(height: AppSpacing.md),
             TextField(

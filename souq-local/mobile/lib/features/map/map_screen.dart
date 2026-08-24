@@ -17,6 +17,7 @@ import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/providers/city_providers.dart';
+import '../buyer/buyer_home_screen.dart' hide buyerCityProvider;
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -28,6 +29,7 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   late Future<_MapData> _mapFuture;
   String? _loadedCity;
+  String? _loadedMarketplace;
   bool _locationEnabled = false;
   bool _locationNoticeShown = false;
 
@@ -60,22 +62,25 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       if (mounted) _showLocationNoticeIfNeeded();
     });
     final city = ref.read(buyerCityProvider);
-    if (_loadedCity != city) {
+    final marketplace = ref.read(buyerMarketplaceSlugProvider);
+    if (_loadedCity != city || _loadedMarketplace != marketplace) {
       _loadedCity = city;
-      _mapFuture = _loadMapData(city);
+      _loadedMarketplace = marketplace;
+      _mapFuture = _loadMapData(city, marketplace: marketplace);
     }
   }
 
-  void _reload(String city) {
+  void _reload(String city, {String? marketplace}) {
     setState(() {
       _loadedCity = city;
-      _mapFuture = _loadMapData(city);
+      _mapFuture = _loadMapData(city, marketplace: marketplace);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(buyerCityProvider);
+    final marketplace = ref.watch(buyerMarketplaceSlugProvider);
     final l10n = context.l10n;
 
     if (!AppConfig.hasGoogleMapsApiKey) {
@@ -112,7 +117,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
             body: AsyncErrorView.fromError(
               snapshot.error!,
-              onRetry: () => _reload(city),
+              onRetry: () => _reload(city, marketplace: marketplace),
             ),
           );
         }
@@ -261,10 +266,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  Future<_MapData> _loadMapData(String city) async {
+  Future<_MapData> _loadMapData(String city, {String? marketplace}) async {
     try {
       final results = await Future.wait([
-        apiServiceProvider.fetchMapPins(city: city),
+        apiServiceProvider.fetchMapPins(
+          city: city,
+          marketplace: marketplace,
+        ),
         apiServiceProvider.fetchWarningZones(city: city),
       ]);
       return _MapData(

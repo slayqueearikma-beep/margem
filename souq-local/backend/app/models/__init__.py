@@ -230,6 +230,12 @@ class SellerProfile(Base):
     marketplace_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("marketplaces.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    market_zone: Mapped[str] = mapped_column(String(120), default="")
+    market_street: Mapped[str] = mapped_column(String(120), default="")
+    market_gallery: Mapped[str] = mapped_column(String(120), default="")
+    shop_number: Mapped[str] = mapped_column(String(32), default="")
+    market_floor: Mapped[str] = mapped_column(String(64), default="")
+    nearby_landmark: Mapped[str] = mapped_column(String(255), default="")
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
     phone: Mapped[str] = mapped_column(String(32), default="")

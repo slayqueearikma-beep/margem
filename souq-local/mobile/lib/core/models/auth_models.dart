@@ -114,6 +114,13 @@ class SellerCreatePayload {
     this.logoImageUrl = '',
     this.openingHours,
     this.categoryIds = const [],
+    this.marketplaceSlug,
+    this.marketZone = '',
+    this.marketStreet = '',
+    this.marketGallery = '',
+    this.shopNumber = '',
+    this.marketFloor = '',
+    this.nearbyLandmark = '',
     this.sellerTermsAcknowledged = false,
     this.acceptanceLanguage = 'fr',
   });
@@ -129,6 +136,13 @@ class SellerCreatePayload {
   final String logoImageUrl;
   final Map<String, dynamic>? openingHours;
   final List<String> categoryIds;
+  final String? marketplaceSlug;
+  final String marketZone;
+  final String marketStreet;
+  final String marketGallery;
+  final String shopNumber;
+  final String marketFloor;
+  final String nearbyLandmark;
   final bool sellerTermsAcknowledged;
   final String acceptanceLanguage;
 
@@ -144,6 +158,14 @@ class SellerCreatePayload {
         'logo_image_url': logoImageUrl,
         if (openingHours != null) 'opening_hours': openingHours,
         'category_ids': categoryIds,
+        if (marketplaceSlug != null && marketplaceSlug!.isNotEmpty)
+          'marketplace_slug': marketplaceSlug,
+        if (marketZone.isNotEmpty) 'market_zone': marketZone,
+        if (marketStreet.isNotEmpty) 'market_street': marketStreet,
+        if (marketGallery.isNotEmpty) 'market_gallery': marketGallery,
+        if (shopNumber.isNotEmpty) 'shop_number': shopNumber,
+        if (marketFloor.isNotEmpty) 'market_floor': marketFloor,
+        if (nearbyLandmark.isNotEmpty) 'nearby_landmark': nearbyLandmark,
         'seller_terms_acknowledged': sellerTermsAcknowledged,
         'acceptance_language': acceptanceLanguage,
       };
@@ -162,6 +184,13 @@ class SellerUpdatePayload {
     this.logoImageUrl,
     this.openingHours,
     this.categoryIds,
+    this.marketplaceSlug,
+    this.marketZone,
+    this.marketStreet,
+    this.marketGallery,
+    this.shopNumber,
+    this.marketFloor,
+    this.nearbyLandmark,
     this.isActive,
   });
 
@@ -176,6 +205,13 @@ class SellerUpdatePayload {
   final String? logoImageUrl;
   final Map<String, dynamic>? openingHours;
   final List<String>? categoryIds;
+  final String? marketplaceSlug;
+  final String? marketZone;
+  final String? marketStreet;
+  final String? marketGallery;
+  final String? shopNumber;
+  final String? marketFloor;
+  final String? nearbyLandmark;
   final bool? isActive;
 
   Map<String, dynamic> toJson() {
@@ -191,6 +227,13 @@ class SellerUpdatePayload {
       if (logoImageUrl != null) 'logo_image_url': logoImageUrl,
       if (openingHours != null) 'opening_hours': openingHours,
       if (categoryIds != null) 'category_ids': categoryIds,
+      if (marketplaceSlug != null) 'marketplace_slug': marketplaceSlug,
+      if (marketZone != null) 'market_zone': marketZone,
+      if (marketStreet != null) 'market_street': marketStreet,
+      if (marketGallery != null) 'market_gallery': marketGallery,
+      if (shopNumber != null) 'shop_number': shopNumber,
+      if (marketFloor != null) 'market_floor': marketFloor,
+      if (nearbyLandmark != null) 'nearby_landmark': nearbyLandmark,
       if (isActive != null) 'is_active': isActive,
     };
   }

@@ -33,6 +33,7 @@ class Marketplace(Base):
     slug: Mapped[str] = mapped_column(String(80), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(160))
     description: Mapped[str] = mapped_column(Text, default="")
+    known_for: Mapped[str] = mapped_column(Text, default="")
     address: Mapped[str] = mapped_column(String(255), default="")
     district: Mapped[str] = mapped_column(String(120), default="")
     city: Mapped[str] = mapped_column(String(80), default="Casablanca", index=True)

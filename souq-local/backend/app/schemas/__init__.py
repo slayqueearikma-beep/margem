@@ -467,6 +467,13 @@ class SellerCreate(BaseModel):
     delivery_methods: list[str] = Field(default_factory=lambda: ["in_store"])
     service_areas: list[str] = Field(default_factory=list)
     category_ids: list[UUID] = Field(default_factory=list)
+    marketplace_slug: str | None = Field(default=None, max_length=80)
+    market_zone: str = Field(default="", max_length=120)
+    market_street: str = Field(default="", max_length=120)
+    market_gallery: str = Field(default="", max_length=120)
+    shop_number: str = Field(default="", max_length=32)
+    market_floor: str = Field(default="", max_length=64)
+    nearby_landmark: str = Field(default="", max_length=255)
     seller_terms_acknowledged: bool = False
     acceptance_language: str = Field(default="en", max_length=8)
 
@@ -505,6 +512,13 @@ class SellerUpdate(BaseModel):
     delivery_methods: list[str] | None = None
     service_areas: list[str] | None = None
     category_ids: list[UUID] | None = None
+    marketplace_slug: str | None = Field(default=None, max_length=80)
+    market_zone: str | None = Field(default=None, max_length=120)
+    market_street: str | None = Field(default=None, max_length=120)
+    market_gallery: str | None = Field(default=None, max_length=120)
+    shop_number: str | None = Field(default=None, max_length=32)
+    market_floor: str | None = Field(default=None, max_length=64)
+    nearby_landmark: str | None = Field(default=None, max_length=255)
     is_active: bool | None = None
 
     @field_validator("city")
@@ -540,6 +554,16 @@ class SellerSummary(BaseModel):
     avg_response_minutes: int = 0
     categories: list[CategoryOut]
     distance_km: float | None = None
+    marketplace_slug: str | None = None
+    marketplace_name: str | None = None
+    market_zone: str = ""
+    market_street: str = ""
+    market_gallery: str = ""
+    shop_number: str = ""
+    market_floor: str = ""
+    nearby_landmark: str = ""
+    stall_location_summary: str = ""
+    phone_verified: bool = False
 
     model_config = {"from_attributes": True}
 

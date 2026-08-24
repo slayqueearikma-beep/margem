@@ -1606,6 +1606,73 @@ class AppStringsFr extends AppStringsEn {
       'Durée : $days jour${days > 1 ? 's' : ''}';
 
   @override
+  String get marketDiscoveryTitle => 'Marchés';
+
+  @override
+  String get marketDiscoveryHomeSubtitle =>
+      'Découvrez les marchés de Casablanca et trouvez les boutiques avant d\'y aller.';
+
+  @override
+  String get marketDiscoverySearchHint =>
+      'Rechercher produits, services ou boutiques';
+
+  @override
+  String get popularMarketsTitle => 'Marchés populaires à Casablanca';
+
+  @override
+  String marketSellerCount(int count) =>
+      count == 1 ? '1 boutique répertoriée' : '$count boutiques répertoriées';
+
+  @override
+  String get marketKnownFor => 'Connu pour';
+
+  @override
+  String searchThisMarketHint(String marketName) => 'Rechercher dans $marketName';
+
+  @override
+  String get openMarketMap => 'Ouvrir la carte';
+
+  @override
+  String get marketCategoriesTitle => 'Catégories dans ce marché';
+
+  @override
+  String get featuredSellersTitle => 'Vendeurs en vedette';
+
+  @override
+  String get sponsoredLabel => 'Sponsorisé';
+
+  @override
+  String get marketShopsTitle => 'Boutiques dans ce marché';
+
+  @override
+  String get noSellersInMarket => 'Aucune boutique répertoriée';
+
+  @override
+  String get noSellersInMarketSubtitle =>
+      'Les boutiques de ce marché apparaîtront ici lorsqu\'elles rejoindront Dribex.';
+
+  @override
+  String get verificationUnverified => 'Non vérifié';
+
+  @override
+  String get verificationPending => 'Vérification en cours';
+
+  @override
+  String get verificationBusinessVerified => 'Entreprise vérifiée';
+
+  @override
+  String get verificationRejected => 'Vérification refusée';
+
+  @override
+  String get verificationPhoneVerified => 'Téléphone vérifié';
+
+  @override
+  String get chooseMarketLabel => 'Choisissez votre marché';
+
+  @override
+  String get shopLocationTitle => 'Emplacement dans le marché';
+
+  @override
   String get requestAccountErasure => 'Demander l’effacement du compte';
 
   @override

@@ -1608,6 +1608,73 @@ class AppStringsAr extends AppStringsEn {
   String boostDurationDays(int days) => 'المدة: $days يوم';
 
   @override
+  String get marketDiscoveryTitle => 'الأسواق';
+
+  @override
+  String get marketDiscoveryHomeSubtitle =>
+      'اكتشف أسواق الدار البيضاء واعثر على المحلات قبل أن تذهب.';
+
+  @override
+  String get marketDiscoverySearchHint =>
+      'ابحث عن منتجات أو خدمات أو محلات';
+
+  @override
+  String get popularMarketsTitle => 'أسواق شهيرة في الدار البيضاء';
+
+  @override
+  String marketSellerCount(int count) =>
+      count == 1 ? 'محل واحد مدرج' : '$count محلات مدرجة';
+
+  @override
+  String get marketKnownFor => 'مشهور بـ';
+
+  @override
+  String searchThisMarketHint(String marketName) => 'ابحث في $marketName';
+
+  @override
+  String get openMarketMap => 'فتح الخريطة';
+
+  @override
+  String get marketCategoriesTitle => 'فئات هذا السوق';
+
+  @override
+  String get featuredSellersTitle => 'بائعون مميزون';
+
+  @override
+  String get sponsoredLabel => 'ممول';
+
+  @override
+  String get marketShopsTitle => 'محلات في هذا السوق';
+
+  @override
+  String get noSellersInMarket => 'لا توجد محلات بعد';
+
+  @override
+  String get noSellersInMarketSubtitle =>
+      'ستظهر محلات هذا السوق هنا عندما ينضم البائعون إلى Dribex.';
+
+  @override
+  String get verificationUnverified => 'غير موثق';
+
+  @override
+  String get verificationPending => 'التحقق قيد المراجعة';
+
+  @override
+  String get verificationBusinessVerified => 'نشاط تجاري موثق';
+
+  @override
+  String get verificationRejected => 'تم رفض التحقق';
+
+  @override
+  String get verificationPhoneVerified => 'هاتف موثق';
+
+  @override
+  String get chooseMarketLabel => 'اختر سوقك';
+
+  @override
+  String get shopLocationTitle => 'موقع المحل في السوق';
+
+  @override
   String get requestAccountErasure => 'طلب حذف الحساب';
 
   @override
