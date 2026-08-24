@@ -126,6 +126,33 @@ async def prepare_database():
             session.add_all(seed_rows)
             await session.commit()
 
+        from app.models.marketplace import Marketplace
+        from app.services.seller_marketplace import OTHER_CASABLANCA_MARKETS_SLUG
+
+        other_market = (
+            await session.execute(
+                select(Marketplace.id).where(Marketplace.slug == OTHER_CASABLANCA_MARKETS_SLUG)
+            )
+        ).scalar_one_or_none()
+        if other_market is None:
+            session.add(
+                Marketplace(
+                    id=uuid4(),
+                    slug=OTHER_CASABLANCA_MARKETS_SLUG,
+                    name="Other Casablanca Markets",
+                    description="Casablanca commercial areas not yet listed as dedicated markets.",
+                    known_for="User-provided market or district names",
+                    address="Casablanca",
+                    district="Casablanca",
+                    city="Casablanca",
+                    latitude=33.5731,
+                    longitude=-7.5898,
+                    display_order=99,
+                    is_active=True,
+                )
+            )
+            await session.commit()
+
         from app.services.community_chat import ensure_all_city_communities
         from app.services.geography import ensure_geography_seeded, seed_morocco_cities_if_empty
 

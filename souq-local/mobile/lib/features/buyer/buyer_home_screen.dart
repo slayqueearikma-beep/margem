@@ -10,10 +10,10 @@ import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/models.dart';
 import '../../core/navigation/app_back_handler.dart';
+import '../../core/providers/city_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/services/location_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
@@ -30,11 +30,6 @@ import '../../core/providers/subscription_providers.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
 
-final buyerCityProvider = StateProvider<String>((ref) {
-  // Casablanca-only launch — ignore any other saved city.
-  return AppConfig.launchCity;
-});
-
 final buyerMarketplacesProvider =
     FutureProvider.autoDispose<List<MarketplaceVenueModel>>(
         (ref) => apiServiceProvider.fetchMarketplaces(city: ref.watch(buyerCityProvider)));
@@ -43,35 +38,37 @@ final buyerMarketplaceSlugProvider = StateProvider<String?>((ref) {
   return ref.read(appStorageProvider)?.getMarketplaceSlug();
 });
 
-/// Buyer origin for nearest-seller search (GPS, or city center fallback).
-final buyerSearchLocationProvider = FutureProvider.autoDispose<LatLng>((ref) async {
-  final position = await LocationService.getCurrentPosition();
-  if (position != null) {
-    return LatLng(position.latitude, position.longitude);
-  }
-  final city = ref.watch(buyerCityProvider);
-  return CityCoordinates.centerFor(city);
-});
+String? validatedMarketplaceSlug(
+  String? slug,
+  List<MarketplaceVenueModel> marketplaces,
+) {
+  if (slug == null || slug.isEmpty) return null;
+  return marketplaces.any((market) => market.slug == slug) ? slug : null;
+}
 
 final buyerCategorySlugProvider = StateProvider<String?>((ref) => null);
 
 final buyerTabIndexProvider = StateProvider<int>((ref) => 0);
 
 final buyerSellersProvider =
-    FutureProvider.autoDispose<List<SellerModel>>((ref) {
+    FutureProvider.autoDispose<List<SellerModel>>((ref) async {
   final city = ref.watch(buyerCityProvider);
-  final category = ref.watch(buyerCategorySlugProvider);
-  final marketplace = ref.watch(buyerMarketplaceSlugProvider);
+  final marketplaces = await ref.watch(buyerMarketplacesProvider.future);
+  final slug = ref.watch(buyerMarketplaceSlugProvider);
+  final marketplace = validatedMarketplaceSlug(slug, marketplaces);
   return apiServiceProvider.fetchSellers(
     city: city,
-    category: category,
     marketplace: marketplace,
   );
 });
 
 final buyerCategoriesProvider =
     FutureProvider.autoDispose<List<CategoryModel>>((ref) async {
-  final slug = ref.watch(buyerMarketplaceSlugProvider);
+  final marketplaces = ref.watch(buyerMarketplacesProvider).valueOrNull ?? const [];
+  final slug = validatedMarketplaceSlug(
+    ref.watch(buyerMarketplaceSlugProvider),
+    marketplaces,
+  );
   if (slug != null && slug.isNotEmpty) {
     return apiServiceProvider.fetchMarketplaceCategories(slug);
   }
@@ -168,6 +165,8 @@ class BuyerHomeScreen extends ConsumerWidget {
     final selectedMarketplace = ref.watch(buyerMarketplaceSlugProvider);
     final favoriteIds = ref.watch(buyerFavoriteSellerIdsProvider).valueOrNull ??
         const <String>{};
+    final searchOrigin = ref.watch(buyerSearchLocationProvider).valueOrNull ??
+        CityCoordinates.centerFor(city);
     final isGuest = session == null || session.isGuest;
     final hasPremium =
         ref.watch(mySubscriptionProvider).valueOrNull != null;
@@ -331,7 +330,17 @@ class BuyerHomeScreen extends ConsumerWidget {
                               child: Card(
                                 clipBehavior: Clip.antiAlias,
                                 child: InkWell(
-                                  onTap: () => context.push('/marketplace/${venue.slug}'),
+                                  onTap: () {
+                                    ref
+                                        .read(buyerMarketplaceSlugProvider.notifier)
+                                        .state = venue.slug;
+                                    ref
+                                        .read(appStorageProvider)
+                                        ?.setMarketplaceSlug(venue.slug);
+                                    ref.invalidate(buyerCategoriesProvider);
+                                    ref.invalidate(buyerSellersProvider);
+                                    context.push('/marketplace/${venue.slug}');
+                                  },
                                   child: Padding(
                                     padding: const EdgeInsets.all(AppSpacing.md),
                                     child: Row(
@@ -561,14 +570,25 @@ class BuyerHomeScreen extends ConsumerWidget {
           sellersAsync.when(
             data: (sellers) {
               if (sellers.isEmpty) {
+                final hasMarketScope =
+                    selectedMarketplace != null && selectedMarketplace!.isNotEmpty;
                 return SliverFillRemaining(
                   hasScrollBody: false,
-                  child: Center(child: Text(l10n.noBusinessesInCity)),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+                      child: Text(
+                        hasMarketScope
+                            ? '${l10n.noSellersInMarket}\n${l10n.noSellersInMarketSubtitle}'
+                            : l10n.noBusinessesInCity,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
                 );
               }
 
               final featured = sellers.take(8).toList();
-              final cityCenter = CityCoordinates.centerFor(city);
 
               return SliverList(
                 delegate: SliverChildListDelegate([
@@ -602,7 +622,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                           subtitle: category,
                           priceLabel: '',
                           distanceLabel: _distanceLabel(
-                            cityCenter,
+                            searchOrigin,
                             LatLng(seller.latitude, seller.longitude),
                           ),
                           locationLabel: seller.city,

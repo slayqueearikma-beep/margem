@@ -14,6 +14,7 @@ from app.schemas import SellerSummary
 from app.schemas.marketplace import MarketplaceCategoryPublicOut, MarketplaceOut
 from app.services.marketplace_scope import resolve_marketplace_id
 from app.services.seller_marketplace import OTHER_CASABLANCA_MARKETS_SLUG, attach_marketplace_metadata, format_stall_location
+from app.data.marketplace_constants import LAUNCH_CITY
 
 router = APIRouter(prefix="/marketplaces", tags=["marketplaces"])
 
@@ -113,8 +114,7 @@ async def list_marketplace_categories(
 def _seller_summary_out(seller: SellerProfile) -> SellerSummary:
     attach_marketplace_metadata(seller)
     setattr(seller, "stall_location_summary", format_stall_location(seller))
-    owner = getattr(seller, "user", None)
-    setattr(seller, "phone_verified", bool(getattr(owner, "email_verified", False)))
+    setattr(seller, "phone_verified", False)
     return SellerSummary.model_validate(seller)
 
 
@@ -136,6 +136,7 @@ async def list_marketplace_sellers(
         .where(
             SellerProfile.marketplace_id == marketplace_id,
             SellerProfile.is_active.is_(True),
+            SellerProfile.city.ilike(LAUNCH_CITY),
         )
         .order_by(SellerProfile.is_premium.desc(), SellerProfile.average_rating.desc())
         .limit(limit)
@@ -164,6 +165,7 @@ async def list_marketplace_featured_sellers(
             SellerProfile.marketplace_id == marketplace_id,
             SellerProfile.is_active.is_(True),
             SellerProfile.is_premium.is_(True),
+            SellerProfile.city.ilike(LAUNCH_CITY),
         )
         .order_by(SellerProfile.average_rating.desc(), SellerProfile.review_count.desc())
         .limit(limit)

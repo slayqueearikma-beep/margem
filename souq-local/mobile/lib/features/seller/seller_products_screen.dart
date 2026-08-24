@@ -210,6 +210,7 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
             ProductUpdatePayload(
               name: name,
               description: _descriptionController.text.trim(),
+              pricingType: priceText.isEmpty ? 'offer' : 'fixed',
               priceMad: price,
               clearPrice: priceText.isEmpty,
               imageUrl: imageUrl,
@@ -222,6 +223,7 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
             ProductCreatePayload(
               name: name,
               description: _descriptionController.text.trim(),
+              pricingType: price == null ? 'offer' : 'fixed',
               priceMad: price,
               imageUrl: imageUrl,
             ),

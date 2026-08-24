@@ -172,7 +172,6 @@ async def test_seller_create_assigns_marketplace_and_stall_fields():
 async def test_seller_create_accepts_custom_market_name():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        await _seed_other_casablanca_market(client)
         email = f"custom-market-{uuid4().hex[:8]}@example.com"
         body = await register_test_user(client, email=email, account_type="seller")
         headers = {"Authorization": f"Bearer {body['access_token']}"}

@@ -115,7 +115,7 @@ def _favorite_out(fav: Favorite) -> FavoriteOut:
         id=fav.id,
         product_id=fav.product_id,
         seller_id=fav.seller_id or (product.seller_id if product else None),
-        product_name=product.name if product else "",
+        product_name=(product.name if product else (seller.business_name if seller else "")),
         image_url=(product.image_url if product else "") or (seller.logo_image_url if seller else ""),
         price_mad=product.price_mad if product else None,
         seller_name=seller.business_name if seller else "",

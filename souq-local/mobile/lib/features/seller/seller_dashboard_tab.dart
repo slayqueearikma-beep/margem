@@ -76,7 +76,7 @@ class SellerDashboardTab extends ConsumerWidget {
               SellerHeroMetricCard(
                 title: l10n.profileViews,
                 value: '$profileViews',
-                deltaLabel: profileViews > 0 ? '+18%' : '—',
+                deltaLabel: '—',
                 positive: profileViews > 0,
                 child: SellerMiniSparkline(values: sparkline),
               ),

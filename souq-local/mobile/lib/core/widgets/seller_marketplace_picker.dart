@@ -33,13 +33,13 @@ class SellerMarketplacePicker extends StatelessWidget {
   bool get isCustomSelected => selectedSlug == sellerMarketplaceCustomOption;
 
   static bool usesCustomMarket(String? slug, String customName) =>
-      slug == sellerMarketplaceCustomOption || customName.trim().isNotEmpty;
+      slug == sellerMarketplaceCustomOption;
 
   static String? marketplaceSlugForApi({
     required String? selectedSlug,
     required String customName,
   }) {
-    if (usesCustomMarket(selectedSlug, customName)) {
+    if (selectedSlug == sellerMarketplaceCustomOption) {
       return sellerOtherCasablancaMarketSlug;
     }
     return selectedSlug;
@@ -98,7 +98,14 @@ class SellerMarketplacePicker extends StatelessWidget {
               child: Text(l10n.chooseMarketMoreOption),
             ),
           ],
-          onChanged: enabled ? onSlugChanged : null,
+          onChanged: enabled
+              ? (value) {
+                  if (value != sellerMarketplaceCustomOption) {
+                    customNameController.clear();
+                  }
+                  onSlugChanged(value);
+                }
+              : null,
         ),
         if (isCustomSelected) ...[
           const SizedBox(height: 12),

@@ -47,6 +47,7 @@ async def _create_seller(client: AsyncClient, token: str) -> dict:
                 "acceptance_language": "en",
             },
             "category_ids": [],
+            "custom_marketplace_name": "Test Market",
         },
     )
     assert response.status_code == 201, response.text
@@ -98,13 +99,18 @@ async def test_add_video_rejects_duration_60_seconds():
         created = await _create_seller(client, token)
 
         from app.database import SessionLocal
-        from app.models import User
+        from app.models import SellerProfile, User
         from sqlalchemy import select
 
         async with SessionLocal() as session:
             result = await session.execute(select(User).where(User.email == "video-long@example.com"))
             user = result.scalar_one()
-            user.is_premium = True
+            seller = (
+                await session.execute(
+                    select(SellerProfile).where(SellerProfile.user_id == user.id)
+                )
+            ).scalar_one()
+            seller.is_premium = True
             await session.commit()
 
         response = await client.post(
@@ -137,13 +143,18 @@ async def test_local_video_upload_and_publish(tmp_path, monkeypatch):
         created = await _create_seller(client, token)
 
         from app.database import SessionLocal
-        from app.models import User
+        from app.models import SellerProfile, User
         from sqlalchemy import select
 
         async with SessionLocal() as session:
             result = await session.execute(select(User).where(User.email == "video-premium@example.com"))
             user = result.scalar_one()
-            user.is_premium = True
+            seller = (
+                await session.execute(
+                    select(SellerProfile).where(SellerProfile.user_id == user.id)
+                )
+            ).scalar_one()
+            seller.is_premium = True
             await session.commit()
 
         mp4 = _minimal_mp4()

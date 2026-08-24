@@ -283,6 +283,7 @@ class ProductUpdatePayload {
   const ProductUpdatePayload({
     this.name,
     this.description,
+    this.pricingType,
     this.priceMad,
     this.imageUrl,
     this.isAvailable,
@@ -291,6 +292,7 @@ class ProductUpdatePayload {
 
   final String? name;
   final String? description;
+  final String? pricingType;
   final double? priceMad;
   final String? imageUrl;
   final bool? isAvailable;
@@ -300,6 +302,7 @@ class ProductUpdatePayload {
     return {
       if (name != null) 'name': name,
       if (description != null) 'description': description,
+      if (pricingType != null) 'pricing_type': pricingType,
       if (clearPrice) 'price_mad': null,
       if (!clearPrice && priceMad != null) 'price_mad': priceMad,
       if (imageUrl != null) 'image_url': imageUrl,
@@ -400,3 +403,21 @@ const sellerCategorySlugMap = <String, String>{
   'health': 'health',
   'kids': 'kids',
 };
+
+/// Registration wizard display labels → API slugs.
+const sellerCategoryLabelSlugMap = <String, String>{
+  'Food': 'food',
+  'Clothing': 'clothing',
+  'Electronics': 'electronics',
+  'Beauty': 'beauty',
+  'Services': 'services',
+  'Home & Garden': 'home',
+  'Health': 'health',
+  'Sports': 'sports',
+};
+
+String resolveSellerCategorySlug(String displayLabel) {
+  return sellerCategoryLabelSlugMap[displayLabel] ??
+      sellerCategorySlugMap[displayLabel.toLowerCase()] ??
+      'food';
+}
