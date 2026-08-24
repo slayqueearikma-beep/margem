@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/theme_context.dart';
 import '../../l10n/app_localizations.dart';
-import '../../l10n/strings/app_strings.dart';
 
 /// Maps backend verification status to buyer-facing trust labels.
 class SellerTrustIndicators extends StatelessWidget {

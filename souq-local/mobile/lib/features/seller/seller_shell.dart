@@ -7,8 +7,7 @@ import '../../core/navigation/app_back_handler.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/premium_ribbon_badge.dart';
 import '../../l10n/app_localizations.dart';
-import 'seller_account_provider.dart';
-import 'seller_bookings_tab.dart';
+import 'seller_messages_tab.dart';
 import 'seller_catalog_tab.dart';
 import 'seller_dashboard_tab.dart';
 import 'seller_drawer.dart';
@@ -101,7 +100,7 @@ class SellerShell extends ConsumerWidget {
           children: const [
             SellerDashboardTab(),
             SellerCatalogTab(),
-            SellerBookingsTab(),
+            SellerMessagesTab(),
             SellerMoreTab(),
           ],
         ),
@@ -133,7 +132,7 @@ class SellerShell extends ConsumerWidget {
               _SellerNavItem(
                 icon: Icons.chat_bubble_outline,
                 selectedIcon: Icons.chat_bubble_rounded,
-                label: l10n.inquiries,
+                label: l10n.navMessages,
                 selected: index == 2,
                 onTap: () => _selectTab(ref, 2),
               ),

@@ -9,6 +9,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../l10n/app_localizations.dart';
+import '../messages/messages_inbox_screen.dart';
 import 'seller_account_provider.dart';
 import 'seller_navigation.dart';
 import 'seller_widgets.dart';
@@ -21,6 +22,8 @@ class SellerDashboardTab extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final accountAsync = ref.watch(sellerAccountProvider);
+    final unreadAsync = ref.watch(conversationsUnreadCountProvider);
+    final unreadCount = unreadAsync.valueOrNull ?? 0;
 
     return accountAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -32,12 +35,12 @@ class SellerDashboardTab extends ConsumerWidget {
       data: (account) {
         final stats = account.stats;
         final profileViews = stats.profileViewCount;
-        final inquiryCount = stats.inquiryCount;
         final reviewCount = stats.reviewCount;
 
         return RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(sellerAccountProvider);
+            ref.invalidate(conversationsProvider);
             await ref.read(sellerAccountProvider.future);
           },
           child: ListView(
@@ -81,10 +84,10 @@ class SellerDashboardTab extends ConsumerWidget {
                     icon: Icons.visibility_outlined,
                   ),
                   SellerMetricTile(
-                    label: l10n.inquiries,
-                    value: '$inquiryCount',
+                    label: l10n.navMessages,
+                    value: unreadCount > 0 ? '$unreadCount' : '0',
                     icon: Icons.chat_bubble_outline,
-                    subtitle: l10n.inquiriesSub,
+                    subtitle: unreadCount > 0 ? l10n.messagesSub : null,
                     onTap: () =>
                         ref.read(sellerTabIndexProvider.notifier).state = 2,
                   ),
@@ -99,34 +102,6 @@ class SellerDashboardTab extends ConsumerWidget {
                   ),
                 ],
               ),
-              SizedBox(height: AppSpacing.lg),
-              SellerSectionHeader(
-                title: l10n.inquiries,
-                actionLabel: l10n.viewAll,
-                onAction: () =>
-                    ref.read(sellerTabIndexProvider.notifier).state = 2,
-              ),
-              SizedBox(height: AppSpacing.sm),
-              if (inquiryCount == 0)
-                _EmptyInquiryCard(message: l10n.noInquiriesYet)
-              else
-                Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          context.colors.primary.withValues(alpha: 0.12),
-                      child: Icon(Icons.chat_bubble_outline,
-                          color: context.colors.primary),
-                    ),
-                    title: Text(l10n.inquiries),
-                    subtitle: Text(l10n.inquiriesSub),
-                    trailing: SellerStatusBadge(
-                      label: l10n.upcoming,
-                      active: true,
-                    ),
-                    onTap: () => context.push('/seller/messages'),
-                  ),
-                ),
               const SizedBox(height: AppSpacing.lg),
               SellerSectionHeader(
                 title: l10n.highlightServices,
@@ -136,7 +111,7 @@ class SellerDashboardTab extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               if (account.profile.services.isEmpty)
-                _EmptyInquiryCard(message: l10n.noServicesYet)
+                _EmptyHintCard(message: l10n.noServicesYet)
               else
                 SizedBox(
                   height: 132,
@@ -201,8 +176,8 @@ String _greeting(
   return l10n.welcomeExclamation;
 }
 
-class _EmptyInquiryCard extends StatelessWidget {
-  const _EmptyInquiryCard({required this.message});
+class _EmptyHintCard extends StatelessWidget {
+  const _EmptyHintCard({required this.message});
 
   final String message;
 

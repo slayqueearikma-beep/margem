@@ -276,7 +276,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           builder: (_, __) => const SellerDashboardScreen()),
       GoRoute(
           path: '/seller/messages',
-          builder: (_, __) => const Scaffold(body: MessagesInboxScreen())),
+          builder: (_, __) => const SellerMessagesRedirect()),
       GoRoute(
           path: '/seller/products',
           builder: (_, __) => const SellerProductsScreen()),

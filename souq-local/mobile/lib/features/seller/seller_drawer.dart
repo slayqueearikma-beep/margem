@@ -5,11 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers/subscription_providers.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
+import '../messages/messages_inbox_screen.dart';
 import 'seller_account_provider.dart';
 import 'seller_navigation.dart';
 
@@ -24,6 +24,7 @@ class SellerDrawer extends ConsumerWidget {
     final account = ref.watch(sellerAccountProvider).valueOrNull;
     final stats = account?.stats;
     final profile = account?.profile;
+    final unread = ref.watch(conversationsUnreadCountProvider).valueOrNull ?? 0;
 
     return Drawer(
       backgroundColor: context.colors.surfaceVariant,
@@ -109,11 +110,9 @@ class SellerDrawer extends ConsumerWidget {
                   ),
                   _DrawerItem(
                     icon: Icons.chat_bubble_outline,
-                    label: l10n.messages,
-                    badge: stats != null && stats.inquiryCount > 0
-                        ? '${stats.inquiryCount}'
-                        : null,
-                    onTap: () => _push(context, '/seller/messages'),
+                    label: l10n.navMessages,
+                    badge: unread > 0 ? (unread > 99 ? '99+' : '$unread') : null,
+                    onTap: () => _goTab(context, ref, 2),
                   ),
                   _DrawerItem(
                     icon: Icons.rate_review_outlined,

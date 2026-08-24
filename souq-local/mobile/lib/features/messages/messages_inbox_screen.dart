@@ -29,7 +29,9 @@ final conversationsUnreadCountProvider = Provider.autoDispose<AsyncValue<int>>(
 );
 
 class MessagesInboxScreen extends ConsumerStatefulWidget {
-  const MessagesInboxScreen({super.key});
+  const MessagesInboxScreen({super.key, this.embeddedInShell = false});
+
+  final bool embeddedInShell;
 
   @override
   ConsumerState<MessagesInboxScreen> createState() =>
@@ -57,7 +59,8 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BuyerScreenTitle(title: l10n.navMessages),
+          if (!widget.embeddedInShell)
+            BuyerScreenTitle(title: l10n.navMessages),
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: AppSpacing.screenHorizontal,
@@ -229,6 +232,17 @@ class _ConversationTile extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (conversation.sellerId.isNotEmpty) ...[
+                    SizedBox(height: 4),
+                    Text(
+                      l10n.inquiries,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: context.colors.primary,
+                      ),
+                    ),
+                  ],
                   SizedBox(height: 4),
                   Row(
                     children: [
@@ -403,6 +417,22 @@ class _ConversationThreadScreenState
       ),
       body: Column(
         children: [
+          if (widget.conversation?.sellerId.isNotEmpty == true)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenHorizontal,
+                vertical: AppSpacing.sm,
+              ),
+              color: context.colors.primaryMuted,
+              child: Text(
+                l10n.inquiriesSub,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.colors.textSecondary,
+                ),
+              ),
+            ),
           Expanded(
             child: FutureBuilder<List<ChatMessageModel>>(
               future: _future,

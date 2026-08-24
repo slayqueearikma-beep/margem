@@ -31,3 +31,20 @@ class SellerServicesRedirect extends ConsumerWidget {
     return const SellerShell();
   }
 }
+
+/// Redirects `/seller/messages` to the messages tab inside the shell.
+class SellerMessagesRedirect extends ConsumerWidget {
+  const SellerMessagesRedirect({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(sellerTabIndexProvider.notifier).state = 2;
+      if (context.mounted &&
+          GoRouterState.of(context).matchedLocation != '/seller/dashboard') {
+        context.go('/seller/dashboard');
+      }
+    });
+    return const SellerShell();
+  }
+}
