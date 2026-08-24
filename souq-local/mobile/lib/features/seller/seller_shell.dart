@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/navigation/app_back_handler.dart';
 import '../../core/widgets/margem_app_bar.dart';
-import '../../core/widgets/premium_ribbon_badge.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_messages_tab.dart';
 import 'seller_catalog_tab.dart';
@@ -46,25 +45,6 @@ class SellerShell extends ConsumerWidget {
                   Navigator.pop(ctx);
                   context.push('/seller/products/new');
                 },
-              ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.videocam_outlined),
-                    title: Text(l10n.addVideo),
-                    subtitle: Text(l10n.addVideoSub),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      context.push('/seller/videos/new');
-                    },
-                  ),
-                  const Positioned(
-                    top: 4,
-                    right: 4,
-                    child: PremiumRibbonBadge(),
-                  ),
-                ],
               ),
             ],
           ),

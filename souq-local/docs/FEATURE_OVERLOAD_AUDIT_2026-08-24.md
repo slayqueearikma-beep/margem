@@ -108,3 +108,17 @@ Unified seller communication on Messages tab; deleted `seller_bookings_tab.dart`
 Dribex is now a **lean discovery marketplace**. Buyers land on markets, categories, search, and sellers — not promos, bundles, or city chat side-quests. Sellers manage listings in one catalog, respond in one inbox, and reach monetization through More — not duplicate list screens, analytics dashboards, or drawer clones of the bottom nav.
 
 **LESS TO UNDERSTAND. LESS TO CONFIGURE. LESS TO MAINTAIN.**
+
+---
+
+## Community restoration (2026-08-24 follow-up)
+
+Per product requirement, **city community** and **per-marketplace community** access were restored:
+
+- Restored `community_chat/*` screens and websocket client
+- Restored `/community`, `/community/:citySlug`, `/community/channels/:id` routes
+- Buyer drawer: City Community + Marketplace Community entries
+- Popular markets list: forum shortcut per market
+- Existing links kept: buyer home (selected market), marketplace detail page
+
+Per-market chat remains at `/marketplace/:slug/community` (unchanged backend).

@@ -1,4 +1,8 @@
-"""Find optimal multi-seller product combinations for bundle slots."""
+"""DEPRECATED: Bundle Builder matcher — retained temporarily after product retirement.
+
+Routes in ``routers/bundles.py`` return HTTP 410. Do not re-enable without an explicit
+product decision.
+"""
 
 from __future__ import annotations
 

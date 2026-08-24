@@ -1,4 +1,8 @@
-"""Curated bundle templates (configurable without code deploy via admin later)."""
+"""DEPRECATED: Bundle Builder templates — retained temporarily after product retirement.
+
+Routes in ``routers/bundles.py`` return HTTP 410. Do not re-enable without an explicit
+product decision.
+"""
 
 from __future__ import annotations
 

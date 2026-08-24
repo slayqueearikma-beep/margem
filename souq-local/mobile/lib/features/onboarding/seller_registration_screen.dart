@@ -28,7 +28,6 @@ import '../legal/legal_document_screen.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/models/city_model.dart';
 import '../../core/providers/city_providers.dart';
-import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/services/upload_service.dart';
@@ -504,20 +503,9 @@ class _SellerRegistrationScreenState
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        CityPickerField(
-          selected: _selectedCity,
-          onSelected: (city) {
-            if (city.nameEn != AppConfig.launchCity) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.completeRequiredStep)),
-              );
-              return;
-            }
-            setState(() {
-              _selectedCity = city;
-              _location = LatLng(city.latitude, city.longitude);
-            });
-          },
+        InputDecorator(
+          decoration: InputDecoration(labelText: l10n.city),
+          child: const Text(AppConfig.launchCity),
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
