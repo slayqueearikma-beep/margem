@@ -177,9 +177,10 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         elevation: 0,
-        backgroundColor: semantic.textPrimary,
+        backgroundColor:
+            isDark ? semantic.surfaceVariant : semantic.textPrimary,
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: semantic.onPrimary,
+          color: isDark ? semantic.textPrimary : semantic.onPrimary,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),

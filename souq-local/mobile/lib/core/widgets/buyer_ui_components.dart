@@ -1350,7 +1350,7 @@ class BuyerNavItem {
   final String label;
 }
 
-/// White scaffold background for all customer screens.
+/// Customer scaffold background — follows light/dark semantic surface tokens.
 class BuyerScreenScaffold extends StatelessWidget {
   const BuyerScreenScaffold({
     super.key,
@@ -1367,8 +1367,9 @@ class BuyerScreenScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDark;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: context.colors.surface,
         appBar: appBar,
