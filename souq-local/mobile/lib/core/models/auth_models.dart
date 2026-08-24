@@ -115,6 +115,7 @@ class SellerCreatePayload {
     this.openingHours,
     this.categoryIds = const [],
     this.marketplaceSlug,
+    this.customMarketplaceName = '',
     this.marketZone = '',
     this.marketStreet = '',
     this.marketGallery = '',
@@ -137,6 +138,7 @@ class SellerCreatePayload {
   final Map<String, dynamic>? openingHours;
   final List<String> categoryIds;
   final String? marketplaceSlug;
+  final String customMarketplaceName;
   final String marketZone;
   final String marketStreet;
   final String marketGallery;
@@ -160,6 +162,8 @@ class SellerCreatePayload {
         'category_ids': categoryIds,
         if (marketplaceSlug != null && marketplaceSlug!.isNotEmpty)
           'marketplace_slug': marketplaceSlug,
+        if (customMarketplaceName.isNotEmpty)
+          'custom_marketplace_name': customMarketplaceName,
         if (marketZone.isNotEmpty) 'market_zone': marketZone,
         if (marketStreet.isNotEmpty) 'market_street': marketStreet,
         if (marketGallery.isNotEmpty) 'market_gallery': marketGallery,
@@ -185,6 +189,7 @@ class SellerUpdatePayload {
     this.openingHours,
     this.categoryIds,
     this.marketplaceSlug,
+    this.customMarketplaceName,
     this.marketZone,
     this.marketStreet,
     this.marketGallery,
@@ -206,6 +211,7 @@ class SellerUpdatePayload {
   final Map<String, dynamic>? openingHours;
   final List<String>? categoryIds;
   final String? marketplaceSlug;
+  final String? customMarketplaceName;
   final String? marketZone;
   final String? marketStreet;
   final String? marketGallery;
@@ -228,6 +234,7 @@ class SellerUpdatePayload {
       if (openingHours != null) 'opening_hours': openingHours,
       if (categoryIds != null) 'category_ids': categoryIds,
       if (marketplaceSlug != null) 'marketplace_slug': marketplaceSlug,
+      if (customMarketplaceName != null) 'custom_marketplace_name': customMarketplaceName,
       if (marketZone != null) 'market_zone': marketZone,
       if (marketStreet != null) 'market_street': marketStreet,
       if (marketGallery != null) 'market_gallery': marketGallery,

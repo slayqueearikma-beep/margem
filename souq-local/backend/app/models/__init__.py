@@ -236,6 +236,7 @@ class SellerProfile(Base):
     shop_number: Mapped[str] = mapped_column(String(32), default="")
     market_floor: Mapped[str] = mapped_column(String(64), default="")
     nearby_landmark: Mapped[str] = mapped_column(String(255), default="")
+    custom_marketplace_name: Mapped[str] = mapped_column(String(160), default="")
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
     phone: Mapped[str] = mapped_column(String(32), default="")

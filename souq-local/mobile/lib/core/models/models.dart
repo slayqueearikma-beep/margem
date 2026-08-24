@@ -184,6 +184,7 @@ class SellerModel {
     this.verificationStatus = 'unverified',
     this.marketplaceSlug,
     this.marketplaceName,
+    this.customMarketplaceName = '',
     this.marketZone = '',
     this.marketStreet = '',
     this.marketGallery = '',
@@ -237,6 +238,7 @@ class SellerModel {
   final String verificationStatus;
   final String? marketplaceSlug;
   final String? marketplaceName;
+  final String customMarketplaceName;
   final String marketZone;
   final String marketStreet;
   final String marketGallery;
@@ -303,6 +305,7 @@ class SellerModel {
           json['verification_status'] as String? ?? 'unverified',
       marketplaceSlug: json['marketplace_slug'] as String?,
       marketplaceName: json['marketplace_name'] as String?,
+      customMarketplaceName: json['custom_marketplace_name'] as String? ?? '',
       marketZone: json['market_zone'] as String? ?? '',
       marketStreet: json['market_street'] as String? ?? '',
       marketGallery: json['market_gallery'] as String? ?? '',

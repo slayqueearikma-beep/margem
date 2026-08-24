@@ -1684,6 +1684,19 @@ class AppStringsEn extends AppStrings {
   String get chooseMarketLabel => 'Choose your market';
 
   @override
+  String get chooseMarketMoreOption => 'More — type my market';
+
+  @override
+  String get customMarketNameLabel => 'Market or district name';
+
+  @override
+  String get customMarketNameHint => 'e.g. Hay Mohammadi, Sidi Moumen…';
+
+  @override
+  String get customMarketNameHelp =>
+      'Use this if your shop is in another Casablanca market not listed above.';
+
+  @override
   String get shopLocationTitle => 'Shop location in market';
 
   @override

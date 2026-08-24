@@ -88,6 +88,27 @@ async def _seed_casablanca_markets(client: AsyncClient) -> None:
         assert response.status_code == 201, response.text
 
 
+async def _seed_other_casablanca_market(client: AsyncClient) -> None:
+    headers = await _admin_headers(client)
+    response = await client.post(
+        "/admin/marketplaces",
+        headers=headers,
+        json={
+            "name": "Other Casablanca Markets",
+            "slug": "other-casablanca-markets",
+            "description": "Casablanca commercial areas not yet listed as dedicated markets.",
+            "known_for": "User-provided market or district names",
+            "address": "Casablanca",
+            "district": "Casablanca",
+            "city": "Casablanca",
+            "latitude": 33.5731,
+            "longitude": -7.5898,
+            "display_order": 99,
+        },
+    )
+    assert response.status_code == 201, response.text
+
+
 @pytest.mark.asyncio
 async def test_casablanca_markets_include_habous():
     transport = ASGITransport(app=app)
@@ -145,3 +166,34 @@ async def test_seller_create_assigns_marketplace_and_stall_fields():
         assert payload["marketplace_slug"] == "derb-ghallef"
         assert payload["shop_number"] == "42"
         assert "Gallery A" in payload["stall_location_summary"]
+
+
+@pytest.mark.asyncio
+async def test_seller_create_accepts_custom_market_name():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        await _seed_other_casablanca_market(client)
+        email = f"custom-market-{uuid4().hex[:8]}@example.com"
+        body = await register_test_user(client, email=email, account_type="seller")
+        headers = {"Authorization": f"Bearer {body['access_token']}"}
+
+        create = await client.post(
+            "/sellers",
+            headers=headers,
+            json={
+                "business_name": "Hay Shop",
+                "description": "Local market stall",
+                "address": "Hay Mohammadi, Casablanca",
+                "city": "Casablanca",
+                "latitude": 33.5731,
+                "longitude": -7.5898,
+                "phone": "+212600000001",
+                "custom_marketplace_name": "Hay Mohammadi Souk",
+                "seller_terms_acknowledged": True,
+            },
+        )
+        assert create.status_code == 201, create.text
+        payload = create.json()
+        assert payload["custom_marketplace_name"] == "Hay Mohammadi Souk"
+        assert payload["marketplace_name"] == "Hay Mohammadi Souk"
+        assert payload["marketplace_slug"] == "other-casablanca-markets"

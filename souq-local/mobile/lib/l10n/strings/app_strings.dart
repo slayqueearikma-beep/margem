@@ -714,6 +714,10 @@ abstract class AppStrings {
   String get verificationRejected;
   String get verificationPhoneVerified;
   String get chooseMarketLabel;
+  String get chooseMarketMoreOption;
+  String get customMarketNameLabel;
+  String get customMarketNameHint;
+  String get customMarketNameHelp;
   String get shopLocationTitle;
   String get requestAccountErasure;
   String get requestAccountErasureDescription;

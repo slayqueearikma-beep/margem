@@ -468,6 +468,7 @@ class SellerCreate(BaseModel):
     service_areas: list[str] = Field(default_factory=list)
     category_ids: list[UUID] = Field(default_factory=list)
     marketplace_slug: str | None = Field(default=None, max_length=80)
+    custom_marketplace_name: str = Field(default="", max_length=160)
     market_zone: str = Field(default="", max_length=120)
     market_street: str = Field(default="", max_length=120)
     market_gallery: str = Field(default="", max_length=120)
@@ -491,6 +492,16 @@ class SellerCreate(BaseModel):
 
         return resolve_city_name(value)
 
+    @model_validator(mode="after")
+    def require_marketplace(self) -> "SellerCreate":
+        slug = (self.marketplace_slug or "").strip()
+        custom = self.custom_marketplace_name.strip()
+        if not slug and not custom:
+            raise ValueError("Choose a market or provide a custom market name")
+        if custom and len(custom) < 2:
+            raise ValueError("Custom market name is too short")
+        return self
+
 
 class SellerUpdate(BaseModel):
     business_name: str | None = Field(default=None, min_length=2, max_length=160)
@@ -513,6 +524,7 @@ class SellerUpdate(BaseModel):
     service_areas: list[str] | None = None
     category_ids: list[UUID] | None = None
     marketplace_slug: str | None = Field(default=None, max_length=80)
+    custom_marketplace_name: str | None = Field(default=None, max_length=160)
     market_zone: str | None = Field(default=None, max_length=120)
     market_street: str | None = Field(default=None, max_length=120)
     market_gallery: str | None = Field(default=None, max_length=120)
@@ -556,6 +568,7 @@ class SellerSummary(BaseModel):
     distance_km: float | None = None
     marketplace_slug: str | None = None
     marketplace_name: str | None = None
+    custom_marketplace_name: str = ""
     market_zone: str = ""
     market_street: str = ""
     market_gallery: str = ""

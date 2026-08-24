@@ -1684,6 +1684,19 @@ class AppStringsAr extends AppStringsEn {
   String get chooseMarketLabel => 'اختر سوقك';
 
   @override
+  String get chooseMarketMoreOption => 'المزيد — اكتب اسم السوق';
+
+  @override
+  String get customMarketNameLabel => 'اسم السوق أو الحي';
+
+  @override
+  String get customMarketNameHint => 'مثال: الحي المحمدي، سيدي مومن…';
+
+  @override
+  String get customMarketNameHelp =>
+      'استخدم هذا الخيار إذا كان محلك في سوق آخر بالدار البيضاء غير المذكور أعلاه.';
+
+  @override
   String get shopLocationTitle => 'موقع المحل في السوق';
 
   @override

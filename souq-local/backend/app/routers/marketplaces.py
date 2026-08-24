@@ -13,7 +13,7 @@ from app.models.marketplace import Marketplace, MarketplaceCategory
 from app.schemas import SellerSummary
 from app.schemas.marketplace import MarketplaceCategoryPublicOut, MarketplaceOut
 from app.services.marketplace_scope import resolve_marketplace_id
-from app.services.seller_marketplace import attach_marketplace_metadata, format_stall_location
+from app.services.seller_marketplace import OTHER_CASABLANCA_MARKETS_SLUG, attach_marketplace_metadata, format_stall_location
 
 router = APIRouter(prefix="/marketplaces", tags=["marketplaces"])
 
@@ -71,6 +71,7 @@ async def list_marketplaces(
     stmt = select(Marketplace).order_by(Marketplace.display_order, Marketplace.name)
     if active_only:
         stmt = stmt.where(Marketplace.is_active.is_(True))
+    stmt = stmt.where(Marketplace.slug != OTHER_CASABLANCA_MARKETS_SLUG)
     if city:
         stmt = stmt.where(Marketplace.city.ilike(_escape_ilike(city.strip())))
     rows = list((await session.execute(stmt)).scalars().all())

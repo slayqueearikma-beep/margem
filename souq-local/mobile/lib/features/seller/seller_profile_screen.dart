@@ -19,6 +19,7 @@ import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/widgets/network_image_view.dart';
+import '../../core/widgets/seller_marketplace_picker.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 import 'seller_account_provider.dart';
@@ -41,6 +42,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   final _shopNumberController = TextEditingController();
   final _marketFloorController = TextEditingController();
   final _nearbyLandmarkController = TextEditingController();
+  final _customMarketNameController = TextEditingController();
 
   String? _selectedMarketSlug;
   LatLng _location = CityCoordinates.casablanca;
@@ -76,6 +78,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     _shopNumberController.dispose();
     _marketFloorController.dispose();
     _nearbyLandmarkController.dispose();
+    _customMarketNameController.dispose();
     super.dispose();
   }
 
@@ -97,7 +100,11 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     _descriptionController.text = seller.description;
     _addressController.text = seller.address;
     _phoneController.text = seller.phone;
-    _selectedMarketSlug = seller.marketplaceSlug;
+    _selectedMarketSlug = SellerMarketplacePicker.initialSelectedSlug(
+      marketplaceSlug: seller.marketplaceSlug,
+      customMarketplaceName: seller.customMarketplaceName,
+    );
+    _customMarketNameController.text = seller.customMarketplaceName;
     _marketZoneController.text = seller.marketZone;
     _marketStreetController.text = seller.marketStreet;
     _marketGalleryController.text = seller.marketGallery;
@@ -144,9 +151,15 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
 
   Future<void> _save(SellerModel seller) async {
     final l10n = context.l10n;
+    final customMarket = _customMarketNameController.text.trim();
+    final usesCustom = SellerMarketplacePicker.usesCustomMarket(
+      _selectedMarketSlug,
+      customMarket,
+    );
     if (_businessNameController.text.trim().length < 2 ||
         _addressController.text.trim().length < 5 ||
-        (_selectedMarketSlug ?? '').isEmpty) {
+        (_selectedMarketSlug ?? '').isEmpty ||
+        (usesCustom && customMarket.length < 2)) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
       return;
     }
@@ -175,7 +188,14 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
               'open': _formatTime(_openTime),
               'close': _formatTime(_closeTime),
             },
-            marketplaceSlug: _selectedMarketSlug,
+            marketplaceSlug: SellerMarketplacePicker.marketplaceSlugForApi(
+              selectedSlug: _selectedMarketSlug,
+              customName: customMarket,
+            ),
+            customMarketplaceName: SellerMarketplacePicker.customMarketplaceNameForApi(
+              selectedSlug: _selectedMarketSlug,
+              customName: customMarket,
+            ),
             marketZone: _marketZoneController.text.trim(),
             marketStreet: _marketStreetController.text.trim(),
             marketGallery: _marketGalleryController.text.trim(),
@@ -244,27 +264,18 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
               marketsAsync.when(
-                data: (markets) {
-                  if (markets.isEmpty) {
-                    return Text(l10n.somethingWentWrong);
-                  }
-                  final selected = _selectedMarketSlug ?? markets.first.slug;
-                  return DropdownButtonFormField<String>(
-                    value: selected,
-                    decoration: InputDecoration(labelText: l10n.chooseMarketLabel),
-                    items: markets
-                        .map(
-                          (market) => DropdownMenuItem(
-                            value: market.slug,
-                            child: Text(market.displayName),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: _loading
-                        ? null
-                        : (value) => setState(() => _selectedMarketSlug = value),
-                  );
-                },
+                data: (markets) => SellerMarketplacePicker(
+                  markets: markets,
+                  selectedSlug: _selectedMarketSlug ??
+                      SellerMarketplacePicker.initialSelectedSlug(
+                        marketplaceSlug: account.profile.marketplaceSlug,
+                        customMarketplaceName: account.profile.customMarketplaceName,
+                      ) ??
+                      markets.first.slug,
+                  customNameController: _customMarketNameController,
+                  enabled: !_loading,
+                  onSlugChanged: (value) => setState(() => _selectedMarketSlug = value),
+                ),
                 loading: () => const LinearProgressIndicator(),
                 error: (_, __) => Text(l10n.somethingWentWrong),
               ),

@@ -33,7 +33,7 @@ from app.schemas import (
     VideoOut,
 )
 from app.services.premium import apply_seller_premium_expiry, is_premium_active
-from app.services.seller_marketplace import apply_marketplace_slug
+from app.services.seller_marketplace import apply_marketplace_selection
 from app.services.ratings import (
     overall_from_categories,
     refresh_seller_ratings,
@@ -415,7 +415,12 @@ async def create_seller(
         nearby_landmark=payload.nearby_landmark.strip(),
         categories=categories,
     )
-    await apply_marketplace_slug(session, seller, payload.marketplace_slug)
+    await apply_marketplace_selection(
+        session,
+        seller,
+        payload.marketplace_slug,
+        payload.custom_marketplace_name,
+    )
     session.add(seller)
     # Dual-mode: keep one identity; mark account as seller-capable.
     user.account_type = AccountType.PROVIDER
@@ -473,6 +478,7 @@ async def update_seller(
     category_ids = data.pop("category_ids", None)
     opening_hours = data.pop("opening_hours", None)
     marketplace_slug = data.pop("marketplace_slug", None)
+    custom_marketplace_name = data.pop("custom_marketplace_name", None)
 
     if "cover_image_url" in data:
         new_cover = await _validate_owner_media_registered(session, data["cover_image_url"] or "", user.id)
@@ -507,8 +513,13 @@ async def update_seller(
         result = await session.execute(select(Category).where(Category.id.in_(category_ids)))
         seller.categories = list(result.scalars().all())
 
-    if marketplace_slug is not None:
-        await apply_marketplace_slug(session, seller, marketplace_slug)
+    if marketplace_slug is not None or custom_marketplace_name is not None:
+        await apply_marketplace_selection(
+            session,
+            seller,
+            marketplace_slug,
+            custom_marketplace_name,
+        )
 
     await session.commit()
     return await _load_seller_detail(session, seller_id)

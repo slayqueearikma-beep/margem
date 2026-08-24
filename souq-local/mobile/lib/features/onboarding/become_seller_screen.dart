@@ -11,6 +11,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/margem_app_bar.dart';
+import '../../core/widgets/seller_marketplace_picker.dart';
 import '../../features/buyer/buyer_home_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../legal/legal_config.dart';
@@ -32,6 +33,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
   final _phone = TextEditingController();
   final _shopNumber = TextEditingController();
   final _marketGallery = TextEditingController();
+  final _customMarketName = TextEditingController();
   String? _selectedMarketSlug;
   bool _loading = false;
   bool _sellerTermsAccepted = false;
@@ -44,6 +46,7 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
     _phone.dispose();
     _shopNumber.dispose();
     _marketGallery.dispose();
+    _customMarketName.dispose();
     super.dispose();
   }
 
@@ -54,12 +57,17 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
       context.push('/login');
       return;
     }
-    final marketSlug = _selectedMarketSlug;
+    final markets = ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
+    final marketSlug = _selectedMarketSlug ??
+        (markets.isNotEmpty ? markets.first.slug : null);
+    final customMarket = _customMarketName.text.trim();
+    final usesCustom = SellerMarketplacePicker.usesCustomMarket(marketSlug, customMarket);
     if (_businessName.text.trim().length < 2 ||
         _address.text.trim().length < 5 ||
         _phone.text.trim().isEmpty ||
         marketSlug == null ||
-        marketSlug.isEmpty) {
+        marketSlug.isEmpty ||
+        (usesCustom && customMarket.length < 2)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.completeRequiredStep)),
       );
@@ -85,7 +93,14 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
           latitude: coords.latitude,
           longitude: coords.longitude,
           phone: _phone.text.trim(),
-          marketplaceSlug: _selectedMarketSlug,
+          marketplaceSlug: SellerMarketplacePicker.marketplaceSlugForApi(
+            selectedSlug: _selectedMarketSlug,
+            customName: customMarket,
+          ),
+          customMarketplaceName: SellerMarketplacePicker.customMarketplaceNameForApi(
+            selectedSlug: _selectedMarketSlug,
+            customName: customMarket,
+          ),
           shopNumber: _shopNumber.text.trim(),
           marketGallery: _marketGallery.text.trim(),
           sellerTermsAcknowledged: true,
@@ -144,26 +159,13 @@ class _BecomeSellerScreenState extends ConsumerState<BecomeSellerScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
             marketsAsync.when(
-              data: (markets) {
-                if (markets.isEmpty) {
-                  return Text(l10n.somethingWentWrong);
-                }
-                return DropdownButtonFormField<String>(
-                  value: _selectedMarketSlug ?? markets.first.slug,
-                  decoration: InputDecoration(labelText: l10n.chooseMarketLabel),
-                  items: markets
-                      .map(
-                        (market) => DropdownMenuItem(
-                          value: market.slug,
-                          child: Text(market.displayName),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: _loading
-                      ? null
-                      : (value) => setState(() => _selectedMarketSlug = value),
-                );
-              },
+              data: (markets) => SellerMarketplacePicker(
+                markets: markets,
+                selectedSlug: _selectedMarketSlug ?? markets.first.slug,
+                customNameController: _customMarketName,
+                enabled: !_loading,
+                onSlugChanged: (value) => setState(() => _selectedMarketSlug = value),
+              ),
               loading: () => const LinearProgressIndicator(),
               error: (_, __) => Text(l10n.somethingWentWrong),
             ),
