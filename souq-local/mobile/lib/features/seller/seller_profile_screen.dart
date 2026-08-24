@@ -53,6 +53,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   String _logoUrl = '';
   XFile? _coverImage;
   XFile? _logoImage;
+  final Set<String> _selectedCategoryIds = {};
 
   final Map<String, bool> _openDays = {
     'Mon': true,
@@ -114,6 +115,9 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     _location = LatLng(seller.latitude, seller.longitude);
     _coverUrl = seller.coverImageUrl;
     _logoUrl = seller.logoImageUrl;
+    _selectedCategoryIds
+      ..clear()
+      ..addAll(seller.categories.map((category) => category.id));
     _isActive = isActive;
     final hours = seller.openingHours;
     if (!hours.isEmpty) {
@@ -202,6 +206,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
             shopNumber: _shopNumberController.text.trim(),
             marketFloor: _marketFloorController.text.trim(),
             nearbyLandmark: _nearbyLandmarkController.text.trim(),
+            categoryIds: _selectedCategoryIds.toList(),
           ),
         );
       });
@@ -223,6 +228,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     final l10n = context.l10n;
     final accountAsync = ref.watch(sellerAccountProvider);
     final marketsAsync = ref.watch(buyerMarketplacesProvider);
+    final categoriesAsync = ref.watch(buyerCategoriesProvider);
 
     return Scaffold(
       appBar: MarGemAppBar(semanticLabel: l10n.profileManagement),
@@ -261,6 +267,43 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
               InputDecorator(
                 decoration: InputDecoration(labelText: l10n.reviewCity),
                 child: const Text(AppConfig.launchCity),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              categoriesAsync.when(
+                data: (categories) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.sellerCategoriesTitle,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: categories.map((category) {
+                        final selected = _selectedCategoryIds.contains(category.id);
+                        return FilterChip(
+                          label: Text(category.localizedName(
+                            Localizations.localeOf(context).languageCode,
+                          )),
+                          selected: selected,
+                          onSelected: _loading
+                              ? null
+                              : (value) => setState(() {
+                                    if (value) {
+                                      _selectedCategoryIds.add(category.id);
+                                    } else {
+                                      _selectedCategoryIds.remove(category.id);
+                                    }
+                                  }),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+                loading: () => const LinearProgressIndicator(),
+                error: (_, __) => Text(l10n.somethingWentWrong),
               ),
               const SizedBox(height: AppSpacing.md),
               marketsAsync.when(

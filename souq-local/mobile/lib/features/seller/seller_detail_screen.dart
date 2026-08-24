@@ -638,7 +638,7 @@ class _SellerHeader extends StatelessWidget {
                   if (seller.verificationStatus == 'verified')
                     Icon(Icons.verified_rounded,
                         color: Colors.blue, size: 22),
-                  if (seller.isPremium)
+                  if (seller.isSellerPro)
                     Padding(
                       padding: EdgeInsets.only(left: 4),
                       child: Icon(Icons.workspace_premium_rounded,

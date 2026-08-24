@@ -43,3 +43,12 @@ def test_apply_seller_premium_expiry_clears_stale_flags():
     assert apply_seller_premium_expiry(seller, persist=True) is False
     assert seller.is_premium is False
     assert owner.is_premium is False
+
+
+def test_buyer_plus_does_not_make_seller_premium():
+    owner = _Owner(is_premium=True, premium_until=datetime.now(UTC) + timedelta(days=7))
+    seller = _Seller(is_premium=False, user=owner)
+    assert apply_seller_premium_expiry(seller, persist=False) is False
+    assert seller.is_premium is False
+    assert getattr(seller, "is_seller_pro") is False
+    assert getattr(seller, "is_buyer_plus") is True

@@ -629,6 +629,8 @@ class ApiService {
     String sort = 'relevance',
     int offset = 0,
     int limit = 20,
+    double? lat,
+    double? lng,
   }) async {
     try {
       return await _searchMarketplaceRequest(
@@ -644,6 +646,8 @@ class ApiService {
         sort: sort,
         offset: offset,
         limit: limit,
+        lat: lat,
+        lng: lng,
       );
     } on ApiException catch (error) {
       if (error.statusCode == 422 && mode != 'all') {
@@ -662,6 +666,8 @@ class ApiService {
             sort: sort,
             offset: offset,
             limit: limit,
+            lat: lat,
+            lng: lng,
           );
           return _filterSearchPage(page, mode);
         }
@@ -726,6 +732,8 @@ class ApiService {
     String sort = 'relevance',
     int offset = 0,
     int limit = 20,
+    double? lat,
+    double? lng,
   }) async {
     final params = <String, String>{
       'q': query,
@@ -740,6 +748,8 @@ class ApiService {
       if (minRating != null) 'min_rating': '$minRating',
       if (deliveryAvailable == true) 'delivery_available': 'true',
       if (pickupOnly == true) 'pickup_only': 'true',
+      if (lat != null) 'lat': '$lat',
+      if (lng != null) 'lng': '$lng',
     };
     final response = await _request(
       () => _get(_uri('/search', params), headers: _authHeaders),
@@ -885,6 +895,42 @@ class ApiService {
 
   Future<void> removeFavoriteSeller(String sellerId) {
     return deletePath('/favorites/sellers/$sellerId', auth: true);
+  }
+
+  Future<List<SavedSearchModel>> fetchSavedSearches() async {
+    final data = await getJsonList('/saved-searches', auth: true);
+    return data
+        .map((item) => SavedSearchModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<SavedSearchModel> createSavedSearch({
+    required String query,
+    required String city,
+    String category = '',
+    String marketplaceSlug = '',
+  }) async {
+    final response = await _request(
+      () => _post(
+        _uri('/saved-searches'),
+        headers: _jsonHeaders(auth: true),
+        body: jsonEncode({
+          'query': query,
+          'city': city,
+          'category': category,
+          'marketplace_slug': marketplaceSlug,
+        }),
+      ),
+      auth: true,
+    );
+    _ensureSuccess(response);
+    return SavedSearchModel.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  Future<void> deleteSavedSearch(String searchId) {
+    return deletePath('/saved-searches/$searchId', auth: true);
   }
 
   Future<List<FavoriteItemModel>> migrateGuestFavorites(

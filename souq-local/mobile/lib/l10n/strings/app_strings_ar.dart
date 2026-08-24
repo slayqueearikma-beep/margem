@@ -338,6 +338,35 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get searchSortedByNearest => 'عرض الأقرب أولاً';
   @override
+  String get searchSortRelevance => 'الأكثر صلة';
+  @override
+  String get searchSortNearest => 'الأقرب';
+  @override
+  String get loadMoreResults => 'تحميل المزيد';
+  @override
+  String get savedSearchesTitle => 'عمليات البحث المحفوظة';
+  @override
+  String get saveCurrentSearch => 'حفظ هذا البحث';
+  @override
+  String get savedSearchApplied => 'تم تطبيق البحث المحفوظ';
+  @override
+  String get savedSearchDeleted => 'تم حذف البحث المحفوظ';
+  @override
+  String get savedSearchPremiumRequired =>
+      'عمليات البحث المحفوظة متاحة مع Dribex Plus.';
+  @override
+  String get sellerProBadge => 'Pro';
+  @override
+  String get buyerPlusBadge => 'Plus';
+  @override
+  String get sellerCategoriesTitle => 'فئات النشاط';
+  @override
+  String get mapZoneFilterAll => 'كل المناطق';
+  @override
+  String get mapZoneHierarchyTitle => 'المحلات حسب المنطقة';
+  @override
+  String get noShopsInZone => 'لا توجد محلات في هذه المنطقة بعد';
+  @override
   String warningZones(int count) =>
       count == 1 ? 'منطقة تحذير واحدة' : '$count مناطق تحذير';
   @override

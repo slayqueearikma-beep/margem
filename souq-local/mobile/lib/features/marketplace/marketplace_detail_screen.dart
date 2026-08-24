@@ -288,11 +288,11 @@ class _MarketSellerTile extends StatelessWidget {
                       seller.businessName,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    if (seller.isPremium)
+                    if (seller.isSellerPro)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(
-                          context.l10n.sponsoredLabel,
+                          context.l10n.sellerProBadge,
                           style: TextStyle(
                             color: context.colors.primary,
                             fontSize: 11,
