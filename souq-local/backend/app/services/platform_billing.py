@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -301,6 +302,16 @@ async def process_provider_webhook(
             payload_hash=payload_hash,
         )
     )
+    try:
+        await session.flush()
+    except IntegrityError:
+        await session.rollback()
+        logger.info(
+            "payment_webhook_duplicate_race provider=%s event_id=%s",
+            provider_name,
+            verified.event_id,
+        )
+        return True
 
     if verified.event_type not in settings.naps_webhook_success_statuses:
         await session.commit()

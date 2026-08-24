@@ -180,3 +180,40 @@ async def test_block_hides_conversation_from_inbox(client: AsyncClient):
     assert inbox_after.status_code == 200
     assert inbox_after.json() == []
 
+
+@pytest.mark.asyncio
+async def test_conversation_idor_denies_non_participant(client: AsyncClient):
+    buyer_a = await _register(client, "buyer", "Buyer A")
+    buyer_b = await _register(client, "buyer", "Buyer B")
+    outsider = await _register(client, "buyer", "Outsider")
+
+    started = await client.post(
+        f"/messages/users/{buyer_b['user_id']}",
+        headers=buyer_a["headers"],
+        json={"body": "Private thread"},
+    )
+    assert started.status_code == 201, started.text
+    conv_id = started.json()["conversation_id"]
+
+    read_blocked = await client.get(
+        f"/messages/conversations/{conv_id}",
+        headers=outsider["headers"],
+    )
+    assert read_blocked.status_code == 404
+
+    write_blocked = await client.post(
+        f"/messages/conversations/{conv_id}",
+        headers=outsider["headers"],
+        json={"body": "Intrusion attempt"},
+    )
+    assert write_blocked.status_code == 404
+
+    unauth_read = await client.get(f"/messages/conversations/{conv_id}")
+    assert unauth_read.status_code == 401
+
+    unauth_write = await client.post(
+        f"/messages/conversations/{conv_id}",
+        json={"body": "Intrusion attempt"},
+    )
+    assert unauth_write.status_code == 401
+

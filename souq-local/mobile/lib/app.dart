@@ -107,6 +107,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isSellerManagement = path == '/seller/dashboard' ||
           path.startsWith('/seller/products') ||
           path.startsWith('/seller/services') ||
+          path.startsWith('/seller/videos') ||
           path.startsWith('/seller/analytics') ||
           path.startsWith('/seller/profile') ||
           path.startsWith('/seller/reviews') ||
