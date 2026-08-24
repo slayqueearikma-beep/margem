@@ -1528,6 +1528,43 @@ class AppStringsAr extends AppStringsEn {
   String get paymentHistoryTitle => 'سجل المدفوعات';
 
   @override
+  String get billingSettingsTitle => 'الفوترة والاشتراك';
+
+  @override
+  String get billingSettingsSubtitle =>
+      'إدارة اشتراك Dribex والإلغاء وسجل مدفوعات المنصة.';
+
+  @override
+  String get billingSectionTitle => 'الفوترة والاشتراك';
+
+  @override
+  String get billingSectionSubtitle => 'حالة الاشتراك وسجل المدفوعات';
+
+  @override
+  String get noActiveSubscription => 'لا يوجد اشتراك نشط';
+
+  @override
+  String get noPaymentHistory => 'لا توجد مدفوعات بعد';
+
+  @override
+  String get viewPremiumPlans => 'عرض خطط Premium';
+
+  @override
+  String get billingProviderLabel => 'مزود الدفع';
+
+  @override
+  String get paymentStatusSuccess => 'مدفوع';
+
+  @override
+  String get paymentStatusFailed => 'فشل';
+
+  @override
+  String get paymentStatusCancelled => 'ملغى';
+
+  @override
+  String get paymentStatusPending => 'قيد الانتظار';
+
+  @override
   String get subscriptionRenewsUntil => 'الوصول حتى';
 
   @override

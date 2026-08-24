@@ -46,6 +46,7 @@ import 'features/seller/seller_reviews_screen.dart';
 import 'features/seller/seller_settings_screen.dart';
 import 'features/wishlist/wishlist_screen.dart';
 import 'features/settings/language_selection_screen.dart';
+import 'features/settings/billing_settings_screen.dart';
 import 'features/legal/legal_acceptance_screen.dart';
 import 'features/legal/account_settings_screen.dart';
 import 'features/legal/legal_document_screen.dart';
@@ -145,6 +146,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/your-data',
         builder: (_, __) => const YourDataScreen(),
+      ),
+      GoRoute(
+        path: '/settings/billing',
+        builder: (_, __) => const BillingSettingsScreen(),
       ),
       GoRoute(
         path: '/legal/:doc',

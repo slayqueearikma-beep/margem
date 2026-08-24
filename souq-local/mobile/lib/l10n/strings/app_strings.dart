@@ -663,6 +663,18 @@ abstract class AppStrings {
   String get helpAndSupportTitle;
   String get subscriptionManagementTitle;
   String get paymentHistoryTitle;
+  String get billingSettingsTitle;
+  String get billingSettingsSubtitle;
+  String get billingSectionTitle;
+  String get billingSectionSubtitle;
+  String get noActiveSubscription;
+  String get noPaymentHistory;
+  String get viewPremiumPlans;
+  String get billingProviderLabel;
+  String get paymentStatusSuccess;
+  String get paymentStatusFailed;
+  String get paymentStatusCancelled;
+  String get paymentStatusPending;
   String get subscriptionRenewsUntil;
   String get cancelSubscriptionTitle;
   String get cancelSubscriptionBody;
