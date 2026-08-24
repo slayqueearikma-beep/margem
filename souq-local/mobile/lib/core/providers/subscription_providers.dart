@@ -58,3 +58,9 @@ void invalidateSubscriptionProviders(WidgetRef ref) {
   ref.invalidate(billingStatusProvider);
   ref.invalidate(myPlatformPaymentsProvider);
 }
+
+bool hasBuyerPremiumSubscription(SubscriptionModel? subscription) {
+  if (subscription == null) return false;
+  if (subscription.status != 'active') return false;
+  return subscription.plan.code == 'buyer_premium';
+}

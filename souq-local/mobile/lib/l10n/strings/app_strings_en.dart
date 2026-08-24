@@ -341,6 +341,35 @@ class AppStringsEn extends AppStrings {
   @override
   String get searchSortedByNearest => 'Showing nearest matches';
   @override
+  String get searchSortRelevance => 'Relevance';
+  @override
+  String get searchSortNearest => 'Nearest';
+  @override
+  String get loadMoreResults => 'Load more';
+  @override
+  String get savedSearchesTitle => 'Saved searches';
+  @override
+  String get saveCurrentSearch => 'Save this search';
+  @override
+  String get savedSearchApplied => 'Saved search applied';
+  @override
+  String get savedSearchDeleted => 'Saved search removed';
+  @override
+  String get savedSearchPremiumRequired =>
+      'Saved searches are included with Dribex Plus.';
+  @override
+  String get sellerProBadge => 'Pro';
+  @override
+  String get buyerPlusBadge => 'Plus';
+  @override
+  String get sellerCategoriesTitle => 'Business categories';
+  @override
+  String get mapZoneFilterAll => 'All zones';
+  @override
+  String get mapZoneHierarchyTitle => 'Shops by zone';
+  @override
+  String get noShopsInZone => 'No shops in this zone yet';
+  @override
   String warningZones(int count) => '$count warning zone(s)';
   @override
   String get yourProfile => 'Your profile';

@@ -295,6 +295,13 @@ async def map_pins(
             golden_crowns=s.golden_crowns,
             average_rating=s.average_rating,
             category_slugs=[c.slug for c in s.categories],
+            marketplace_slug=getattr(s, "marketplace_slug", None),
+            market_zone=s.market_zone or "",
+            market_street=s.market_street or "",
+            market_gallery=s.market_gallery or "",
+            shop_number=s.shop_number or "",
+            stall_location_summary=getattr(s, "stall_location_summary", "") or "",
+            is_seller_pro=bool(getattr(s, "is_seller_pro", s.is_premium)),
         )
         for s in sellers
     ]

@@ -19,6 +19,7 @@ from app.schemas import PricingType as PricingTypeSchema
 from app.schemas import SellerSummary
 from app.services.geo import haversine_km_sql
 from app.services.marketplace_scope import resolve_marketplace_id
+from app.services.premium import attach_premium_flags, seller_pro_active
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -110,6 +111,7 @@ def _provider_filters(
 
 
 def _to_seller_summary(profile: SellerProfile, distance_km: float | None = None) -> SellerSummary:
+    attach_premium_flags(profile, persist=False)
     summary = SellerSummary.model_validate(profile)
     if distance_km is None:
         return summary
@@ -164,7 +166,10 @@ async def search(
 
     if mode in {"all", "providers"}:
         seller_stmt = _provider_filters(
-            select(SellerProfile).options(selectinload(SellerProfile.categories)),
+            select(SellerProfile).options(
+                selectinload(SellerProfile.categories),
+                selectinload(SellerProfile.user),
+            ),
             q=q,
             category=category,
             min_rating=min_rating,
@@ -209,6 +214,8 @@ async def search(
     if mode in {"all", "products"}:
         product_stmt = select(Product, SellerProfile).join(
             SellerProfile, Product.seller_id == SellerProfile.id
+        ).options(
+            selectinload(SellerProfile.user),
         ).where(
             SellerProfile.is_active.is_(True),
             SellerProfile.city.ilike(LAUNCH_CITY),
@@ -278,7 +285,7 @@ async def search(
                 seller_name=s.business_name,
                 seller_city=s.city,
                 seller_verified=s.verification_status == VerificationStatus.VERIFIED,
-                seller_premium=s.is_premium,
+                seller_premium=seller_pro_active(s),
                 seller_rating=s.average_rating,
                 name=p.name,
                 description=p.description,
@@ -297,6 +304,8 @@ async def search(
     if mode in {"all", "services"}:
         service_stmt = select(Service, SellerProfile).join(
             SellerProfile, Service.seller_id == SellerProfile.id
+        ).options(
+            selectinload(SellerProfile.user),
         ).where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
         if marketplace_id is not None:
             service_stmt = service_stmt.where(SellerProfile.marketplace_id == marketplace_id)
@@ -349,7 +358,7 @@ async def search(
                 seller_name=s.business_name,
                 seller_city=s.city,
                 seller_verified=s.verification_status == VerificationStatus.VERIFIED,
-                seller_premium=s.is_premium,
+                seller_premium=seller_pro_active(s),
                 seller_rating=s.average_rating,
                 name=srv.name,
                 description=srv.description,

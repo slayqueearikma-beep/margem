@@ -181,6 +181,8 @@ class SellerModel {
     this.followerCount = 0,
     this.avgResponseMinutes = 0,
     this.isPremium = false,
+    this.isSellerPro = false,
+    this.isBuyerPlus = false,
     this.verificationStatus = 'unverified',
     this.marketplaceSlug,
     this.marketplaceName,
@@ -235,6 +237,8 @@ class SellerModel {
   final int followerCount;
   final int avgResponseMinutes;
   final bool isPremium;
+  final bool isSellerPro;
+  final bool isBuyerPlus;
   final String verificationStatus;
   final String? marketplaceSlug;
   final String? marketplaceName;
@@ -300,7 +304,9 @@ class SellerModel {
       contactClickCount: json['contact_click_count'] as int? ?? 0,
       followerCount: json['follower_count'] as int? ?? 0,
       avgResponseMinutes: json['avg_response_minutes'] as int? ?? 0,
-      isPremium: json['is_premium'] as bool? ?? false,
+      isPremium: json['is_seller_pro'] as bool? ?? json['is_premium'] as bool? ?? false,
+      isSellerPro: json['is_seller_pro'] as bool? ?? json['is_premium'] as bool? ?? false,
+      isBuyerPlus: json['is_buyer_plus'] as bool? ?? false,
       verificationStatus:
           json['verification_status'] as String? ?? 'unverified',
       marketplaceSlug: json['marketplace_slug'] as String?,
@@ -781,6 +787,32 @@ class ReviewEligibilityModel {
   }
 }
 
+class SavedSearchModel {
+  const SavedSearchModel({
+    required this.id,
+    required this.query,
+    required this.city,
+    required this.category,
+    this.marketplaceSlug = '',
+  });
+
+  final String id;
+  final String query;
+  final String city;
+  final String category;
+  final String marketplaceSlug;
+
+  factory SavedSearchModel.fromJson(Map<String, dynamic> json) {
+    return SavedSearchModel(
+      id: json['id'] as String,
+      query: json['query'] as String? ?? '',
+      city: json['city'] as String? ?? '',
+      category: json['category'] as String? ?? '',
+      marketplaceSlug: json['marketplace_slug'] as String? ?? '',
+    );
+  }
+}
+
 class MapPinModel {
   const MapPinModel({
     required this.id,
@@ -791,6 +823,13 @@ class MapPinModel {
     required this.averageRating,
     required this.categorySlugs,
     this.goldenCrowns = 0,
+    this.marketplaceSlug,
+    this.marketZone = '',
+    this.marketStreet = '',
+    this.marketGallery = '',
+    this.shopNumber = '',
+    this.stallLocationSummary = '',
+    this.isSellerPro = false,
   });
 
   final String id;
@@ -801,6 +840,20 @@ class MapPinModel {
   final int goldenCrowns;
   final double averageRating;
   final List<String> categorySlugs;
+  final String? marketplaceSlug;
+  final String marketZone;
+  final String marketStreet;
+  final String marketGallery;
+  final String shopNumber;
+  final String stallLocationSummary;
+  final bool isSellerPro;
+
+  String get zoneLabel {
+    if (marketZone.isNotEmpty) return marketZone;
+    if (marketGallery.isNotEmpty) return marketGallery;
+    if (marketStreet.isNotEmpty) return marketStreet;
+    return '';
+  }
 
   factory MapPinModel.fromJson(Map<String, dynamic> json) {
     return MapPinModel(
@@ -814,6 +867,13 @@ class MapPinModel {
       categorySlugs: (json['category_slugs'] as List<dynamic>? ?? [])
           .map((e) => e as String)
           .toList(),
+      marketplaceSlug: json['marketplace_slug'] as String?,
+      marketZone: json['market_zone'] as String? ?? '',
+      marketStreet: json['market_street'] as String? ?? '',
+      marketGallery: json['market_gallery'] as String? ?? '',
+      shopNumber: json['shop_number'] as String? ?? '',
+      stallLocationSummary: json['stall_location_summary'] as String? ?? '',
+      isSellerPro: json['is_seller_pro'] as bool? ?? false,
     );
   }
 }

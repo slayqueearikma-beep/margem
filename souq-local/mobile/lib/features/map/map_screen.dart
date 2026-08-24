@@ -30,8 +30,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   late Future<_MapData> _mapFuture;
   String? _loadedCity;
   String? _loadedMarketplace;
+  String? _selectedZone;
   bool _locationEnabled = false;
   bool _locationNoticeShown = false;
+  bool _showZonePanel = false;
 
   @override
   void initState() {
@@ -66,6 +68,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (_loadedCity != city || _loadedMarketplace != marketplace) {
       _loadedCity = city;
       _loadedMarketplace = marketplace;
+      _selectedZone = null;
       _mapFuture = _loadMapData(city, marketplace: marketplace);
     }
   }
@@ -74,8 +77,37 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     setState(() {
       _loadedCity = city;
       _loadedMarketplace = marketplace;
+      _selectedZone = null;
       _mapFuture = _loadMapData(city, marketplace: marketplace);
     });
+  }
+
+  List<String> _zonesForPins(List<MapPinModel> pins) {
+    final zones = <String>{};
+    for (final pin in pins) {
+      final label = pin.zoneLabel.trim();
+      if (label.isNotEmpty) zones.add(label);
+    }
+    return zones.toList()..sort();
+  }
+
+  List<MapPinModel> _filteredPins(List<MapPinModel> pins) {
+    if (_selectedZone == null || _selectedZone!.isEmpty) return pins;
+    return pins
+        .where((pin) => pin.zoneLabel.trim() == _selectedZone)
+        .toList();
+  }
+
+  Map<String, List<MapPinModel>> _groupPinsByZone(List<MapPinModel> pins) {
+    final grouped = <String, List<MapPinModel>>{};
+    for (final pin in pins) {
+      final key = pin.zoneLabel.trim().isEmpty
+          ? context.l10n.mapZoneFilterAll
+          : pin.zoneLabel.trim();
+      grouped.putIfAbsent(key, () => []).add(pin);
+    }
+    final sortedKeys = grouped.keys.toList()..sort();
+    return {for (final key in sortedKeys) key: grouped[key]!};
   }
 
   @override
@@ -132,9 +164,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         }
 
         final data = snapshot.data!;
-        final pins = data.pins;
+        final allPins = data.pins;
         final warnings = data.warnings;
         final usingDemo = data.usingDemo;
+        final zones = _zonesForPins(allPins);
+        final pins = _filteredPins(allPins);
+        final grouped = _groupPinsByZone(allPins);
+        final showZoneControls =
+            marketplace != null && marketplace.isNotEmpty && zones.isNotEmpty;
 
         final initial = pins.isNotEmpty
             ? LatLng(pins.first.latitude, pins.first.longitude)
@@ -142,23 +179,29 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
         final markers = <Marker>{
           ...pins.map((pin) {
+            final snippet = pin.stallLocationSummary.isNotEmpty
+                ? pin.stallLocationSummary
+                : pin.goldenCrowns > 0
+                    ? '${pin.averageRating} ★ · ${pin.goldenCrowns} golden crown(s)'
+                    : '${pin.averageRating} ★ · ${pin.achievementStars} achievement stars';
             return Marker(
               markerId: MarkerId(pin.id),
               position: LatLng(pin.latitude, pin.longitude),
               infoWindow: InfoWindow(
                 title: pin.businessName,
-                snippet: pin.goldenCrowns > 0
-                    ? '${pin.averageRating} ★ · ${pin.goldenCrowns} golden crown(s)'
-                    : '${pin.averageRating} ★ · ${pin.achievementStars} achievement stars',
+                snippet: snippet,
                 onTap: () => context.push('/seller/${pin.id}'),
               ),
-              icon: pin.goldenCrowns > 0
+              icon: pin.isSellerPro
                   ? BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueYellow)
-                  : pin.achievementStars > 0
+                      BitmapDescriptor.hueAzure)
+                  : pin.goldenCrowns > 0
                       ? BitmapDescriptor.defaultMarkerWithHue(
-                          BitmapDescriptor.hueOrange)
-                      : BitmapDescriptor.defaultMarker,
+                          BitmapDescriptor.hueYellow)
+                      : pin.achievementStars > 0
+                          ? BitmapDescriptor.defaultMarkerWithHue(
+                              BitmapDescriptor.hueOrange)
+                          : BitmapDescriptor.defaultMarker,
             );
           }),
           ...warnings.map((zone) {
@@ -254,11 +297,105 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 ),
               ),
             ),
+            if (showZoneControls)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 88,
+                left: AppSpacing.screenHorizontal,
+                right: AppSpacing.screenHorizontal,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(l10n.mapZoneFilterAll),
+                          selected: _selectedZone == null,
+                          onSelected: (_) => setState(() => _selectedZone = null),
+                        ),
+                      ),
+                      for (final zone in zones)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(zone),
+                            selected: _selectedZone == zone,
+                            onSelected: (_) => setState(() => _selectedZone = zone),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            if (showZoneControls)
+              Positioned(
+                bottom: AppSpacing.lg,
+                right: AppSpacing.screenHorizontal,
+                child: FloatingActionButton.extended(
+                  onPressed: () => setState(() => _showZonePanel = !_showZonePanel),
+                  icon: Icon(_showZonePanel
+                      ? Icons.map_outlined
+                      : Icons.view_list_outlined),
+                  label: Text(l10n.mapZoneHierarchyTitle),
+                ),
+              ),
+            if (_showZonePanel && showZoneControls)
+              Positioned(
+                left: AppSpacing.screenHorizontal,
+                right: AppSpacing.screenHorizontal,
+                bottom: AppSpacing.lg + 56,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.34,
+                  ),
+                  child: BuyerSurfaceCard(
+                    child: ListView(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      children: [
+                        Text(
+                          l10n.mapZoneHierarchyTitle,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        for (final entry in grouped.entries) ...[
+                          Text(
+                            entry.key,
+                            style: TextStyle(
+                              color: context.colors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          if (entry.value.isEmpty)
+                            Text(l10n.noShopsInZone)
+                          else
+                            ...entry.value.map(
+                              (pin) => ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                dense: true,
+                                title: Text(pin.businessName),
+                                subtitle: pin.stallLocationSummary.isNotEmpty
+                                    ? Text(pin.stallLocationSummary)
+                                    : null,
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () => context.push('/seller/${pin.id}'),
+                              ),
+                            ),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             if (usingDemo)
               Positioned(
                 bottom: AppSpacing.lg,
                 left: AppSpacing.screenHorizontal,
-                right: AppSpacing.screenHorizontal,
+                right: showZoneControls ? 160 : AppSpacing.screenHorizontal,
                 child: BuyerSurfaceCard(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.md),

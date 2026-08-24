@@ -562,6 +562,8 @@ class SellerSummary(BaseModel):
     avg_trustworthiness: float = 0.0
     golden_crowns: int = 0
     is_premium: bool = False
+    is_seller_pro: bool = False
+    is_buyer_plus: bool = False
     verification_status: str = "unverified"
     avg_response_minutes: int = 0
     categories: list[CategoryOut]
@@ -656,6 +658,13 @@ class MapPin(BaseModel):
     golden_crowns: int = 0
     average_rating: float
     category_slugs: list[str]
+    marketplace_slug: str | None = None
+    market_zone: str = ""
+    market_street: str = ""
+    market_gallery: str = ""
+    shop_number: str = ""
+    stall_location_summary: str = ""
+    is_seller_pro: bool = False
 
 
 class ReviewCreate(BaseModel):
