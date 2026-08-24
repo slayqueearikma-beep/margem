@@ -198,7 +198,7 @@ async def _enforce_video_quota(session: AsyncSession, user: User, seller: Seller
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
                 f"Free sellers can publish up to {limit} active videos. "
-                "Upgrade to Dribex Pro for unlimited videos."
+                "Upgrade to Dribex Pro for featured placement and advanced analytics."
             ),
         )
 

@@ -5,10 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/navigation/app_back_handler.dart';
 import '../../core/widgets/margem_app_bar.dart';
-import '../../core/widgets/premium_ribbon_badge.dart';
 import '../../l10n/app_localizations.dart';
-import 'seller_account_provider.dart';
-import 'seller_bookings_tab.dart';
+import 'seller_messages_tab.dart';
 import 'seller_catalog_tab.dart';
 import 'seller_dashboard_tab.dart';
 import 'seller_drawer.dart';
@@ -48,25 +46,6 @@ class SellerShell extends ConsumerWidget {
                   context.push('/seller/products/new');
                 },
               ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.videocam_outlined),
-                    title: Text(l10n.addVideo),
-                    subtitle: Text(l10n.addVideoSub),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      context.push('/seller/videos/new');
-                    },
-                  ),
-                  const Positioned(
-                    top: 4,
-                    right: 4,
-                    child: PremiumRibbonBadge(),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -101,7 +80,7 @@ class SellerShell extends ConsumerWidget {
           children: const [
             SellerDashboardTab(),
             SellerCatalogTab(),
-            SellerBookingsTab(),
+            SellerMessagesTab(),
             SellerMoreTab(),
           ],
         ),
@@ -131,9 +110,9 @@ class SellerShell extends ConsumerWidget {
               ),
               const SizedBox(width: 56),
               _SellerNavItem(
-                icon: Icons.event_note_outlined,
-                selectedIcon: Icons.event_note_rounded,
-                label: l10n.navBookings,
+                icon: Icons.chat_bubble_outline,
+                selectedIcon: Icons.chat_bubble_rounded,
+                label: l10n.navMessages,
                 selected: index == 2,
                 onTap: () => _selectTab(ref, 2),
               ),
@@ -149,19 +128,6 @@ class SellerShell extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  String _titleForTab(AppStrings l10n, int index) {
-    switch (index) {
-      case 0:
-        return l10n.navDashboard;
-      case 1:
-        return l10n.navServices;
-      case 2:
-        return l10n.navBookings;
-      default:
-        return l10n.navMore;
-    }
   }
 
   List<Widget>? _actionsForTab(

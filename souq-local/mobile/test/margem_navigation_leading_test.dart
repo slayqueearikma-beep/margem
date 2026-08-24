@@ -36,7 +36,6 @@ void main() {
         '/seller/dashboard',
         '/login',
         '/splash',
-        '/language',
         '/onboarding',
       ]) {
         expect(isAppRootLocation(path), isTrue);

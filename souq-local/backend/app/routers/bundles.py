@@ -1,68 +1,33 @@
-"""Bundle builder — multi-seller package resolution."""
+"""Bundle builder — DEPRECATED: retired from the active Dribex product.
+
+Routes intentionally return HTTP 410 Gone. Supporting code in ``bundle_matcher.py``,
+``schemas/bundle.py``, and ``data/bundle_templates.py`` is retained temporarily for a
+later cleanup pass. Do not re-enable without an explicit product decision.
+"""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.data.bundle_templates import BUNDLE_TEMPLATES, BUNDLE_TEMPLATE_BY_SLUG
-from app.database import get_db
-from app.limiter import limiter
-from app.schemas.bundle import BundleResolveIn, BundleResolveOut, BundleTemplateOut
-from app.services.bundle_matcher import resolve_bundle
-from app.services.marketplace_scope import resolve_marketplace_id
+from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter(prefix="/bundles", tags=["bundles"])
 
-
-@router.get("/templates", response_model=list[BundleTemplateOut])
-async def list_bundle_templates(
-    marketplace: str | None = Query(default=None, max_length=80),
-) -> list[BundleTemplateOut]:
-    templates = BUNDLE_TEMPLATES
-    if marketplace:
-        templates = [t for t in templates if t["marketplace_slug"] == marketplace]
-    return [
-        BundleTemplateOut(
-            slug=item["slug"],
-            name=item["name"],
-            description=item["description"],
-            icon=item["icon"],
-            marketplace_slug=item["marketplace_slug"],
-            slots=item["slots"],
-        )
-        for item in templates
-    ]
+BUNDLE_RETIRED_DETAIL = "Bundle Builder is no longer available in Dribex."
 
 
-@router.get("/templates/{slug}", response_model=BundleTemplateOut)
-async def get_bundle_template(slug: str) -> BundleTemplateOut:
-    item = BUNDLE_TEMPLATE_BY_SLUG.get(slug)
-    if item is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bundle template not found")
-    return BundleTemplateOut(
-        slug=item["slug"],
-        name=item["name"],
-        description=item["description"],
-        icon=item["icon"],
-        marketplace_slug=item["marketplace_slug"],
-        slots=item["slots"],
-    )
+def _bundle_retired() -> None:
+    raise HTTPException(status_code=status.HTTP_410_GONE, detail=BUNDLE_RETIRED_DETAIL)
 
 
-@router.post("/resolve", response_model=BundleResolveOut)
-@limiter.limit("30/minute")
-async def resolve_bundle_endpoint(
-    request: Request,
-    payload: BundleResolveIn,
-    session: AsyncSession = Depends(get_db),
-) -> BundleResolveOut:
-    marketplace_id = await resolve_marketplace_id(session, payload.marketplace)
-    if payload.template_slug and payload.template_slug not in BUNDLE_TEMPLATE_BY_SLUG:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bundle template not found")
-    return await resolve_bundle(
-        session,
-        marketplace_slug=payload.marketplace,
-        marketplace_id=marketplace_id,
-        payload=payload,
-    )
+@router.get("/templates")
+async def list_bundle_templates() -> None:
+    _bundle_retired()
+
+
+@router.get("/templates/{slug}")
+async def get_bundle_template(slug: str) -> None:
+    _bundle_retired()
+
+
+@router.post("/resolve")
+async def resolve_bundle_endpoint() -> None:
+    _bundle_retired()

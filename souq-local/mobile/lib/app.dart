@@ -16,7 +16,6 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_email_screen.dart';
-import 'features/bundle_builder/bundle_builder_screen.dart';
 import 'features/buyer/buyer_home_screen.dart';
 import 'features/community_chat/community_channel_screen.dart';
 import 'features/community_chat/community_city_screen.dart';
@@ -37,7 +36,6 @@ import 'features/seller/seller_catalog_screen.dart';
 import 'features/seller/seller_add_service_wizard.dart';
 import 'features/seller/seller_add_video_screen.dart';
 import 'features/seller/seller_video_record_screen.dart';
-import 'features/seller/seller_analytics_screen.dart';
 import 'features/seller/seller_boost_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
@@ -131,9 +129,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const LegalAcceptanceScreen(),
       ),
       GoRoute(
-          path: '/language',
-          builder: (_, __) => const LanguageSelectionScreen()),
-      GoRoute(
         path: '/settings/language',
         builder: (_, __) => const LanguageSelectionScreen(fromSettings: true),
       ),
@@ -194,7 +189,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
-      GoRoute(path: '/bundle', builder: (_, __) => const BundleBuilderScreen()),
+      GoRoute(path: '/bundle', redirect: (_, __) => '/buyer/home'),
       GoRoute(
         path: '/marketplace/:slug',
         builder: (_, state) => MarketplaceDetailScreen(
@@ -277,10 +272,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           builder: (_, __) => const SellerDashboardScreen()),
       GoRoute(
           path: '/seller/messages',
-          builder: (_, __) => const Scaffold(body: MessagesInboxScreen())),
+          builder: (_, __) => const SellerMessagesRedirect()),
       GoRoute(
           path: '/seller/products',
-          builder: (_, __) => const SellerProductsScreen()),
+          builder: (_, __) => const SellerProductsRedirect()),
       GoRoute(
           path: '/seller/products/new',
           builder: (_, __) => const SellerProductEditorScreen()),
@@ -309,7 +304,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
           path: '/seller/analytics',
-          builder: (_, __) => const SellerAnalyticsScreen()),
+          redirect: (_, __) => '/seller/dashboard'),
       GoRoute(
           path: '/seller/profile',
           builder: (_, __) => const SellerProfileScreen()),

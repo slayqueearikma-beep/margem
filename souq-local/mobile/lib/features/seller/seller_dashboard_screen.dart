@@ -23,6 +23,44 @@ class SellerServicesRedirect extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(sellerTabIndexProvider.notifier).state = 1;
+      ref.read(sellerCatalogKindProvider.notifier).state =
+          SellerCatalogKind.services;
+      if (context.mounted &&
+          GoRouterState.of(context).matchedLocation != '/seller/dashboard') {
+        context.go('/seller/dashboard');
+      }
+    });
+    return const SellerShell();
+  }
+}
+
+/// Redirects `/seller/products` to the catalog tab (products filter).
+class SellerProductsRedirect extends ConsumerWidget {
+  const SellerProductsRedirect({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(sellerTabIndexProvider.notifier).state = 1;
+      ref.read(sellerCatalogKindProvider.notifier).state =
+          SellerCatalogKind.products;
+      if (context.mounted &&
+          GoRouterState.of(context).matchedLocation != '/seller/dashboard') {
+        context.go('/seller/dashboard');
+      }
+    });
+    return const SellerShell();
+  }
+}
+
+/// Redirects `/seller/messages` to the messages tab inside the shell.
+class SellerMessagesRedirect extends ConsumerWidget {
+  const SellerMessagesRedirect({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(sellerTabIndexProvider.notifier).state = 2;
       if (context.mounted &&
           GoRouterState.of(context).matchedLocation != '/seller/dashboard') {
         context.go('/seller/dashboard');

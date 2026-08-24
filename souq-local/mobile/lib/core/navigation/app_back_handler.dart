@@ -23,7 +23,6 @@ bool isAppRootLocation(String path) {
       path == '/seller/dashboard' ||
       path == '/login' ||
       path == '/splash' ||
-      path == '/language' ||
       path == '/onboarding';
 }
 

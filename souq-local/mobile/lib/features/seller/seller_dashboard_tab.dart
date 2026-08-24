@@ -9,6 +9,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../l10n/app_localizations.dart';
+import '../messages/messages_inbox_screen.dart';
 import 'seller_account_provider.dart';
 import 'seller_navigation.dart';
 import 'seller_widgets.dart';
@@ -21,7 +22,8 @@ class SellerDashboardTab extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final accountAsync = ref.watch(sellerAccountProvider);
-    final analyticsAsync = ref.watch(sellerAnalyticsProvider);
+    final unreadAsync = ref.watch(conversationsUnreadCountProvider);
+    final unreadCount = unreadAsync.valueOrNull ?? 0;
 
     return accountAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -32,18 +34,13 @@ class SellerDashboardTab extends ConsumerWidget {
       ),
       data: (account) {
         final stats = account.stats;
-        final analytics = analyticsAsync.valueOrNull;
-        final profileViews =
-            analytics?.profileViewCount ?? stats.profileViewCount;
-        final inquiryCount = analytics?.inquiryCount ?? stats.inquiryCount;
-        final reviewCount = analytics?.reviewCount ?? stats.reviewCount;
-        final favoriteCount = analytics?.favoriteCount ?? stats.favoriteCount;
-        final sparkline = _sparklineFromViews(profileViews);
+        final profileViews = stats.profileViewCount;
+        final reviewCount = stats.reviewCount;
 
         return RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(sellerAccountProvider);
-            ref.invalidate(sellerAnalyticsProvider);
+            ref.invalidate(conversationsProvider);
             await ref.read(sellerAccountProvider.future);
           },
           child: ListView(
@@ -73,14 +70,6 @@ class SellerDashboardTab extends ConsumerWidget {
                     ),
               ),
               SizedBox(height: AppSpacing.md),
-              SellerHeroMetricCard(
-                title: l10n.profileViews,
-                value: '$profileViews',
-                deltaLabel: '—',
-                positive: profileViews > 0,
-                child: SellerMiniSparkline(values: sparkline),
-              ),
-              SizedBox(height: AppSpacing.md),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -90,24 +79,17 @@ class SellerDashboardTab extends ConsumerWidget {
                 childAspectRatio: 1.35,
                 children: [
                   SellerMetricTile(
-                    label: l10n.navBookings,
-                    value: '$inquiryCount',
-                    icon: Icons.event_available_outlined,
-                    subtitle: l10n.inquiriesSub,
+                    label: l10n.profileViews,
+                    value: '$profileViews',
+                    icon: Icons.visibility_outlined,
+                  ),
+                  SellerMetricTile(
+                    label: l10n.navMessages,
+                    value: unreadCount > 0 ? '$unreadCount' : '0',
+                    icon: Icons.chat_bubble_outline,
+                    subtitle: unreadCount > 0 ? l10n.messagesSub : null,
                     onTap: () =>
                         ref.read(sellerTabIndexProvider.notifier).state = 2,
-                  ),
-                  SellerMetricTile(
-                    label: l10n.messages,
-                    value: '$inquiryCount',
-                    icon: Icons.chat_bubble_outline,
-                    onTap: () => context.push('/seller/messages'),
-                  ),
-                  SellerMetricTile(
-                    label: l10n.earnings,
-                    value: '—',
-                    icon: Icons.payments_outlined,
-                    subtitle: l10n.comingSoon,
                   ),
                   SellerMetricTile(
                     label: l10n.reviews,
@@ -120,34 +102,6 @@ class SellerDashboardTab extends ConsumerWidget {
                   ),
                 ],
               ),
-              SizedBox(height: AppSpacing.lg),
-              SellerSectionHeader(
-                title: l10n.upcomingBookings,
-                actionLabel: l10n.viewAll,
-                onAction: () =>
-                    ref.read(sellerTabIndexProvider.notifier).state = 2,
-              ),
-              SizedBox(height: AppSpacing.sm),
-              if (inquiryCount == 0)
-                _EmptyInquiryCard(message: l10n.noInquiriesYet)
-              else
-                Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          context.colors.primary.withValues(alpha: 0.12),
-                      child: Icon(Icons.chat_bubble_outline,
-                          color: context.colors.primary),
-                    ),
-                    title: Text(l10n.inquiries),
-                    subtitle: Text(l10n.inquiriesSub),
-                    trailing: SellerStatusBadge(
-                      label: l10n.upcoming,
-                      active: true,
-                    ),
-                    onTap: () => context.push('/seller/messages'),
-                  ),
-                ),
               const SizedBox(height: AppSpacing.lg),
               SellerSectionHeader(
                 title: l10n.highlightServices,
@@ -157,7 +111,7 @@ class SellerDashboardTab extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               if (account.profile.services.isEmpty)
-                _EmptyInquiryCard(message: l10n.noServicesYet)
+                _EmptyHintCard(message: l10n.noServicesYet)
               else
                 SizedBox(
                   height: 132,
@@ -199,24 +153,11 @@ class SellerDashboardTab extends ConsumerWidget {
                     },
                   ),
                 ),
-              if (favoriteCount > 0) ...[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  l10n.favoritesCount(favoriteCount),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
             ],
           ),
         );
       },
     );
-  }
-
-  List<double> _sparklineFromViews(int views) {
-    if (views <= 0) return const [2, 3, 2, 4, 3, 5, 4];
-    final base = views / 7.0;
-    return List<double>.generate(7, (i) => base * (0.7 + i * 0.08));
   }
 }
 
@@ -235,8 +176,8 @@ String _greeting(
   return l10n.welcomeExclamation;
 }
 
-class _EmptyInquiryCard extends StatelessWidget {
-  const _EmptyInquiryCard({required this.message});
+class _EmptyHintCard extends StatelessWidget {
+  const _EmptyHintCard({required this.message});
 
   final String message;
 

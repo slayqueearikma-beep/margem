@@ -39,6 +39,12 @@ router = APIRouter(tags=["seller-ops"])
 
 
 class AnalyticsOut(BaseModel):
+    """DEPRECATED: response model for retired GET /seller/analytics.
+
+    Canonical seller statistics: GET /sellers/me/dashboard.
+    Retained temporarily; do not reactivate without an explicit product decision.
+    """
+
     product_count: int
     available_product_count: int
     service_count: int = 0
@@ -178,11 +184,13 @@ async def _seller_profile(user: User, session: AsyncSession) -> SellerProfile:
     return seller
 
 
-@router.get("/seller/analytics", response_model=AnalyticsOut)
-async def seller_analytics(
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> AnalyticsOut:
+ANALYTICS_RETIRED_DETAIL = (
+    "GET /seller/analytics is retired. Use GET /sellers/me/dashboard instead."
+)
+
+
+async def _compute_seller_analytics(user: User, session: AsyncSession) -> AnalyticsOut:
+    """Retired implementation — preserved for a later cleanup pass."""
     from app.models import SellerFollow, Service
 
     seller = await _seller_profile(user, session)
@@ -209,6 +217,15 @@ async def seller_analytics(
         is_premium=seller.is_premium or user.is_premium,
         follower_estimate=int(followers or 0),
     )
+
+
+@router.get("/seller/analytics", response_model=AnalyticsOut)
+async def seller_analytics(
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> AnalyticsOut:
+    """DEPRECATED: returns HTTP 410. Canonical endpoint: GET /sellers/me/dashboard."""
+    raise HTTPException(status_code=status.HTTP_410_GONE, detail=ANALYTICS_RETIRED_DETAIL)
 
 
 @router.post("/seller/verification/request", status_code=status.HTTP_204_NO_CONTENT)

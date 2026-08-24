@@ -128,9 +128,9 @@ async def test_favorites_follow_contact_and_messaging(client: AsyncClient):
     )
     assert msg.status_code == 201, msg.text
 
-    analytics = await client.get("/seller/analytics", headers=seller["headers"])
-    assert analytics.status_code == 200, analytics.text
-    body = analytics.json()
+    dashboard = await client.get("/sellers/me/dashboard", headers=seller["headers"])
+    assert dashboard.status_code == 200, dashboard.text
+    body = dashboard.json()
     assert body["favorite_count"] >= 1
     assert body["contact_click_count"] >= 1
     assert body["inquiry_count"] >= 1

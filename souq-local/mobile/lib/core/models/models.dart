@@ -975,56 +975,6 @@ class SellerFollowModel {
   }
 }
 
-class SellerAnalyticsModel {
-  const SellerAnalyticsModel({
-    required this.productCount,
-    required this.availableProductCount,
-    required this.serviceCount,
-    required this.inquiryCount,
-    required this.favoriteCount,
-    required this.contactClickCount,
-    required this.avgResponseMinutes,
-    required this.reviewCount,
-    required this.averageRating,
-    required this.profileViewCount,
-    required this.verificationStatus,
-    required this.isPremium,
-    required this.followerEstimate,
-  });
-
-  final int productCount;
-  final int availableProductCount;
-  final int serviceCount;
-  final int inquiryCount;
-  final int favoriteCount;
-  final int contactClickCount;
-  final int avgResponseMinutes;
-  final int reviewCount;
-  final double averageRating;
-  final int profileViewCount;
-  final String verificationStatus;
-  final bool isPremium;
-  final int followerEstimate;
-
-  factory SellerAnalyticsModel.fromJson(Map<String, dynamic> json) {
-    return SellerAnalyticsModel(
-      productCount: json['product_count'] as int? ?? 0,
-      availableProductCount: json['available_product_count'] as int? ?? 0,
-      serviceCount: json['service_count'] as int? ?? 0,
-      inquiryCount: json['inquiry_count'] as int? ?? 0,
-      favoriteCount: json['favorite_count'] as int? ?? 0,
-      contactClickCount: json['contact_click_count'] as int? ?? 0,
-      avgResponseMinutes: json['avg_response_minutes'] as int? ?? 0,
-      reviewCount: json['review_count'] as int? ?? 0,
-      averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0,
-      profileViewCount: json['profile_view_count'] as int? ?? 0,
-      verificationStatus: json['verification_status'] as String? ?? '',
-      isPremium: json['is_premium'] as bool? ?? false,
-      followerEstimate: json['follower_estimate'] as int? ?? 0,
-    );
-  }
-}
-
 class AppNotificationModel {
   const AppNotificationModel({
     required this.id,

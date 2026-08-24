@@ -383,6 +383,16 @@ class BuyerHomeScreen extends ConsumerWidget {
                                             ],
                                           ),
                                         ),
+                                        IconButton(
+                                          tooltip: l10n.marketplaceCommunityTitle,
+                                          onPressed: () => context.push(
+                                            '/marketplace/${venue.slug}/community',
+                                          ),
+                                          icon: Icon(
+                                            Icons.forum_outlined,
+                                            color: context.colors.primary,
+                                          ),
+                                        ),
                                         Icon(
                                           DirectionalUi.forwardChevron(context),
                                           color: context.colors.textSecondary,
@@ -471,101 +481,6 @@ class BuyerHomeScreen extends ConsumerWidget {
             },
             loading: () => const SliverToBoxAdapter(child: SizedBox(height: 8)),
             error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.lg,
-                AppSpacing.screenHorizontal,
-                0,
-              ),
-              child: Card(
-                clipBehavior: Clip.antiAlias,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: InkWell(
-                  onTap: () => context.push('/bundle'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: context.colors.surfaceVariant,
-                          child: Icon(
-                            Icons.inventory_2_outlined,
-                            color: context.colors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.bundleBuilderTitle,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                l10n.bundleBuilderSubtitle,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: context.colors.textSecondary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          DirectionalUi.forwardChevron(context),
-                          color: context.colors.textSecondary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.lg,
-                AppSpacing.screenHorizontal,
-                0,
-              ),
-              child: BuyerPromoCarousel(
-                slides: [
-                  BuyerPromoBanner(
-                    title: l10n.promoBannerTitle,
-                    subtitle: l10n.promoBannerSubtitle,
-                    ctaLabel: l10n.exploreNow,
-                    onTap: () =>
-                        ref.read(buyerTabIndexProvider.notifier).state = 1,
-                  ),
-                  BuyerPromoBanner(
-                    title: l10n.exploreOnMap,
-                    subtitle: l10n.exploreOnMapSubtitle(city),
-                    ctaLabel: l10n.exploreNow,
-                    onTap: () => context.push('/map'),
-                  ),
-                  BuyerPromoBanner(
-                    title: l10n.communityHomeCardTitle,
-                    subtitle: l10n.communityHomeCardSubtitle,
-                    ctaLabel: l10n.exploreNow,
-                    onTap: () => context.push('/community'),
-                  ),
-                ],
-              ),
-            ),
           ),
           sellersAsync.when(
             data: (sellers) {
@@ -1114,24 +1029,6 @@ class BuyerProfileScreen extends ConsumerWidget {
                 onTap: () => context.push('/onboarding/become-seller'),
               ),
             ],
-            SizedBox(height: AppSpacing.sm),
-            BuyerMenuTile(
-              icon: Icons.dark_mode_outlined,
-              title: l10n.darkMode,
-              trailing: Theme(
-                data: Theme.of(context).copyWith(
-                  colorScheme: Theme.of(context).colorScheme.copyWith(
-                    primary: context.colors.primary,
-                  ),
-                ),
-                child: Switch(
-                  value: Theme.of(context).brightness == Brightness.dark,
-                  onChanged: (_) {
-                    ref.read(themeModeProvider.notifier).toggleLightDark();
-                  },
-                ),
-              ),
-            ),
             SizedBox(height: AppSpacing.sm),
             BuyerMenuTile(
               icon: Icons.settings_outlined,

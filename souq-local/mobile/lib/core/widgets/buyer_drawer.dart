@@ -24,6 +24,25 @@ class BuyerDrawer extends ConsumerWidget {
         : l10n.guestMode;
     final unread =
         ref.watch(conversationsUnreadCountProvider).valueOrNull ?? 0;
+    final marketplaces =
+        ref.watch(buyerMarketplacesProvider).valueOrNull ?? const [];
+    final selectedSlug = validatedMarketplaceSlug(
+      ref.watch(buyerMarketplaceSlugProvider),
+      marketplaces,
+    );
+
+    void openMarketCommunity() {
+      if (selectedSlug != null && selectedSlug.isNotEmpty) {
+        context.push('/marketplace/$selectedSlug/community');
+        return;
+      }
+      final first = marketplaces.isNotEmpty ? marketplaces.first.slug : null;
+      if (first != null && first.isNotEmpty) {
+        context.push('/marketplace/$first/community');
+        return;
+      }
+      context.push('/community');
+    }
 
     void closeAnd(VoidCallback action) {
       Navigator.pop(context);
@@ -113,24 +132,19 @@ class BuyerDrawer extends ConsumerWidget {
                     onTap: () => closeAnd(() => context.push('/profile')),
                   ),
                   _DrawerTile(
-                    icon: Icons.settings_outlined,
-                    label: l10n.settingsTitle,
-                    onTap: () => closeAnd(() => context.push('/settings')),
-                  ),
-                  _DrawerTile(
                     icon: Icons.favorite_border_rounded,
                     label: l10n.favorites,
                     onTap: () => closeAnd(() => context.push('/favorites')),
                   ),
                   _DrawerTile(
-                    icon: Icons.inventory_2_outlined,
-                    label: l10n.bundleBuilderTitle,
-                    onTap: () => closeAnd(() => context.push('/bundle')),
-                  ),
-                  _DrawerTile(
                     icon: Icons.map_outlined,
                     label: l10n.exploreOnMap,
                     onTap: () => closeAnd(() => context.push('/map')),
+                  ),
+                  _DrawerTile(
+                    icon: Icons.forum_outlined,
+                    label: l10n.marketplaceCommunityTitle,
+                    onTap: () => closeAnd(openMarketCommunity),
                   ),
                   _DrawerTile(
                     icon: Icons.groups_rounded,
@@ -153,35 +167,23 @@ class BuyerDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.all(AppSpacing.md),
-              child: isGuest
-                  ? FilledButton(
-                      onPressed: () =>
-                          closeAnd(() => context.push('/onboarding/account-type')),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: context.colors.primary,
-                        foregroundColor: Colors.white,
-                        minimumSize: Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                      child: Text(l10n.createAccount),
-                    )
-                  : OutlinedButton(
-                      onPressed: () => closeAnd(() => context.push('/profile')),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: context.colors.primary,
-                        side: BorderSide(color: context.colors.primary),
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                      child: Text(l10n.navProfile),
+            if (isGuest)
+              Padding(
+                padding: EdgeInsets.all(AppSpacing.md),
+                child: FilledButton(
+                  onPressed: () =>
+                      closeAnd(() => context.push('/onboarding/account-type')),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: context.colors.primary,
+                    foregroundColor: Colors.white,
+                    minimumSize: Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
                     ),
-            ),
+                  ),
+                  child: Text(l10n.createAccount),
+                ),
+              ),
           ],
         ),
       ),

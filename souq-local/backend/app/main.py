@@ -149,6 +149,20 @@ async def lifespan(app: FastAPI):
             )
             .values(name="Dribex Plus")
         )
+        await session.execute(
+            update(SubscriptionPlan)
+            .where(SubscriptionPlan.code == "seller_pro")
+            .values(
+                description="Featured placement, premium storefront, advanced discovery analytics",
+                features=[
+                    "Featured placement",
+                    "Premium badge",
+                    "Advanced analytics",
+                    "Extra media uploads",
+                    "Verification priority",
+                ],
+            )
+        )
         await session.commit()
 
     async with database.SessionLocal() as session:

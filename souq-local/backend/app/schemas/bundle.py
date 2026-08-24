@@ -1,3 +1,5 @@
+"""DEPRECATED: Bundle Builder schemas — retained temporarily after product retirement."""
+
 from __future__ import annotations
 
 from uuid import UUID
