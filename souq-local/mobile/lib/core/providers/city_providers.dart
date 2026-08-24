@@ -46,11 +46,8 @@ class BuyerCityNotifier extends StateNotifier<String> {
   }
 
   String _resolveCityName(String? value, List<CityModel> cities) {
-    if (cities.isEmpty) return AppConfig.launchCity;
-    final match = value == null ? null : findCityByName(cities, value);
-    if (match != null) return match.nameEn;
-    return findCityByName(cities, AppConfig.launchCity)?.nameEn ??
-        cities.first.nameEn;
+    // Casablanca-only launch: keep buyer discovery aligned with backend filters.
+    return findCityByName(cities, AppConfig.launchCity)?.nameEn ?? AppConfig.launchCity;
   }
 
   Future<void> setCity(CityModel city) async {

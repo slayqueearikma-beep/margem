@@ -17,7 +17,7 @@ import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/providers/city_providers.dart';
-import '../buyer/buyer_home_screen.dart' hide buyerCityProvider;
+import '../buyer/buyer_home_screen.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -73,6 +73,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   void _reload(String city, {String? marketplace}) {
     setState(() {
       _loadedCity = city;
+      _loadedMarketplace = marketplace;
       _mapFuture = _loadMapData(city, marketplace: marketplace);
     });
   }
@@ -82,6 +83,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final city = ref.watch(buyerCityProvider);
     final marketplace = ref.watch(buyerMarketplaceSlugProvider);
     final l10n = context.l10n;
+
+    if (_loadedCity != city || _loadedMarketplace != marketplace) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _loadedMarketplace = marketplace;
+        _reload(city, marketplace: marketplace);
+      });
+    }
 
     if (!AppConfig.hasGoogleMapsApiKey) {
       return BuyerScreenScaffold(

@@ -224,8 +224,18 @@ class _SellerRegistrationScreenState
         final prefs = await ref.read(sharedPreferencesProvider.future);
         await auth.persistToken(prefs);
 
-        final slug = sellerCategorySlugMap[_category] ?? 'food';
-        final categoryId = await apiServiceProvider.categoryIdForSlug(slug);
+        final customMarket = _customMarketNameController.text.trim();
+        final categorySlug = resolveSellerCategorySlug(_category);
+        final marketSlug = SellerMarketplacePicker.marketplaceSlugForApi(
+          selectedSlug: _selectedMarketSlug,
+          customName: customMarket,
+        );
+        final categoryId = await apiServiceProvider.categoryIdForSlug(
+          categorySlug,
+          marketplace: marketSlug == sellerOtherCasablancaMarketSlug
+              ? null
+              : marketSlug,
+        );
 
         final uploader = ref.read(uploadServiceProvider);
         String coverUrl = '';
@@ -237,13 +247,12 @@ class _SellerRegistrationScreenState
           logoUrl = await uploader.uploadImage(_logoImage!);
         }
 
-        final customMarket = _customMarketNameController.text.trim();
         final seller = await apiServiceProvider.createSeller(
           SellerCreatePayload(
             businessName: _businessNameController.text.trim(),
             description: _descriptionController.text.trim(),
             address: _addressController.text.trim(),
-            city: _selectedCity?.nameEn ?? AppConfig.launchCity,
+            city: AppConfig.launchCity,
             latitude: _location.latitude,
             longitude: _location.longitude,
             phone: _phoneController.text.trim(),
@@ -277,7 +286,8 @@ class _SellerRegistrationScreenState
         for (final product in _products) {
           final name = product.nameController.text.trim();
           if (name.isEmpty) continue;
-          final price = double.tryParse(product.priceController.text.trim());
+          final priceText = product.priceController.text.trim();
+          final price = priceText.isEmpty ? null : double.tryParse(priceText);
           String imageUrl = '';
           if (product.image != null) {
             imageUrl = await uploader.uploadImage(product.image!);
@@ -287,6 +297,7 @@ class _SellerRegistrationScreenState
             ProductCreatePayload(
               name: name,
               description: product.descriptionController.text.trim(),
+              pricingType: price == null ? 'offer' : 'fixed',
               priceMad: price,
               imageUrl: imageUrl,
             ),
@@ -302,7 +313,7 @@ class _SellerRegistrationScreenState
           name: _ownerNameController.text.trim(),
           email: session.user.email,
           accountType: AccountType.seller,
-          city: _selectedCity?.nameEn ?? AppConfig.launchCity,
+          city: AppConfig.launchCity,
           businessName: _businessNameController.text.trim(),
           sellerId: sellerId,
         );
@@ -495,10 +506,18 @@ class _SellerRegistrationScreenState
         const SizedBox(height: AppSpacing.md),
         CityPickerField(
           selected: _selectedCity,
-          onSelected: (city) => setState(() {
-            _selectedCity = city;
-            _location = LatLng(city.latitude, city.longitude);
-          }),
+          onSelected: (city) {
+            if (city.nameEn != AppConfig.launchCity) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.completeRequiredStep)),
+              );
+              return;
+            }
+            setState(() {
+              _selectedCity = city;
+              _location = LatLng(city.latitude, city.longitude);
+            });
+          },
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(

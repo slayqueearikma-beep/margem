@@ -130,6 +130,7 @@ class MarketplaceDetailScreen extends ConsumerWidget {
                     OutlinedButton.icon(
                       onPressed: () {
                         ref.read(buyerMarketplaceSlugProvider.notifier).state = slug;
+                        ref.read(appStorageProvider)?.setMarketplaceSlug(slug);
                         context.push('/map');
                       },
                       icon: const Icon(Icons.map_outlined),

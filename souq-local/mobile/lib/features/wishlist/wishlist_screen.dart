@@ -11,6 +11,7 @@ import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
+import '../buyer/buyer_home_screen.dart';
 import '../../l10n/app_localizations.dart';
 
 final favoritesProvider =
@@ -63,11 +64,8 @@ class FavoritesScreen extends ConsumerWidget {
               subtitle: l10n.emptyFavoritesSubtitle,
               actionLabel: l10n.browseProducts,
               onAction: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/buyer/home');
-                }
+                ref.read(buyerTabIndexProvider.notifier).state = 1;
+                context.go('/buyer/home');
               },
             );
           }
@@ -119,7 +117,7 @@ class _FavoriteTile extends ConsumerWidget {
           ),
         ),
         title: Text(
-          item.productName,
+          item.productName.isNotEmpty ? item.productName : item.sellerName,
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         subtitle: Column(
@@ -163,6 +161,7 @@ class _FavoriteTile extends ConsumerWidget {
         await apiServiceProvider.removeFavoriteProduct(item.productId);
       }
       ref.invalidate(favoritesProvider);
+      ref.invalidate(buyerFavoriteSellerIdsProvider);
     } on ApiException catch (error) {
       if (context.mounted) {
         await showAppErrorDialog(context,

@@ -176,7 +176,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
             businessName: _businessNameController.text.trim(),
             description: _descriptionController.text.trim(),
             address: _addressController.text.trim(),
-            city: AppConfig.launchCity,
+            city: seller.city.isNotEmpty ? seller.city : AppConfig.launchCity,
             latitude: _location.latitude,
             longitude: _location.longitude,
             phone: _phoneController.text.trim(),

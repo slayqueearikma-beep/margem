@@ -119,7 +119,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Future<MarketplaceSearchPage> _load() {
     final homeCategory = ref.read(buyerCategorySlugProvider);
     final category = _filters.category ?? homeCategory;
-    final marketplace = ref.read(buyerMarketplaceSlugProvider);
+    final marketplaces = ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
+    final marketplace = validatedMarketplaceSlug(
+      ref.read(buyerMarketplaceSlugProvider),
+      marketplaces,
+    );
     return apiServiceProvider.searchMarketplace(
       query: _debounced,
       mode: _mode,
@@ -309,6 +313,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     minRatingController.dispose();
 
     if (result != null) {
+      ref.read(buyerCategorySlugProvider.notifier).state = result.category;
       setState(() {
         _filters = result;
         _future = _load();
@@ -322,9 +327,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     ref.listen(buyerCategorySlugProvider, (previous, next) {
       if (previous != next) _refresh();
     });
+    ref.listen(buyerMarketplaceSlugProvider, (previous, next) {
+      if (previous != next) _refresh();
+    });
     _future ??= _load();
 
+    final homeCategory = ref.watch(buyerCategorySlugProvider);
     final hasActiveFilters = _filters.category != null ||
+        homeCategory != null ||
         _filters.minPrice != null ||
         _filters.maxPrice != null ||
         _filters.minRating != null ||
