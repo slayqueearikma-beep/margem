@@ -6,7 +6,6 @@ import '../../core/providers/subscription_providers.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/theme_context.dart';
-import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
@@ -31,16 +30,8 @@ class SellerDrawer extends ConsumerWidget {
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppBrandLogo.forContext(
-                    AppBrandContext.settingsBranding,
-                    includeClearSpace: false,
-                  ),
-                  SizedBox(height: 16),
-                  if (profile != null)
-                    Row(
+              child: profile != null
+                  ? Row(
                       children: [
                         CircleAvatar(
                           radius: 28,
@@ -85,9 +76,8 @@ class SellerDrawer extends ConsumerWidget {
                           ),
                         ),
                       ],
-                    ),
-                ],
-              ),
+                    )
+                  : const SizedBox.shrink(),
             ),
             Divider(color: context.colors.border, height: 1),
             Expanded(
