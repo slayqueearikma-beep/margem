@@ -208,3 +208,12 @@ async def test_conversation_idor_denies_non_participant(client: AsyncClient):
     )
     assert write_blocked.status_code == 404
 
+    unauth_read = await client.get(f"/messages/conversations/{conv_id}")
+    assert unauth_read.status_code == 401
+
+    unauth_write = await client.post(
+        f"/messages/conversations/{conv_id}",
+        json={"body": "Intrusion attempt"},
+    )
+    assert unauth_write.status_code == 401
+

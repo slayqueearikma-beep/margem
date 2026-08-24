@@ -1,5 +1,7 @@
 """Admin IP guard and readiness checks."""
 
+from uuid import uuid4
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -106,6 +108,26 @@ async def test_admin_origin_guard_allows_trusted_origin(client: AsyncClient, mon
         headers={"Origin": "https://admin.example.com"},
     )
     assert res.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_admin_origin_passes_through_to_staff_auth_for_non_admin(
+    client: AsyncClient, monkeypatch
+):
+    from tests.auth_helpers import register_test_user
+
+    monkeypatch.setattr(settings, "cors_origins", ["https://admin.example.com"])
+    user = await register_test_user(client, email=f"buyer-admin-{uuid4().hex[:8]}@example.com")
+    headers = {"Authorization": f"Bearer {user['access_token']}"}
+    res = await client.get(
+        "/admin/users",
+        headers={
+            **headers,
+            "Origin": "https://admin.example.com",
+        },
+    )
+    assert res.status_code == 403
+    assert res.json()["detail"] == "Staff access required"
 
 
 @pytest.mark.asyncio
