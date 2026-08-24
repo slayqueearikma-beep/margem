@@ -9,6 +9,7 @@ bool isAuthProtectedLocation(String path) {
       path.startsWith('/seller/reviews') ||
       path.startsWith('/seller/notifications') ||
       path.startsWith('/seller/settings') ||
+      path.startsWith('/seller/boost') ||
       path.startsWith('/seller/messages');
   final isMarketplaceCommunity =
       RegExp(r'^/marketplace/[^/]+/community').hasMatch(path);

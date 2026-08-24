@@ -1,6 +1,6 @@
 # Dribex — Architecture
 
-Dribex is a **third-party local discovery / connection platform**. Buyers find nearby businesses, compare listings, and contact sellers. Transactions and payments happen **outside** the app. There is no cart, checkout, payment processing, shipping, or in-app refunds.
+Dribex is a **third-party local discovery / connection platform**. Buyers find nearby businesses, compare listings, and contact sellers. Product transactions happen **outside** the app. **Platform service fees** (Dribex Plus subscriptions and seller boost packages) are processed through **NAPS ePay** — not buyer-to-seller checkout.
 
 ## System overview
 
@@ -52,7 +52,8 @@ Capability is `SellerProfile` presence (not mutually exclusive account types). C
 | Auth | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/me` |
 | Discovery | `/sellers`, `/sellers/map`, `/categories`, `/favorites/*`, `/follows`, `/contact-events` |
 | Messaging | `/messages/conversations`, `/messages/sellers/{id}`, `/messages/users/{id}` |
-| Seller ops | `/seller/analytics`, `/notifications`, premium plans |
+| Seller ops | `/seller/analytics`, `/notifications`, premium plans, `/billing/checkout/advertising` |
+| Platform billing | `/billing/advertising/packages`, `/billing/checkout/subscription/{plan}`, NAPS webhooks |
 | Admin | `/admin/users`, `/admin/sellers/pending`, verify/status (admin-only writes) |
 | Uploads | `/uploads` → Azure Blob (durable public URLs) |
 

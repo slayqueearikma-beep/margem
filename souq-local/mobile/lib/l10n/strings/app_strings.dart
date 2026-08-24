@@ -679,6 +679,15 @@ abstract class AppStrings {
   String get cancelSubscriptionTitle;
   String get cancelSubscriptionBody;
   String get cancelSubscriptionScheduled;
+  String get navBoost;
+  String get boostTitle;
+  String get boostSubtitle;
+  String get boostActivated;
+  String get boostCheckoutOpened;
+  String get boostCheckoutFailed;
+  String get noBoostPackages;
+  String get purchaseBoost;
+  String boostDurationDays(int days);
   String get requestAccountErasure;
   String get requestAccountErasureDescription;
   String get signupTermsPrefix;

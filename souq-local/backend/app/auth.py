@@ -264,6 +264,21 @@ async def require_buyer(user: User = Depends(get_current_user)) -> User:
     return user
 
 
+async def require_buyer_premium(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> User:
+    """Require an active Dribex Plus (buyer_premium) subscription."""
+    from app.services.subscription_service import user_has_buyer_premium
+
+    if not await user_has_buyer_premium(session, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Dribex Plus subscription required",
+        )
+    return user
+
+
 async def require_admin(user: User = Depends(get_current_user)) -> User:
     from app.models import UserRole
 

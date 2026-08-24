@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
@@ -51,10 +53,30 @@ from app.routers import (
 from app.services.local_storage import media_root
 from app.services.community_chat import ensure_all_city_communities, ensure_default_cities
 from app.services.geography import ensure_geography_seeded, seed_morocco_cities_if_empty
+from app.services.subscription_maintenance import run_subscription_maintenance
 from app.telemetry import configure_telemetry
 
 configure_logging(json_logs=settings.app_env in {"production", "prod"})
 configure_telemetry()
+
+_maintenance_logger = logging.getLogger("margem.subscription_maintenance")
+_maintenance_interval_seconds = 3600
+
+
+async def _subscription_maintenance_loop() -> None:
+    while True:
+        await asyncio.sleep(_maintenance_interval_seconds)
+        try:
+            async with database.SessionLocal() as session:
+                touched = await run_subscription_maintenance(session)
+                if touched:
+                    _maintenance_logger.info(
+                        "subscription_maintenance_completed touched=%s", touched
+                    )
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            _maintenance_logger.exception("subscription_maintenance_failed")
 
 _admin_dashboard_dir: Path | None = None
 if settings.serve_embedded_admin:
@@ -141,12 +163,24 @@ async def lifespan(app: FastAPI):
 
             ensure_buckets()
         except Exception:
-            import logging
-
             logging.getLogger("margem.storage").exception("minio_bucket_init_failed")
 
-    yield
-    await database.engine.dispose()
+    try:
+        async with database.SessionLocal() as session:
+            await run_subscription_maintenance(session)
+    except Exception:
+        _maintenance_logger.exception("subscription_maintenance_startup_failed")
+
+    maintenance_task = asyncio.create_task(_subscription_maintenance_loop())
+    try:
+        yield
+    finally:
+        maintenance_task.cancel()
+        try:
+            await maintenance_task
+        except asyncio.CancelledError:
+            pass
+        await database.engine.dispose()
 
 
 app = FastAPI(
@@ -167,7 +201,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(AdminIpGuardMiddleware)
 app.add_middleware(AdminOriginGuardMiddleware)
 
-if settings.allowed_hosts != ["*"]:
+if settings.allowed_hosts != ["*"] and settings.app_env not in {"development", "dev"}:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
 
 app.add_middleware(

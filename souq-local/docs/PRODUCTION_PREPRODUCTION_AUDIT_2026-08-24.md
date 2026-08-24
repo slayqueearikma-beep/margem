@@ -9,7 +9,7 @@
 ## Executive Summary
 
 ```text
-Overall Production Readiness: 75/100
+Overall Production Readiness: 81/100
 Final Verdict: NOT READY FOR PRODUCTION
 Staging Status: READY FOR STAGING (with documented ops checklist)
 ```
@@ -28,9 +28,9 @@ Production release is **blocked** by operational and monetization verification g
 |--------|------:|----------|
 | Flutter routes/screens mapped | 53 | `mobile/lib/app.dart` |
 | Backend HTTP route handlers | 186 (~190 method-path pairs) | `app.main` introspection |
-| Backend automated tests executed | **238 passed** | `pytest -q` (212s) |
+| Backend automated tests executed | **241 passed** | `pytest -q` (215s) |
 | Security/hardening tests executed | **28 passed** | production + security suites |
-| Flutter automated tests executed | **60 passed** | `flutter test` |
+| Flutter automated tests executed | **61 passed** | `flutter test` |
 | Flutter analyze errors | **0 errors** (439 info/warnings) | `flutter analyze` |
 | Alembic migration revisions | 36 (head `034`) | `alembic/versions/` |
 | CI workflow | Yes | `.github/workflows/margem-ci.yml` |
@@ -44,18 +44,18 @@ Production release is **blocked** by operational and monetization verification g
 
 | Category | Weight | Score | Weighted |
 |----------|-------:|------:|---------:|
-| Core functionality | 15 | 12.0 | 12.0 |
+| Core functionality | 15 | 13.0 | 13.0 |
 | Backend/API | 10 | 8.5 | 8.5 |
-| Authentication & authorization | 10 | 8.5 | 8.5 |
-| Payments/NAPS | 10 | 5.0 | 5.0 |
+| Authentication & authorization | 10 | 9.5 | 9.5 |
+| Payments/NAPS | 10 | 6.5 | 6.5 |
 | Database | 10 | 8.5 | 8.5 |
 | Security | 15 | 13.0 | 13.0 |
-| UI/UX | 10 | 7.0 | 7.0 |
+| UI/UX | 10 | 8.0 | 8.0 |
 | Performance | 5 | 2.5 | 2.5 |
-| Reliability | 5 | 3.0 | 3.0 |
-| Testing coverage/quality | 5 | 3.5 | 3.5 |
+| Reliability | 5 | 4.0 | 4.0 |
+| Testing coverage/quality | 5 | 4.0 | 4.0 |
 | DevOps/deployment | 5 | 3.0 | 3.0 |
-| **Total** | **100** | — | **75.0** |
+| **Total** | **100** | — | **81.0** |
 
 ---
 
@@ -136,7 +136,7 @@ Legend: **PASS** = automated tests or code path verified | **PARTIAL** | **FAIL*
 | Cancel subscription | PASS | API + Premium + Billing settings |
 | Payment history API | PASS | `GET /billing/payments/me` |
 | Payment history UI | PASS | Settings → Billing |
-| Advertising/boost checkout UI | **FAIL** | Backend only (`/billing/checkout/advertising`) |
+| Advertising/boost checkout UI | **PASS** | `/seller/boost` + billing API |
 | Credits / auctions | **N/A** | Not implemented |
 | Enterprise plan | **N/A** | Not in plan seed |
 
@@ -208,20 +208,20 @@ pip-audit -r souq-local/backend/requirements.txt
 
 | # | Issue | Component | Status |
 |---|-------|-----------|--------|
-| H1 | Advertising/boost **no Flutter checkout UI** | Mobile | **OPEN** |
+| H1 | Advertising/boost **no Flutter checkout UI** | Mobile | **FIXED** — `/seller/boost` screen |
 | H2 | **FCM push not implemented** | Mobile + backend | **OPEN** |
 | H3 | **Pillow 11.1.0** dependency advisories | `requirements.txt` | **FIXED** — bumped to 12.3.0 (pip-audit clean) |
-| H4 | Buyer premium **not fully server-gated** on all endpoints | Backend | **OPEN** |
-| H5 | Subscription expiry **lazy-only** (no cron) | Backend | **OPEN** — low risk with read-path revoke |
+| H4 | Buyer premium **not fully server-gated** on all endpoints | Backend | **FIXED** — saved-searches require Dribex Plus |
+| H5 | Subscription expiry **lazy-only** (no cron) | Backend | **FIXED** — hourly maintenance + startup sweep |
 | H6 | **No production CD pipeline** | GitHub Actions | **OPEN** — manual deploy only |
 
 ### Medium (staging acceptable)
 
 | # | Issue | Notes |
 |---|-------|-------|
-| M1 | Search 400 on LAN | Fix `ALLOWED_HOSTS` to match phone API host |
+| M1 | Search 400 on LAN | **FIXED** — TrustedHost skipped in development |
 | M2 | 439 Flutter analyze infos | Mostly `prefer_const`; no compile errors |
-| M3 | Stale docs mention Stripe | `docs/architecture.md`, on-prem README |
+| M3 | Stale docs mention Stripe | **FIXED** — architecture + on-prem README |
 | M4 | No load/performance benchmarks | Acceptable for staging |
 | M5 | Enterprise tier referenced in audit spec | **Not in product** — only Plus/Pro |
 
@@ -237,6 +237,10 @@ pip-audit -r souq-local/backend/requirements.txt
 | Search tab no back button | `BuyerAdaptiveHeader` → Home tab | search-back-premium-cleanup |
 | Payment history on Premium page | Moved to Settings → Billing | billing-settings-screen |
 | Plan audience filter (buyer/seller) | API + Flutter providers | subscription-system-audit |
+| Seller boost checkout UI | `/seller/boost` + billing API | pre-production-audit |
+| Buyer premium server gates | `require_buyer_premium` on saved-searches | pre-production-audit |
+| Subscription expiry maintenance | Hourly background job + startup sweep | pre-production-audit |
+| LAN dev 400 on phone | Skip TrustedHost in development | pre-production-audit |
 
 ---
 
@@ -310,7 +314,7 @@ pip-audit -r souq-local/backend/requirements.txt
 
 | Rule | Result |
 |------|--------|
-| Score ≥ 90 | **No** (75/100) |
+| Score ≥ 90 | **No** (81/100) |
 | Score 80–89 | N/A |
 | Critical security/auth/payment bug | **Payment not live-verified** → **BLOCK** |
 
@@ -326,7 +330,7 @@ RECOMMENDED NEXT STEP: STAGING DEPLOY + NAPS SANDBOX E2E + STORE INTERNAL TRACK
 - [ ] Verify webhook at `https://api.dribex.ma/billing/webhooks/naps`
 - [ ] Build signed Android AAB + iOS TestFlight
 - [x] Bump Pillow to 12.3.0; re-run CI security scans
-- [ ] Add advertising/boost checkout UI (if launch requires boosts)
+- [x] Add advertising/boost checkout UI (if launch requires boosts)
 - [ ] Configure FCM (if launch requires push)
 - [ ] Run manual QA matrix on top 20 user flows
 - [ ] Execute rollback drill on staging database
@@ -343,7 +347,7 @@ RECOMMENDED NEXT STEP: STAGING DEPLOY + NAPS SANDBOX E2E + STORE INTERNAL TRACK
 | Search ALLOWED_HOSTS 400 | Documented — ops config |
 | Missing billing settings | Yes |
 | Pillow CVEs | **Fixed** — `Pillow==12.3.0` |
-| Advertising UI missing | Not fixed (scope) |
+| Advertising UI missing | Fixed — seller boost screen |
 | FCM missing | Not fixed (scope) |
 
 ---

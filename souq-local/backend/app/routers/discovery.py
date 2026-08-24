@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import get_current_user, get_current_user_optional
+from app.auth import get_current_user, get_current_user_optional, require_buyer_premium
 from app.services.text_sanitizer import sanitize_free_text
 from app.database import get_db
 from app.limiter import limiter
@@ -404,7 +404,7 @@ async def unfollow_seller(
 
 @router.get("/saved-searches", response_model=list[SavedSearchOut])
 async def list_saved_searches(
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_buyer_premium),
     session: AsyncSession = Depends(get_db),
 ) -> list[SavedSearch]:
     result = await session.execute(
@@ -416,7 +416,7 @@ async def list_saved_searches(
 @router.post("/saved-searches", response_model=SavedSearchOut, status_code=status.HTTP_201_CREATED)
 async def create_saved_search(
     payload: SavedSearchCreate,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_buyer_premium),
     session: AsyncSession = Depends(get_db),
 ) -> SavedSearch:
     row = SavedSearch(
@@ -435,7 +435,7 @@ async def create_saved_search(
 @router.delete("/saved-searches/{search_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_saved_search(
     search_id: UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_buyer_premium),
     session: AsyncSession = Depends(get_db),
 ) -> None:
     row = await session.get(SavedSearch, search_id)

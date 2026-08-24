@@ -1086,6 +1086,35 @@ class BillingCheckoutResult {
   }
 }
 
+class AdvertisingPackageModel {
+  const AdvertisingPackageModel({
+    required this.code,
+    required this.name,
+    required this.description,
+    required this.placementType,
+    required this.priceMad,
+    required this.durationDays,
+  });
+
+  final String code;
+  final String name;
+  final String description;
+  final String placementType;
+  final double priceMad;
+  final int durationDays;
+
+  factory AdvertisingPackageModel.fromJson(Map<String, dynamic> json) {
+    return AdvertisingPackageModel(
+      code: json['code'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      placementType: json['placement_type'] as String? ?? '',
+      priceMad: (json['price_mad'] as num?)?.toDouble() ?? 0,
+      durationDays: json['duration_days'] as int? ?? 0,
+    );
+  }
+}
+
 class PlatformPaymentModel {
   const PlatformPaymentModel({
     required this.id,

@@ -133,6 +133,11 @@ class SellerDrawer extends ConsumerWidget {
                     onTap: () {},
                   ),
                   _DrawerItem(
+                    icon: Icons.rocket_launch_outlined,
+                    label: l10n.navBoost,
+                    onTap: () => _push(context, '/seller/boost'),
+                  ),
+                  _DrawerItem(
                     icon: Icons.query_stats_outlined,
                     label: l10n.analytics,
                     onTap: () => _push(context, '/seller/analytics'),

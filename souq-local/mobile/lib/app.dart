@@ -37,6 +37,7 @@ import 'features/seller/seller_add_service_wizard.dart';
 import 'features/seller/seller_add_video_screen.dart';
 import 'features/seller/seller_video_record_screen.dart';
 import 'features/seller/seller_analytics_screen.dart';
+import 'features/seller/seller_boost_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
 import 'features/seller/seller_products_screen.dart';
@@ -112,6 +113,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           path.startsWith('/seller/reviews') ||
           path.startsWith('/seller/notifications') ||
           path.startsWith('/seller/settings') ||
+          path.startsWith('/seller/boost') ||
           path.startsWith('/seller/messages');
       if (isSellerManagement &&
           isAuthenticated &&
@@ -313,6 +315,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: '/seller/settings',
           builder: (_, __) => const SellerSettingsScreen()),
+      GoRoute(
+        path: '/seller/boost',
+        builder: (_, state) => SellerBoostScreen(
+          checkoutNotice: state.uri.queryParameters['checkout'],
+        ),
+      ),
       GoRoute(
         path: '/seller/:id',
         builder: (_, state) =>

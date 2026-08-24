@@ -1579,6 +1579,35 @@ class AppStringsAr extends AppStringsEn {
       'تم جدولة الإلغاء — يبقى Premium نشطًا حتى نهاية الفترة.';
 
   @override
+  String get navBoost => 'تعزيز الظهور';
+
+  @override
+  String get boostTitle => 'عزّز ظهور متجرك';
+
+  @override
+  String get boostSubtitle =>
+      'زِد ظهورك في الاكتشاف لفترة محددة. الرسوم تُدفع لـ Dribex مقابل خدمات المنصة فقط.';
+
+  @override
+  String get boostActivated => 'تم تفعيل التعزيز — ستبدأ حملتك قريبًا.';
+
+  @override
+  String get boostCheckoutOpened =>
+      'تم فتح صفحة الدفع. عد إلى هنا بعد إتمام الدفع.';
+
+  @override
+  String get boostCheckoutFailed => 'تم إلغاء دفع التعزيز أو فشل.';
+
+  @override
+  String get noBoostPackages => 'لا توجد باقات تعزيز متاحة حاليًا.';
+
+  @override
+  String get purchaseBoost => 'شراء التعزيز';
+
+  @override
+  String boostDurationDays(int days) => 'المدة: $days يوم';
+
+  @override
   String get requestAccountErasure => 'طلب حذف الحساب';
 
   @override

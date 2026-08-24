@@ -1307,6 +1307,27 @@ class ApiService {
     return BillingCheckoutResult.fromJson(data);
   }
 
+  Future<List<AdvertisingPackageModel>> fetchAdvertisingPackages() async {
+    final data = await getJsonList('/billing/advertising/packages', auth: false);
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(AdvertisingPackageModel.fromJson)
+        .toList();
+  }
+
+  Future<BillingCheckoutResult> checkoutAdvertising(String packageCode) async {
+    final data = await postJson(
+      '/billing/checkout/advertising',
+      {
+        'package_code': packageCode,
+        'success_url': 'margem://seller/boost?checkout=success',
+        'cancel_url': 'margem://seller/boost?checkout=cancelled',
+      },
+      auth: true,
+    );
+    return BillingCheckoutResult.fromJson(data);
+  }
+
   Future<void> cancelSubscription() async {
     await postVoid('/billing/subscriptions/me/cancel', const {}, auth: true);
   }

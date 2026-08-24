@@ -84,6 +84,14 @@ async def revoke_expired_entitlements(
     return sub
 
 
+async def user_has_buyer_premium(session: AsyncSession, user: User) -> bool:
+    """True when the user holds an active Dribex Plus (buyer) subscription."""
+    sub = await revoke_expired_entitlements(session, user)
+    if sub is None or sub.plan is None:
+        return False
+    return plan_audience(sub.plan.code) == "buyer"
+
+
 async def ensure_checkout_allowed(
     session: AsyncSession,
     user: User,

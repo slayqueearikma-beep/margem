@@ -19,7 +19,7 @@ Only **nginx** exposes ports 80/443. All other services are on an internal Docke
 ```bash
 cd infra/onprem
 cp env.prod.example .env.prod
-# Edit secrets, domain URLs, SMTP, Stripe
+# Edit secrets, domain URLs, SMTP, NAPS ePay credentials
 
 ./scripts/deploy.sh
 ```

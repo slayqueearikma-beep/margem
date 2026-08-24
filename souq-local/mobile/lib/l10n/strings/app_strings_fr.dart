@@ -1576,6 +1576,36 @@ class AppStringsFr extends AppStringsEn {
       'Annulation programmée — Premium reste actif jusqu’à la fin de la période.';
 
   @override
+  String get navBoost => 'Booster la visibilité';
+
+  @override
+  String get boostTitle => 'Boostez votre vitrine';
+
+  @override
+  String get boostSubtitle =>
+      'Augmentez votre visibilité pendant une durée fixe. Les frais sont payés à Dribex pour les services plateforme uniquement.';
+
+  @override
+  String get boostActivated => 'Boost activé — votre campagne démarre bientôt.';
+
+  @override
+  String get boostCheckoutOpened =>
+      'Page de paiement ouverte. Revenez ici après le checkout.';
+
+  @override
+  String get boostCheckoutFailed => 'Le checkout boost a été annulé ou a échoué.';
+
+  @override
+  String get noBoostPackages => 'Aucun pack boost disponible pour le moment.';
+
+  @override
+  String get purchaseBoost => 'Acheter le boost';
+
+  @override
+  String boostDurationDays(int days) =>
+      'Durée : $days jour${days > 1 ? 's' : ''}';
+
+  @override
   String get requestAccountErasure => 'Demander l’effacement du compte';
 
   @override

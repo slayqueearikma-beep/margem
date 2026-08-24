@@ -1579,6 +1579,35 @@ class AppStringsEn extends AppStrings {
       'Cancellation scheduled — Premium remains active until the period ends.';
 
   @override
+  String get navBoost => 'Boost visibility';
+
+  @override
+  String get boostTitle => 'Boost your storefront';
+
+  @override
+  String get boostSubtitle =>
+      'Increase discovery placement for a fixed period. Fees are paid to Dribex for platform services only.';
+
+  @override
+  String get boostActivated => 'Boost activated — your campaign will start shortly.';
+
+  @override
+  String get boostCheckoutOpened =>
+      'Payment page opened. Return here after completing checkout.';
+
+  @override
+  String get boostCheckoutFailed => 'Boost checkout was cancelled or failed.';
+
+  @override
+  String get noBoostPackages => 'No boost packages are available right now.';
+
+  @override
+  String get purchaseBoost => 'Purchase boost';
+
+  @override
+  String boostDurationDays(int days) => 'Duration: $days day${days == 1 ? '' : 's'}';
+
+  @override
   String get requestAccountErasure => 'Request account erasure';
 
   @override
