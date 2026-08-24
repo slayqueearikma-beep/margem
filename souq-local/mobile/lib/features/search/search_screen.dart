@@ -331,11 +331,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         _filters.deliveryAvailable ||
         _filters.pickupOnly;
 
+    final location = GoRouter.maybeOf(context)?.state.uri.path ?? '';
+    final isBuyerHomeSearchTab = location == '/buyer/home';
+
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BuyerAdaptiveHeader(),
+          BuyerAdaptiveHeader(
+            showBack: isBuyerHomeSearchTab,
+            onBack: isBuyerHomeSearchTab
+                ? () => ref.read(buyerTabIndexProvider.notifier).state = 0
+                : null,
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.screenHorizontal,

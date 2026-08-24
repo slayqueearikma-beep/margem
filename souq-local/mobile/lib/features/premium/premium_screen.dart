@@ -301,10 +301,6 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                     onCancel: active.cancelAtPeriodEnd ? null : _cancelSubscription,
                   ),
                 ],
-                if (session != null && !session.isGuest) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  _PaymentHistorySection(),
-                ],
               ],
             ),
           );
@@ -458,35 +454,6 @@ class _SubscriptionManagementCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-class _PaymentHistorySection extends ConsumerWidget {
-  const _PaymentHistorySection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final paymentsAsync = ref.watch(myPlatformPaymentsProvider);
-    return paymentsAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (payments) {
-        if (payments.isEmpty) return const SizedBox.shrink();
-        return MarketSectionCard(
-          title: l10n.paymentHistoryTitle,
-          child: Column(
-            children: payments.take(5).map((payment) {
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text('${payment.serviceCode} · ${payment.amountMad.toStringAsFixed(0)} ${payment.currency}'),
-                subtitle: Text('${payment.status} · ${payment.provider}'),
-              );
-            }).toList(),
-          ),
-        );
-      },
     );
   }
 }

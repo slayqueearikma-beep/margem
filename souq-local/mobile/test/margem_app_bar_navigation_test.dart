@@ -118,4 +118,25 @@ void main() {
 
     expect(find.byType(BackButton), findsOneWidget);
   });
+
+  testWidgets('BuyerAdaptiveHeader can force back for buyer home tabs',
+      (tester) async {
+    var homeTab = 1;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: BuyerAdaptiveHeader(
+            showBack: true,
+            onBack: () => homeTab = 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BackButton), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(homeTab, 0);
+  });
 }

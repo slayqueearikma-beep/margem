@@ -839,13 +839,20 @@ class BuyerPopularCategoryCard extends StatelessWidget {
 /// widget is used on a pushed route (e.g. `/search`, `/messages`) but not
 /// when embedded in [BuyerHomeShell] tabs.
 class BuyerAdaptiveHeader extends StatelessWidget {
-  const BuyerAdaptiveHeader({super.key, this.trailing});
+  const BuyerAdaptiveHeader({
+    super.key,
+    this.trailing,
+    this.showBack = false,
+    this.onBack,
+  });
 
   final Widget? trailing;
+  final bool showBack;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
-    final showBack = shouldShowMargemBackButton(context);
+    final showBackButton = showBack || shouldShowMargemBackButton(context);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -860,10 +867,13 @@ class BuyerAdaptiveHeader extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             const Center(child: MarGemAppBarLogo()),
-            if (showBack)
+            if (showBackButton)
               Align(
                 alignment: AlignmentDirectional.centerStart,
-                child: MargemBackLeading(),
+                child: MargemBackLeading(
+                  forceShow: showBack,
+                  onPressed: onBack,
+                ),
               ),
             if (trailing != null)
               Align(

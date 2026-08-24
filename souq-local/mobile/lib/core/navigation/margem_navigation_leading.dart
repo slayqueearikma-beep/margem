@@ -64,14 +64,16 @@ class MargemBackLeading extends StatelessWidget {
     super.key,
     this.onPressed,
     this.color,
+    this.forceShow = false,
   });
 
   final VoidCallback? onPressed;
   final Color? color;
+  final bool forceShow;
 
   @override
   Widget build(BuildContext context) {
-    if (!shouldShowMargemBackButton(context)) {
+    if (!forceShow && !shouldShowMargemBackButton(context)) {
       return const SizedBox.shrink();
     }
     return BackButton(
