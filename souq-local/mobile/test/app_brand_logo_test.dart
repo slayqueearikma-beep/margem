@@ -46,7 +46,7 @@ void main() {
       ),
     );
 
-    expect(_logoBoxSize(tester), const Size(52, 52));
+    expect(_logoBoxSize(tester), const Size(24, 24));
   });
 
   testWidgets('MarGemAppBarLogo uses navbar tier', (tester) async {
@@ -61,7 +61,7 @@ void main() {
       ),
     );
 
-    expect(_logoBoxSize(tester), const Size(52, 52));
+    expect(_logoBoxSize(tester), const Size(24, 24));
   });
 
   testWidgets('forContext honors explicit size override', (tester) async {
