@@ -281,6 +281,11 @@ class Settings(BaseSettings):
     def validate_production_settings(self) -> "Settings":
         if not self.mfa_encryption_key:
             object.__setattr__(self, "mfa_encryption_key", self.jwt_secret_key)
+        if self.app_env != "production" and self.naps_environment == "production":
+            raise ValueError(
+                "Refusing to start: non-production APP_ENV with NAPS_ENVIRONMENT=production. "
+                "Set NAPS_ENVIRONMENT=sandbox."
+            )
         if self.app_env in _STRICT_ENVS:
             if self.auth_dev_bypass:
                 raise ValueError("AUTH_DEV_BYPASS must be false outside local development")
