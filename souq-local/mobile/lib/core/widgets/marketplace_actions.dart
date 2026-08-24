@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 
 /// Shared marketplace action button sizes.
 class MarketButtonMetrics {
@@ -34,9 +34,9 @@ class MarketPrimaryButton extends StatelessWidget {
     final child = FilledButton(
       onPressed: loading ? null : onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.primary,
+        backgroundColor: context.colors.primary,
         foregroundColor: Colors.white,
-        disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.35),
+        disabledBackgroundColor: context.colors.primary.withValues(alpha: 0.35),
         disabledForegroundColor: Colors.white70,
         minimumSize: const Size(0, MarketButtonMetrics.height),
         padding: const EdgeInsets.symmetric(
@@ -96,19 +96,17 @@ class MarketSecondaryButton extends StatelessWidget {
     final child = OutlinedButton(
       onPressed: loading ? null : onPressed,
       style: OutlinedButton.styleFrom(
-        foregroundColor: isDark ? Colors.white : AppColors.textPrimary,
-        disabledForegroundColor: AppColors.textTertiary,
-        minimumSize: const Size(0, MarketButtonMetrics.height),
-        padding: const EdgeInsets.symmetric(
+        foregroundColor: isDark ? Colors.white : context.colors.textPrimary,
+        disabledForegroundColor: context.colors.textTertiary,
+        minimumSize: Size(0, MarketButtonMetrics.height),
+        padding: EdgeInsets.symmetric(
           horizontal: MarketButtonMetrics.horizontalPadding,
         ),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: context.colors.border,
           width: 1.4,
         ),
-        backgroundColor: isDark
-            ? AppColors.darkCard
-            : AppColors.surfaceMuted.withValues(alpha: 0.65),
+        backgroundColor: context.colors.surfaceVariant.withValues(alpha: 0.65),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MarketButtonMetrics.radius),
         ),
@@ -160,12 +158,12 @@ class MarketSectionCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: isDark ? context.colors.surface : Colors.white,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: context.colors.border,
         ),
         boxShadow: isDark
             ? null
@@ -215,29 +213,29 @@ class MarketInfoChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: isDark
-            ? AppColors.primary.withValues(alpha: 0.16)
-            : AppColors.cardSelected,
+            ? context.colors.primary.withValues(alpha: 0.16)
+            : context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.18),
+          color: context.colors.primary.withValues(alpha: 0.18),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 16, color: AppColors.primary),
-            const SizedBox(width: 6),
+            Icon(icon, size: 16, color: context.colors.primary),
+            SizedBox(width: 6),
           ],
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 13,
-              color: AppColors.primary,
+              color: context.colors.primary,
             ),
           ),
         ],

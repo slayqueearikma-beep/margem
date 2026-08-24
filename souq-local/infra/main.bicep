@@ -1,4 +1,4 @@
-@description('Azure region for all MarGem resources')
+@description('Azure region for all Dribex resources')
 param location string = resourceGroup().location
 
 @description('Environment name: dev, staging, prod')
@@ -35,15 +35,15 @@ param smtpUsername string = ''
 param smtpPassword string = ''
 
 @description('SMTP from address')
-param smtpFrom string = 'MarGem <noreply@margem.ma>'
+param smtpFrom string = 'Dribex <noreply@dribex.ma>'
 
 @description('Public app URL used in email deep links')
-param publicAppUrl string = 'https://margem.ma'
+param publicAppUrl string = 'https://dribex.ma'
 
 @description('Public API URL')
-param publicApiUrl string = 'https://api.margem.ma'
+param publicApiUrl string = 'https://api.dribex.ma'
 
-@description('Container image for the MarGem API (ACR or Docker Hub)')
+@description('Container image for the Dribex API (ACR or Docker Hub)')
 param apiImage string = 'margemapi:latest'
 
 var namePrefix = 'margem-${environmentName}'
@@ -191,8 +191,8 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'UPLOAD_TOKEN_SECRET', secretRef: 'upload-token-secret' }
             { name: 'AZURE_STORAGE_CONNECTION_STRING', secretRef: 'storage-conn' }
             { name: 'AZURE_STORAGE_CONTAINER', value: 'margem-media' }
-            { name: 'CORS_ORIGINS', value: '["https://margem.ma"]' }
-            { name: 'ALLOWED_HOSTS', value: 'api.margem.ma,localhost,127.0.0.1' }
+            { name: 'CORS_ORIGINS', value: '["https://dribex.ma"]' }
+            { name: 'ALLOWED_HOSTS', value: 'api.dribex.ma,localhost,127.0.0.1' }
             { name: 'AUTH_RATE_LIMIT', value: '30/minute' }
             { name: 'RATE_LIMIT', value: '300/minute' }
             { name: 'PUBLIC_APP_URL', value: publicAppUrl }

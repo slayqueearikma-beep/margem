@@ -3,15 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/api_service.dart';
-import '../../core/services/app_storage.dart';
-import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
-import 'seller_account_provider.dart';
 
 class SellerSettingsScreen extends ConsumerStatefulWidget {
   const SellerSettingsScreen({super.key});
@@ -59,71 +58,13 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
     }
   }
 
-  Future<void> _confirmDeleteAccount() async {
-    final l10n = context.l10n;
-    final controller = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteAccount),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.deleteAccountConfirm),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              obscureText: true,
-              decoration: InputDecoration(labelText: l10n.password),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.deleteAccount),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) {
-      controller.dispose();
-      return;
-    }
-
-    try {
-      await ref.read(authServiceProvider).deleteAccount(password: controller.text);
-      controller.dispose();
-      final prefs = await ref.read(sharedPreferencesProvider.future);
-      await ref.read(authServiceProvider).logout(prefs);
-      await ref.read(appStorageProvider)?.logout();
-      ref.invalidate(sellerAccountProvider);
-      ref.read(userSessionProvider.notifier).state = null;
-      ref.read(authSessionProvider.notifier).state = null;
-      if (!mounted) return;
-      context.go('/login');
-    } on ApiException catch (e) {
-      controller.dispose();
-      if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: e.message);
-    } catch (_) {
-      controller.dispose();
-      if (!mounted) return;
-      await showAppErrorDialog(context, title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final themeMode = ref.watch(themeModeProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.accountSecurity)),
+      appBar: MarGemAppBar(semanticLabel: l10n.accountSecurity),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
         children: [
@@ -140,18 +81,28 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
               ref.read(themeModeProvider.notifier).setThemeMode(values.first);
             },
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xl),
           Text(l10n.verifyEmailTitle, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.mark_email_unread_outlined),
+            leading: Icon(Icons.mark_email_unread_outlined),
             title: Text(l10n.resendVerificationEmail),
             onTap: () => context.push('/verify-email'),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.xl),
+          Text(l10n.billingSectionTitle, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          SizedBox(height: AppSpacing.sm),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.receipt_long_outlined),
+            title: Text(l10n.billingSettingsTitle),
+            subtitle: Text(l10n.billingSectionSubtitle),
+            onTap: () => context.push('/settings/billing'),
+          ),
+          SizedBox(height: AppSpacing.xl),
           Text(l10n.changePassword, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           TextField(
             controller: _currentPasswordController,
             obscureText: _obscureCurrent,
@@ -163,7 +114,7 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           TextField(
             controller: _newPasswordController,
             obscureText: _obscureNew,
@@ -175,17 +126,18 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.md),
           PrimaryButton(
             label: l10n.changePassword,
             onPressed: _changePassword,
             isLoading: _loadingPassword,
           ),
-          const SizedBox(height: AppSpacing.xxl),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(foregroundColor: AppColors.danger),
-            onPressed: _confirmDeleteAccount,
-            child: Text(l10n.deleteAccount),
+          SizedBox(height: AppSpacing.xxl),
+          BuyerMenuTile(
+            icon: Icons.policy_outlined,
+            title: l10n.privacyAndLegal,
+            subtitle: l10n.privacyLegalHubSubtitle,
+            onTap: () => context.push('/settings/privacy-legal'),
           ),
         ],
       ),
