@@ -1227,6 +1227,18 @@ class AppStringsEn extends AppStrings {
   @override
   String get reportReasonLabel => 'Reason';
   @override
+  String get reportReasonWrongLocation => 'Wrong location';
+  @override
+  String get reportReasonClosedBusiness => 'Business closed';
+  @override
+  String get reportReasonWrongPhone => 'Wrong phone number';
+  @override
+  String get reportReasonWrongCategory => 'Wrong category';
+  @override
+  String get reportReasonDuplicateBusiness => 'Duplicate business';
+  @override
+  String get reportReasonIncorrectProduct => 'Incorrect product';
+  @override
   String get reportReasonSpam => 'Spam';
   @override
   String get reportReasonHarassment => 'Harassment';

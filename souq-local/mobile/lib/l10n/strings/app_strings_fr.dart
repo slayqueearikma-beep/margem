@@ -1247,6 +1247,18 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get reportReasonLabel => 'Motif';
   @override
+  String get reportReasonWrongLocation => 'Mauvais emplacement';
+  @override
+  String get reportReasonClosedBusiness => 'Commerce fermé';
+  @override
+  String get reportReasonWrongPhone => 'Mauvais numéro de téléphone';
+  @override
+  String get reportReasonWrongCategory => 'Mauvaise catégorie';
+  @override
+  String get reportReasonDuplicateBusiness => 'Commerce en double';
+  @override
+  String get reportReasonIncorrectProduct => 'Produit incorrect';
+  @override
   String get reportReasonSpam => 'Spam';
   @override
   String get reportReasonHarassment => 'Harcèlement';

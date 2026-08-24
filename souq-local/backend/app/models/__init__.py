@@ -450,6 +450,7 @@ class SavedSearch(Base):
     query: Mapped[str] = mapped_column(String(160), default="")
     city: Mapped[str] = mapped_column(String(80), default="")
     category: Mapped[str] = mapped_column(String(80), default="")
+    marketplace_slug: Mapped[str] = mapped_column(String(80), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

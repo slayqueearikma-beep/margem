@@ -5,15 +5,27 @@ import '../../l10n/app_localizations.dart';
 
 /// Report reasons accepted by the marketplace reports API.
 const marketplaceReportReasons = <String>[
+  'wrong_location',
+  'closed_business',
+  'wrong_phone',
+  'wrong_category',
+  'duplicate_business',
+  'incorrect_product',
+  'scam',
   'spam',
   'harassment',
-  'scam',
   'inappropriate',
   'other',
 ];
 
 String reportReasonLabel(AppStrings l10n, String reason) {
   return switch (reason) {
+    'wrong_location' => l10n.reportReasonWrongLocation,
+    'closed_business' => l10n.reportReasonClosedBusiness,
+    'wrong_phone' => l10n.reportReasonWrongPhone,
+    'wrong_category' => l10n.reportReasonWrongCategory,
+    'duplicate_business' => l10n.reportReasonDuplicateBusiness,
+    'incorrect_product' => l10n.reportReasonIncorrectProduct,
     'spam' => l10n.reportReasonSpam,
     'harassment' => l10n.reportReasonHarassment,
     'scam' => l10n.reportReasonScam,

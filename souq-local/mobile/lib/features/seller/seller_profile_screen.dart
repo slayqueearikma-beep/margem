@@ -20,6 +20,7 @@ import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
+import '../buyer/buyer_home_screen.dart';
 import 'seller_account_provider.dart';
 
 class SellerProfileScreen extends ConsumerStatefulWidget {
@@ -34,7 +35,14 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   final _descriptionController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _marketZoneController = TextEditingController();
+  final _marketStreetController = TextEditingController();
+  final _marketGalleryController = TextEditingController();
+  final _shopNumberController = TextEditingController();
+  final _marketFloorController = TextEditingController();
+  final _nearbyLandmarkController = TextEditingController();
 
+  String? _selectedMarketSlug;
   LatLng _location = CityCoordinates.casablanca;
   bool _isActive = true;
   bool _loading = false;
@@ -62,6 +70,12 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     _descriptionController.dispose();
     _addressController.dispose();
     _phoneController.dispose();
+    _marketZoneController.dispose();
+    _marketStreetController.dispose();
+    _marketGalleryController.dispose();
+    _shopNumberController.dispose();
+    _marketFloorController.dispose();
+    _nearbyLandmarkController.dispose();
     super.dispose();
   }
 
@@ -83,6 +97,13 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
     _descriptionController.text = seller.description;
     _addressController.text = seller.address;
     _phoneController.text = seller.phone;
+    _selectedMarketSlug = seller.marketplaceSlug;
+    _marketZoneController.text = seller.marketZone;
+    _marketStreetController.text = seller.marketStreet;
+    _marketGalleryController.text = seller.marketGallery;
+    _shopNumberController.text = seller.shopNumber;
+    _marketFloorController.text = seller.marketFloor;
+    _nearbyLandmarkController.text = seller.nearbyLandmark;
     _location = LatLng(seller.latitude, seller.longitude);
     _coverUrl = seller.coverImageUrl;
     _logoUrl = seller.logoImageUrl;
@@ -124,7 +145,8 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   Future<void> _save(SellerModel seller) async {
     final l10n = context.l10n;
     if (_businessNameController.text.trim().length < 2 ||
-        _addressController.text.trim().length < 5) {
+        _addressController.text.trim().length < 5 ||
+        (_selectedMarketSlug ?? '').isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
       return;
     }
@@ -153,6 +175,13 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
               'open': _formatTime(_openTime),
               'close': _formatTime(_closeTime),
             },
+            marketplaceSlug: _selectedMarketSlug,
+            marketZone: _marketZoneController.text.trim(),
+            marketStreet: _marketStreetController.text.trim(),
+            marketGallery: _marketGalleryController.text.trim(),
+            shopNumber: _shopNumberController.text.trim(),
+            marketFloor: _marketFloorController.text.trim(),
+            nearbyLandmark: _nearbyLandmarkController.text.trim(),
           ),
         );
       });
@@ -173,6 +202,7 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final accountAsync = ref.watch(sellerAccountProvider);
+    final marketsAsync = ref.watch(buyerMarketplacesProvider);
 
     return Scaffold(
       appBar: MarGemAppBar(semanticLabel: l10n.profileManagement),
@@ -211,6 +241,73 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
               InputDecorator(
                 decoration: InputDecoration(labelText: l10n.reviewCity),
                 child: const Text(AppConfig.launchCity),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              marketsAsync.when(
+                data: (markets) {
+                  if (markets.isEmpty) {
+                    return Text(l10n.somethingWentWrong);
+                  }
+                  final selected = _selectedMarketSlug ?? markets.first.slug;
+                  return DropdownButtonFormField<String>(
+                    value: selected,
+                    decoration: InputDecoration(labelText: l10n.chooseMarketLabel),
+                    items: markets
+                        .map(
+                          (market) => DropdownMenuItem(
+                            value: market.slug,
+                            child: Text(market.displayName),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _loading
+                        ? null
+                        : (value) => setState(() => _selectedMarketSlug = value),
+                  );
+                },
+                loading: () => const LinearProgressIndicator(),
+                error: (_, __) => Text(l10n.somethingWentWrong),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                l10n.shopLocationTitle,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _marketGalleryController,
+                enabled: !_loading,
+                decoration: InputDecoration(labelText: '${l10n.shopLocationTitle} — Gallery'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _shopNumberController,
+                enabled: !_loading,
+                decoration: InputDecoration(labelText: '${l10n.shopLocationTitle} — Shop #'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _marketZoneController,
+                enabled: !_loading,
+                decoration: const InputDecoration(labelText: 'Zone / Section'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _marketStreetController,
+                enabled: !_loading,
+                decoration: const InputDecoration(labelText: 'Street'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _marketFloorController,
+                enabled: !_loading,
+                decoration: const InputDecoration(labelText: 'Floor'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _nearbyLandmarkController,
+                enabled: !_loading,
+                decoration: const InputDecoration(labelText: 'Nearby landmark'),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(

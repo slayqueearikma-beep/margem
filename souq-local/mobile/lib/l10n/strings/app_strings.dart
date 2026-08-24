@@ -604,6 +604,12 @@ abstract class AppStrings {
   String get userReported;
   String get userBlocked;
   String get reportReasonLabel;
+  String get reportReasonWrongLocation;
+  String get reportReasonClosedBusiness;
+  String get reportReasonWrongPhone;
+  String get reportReasonWrongCategory;
+  String get reportReasonDuplicateBusiness;
+  String get reportReasonIncorrectProduct;
   String get reportReasonSpam;
   String get reportReasonHarassment;
   String get reportReasonScam;

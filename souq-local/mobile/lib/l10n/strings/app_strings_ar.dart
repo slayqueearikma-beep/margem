@@ -1227,6 +1227,18 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get reportReasonLabel => 'السبب';
   @override
+  String get reportReasonWrongLocation => 'موقع خاطئ';
+  @override
+  String get reportReasonClosedBusiness => 'محل مغلق';
+  @override
+  String get reportReasonWrongPhone => 'رقم هاتف خاطئ';
+  @override
+  String get reportReasonWrongCategory => 'فئة خاطئة';
+  @override
+  String get reportReasonDuplicateBusiness => 'محل مكرر';
+  @override
+  String get reportReasonIncorrectProduct => 'منتج غير صحيح';
+  @override
   String get reportReasonSpam => 'رسائل مزعجة';
   @override
   String get reportReasonHarassment => 'تحرش';
