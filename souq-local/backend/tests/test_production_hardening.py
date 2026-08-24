@@ -146,6 +146,82 @@ def test_production_rejects_shared_mfa_key():
         )
 
 
+_NAPS_SAFETY_MESSAGE = (
+    "Refusing to start: non-production APP_ENV with NAPS_ENVIRONMENT=production"
+)
+
+
+def test_naps_production_environment_rejected_for_staging_app_env():
+    with pytest.raises(ValidationError, match=_NAPS_SAFETY_MESSAGE):
+        Settings(
+            _env_file=None,
+            app_env="staging",
+            naps_environment="production",
+        )
+
+
+def test_naps_production_environment_rejected_for_development_app_env():
+    with pytest.raises(ValidationError, match=_NAPS_SAFETY_MESSAGE):
+        Settings(
+            _env_file=None,
+            app_env="development",
+            naps_environment="production",
+        )
+
+
+def test_naps_sandbox_allowed_for_staging_app_env():
+    settings = Settings(
+        _env_file=None,
+        app_env="staging",
+        debug=False,
+        auth_dev_bypass=False,
+        jwt_secret_key="a-real-production-secret-key-32chars-min",
+        upload_token_secret="a-separate-production-upload-secret-32chars",
+        mfa_encryption_key="a-separate-production-mfa-encryption-key32",
+        cors_origins=["https://margem.ma"],
+        allowed_hosts=["api.margem.ma"],
+        smtp_host="smtp.example.com",
+        public_app_url="https://margem.ma",
+        public_api_url="https://api.margem.ma",
+        admin_ip_allowlist=_PROD_ADMIN_IP,
+        naps_environment="sandbox",
+        **_PROD_MINIO,
+    )
+    assert settings.naps_environment == "sandbox"
+
+
+def test_naps_sandbox_allowed_for_development_app_env():
+    settings = Settings(
+        _env_file=None,
+        app_env="development",
+        naps_environment="sandbox",
+    )
+    assert settings.naps_environment == "sandbox"
+
+
+def test_naps_production_allowed_for_production_app_env():
+    settings = Settings(
+        _env_file=None,
+        app_env="production",
+        debug=False,
+        auth_dev_bypass=False,
+        jwt_secret_key="a-real-production-secret-key-32chars-min",
+        upload_token_secret="a-separate-production-upload-secret-32chars",
+        mfa_encryption_key="a-separate-production-mfa-encryption-key32",
+        cors_origins=["https://margem.ma"],
+        allowed_hosts=["api.margem.ma"],
+        smtp_host="smtp.example.com",
+        public_app_url="https://margem.ma",
+        public_api_url="https://api.margem.ma",
+        admin_ip_allowlist=_PROD_ADMIN_IP,
+        naps_environment="production",
+        naps_api_key="test-production-naps-api-key-32chars-min",
+        **_PROD_AZURE,
+        **_PROD_NAPS,
+    )
+    assert settings.naps_environment == "production"
+
+
 def test_host_lists_accept_comma_delimited_docker_environment_values():
     settings = Settings(
         _env_file=None,

@@ -86,7 +86,7 @@ services:
       dockerfile: backend/Dockerfile
     restart: unless-stopped
     environment:
-      APP_ENV: production
+      APP_ENV: ${APP_ENV:-production}
       DEBUG: "false"
       AUTH_DEV_BYPASS: "false"
       ALLOW_MANUAL_BILLING: "false"
