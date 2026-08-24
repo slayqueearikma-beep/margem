@@ -13,7 +13,6 @@ import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../l10n/app_localizations.dart';
-import '../../l10n/strings/app_strings.dart';
 
 class BillingSettingsScreen extends ConsumerStatefulWidget {
   const BillingSettingsScreen({super.key});
