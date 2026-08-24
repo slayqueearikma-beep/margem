@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/auth_models.dart';
+import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -31,6 +32,8 @@ import '../../core/widgets/city_picker_field.dart';
 import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/services/upload_service.dart';
+import '../../core/widgets/seller_marketplace_picker.dart';
+import '../../features/buyer/buyer_home_screen.dart';
 
 class SellerRegistrationScreen extends ConsumerStatefulWidget {
   const SellerRegistrationScreen({super.key});
@@ -58,6 +61,10 @@ class _SellerRegistrationScreenState
   CityModel? _selectedCity;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _marketGalleryController = TextEditingController();
+  final _shopNumberController = TextEditingController();
+  final _customMarketNameController = TextEditingController();
+  String? _selectedMarketSlug;
   LatLng _location = CityCoordinates.casablanca;
 
   // Step 3
@@ -98,6 +105,9 @@ class _SellerRegistrationScreenState
     _passwordController.dispose();
     _addressController.dispose();
     _phoneController.dispose();
+    _marketGalleryController.dispose();
+    _shopNumberController.dispose();
+    _customMarketNameController.dispose();
     _descriptionController.dispose();
     for (final p in _products) {
       p.dispose();
@@ -111,6 +121,33 @@ class _SellerRegistrationScreenState
     if (image != null) setState(() => setter(image));
   }
 
+  bool _marketSelectionValid() {
+    final markets = ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
+    final marketSlug = _selectedMarketSlug ??
+        (markets.isNotEmpty ? markets.first.slug : null);
+    final customMarket = _customMarketNameController.text.trim();
+    final usesCustom =
+        SellerMarketplacePicker.usesCustomMarket(marketSlug, customMarket);
+    if (marketSlug == null || marketSlug.isEmpty) return false;
+    if (usesCustom && customMarket.length < 2) return false;
+    return true;
+  }
+
+  String _selectedMarketLabel(List<MarketplaceVenueModel> markets) {
+    final customMarket = _customMarketNameController.text.trim();
+    if (_selectedMarketSlug == sellerMarketplaceCustomOption ||
+        customMarket.isNotEmpty) {
+      return customMarket;
+    }
+    final slug = _selectedMarketSlug ??
+        (markets.isNotEmpty ? markets.first.slug : null);
+    if (slug == null) return '—';
+    for (final market in markets) {
+      if (market.slug == slug) return market.displayName;
+    }
+    return slug;
+  }
+
   bool _validateStep() {
     switch (_step) {
       case 1:
@@ -120,7 +157,8 @@ class _SellerRegistrationScreenState
             _passwordController.text.length >= 8;
       case 2:
         return _addressController.text.trim().isNotEmpty &&
-            _phoneController.text.trim().isNotEmpty;
+            _phoneController.text.trim().isNotEmpty &&
+            _marketSelectionValid();
       case 3:
         return _descriptionController.text.trim().isNotEmpty;
       case 4:
@@ -199,7 +237,7 @@ class _SellerRegistrationScreenState
           logoUrl = await uploader.uploadImage(_logoImage!);
         }
 
-        final locale = Localizations.localeOf(context).languageCode;
+        final customMarket = _customMarketNameController.text.trim();
         final seller = await apiServiceProvider.createSeller(
           SellerCreatePayload(
             businessName: _businessNameController.text.trim(),
@@ -219,6 +257,17 @@ class _SellerRegistrationScreenState
                   '${_closeTime.hour.toString().padLeft(2, '0')}:${_closeTime.minute.toString().padLeft(2, '0')}',
             },
             categoryIds: categoryId != null ? [categoryId] : [],
+            marketplaceSlug: SellerMarketplacePicker.marketplaceSlugForApi(
+              selectedSlug: _selectedMarketSlug,
+              customName: customMarket,
+            ),
+            customMarketplaceName:
+                SellerMarketplacePicker.customMarketplaceNameForApi(
+              selectedSlug: _selectedMarketSlug,
+              customName: customMarket,
+            ),
+            marketGallery: _marketGalleryController.text.trim(),
+            shopNumber: _shopNumberController.text.trim(),
             sellerTermsAcknowledged: true,
             acceptanceLanguage: LegalConfig.authoritativeLanguageCode,
           ),
@@ -391,6 +440,7 @@ class _SellerRegistrationScreenState
   }
 
   Widget _buildStep2(AppStrings l10n) {
+    final marketsAsync = ref.watch(buyerMarketplacesProvider);
     return Column(
       key: const ValueKey(2),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,6 +448,31 @@ class _SellerRegistrationScreenState
         AppScreenHeader(
             title: l10n.sellerStep2Title, subtitle: l10n.sellerStep2Subtitle),
         const SizedBox(height: AppSpacing.xl),
+        marketsAsync.when(
+          data: (markets) => SellerMarketplacePicker(
+            markets: markets,
+            selectedSlug: _selectedMarketSlug ??
+                (markets.isNotEmpty ? markets.first.slug : null),
+            customNameController: _customMarketNameController,
+            enabled: !_loading,
+            onSlugChanged: (value) => setState(() => _selectedMarketSlug = value),
+          ),
+          loading: () => const LinearProgressIndicator(),
+          error: (_, __) => Text(l10n.somethingWentWrong),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppTextField(
+          label: '${l10n.shopLocationTitle} — Gallery',
+          controller: _marketGalleryController,
+          hint: l10n.addressHint,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppTextField(
+          label: '${l10n.shopLocationTitle} — Shop #',
+          controller: _shopNumberController,
+          hint: l10n.addressHint,
+        ),
+        const SizedBox(height: AppSpacing.md),
         AppTextField(
           label: l10n.businessCategory,
           hint: l10n.categoryLabel(_category),
@@ -585,6 +660,7 @@ class _SellerRegistrationScreenState
 
   Widget _buildStep5(AppStrings l10n) {
     final locale = Localizations.localeOf(context).languageCode;
+    final markets = ref.watch(buyerMarketplacesProvider).valueOrNull ?? const [];
     final cityLabel = _selectedCity?.localizedName(locale) ??
         findCityByName(ref.watch(citiesProvider).valueOrNull ?? [], AppConfig.launchCity)
             ?.localizedName(locale) ??
@@ -602,6 +678,7 @@ class _SellerRegistrationScreenState
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
         _ReviewRow(l10n.email, _emailController.text),
         _ReviewRow(l10n.reviewCategory, l10n.categoryLabel(_category)),
+        _ReviewRow(l10n.chooseMarketLabel, _selectedMarketLabel(markets)),
         _ReviewRow(l10n.reviewCity, cityLabel),
         _ReviewRow(l10n.reviewAddress, _addressController.text),
         _ReviewRow(l10n.reviewPhone, _phoneController.text),

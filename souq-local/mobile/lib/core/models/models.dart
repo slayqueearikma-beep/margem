@@ -61,6 +61,9 @@ class MarketplaceVenueModel {
     this.displayOrder = 0,
     this.categoryCount = 0,
     this.sellerCount = 0,
+    this.knownFor = '',
+    this.latitude = 0,
+    this.longitude = 0,
   });
 
   final String id;
@@ -74,6 +77,9 @@ class MarketplaceVenueModel {
   final int displayOrder;
   final int categoryCount;
   final int sellerCount;
+  final String knownFor;
+  final double latitude;
+  final double longitude;
 
   /// User-facing marketplace label (slug may differ from display name).
   String get displayName {
@@ -94,6 +100,9 @@ class MarketplaceVenueModel {
       displayOrder: json['display_order'] as int? ?? 0,
       categoryCount: json['category_count'] as int? ?? 0,
       sellerCount: json['seller_count'] as int? ?? 0,
+      knownFor: json['known_for'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
     );
   }
 }
@@ -173,6 +182,17 @@ class SellerModel {
     this.avgResponseMinutes = 0,
     this.isPremium = false,
     this.verificationStatus = 'unverified',
+    this.marketplaceSlug,
+    this.marketplaceName,
+    this.customMarketplaceName = '',
+    this.marketZone = '',
+    this.marketStreet = '',
+    this.marketGallery = '',
+    this.shopNumber = '',
+    this.marketFloor = '',
+    this.nearbyLandmark = '',
+    this.stallLocationSummary = '',
+    this.phoneVerified = false,
     this.createdAt,
     this.categories = const [],
     this.products = const [],
@@ -216,6 +236,17 @@ class SellerModel {
   final int avgResponseMinutes;
   final bool isPremium;
   final String verificationStatus;
+  final String? marketplaceSlug;
+  final String? marketplaceName;
+  final String customMarketplaceName;
+  final String marketZone;
+  final String marketStreet;
+  final String marketGallery;
+  final String shopNumber;
+  final String marketFloor;
+  final String nearbyLandmark;
+  final String stallLocationSummary;
+  final bool phoneVerified;
   final DateTime? createdAt;
   final List<CategoryModel> categories;
   final List<ProductModel> products;
@@ -272,6 +303,17 @@ class SellerModel {
       isPremium: json['is_premium'] as bool? ?? false,
       verificationStatus:
           json['verification_status'] as String? ?? 'unverified',
+      marketplaceSlug: json['marketplace_slug'] as String?,
+      marketplaceName: json['marketplace_name'] as String?,
+      customMarketplaceName: json['custom_marketplace_name'] as String? ?? '',
+      marketZone: json['market_zone'] as String? ?? '',
+      marketStreet: json['market_street'] as String? ?? '',
+      marketGallery: json['market_gallery'] as String? ?? '',
+      shopNumber: json['shop_number'] as String? ?? '',
+      marketFloor: json['market_floor'] as String? ?? '',
+      nearbyLandmark: json['nearby_landmark'] as String? ?? '',
+      stallLocationSummary: json['stall_location_summary'] as String? ?? '',
+      phoneVerified: json['phone_verified'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,

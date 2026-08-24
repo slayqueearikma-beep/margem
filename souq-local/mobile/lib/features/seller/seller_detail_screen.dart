@@ -13,8 +13,9 @@ import '../../core/widgets/achievement_badges.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/discovery_platform_notice.dart';
-import '../../core/navigation/margem_navigation_leading.dart';
 import '../../core/widgets/marketplace_actions.dart';
+import '../../core/navigation/margem_navigation_leading.dart';
+import '../../core/widgets/seller_trust_indicators.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
@@ -327,12 +328,24 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                                   : context.colors.textSecondary,
                             ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.sm),
                     ],
+                    SellerTrustIndicators(seller: seller),
+                    const SizedBox(height: AppSpacing.lg),
                     MarketSectionCard(
                       title: l10n.businessInformation,
                       child: Column(
                         children: [
+                          if ((seller.marketplaceName ?? '').isNotEmpty)
+                            _InfoTile(
+                              icon: Icons.store_mall_directory_outlined,
+                              label: seller.marketplaceName!,
+                            ),
+                          if (seller.stallLocationSummary.isNotEmpty)
+                            _InfoTile(
+                              icon: Icons.place_outlined,
+                              label: seller.stallLocationSummary,
+                            ),
                           _InfoTile(
                             icon: Icons.location_on_outlined,
                             label: seller.address.isEmpty

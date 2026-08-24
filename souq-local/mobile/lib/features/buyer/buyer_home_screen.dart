@@ -289,7 +289,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                   ),
                   child: BuyerGreetingBlock(
                     greeting: l10n.buyerHello(firstName),
-                    subtitle: l10n.buyerHomeSubtitle,
+                    subtitle: l10n.marketDiscoveryHomeSubtitle,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -298,12 +298,99 @@ class BuyerHomeScreen extends ConsumerWidget {
                     horizontal: AppSpacing.screenHorizontal,
                   ),
                   child: BuyerSearchBar(
-                    hint: l10n.searchHint,
+                    hint: l10n.marketDiscoverySearchHint,
                     onTap: () =>
                         ref.read(buyerTabIndexProvider.notifier).state = 1,
                     onFilter: () =>
                         ref.read(buyerTabIndexProvider.notifier).state = 1,
                   ),
+                ),
+                marketplacesAsync.when(
+                  data: (marketplaces) {
+                    if (marketplaces.isEmpty) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenHorizontal,
+                        AppSpacing.lg,
+                        AppSpacing.screenHorizontal,
+                        0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.popularMarketsTitle,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          ...marketplaces.take(6).map(
+                            (venue) => Padding(
+                              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                              child: Card(
+                                clipBehavior: Clip.antiAlias,
+                                child: InkWell(
+                                  onTap: () => context.push('/marketplace/${venue.slug}'),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(AppSpacing.md),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor: context.colors.primaryMuted,
+                                          child: Icon(
+                                            Icons.store_mall_directory_outlined,
+                                            color: context.colors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: AppSpacing.md),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                venue.displayName,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              if (venue.knownFor.isNotEmpty)
+                                                Text(
+                                                  venue.knownFor,
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: context.colors.textSecondary,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              Text(
+                                                l10n.marketSellerCount(venue.sellerCount),
+                                                style: TextStyle(
+                                                  color: context.colors.textSecondary,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Icon(
+                                          DirectionalUi.forwardChevron(context),
+                                          color: context.colors.textSecondary,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox(height: AppSpacing.md),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
                 if (isGuest) ...[
                   const SizedBox(height: AppSpacing.md),

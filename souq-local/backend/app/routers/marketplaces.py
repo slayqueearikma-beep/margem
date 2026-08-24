@@ -8,8 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
+from app.models import Category, SellerProfile
 from app.models.marketplace import Marketplace, MarketplaceCategory
+from app.schemas import SellerSummary
 from app.schemas.marketplace import MarketplaceCategoryPublicOut, MarketplaceOut
+from app.services.marketplace_scope import resolve_marketplace_id
+from app.services.seller_marketplace import OTHER_CASABLANCA_MARKETS_SLUG, attach_marketplace_metadata, format_stall_location
 
 router = APIRouter(prefix="/marketplaces", tags=["marketplaces"])
 
@@ -27,8 +31,6 @@ async def _marketplace_out(session: AsyncSession, marketplace: Marketplace) -> M
         )
         or 0
     )
-    from app.models import SellerProfile
-
     seller_count = int(
         await session.scalar(
             select(func.count())
@@ -42,6 +44,7 @@ async def _marketplace_out(session: AsyncSession, marketplace: Marketplace) -> M
         slug=marketplace.slug,
         name=marketplace.name,
         description=marketplace.description,
+        known_for=getattr(marketplace, "known_for", "") or "",
         address=marketplace.address,
         district=marketplace.district,
         city=marketplace.city,
@@ -68,6 +71,7 @@ async def list_marketplaces(
     stmt = select(Marketplace).order_by(Marketplace.display_order, Marketplace.name)
     if active_only:
         stmt = stmt.where(Marketplace.is_active.is_(True))
+    stmt = stmt.where(Marketplace.slug != OTHER_CASABLANCA_MARKETS_SLUG)
     if city:
         stmt = stmt.where(Marketplace.city.ilike(_escape_ilike(city.strip())))
     rows = list((await session.execute(stmt)).scalars().all())
@@ -104,3 +108,65 @@ async def list_marketplace_categories(
         stmt = stmt.where(MarketplaceCategory.is_active.is_(True))
     categories = list((await session.execute(stmt)).scalars().all())
     return [MarketplaceCategoryPublicOut.from_category(c) for c in categories]
+
+
+def _seller_summary_out(seller: SellerProfile) -> SellerSummary:
+    attach_marketplace_metadata(seller)
+    setattr(seller, "stall_location_summary", format_stall_location(seller))
+    owner = getattr(seller, "user", None)
+    setattr(seller, "phone_verified", bool(getattr(owner, "email_verified", False)))
+    return SellerSummary.model_validate(seller)
+
+
+@router.get("/{slug}/sellers", response_model=list[SellerSummary])
+async def list_marketplace_sellers(
+    slug: str,
+    category: str | None = Query(default=None, max_length=80),
+    limit: int = Query(default=24, ge=1, le=100),
+    session: AsyncSession = Depends(get_db),
+) -> list[SellerSummary]:
+    marketplace_id = await resolve_marketplace_id(session, slug)
+    stmt = (
+        select(SellerProfile)
+        .options(
+            selectinload(SellerProfile.categories),
+            selectinload(SellerProfile.marketplace),
+            selectinload(SellerProfile.user),
+        )
+        .where(
+            SellerProfile.marketplace_id == marketplace_id,
+            SellerProfile.is_active.is_(True),
+        )
+        .order_by(SellerProfile.is_premium.desc(), SellerProfile.average_rating.desc())
+        .limit(limit)
+    )
+    if category:
+        stmt = stmt.join(SellerProfile.categories).where(Category.slug == category.strip())
+    sellers = list((await session.execute(stmt)).scalars().unique().all())
+    return [_seller_summary_out(seller) for seller in sellers]
+
+
+@router.get("/{slug}/featured", response_model=list[SellerSummary])
+async def list_marketplace_featured_sellers(
+    slug: str,
+    limit: int = Query(default=6, ge=1, le=20),
+    session: AsyncSession = Depends(get_db),
+) -> list[SellerSummary]:
+    marketplace_id = await resolve_marketplace_id(session, slug)
+    stmt = (
+        select(SellerProfile)
+        .options(
+            selectinload(SellerProfile.categories),
+            selectinload(SellerProfile.marketplace),
+            selectinload(SellerProfile.user),
+        )
+        .where(
+            SellerProfile.marketplace_id == marketplace_id,
+            SellerProfile.is_active.is_(True),
+            SellerProfile.is_premium.is_(True),
+        )
+        .order_by(SellerProfile.average_rating.desc(), SellerProfile.review_count.desc())
+        .limit(limit)
+    )
+    sellers = list((await session.execute(stmt)).scalars().all())
+    return [_seller_summary_out(seller) for seller in sellers]

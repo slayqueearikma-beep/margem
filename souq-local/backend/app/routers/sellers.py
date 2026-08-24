@@ -33,6 +33,7 @@ from app.schemas import (
     VideoOut,
 )
 from app.services.premium import apply_seller_premium_expiry, is_premium_active
+from app.services.seller_marketplace import apply_marketplace_selection
 from app.services.ratings import (
     overall_from_categories,
     refresh_seller_ratings,
@@ -64,6 +65,7 @@ async def _load_seller_detail(session: AsyncSession, seller_id: UUID) -> SellerP
             selectinload(SellerProfile.products),
             selectinload(SellerProfile.services),
             selectinload(SellerProfile.user),
+            selectinload(SellerProfile.marketplace),
         )
         .where(SellerProfile.id == seller_id)
     )
@@ -82,6 +84,12 @@ async def _load_seller_detail(session: AsyncSession, seller_id: UUID) -> SellerP
     )
     # Attached for SellerDetail.from_attributes serialization (not an ORM column).
     setattr(seller, "follower_count", int(followers or 0))
+    from app.services.seller_marketplace import attach_marketplace_metadata, format_stall_location
+
+    attach_marketplace_metadata(seller)
+    setattr(seller, "stall_location_summary", format_stall_location(seller))
+    owner = getattr(seller, "user", None)
+    setattr(seller, "phone_verified", bool(getattr(owner, "email_verified", False)))
     return seller
 
 
@@ -220,6 +228,7 @@ async def list_sellers(
         .options(
             selectinload(SellerProfile.categories),
             selectinload(SellerProfile.user),
+            selectinload(SellerProfile.marketplace),
         )
         .where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
     )
@@ -253,6 +262,13 @@ async def list_sellers(
             dirty = True
     if dirty:
         await session.commit()
+    from app.services.seller_marketplace import attach_marketplace_metadata, format_stall_location
+
+    for seller in sellers:
+        attach_marketplace_metadata(seller)
+        setattr(seller, "stall_location_summary", format_stall_location(seller))
+        owner = getattr(seller, "user", None)
+        setattr(seller, "phone_verified", bool(getattr(owner, "email_verified", False)))
     # Prefer still-premium first after expiry corrections.
     sellers.sort(key=lambda s: (not s.is_premium, -(s.average_rating or 0.0)))
     return sellers
@@ -391,7 +407,19 @@ async def create_seller(
         payment_methods=payload.payment_methods or ["cash"],
         delivery_methods=payload.delivery_methods or ["in_store"],
         service_areas=payload.service_areas or [],
+        market_zone=payload.market_zone.strip(),
+        market_street=payload.market_street.strip(),
+        market_gallery=payload.market_gallery.strip(),
+        shop_number=payload.shop_number.strip(),
+        market_floor=payload.market_floor.strip(),
+        nearby_landmark=payload.nearby_landmark.strip(),
         categories=categories,
+    )
+    await apply_marketplace_selection(
+        session,
+        seller,
+        payload.marketplace_slug,
+        payload.custom_marketplace_name,
     )
     session.add(seller)
     # Dual-mode: keep one identity; mark account as seller-capable.
@@ -449,6 +477,8 @@ async def update_seller(
     data = payload.model_dump(exclude_unset=True)
     category_ids = data.pop("category_ids", None)
     opening_hours = data.pop("opening_hours", None)
+    marketplace_slug = data.pop("marketplace_slug", None)
+    custom_marketplace_name = data.pop("custom_marketplace_name", None)
 
     if "cover_image_url" in data:
         new_cover = await _validate_owner_media_registered(session, data["cover_image_url"] or "", user.id)
@@ -482,6 +512,14 @@ async def update_seller(
     if category_ids is not None:
         result = await session.execute(select(Category).where(Category.id.in_(category_ids)))
         seller.categories = list(result.scalars().all())
+
+    if marketplace_slug is not None or custom_marketplace_name is not None:
+        await apply_marketplace_selection(
+            session,
+            seller,
+            marketplace_slug,
+            custom_marketplace_name,
+        )
 
     await session.commit()
     return await _load_seller_detail(session, seller_id)

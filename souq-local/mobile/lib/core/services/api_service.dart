@@ -545,6 +545,40 @@ class ApiService {
         .toList();
   }
 
+  Future<MarketplaceVenueModel> fetchMarketplace(String slug) async {
+    final response = await _get(_uri('/marketplaces/$slug'));
+    _ensureSuccess(response);
+    return MarketplaceVenueModel.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  Future<List<SellerModel>> fetchMarketplaceSellers(
+    String slug, {
+    String? category,
+    int limit = 24,
+  }) async {
+    final params = <String, String>{'limit': '$limit'};
+    if (category != null && category.isNotEmpty) params['category'] = category;
+    final response = await _get(_uri('/marketplaces/$slug/sellers', params));
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => SellerModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<SellerModel>> fetchMarketplaceFeatured(String slug, {int limit = 6}) async {
+    final response = await _get(
+      _uri('/marketplaces/$slug/featured', {'limit': '$limit'}),
+    );
+    _ensureSuccess(response);
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => SellerModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<CategoryModel>> fetchMarketplaceCategories(String marketplaceSlug) async {
     final response = await _get(
       _uri('/marketplaces/$marketplaceSlug/categories', {'active_only': 'true'}),

@@ -230,6 +230,13 @@ class SellerProfile(Base):
     marketplace_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("marketplaces.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    market_zone: Mapped[str] = mapped_column(String(120), default="")
+    market_street: Mapped[str] = mapped_column(String(120), default="")
+    market_gallery: Mapped[str] = mapped_column(String(120), default="")
+    shop_number: Mapped[str] = mapped_column(String(32), default="")
+    market_floor: Mapped[str] = mapped_column(String(64), default="")
+    nearby_landmark: Mapped[str] = mapped_column(String(255), default="")
+    custom_marketplace_name: Mapped[str] = mapped_column(String(160), default="")
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
     phone: Mapped[str] = mapped_column(String(32), default="")
@@ -444,6 +451,7 @@ class SavedSearch(Base):
     query: Mapped[str] = mapped_column(String(160), default="")
     city: Mapped[str] = mapped_column(String(80), default="")
     category: Mapped[str] = mapped_column(String(80), default="")
+    marketplace_slug: Mapped[str] = mapped_column(String(80), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

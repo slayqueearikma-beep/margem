@@ -69,6 +69,7 @@ class SavedSearchCreate(BaseModel):
     query: str = Field(default="", max_length=160)
     city: str = Field(default="", max_length=80)
     category: str = Field(default="", max_length=80)
+    marketplace_slug: str = Field(default="", max_length=80)
 
 
 class SavedSearchOut(BaseModel):
@@ -76,6 +77,7 @@ class SavedSearchOut(BaseModel):
     query: str
     city: str
     category: str
+    marketplace_slug: str = ""
 
     model_config = {"from_attributes": True}
 
@@ -425,6 +427,7 @@ async def create_saved_search(
         query=payload.query.strip(),
         city=payload.city.strip(),
         category=payload.category.strip(),
+        marketplace_slug=payload.marketplace_slug.strip(),
     )
     session.add(row)
     await session.commit()

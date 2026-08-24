@@ -1227,6 +1227,18 @@ class AppStringsEn extends AppStrings {
   @override
   String get reportReasonLabel => 'Reason';
   @override
+  String get reportReasonWrongLocation => 'Wrong location';
+  @override
+  String get reportReasonClosedBusiness => 'Business closed';
+  @override
+  String get reportReasonWrongPhone => 'Wrong phone number';
+  @override
+  String get reportReasonWrongCategory => 'Wrong category';
+  @override
+  String get reportReasonDuplicateBusiness => 'Duplicate business';
+  @override
+  String get reportReasonIncorrectProduct => 'Incorrect product';
+  @override
   String get reportReasonSpam => 'Spam';
   @override
   String get reportReasonHarassment => 'Harassment';
@@ -1606,6 +1618,86 @@ class AppStringsEn extends AppStrings {
 
   @override
   String boostDurationDays(int days) => 'Duration: $days day${days == 1 ? '' : 's'}';
+
+  @override
+  String get marketDiscoveryTitle => 'Markets';
+
+  @override
+  String get marketDiscoveryHomeSubtitle =>
+      'Discover Casablanca markets and find shops before you go.';
+
+  @override
+  String get marketDiscoverySearchHint =>
+      'Search products, services or shops';
+
+  @override
+  String get popularMarketsTitle => 'Popular markets in Casablanca';
+
+  @override
+  String marketSellerCount(int count) =>
+      count == 1 ? '1 shop listed' : '$count shops listed';
+
+  @override
+  String get marketKnownFor => 'Known for';
+
+  @override
+  String searchThisMarketHint(String marketName) => 'Search in $marketName';
+
+  @override
+  String get openMarketMap => 'Open map';
+
+  @override
+  String get marketCategoriesTitle => 'Categories in this market';
+
+  @override
+  String get featuredSellersTitle => 'Featured sellers';
+
+  @override
+  String get sponsoredLabel => 'Sponsored';
+
+  @override
+  String get marketShopsTitle => 'Shops in this market';
+
+  @override
+  String get noSellersInMarket => 'No shops listed yet';
+
+  @override
+  String get noSellersInMarketSubtitle =>
+      'Seller listings in this market will appear here as they join Dribex.';
+
+  @override
+  String get verificationUnverified => 'Unverified';
+
+  @override
+  String get verificationPending => 'Verification pending';
+
+  @override
+  String get verificationBusinessVerified => 'Business verified';
+
+  @override
+  String get verificationRejected => 'Verification rejected';
+
+  @override
+  String get verificationPhoneVerified => 'Phone verified';
+
+  @override
+  String get chooseMarketLabel => 'Choose your market';
+
+  @override
+  String get chooseMarketMoreOption => 'More — type my market';
+
+  @override
+  String get customMarketNameLabel => 'Market or district name';
+
+  @override
+  String get customMarketNameHint => 'e.g. Hay Mohammadi, Sidi Moumen…';
+
+  @override
+  String get customMarketNameHelp =>
+      'Use this if your shop is in another Casablanca market not listed above.';
+
+  @override
+  String get shopLocationTitle => 'Shop location in market';
 
   @override
   String get requestAccountErasure => 'Request account erasure';

@@ -22,6 +22,7 @@ import 'features/community_chat/community_channel_screen.dart';
 import 'features/community_chat/community_city_screen.dart';
 import 'features/map/map_screen.dart';
 import 'features/messages/messages_inbox_screen.dart';
+import 'features/marketplace/marketplace_detail_screen.dart';
 import 'features/marketplace_community/marketplace_community_channel_screen.dart';
 import 'features/marketplace_community/marketplace_community_hub_screen.dart';
 import 'features/onboarding/account_type_onboarding_screen.dart';
@@ -194,6 +195,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/buyer/home', builder: (_, __) => const BuyerHomeShell()),
       GoRoute(path: '/search', builder: (_, __) => const SearchScreen()),
       GoRoute(path: '/bundle', builder: (_, __) => const BundleBuilderScreen()),
+      GoRoute(
+        path: '/marketplace/:slug',
+        builder: (_, state) => MarketplaceDetailScreen(
+          slug: state.pathParameters['slug']!,
+        ),
+      ),
       GoRoute(
         path: '/marketplace/:slug/community',
         builder: (_, state) => MarketplaceCommunityHubScreen(

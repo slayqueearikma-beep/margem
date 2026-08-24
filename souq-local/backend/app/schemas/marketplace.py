@@ -16,6 +16,7 @@ class MarketplaceBase(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     slug: str = Field(min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     description: str = ""
+    known_for: str = ""
     address: str = Field(default="", max_length=255)
     district: str = Field(default="", max_length=120)
     city: str = Field(default="Casablanca", max_length=80)
@@ -36,6 +37,7 @@ class MarketplaceUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
     slug: str | None = Field(default=None, min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     description: str | None = None
+    known_for: str | None = None
     address: str | None = Field(default=None, max_length=255)
     district: str | None = Field(default=None, max_length=120)
     city: str | None = Field(default=None, max_length=80)
