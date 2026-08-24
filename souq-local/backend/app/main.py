@@ -414,8 +414,12 @@ async def health(request: Request):
 @app.get("/metrics")
 @limiter.exempt
 async def metrics(request: Request):
-    """Prometheus text metrics — restrict via firewall in production."""
-    from fastapi.responses import PlainTextResponse
+    """Prometheus text metrics — internal/admin network only."""
+    from fastapi.responses import JSONResponse, PlainTextResponse
+
+    from app.services.client_ip import is_internal_network_access
     from app.telemetry import metrics_prometheus_text
 
+    if not is_internal_network_access(request):
+        return JSONResponse(status_code=403, content={"detail": "Metrics access denied"})
     return PlainTextResponse(metrics_prometheus_text(), media_type="text/plain; version=0.0.4")

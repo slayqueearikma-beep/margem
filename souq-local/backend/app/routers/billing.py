@@ -278,7 +278,7 @@ async def cancel_my_subscription(
 
 
 @router.post("/webhooks/{provider_name}", status_code=status.HTTP_204_NO_CONTENT)
-@limiter.exempt
+@limiter.limit("120/minute")
 async def payment_webhook(
     provider_name: str,
     request: Request,

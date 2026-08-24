@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from ipaddress import ip_address, ip_network
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -11,35 +10,13 @@ from starlette.responses import JSONResponse, Response
 
 from app.config import settings
 from app.middleware.admin_paths import is_admin_protected_path
-from app.services.client_ip import get_client_ip
+from app.services.client_ip import get_client_ip, ip_permitted
 
 logger = logging.getLogger("margem.security")
 
 
 def _is_admin_path(path: str) -> bool:
     return is_admin_protected_path(path)
-
-
-def _ip_permitted(ip: str, allowlist: list[str]) -> bool:
-    try:
-        addr = ip_address(ip)
-    except ValueError:
-        return False
-    if addr.is_loopback:
-        return True
-    for entry in allowlist:
-        entry = entry.strip()
-        if not entry:
-            continue
-        try:
-            if "/" in entry:
-                if addr in ip_network(entry, strict=False):
-                    return True
-            elif addr == ip_address(entry):
-                return True
-        except ValueError:
-            continue
-    return False
 
 
 class AdminIpGuardMiddleware(BaseHTTPMiddleware):
@@ -62,7 +39,7 @@ class AdminIpGuardMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         client_ip = get_client_ip(request)
-        if not _ip_permitted(client_ip, allowlist):
+        if not ip_permitted(client_ip, allowlist):
             logger.warning(
                 "admin_ip_denied ip=%s path=%s",
                 client_ip,

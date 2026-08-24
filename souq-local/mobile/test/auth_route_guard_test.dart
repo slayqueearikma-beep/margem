@@ -10,6 +10,8 @@ void main() {
 
     test('blocks guest seller management and premium', () {
       expect(isAuthProtectedLocation('/seller/dashboard'), isTrue);
+      expect(isAuthProtectedLocation('/seller/videos/new'), isTrue);
+      expect(isAuthProtectedLocation('/seller/videos/record'), isTrue);
       expect(isAuthProtectedLocation('/premium'), isTrue);
       expect(isAuthProtectedLocation('/settings/billing'), isTrue);
     });
