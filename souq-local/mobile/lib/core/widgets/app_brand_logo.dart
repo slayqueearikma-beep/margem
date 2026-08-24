@@ -33,9 +33,8 @@ class AppLogoLayout {
 
   static double markFillScaleFor(AppLogoTier tier) {
     return switch (tier) {
-      // PNG assets include transparent padding; scale up slightly inside the
-      // 24 dp box so the orange mark reads clearly between menu and actions.
-      AppLogoTier.navbar => 1.34,
+      // Zoom into PNG padding so the orange mark reads ~24 dp tall in headers.
+      AppLogoTier.navbar => 1.72,
       AppLogoTier.compact => 1.16,
       AppLogoTier.header || AppLogoTier.splash => markFillScale,
     };
