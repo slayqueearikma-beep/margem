@@ -24,6 +24,25 @@ class BuyerDrawer extends ConsumerWidget {
         : l10n.guestMode;
     final unread =
         ref.watch(conversationsUnreadCountProvider).valueOrNull ?? 0;
+    final marketplaces =
+        ref.watch(buyerMarketplacesProvider).valueOrNull ?? const [];
+    final selectedSlug = validatedMarketplaceSlug(
+      ref.watch(buyerMarketplaceSlugProvider),
+      marketplaces,
+    );
+
+    void openMarketCommunity() {
+      if (selectedSlug != null && selectedSlug.isNotEmpty) {
+        context.push('/marketplace/$selectedSlug/community');
+        return;
+      }
+      final first = marketplaces.isNotEmpty ? marketplaces.first.slug : null;
+      if (first != null && first.isNotEmpty) {
+        context.push('/marketplace/$first/community');
+        return;
+      }
+      context.push('/community');
+    }
 
     void closeAnd(VoidCallback action) {
       Navigator.pop(context);
@@ -121,6 +140,16 @@ class BuyerDrawer extends ConsumerWidget {
                     icon: Icons.map_outlined,
                     label: l10n.exploreOnMap,
                     onTap: () => closeAnd(() => context.push('/map')),
+                  ),
+                  _DrawerTile(
+                    icon: Icons.forum_outlined,
+                    label: l10n.marketplaceCommunityTitle,
+                    onTap: () => closeAnd(openMarketCommunity),
+                  ),
+                  _DrawerTile(
+                    icon: Icons.groups_rounded,
+                    label: l10n.communityHomeCardTitle,
+                    onTap: () => closeAnd(() => context.push('/community')),
                   ),
                   _DrawerTile(
                     icon: Icons.chat_bubble_outline_rounded,

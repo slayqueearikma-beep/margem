@@ -17,6 +17,7 @@ bool isAuthProtectedLocation(String path) {
       path == '/premium' ||
       path == '/settings/billing' ||
       path.startsWith('/messages') ||
+      path.startsWith('/community/channels') ||
       isMarketplaceCommunity;
 }
 

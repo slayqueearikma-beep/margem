@@ -383,6 +383,16 @@ class BuyerHomeScreen extends ConsumerWidget {
                                             ],
                                           ),
                                         ),
+                                        IconButton(
+                                          tooltip: l10n.marketplaceCommunityTitle,
+                                          onPressed: () => context.push(
+                                            '/marketplace/${venue.slug}/community',
+                                          ),
+                                          icon: Icon(
+                                            Icons.forum_outlined,
+                                            color: context.colors.primary,
+                                          ),
+                                        ),
                                         Icon(
                                           DirectionalUi.forwardChevron(context),
                                           color: context.colors.textSecondary,

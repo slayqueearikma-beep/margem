@@ -17,6 +17,8 @@ import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_email_screen.dart';
 import 'features/buyer/buyer_home_screen.dart';
+import 'features/community_chat/community_channel_screen.dart';
+import 'features/community_chat/community_city_screen.dart';
 import 'features/map/map_screen.dart';
 import 'features/messages/messages_inbox_screen.dart';
 import 'features/marketplace/marketplace_detail_screen.dart';
@@ -214,9 +216,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
-      GoRoute(path: '/community/channels/:channelId', redirect: (_, __) => '/buyer/home'),
-      GoRoute(path: '/community', redirect: (_, __) => '/buyer/home'),
-      GoRoute(path: '/community/:citySlug', redirect: (_, __) => '/buyer/home'),
+      GoRoute(
+        path: '/community/channels/:channelId',
+        builder: (_, state) {
+          final extra = state.extra;
+          final map = extra is Map ? extra : const {};
+          return CommunityChannelScreen(
+            channelId: state.pathParameters['channelId']!,
+            channelName: map['channelName'] as String? ?? '',
+            citySlug: map['citySlug'] as String? ?? '',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/community',
+        builder: (_, __) => const CommunityCityScreen(),
+      ),
+      GoRoute(
+        path: '/community/:citySlug',
+        builder: (_, state) => CommunityCityScreen(
+          citySlug: state.pathParameters['citySlug'],
+        ),
+      ),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
       GoRoute(
         path: '/premium',

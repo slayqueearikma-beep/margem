@@ -14,8 +14,9 @@ void main() {
       expect(isAuthProtectedLocation('/settings/billing'), isTrue);
     });
 
-    test('blocks guest messaging and marketplace community', () {
+    test('blocks guest messaging and community channels', () {
       expect(isAuthProtectedLocation('/messages/inbox'), isTrue);
+      expect(isAuthProtectedLocation('/community/channels/casablanca'), isTrue);
       expect(
         isAuthProtectedLocation('/marketplace/derb-ghallef/community'),
         isTrue,
