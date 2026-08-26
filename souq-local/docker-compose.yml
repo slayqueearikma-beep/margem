@@ -74,6 +74,7 @@ services:
     ports:
       - "0.0.0.0:3000:3000"
     environment:
+      DRIBEX_WEB_IN_DOCKER: "1"
       API_BASE_URL: http://api:8000
       HOSTNAME: 0.0.0.0
       PORT: 3000

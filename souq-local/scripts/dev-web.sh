@@ -23,6 +23,10 @@ fi
 if [[ ! -f .env.local ]] && [[ -f env.example ]]; then
   cp env.example .env.local
   echo "Created web/.env.local from env.example"
+elif [[ -f .env.local ]] && grep -qE '^API_BASE_URL=https?://api(:|$)' .env.local; then
+  sed -i.bak -E 's|^API_BASE_URL=https?://api:8000|API_BASE_URL=http://127.0.0.1:8000|' .env.local
+  echo "Fixed web/.env.local: API_BASE_URL=http://api:8000 only works inside Docker."
+  echo "  Set to http://127.0.0.1:8000 for npm run dev on the host."
 fi
 
 # Load env for HOSTNAME/PORT
@@ -40,22 +44,22 @@ fi
 
 echo ""
 echo "Starting Dribex web dev server..."
-echo "  Bind: ${HOSTNAME:-0.0.0.0}:${PORT:-3000}"
+echo "  Bind: ${WEB_DEV_HOST:-0.0.0.0}:${WEB_DEV_PORT:-3000}"
 echo ""
 echo "Open in a browser ON THIS MACHINE:"
-echo "  http://127.0.0.1:${PORT:-3000}"
+echo "  http://127.0.0.1:${WEB_DEV_PORT:-3000}"
 echo ""
 if [[ -n "$LAN_IP" ]]; then
   echo "Open from phone / another PC on the same Wi‑Fi:"
-  echo "  http://${LAN_IP}:${PORT:-3000}"
+  echo "  http://${LAN_IP}:${WEB_DEV_PORT:-3000}"
   echo ""
   echo "If the page loads but listings are empty, set in web/.env.local:"
   echo "  NEXT_PUBLIC_API_BASE_URL=http://${LAN_IP}:8000"
-  echo "  NEXT_PUBLIC_SITE_URL=http://${LAN_IP}:${PORT:-3000}"
+  echo "  NEXT_PUBLIC_SITE_URL=http://${LAN_IP}:${WEB_DEV_PORT:-3000}"
   echo "Then restart npm run dev."
   echo ""
   echo "Ensure the API allows your origin — add to souq-local/.env or compose CORS_ORIGINS:"
-  echo "  http://${LAN_IP}:${PORT:-3000}"
+  echo "  http://${LAN_IP}:${WEB_DEV_PORT:-3000}"
 fi
 echo "Wait until you see: ✓ Ready"
 echo ""
