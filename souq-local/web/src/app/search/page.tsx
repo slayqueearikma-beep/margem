@@ -2,9 +2,8 @@ import { Suspense } from "react";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { PaginationNav } from "@/components/pagination";
 import { SearchBar } from "@/components/search-bar";
-import { EmptyState } from "@/components/states";
-import { ApiError } from "@/lib/api";
-import { fetchSearch } from "@/lib/marketplace-api";
+import { EmptyState, ErrorState } from "@/components/states";
+import { describeFetchError, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
@@ -29,21 +28,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const searchMode =
     mode === "sellers" ? "providers" : mode === "products" || mode === "services" ? mode : "all";
 
-  let results = null;
-  let errorMessage: string | null = null;
-
-  try {
-    results = await fetchSearch({
-      q,
-      mode: searchMode,
-      category,
-      city,
-      offset,
-      limit,
-    });
-  } catch (error) {
-    errorMessage = error instanceof ApiError ? error.message : "Search failed";
-  }
+  const outcome = await loadSearch({
+    q,
+    mode: searchMode,
+    category,
+    city,
+    offset,
+    limit,
+  });
 
   const filterParams = {
     q: q || undefined,
@@ -65,53 +57,50 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <SearchBar defaultQuery={q} defaultMode={mode} />
       </Suspense>
 
-      {errorMessage ? (
-        <EmptyState
+      {!outcome.ok ? (
+        <ErrorState
           title="Search unavailable"
-          description={errorMessage}
-          actionHref="/search"
-          actionLabel="Retry"
+          description={describeFetchError(outcome)}
+          retryHref="/search"
         />
-      ) : null}
-
-      {!errorMessage && results ? (
+      ) : (
         <>
-          {(mode === "all" || mode === "products") && results.products.length > 0 ? (
+          {(mode === "all" || mode === "products") && outcome.data.products.length > 0 ? (
             <section className="space-y-4">
               <h2 className="text-lg font-semibold">Products</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {results.products.map((product) => (
+                {outcome.data.products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             </section>
           ) : null}
 
-          {(mode === "all" || mode === "services") && results.services.length > 0 ? (
+          {(mode === "all" || mode === "services") && outcome.data.services.length > 0 ? (
             <section className="space-y-4">
               <h2 className="text-lg font-semibold">Services</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {results.services.map((service) => (
+                {outcome.data.services.map((service) => (
                   <ServiceCard key={service.id} service={service} />
                 ))}
               </div>
             </section>
           ) : null}
 
-          {(mode === "all" || mode === "sellers") && results.sellers.length > 0 ? (
+          {(mode === "all" || mode === "sellers") && outcome.data.sellers.length > 0 ? (
             <section className="space-y-4">
               <h2 className="text-lg font-semibold">Businesses</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {results.sellers.map((seller) => (
+                {outcome.data.sellers.map((seller) => (
                   <SellerCard key={seller.id} seller={seller} />
                 ))}
               </div>
             </section>
           ) : null}
 
-          {results.products.length === 0 &&
-          results.services.length === 0 &&
-          results.sellers.length === 0 ? (
+          {outcome.data.products.length === 0 &&
+          outcome.data.services.length === 0 &&
+          outcome.data.sellers.length === 0 ? (
             <EmptyState
               title="No results"
               description="Try a different search term or remove filters."
@@ -122,22 +111,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
           <PaginationNav
             basePath="/search"
-            offset={results.offset}
-            limit={results.limit}
-            hasMore={results.has_more}
+            offset={outcome.data.offset}
+            limit={outcome.data.limit}
+            hasMore={outcome.data.has_more}
             total={
               mode === "products"
-                ? results.total_products
+                ? outcome.data.total_products
                 : mode === "services"
-                  ? results.total_services
+                  ? outcome.data.total_services
                   : mode === "sellers"
-                    ? results.total_sellers
+                    ? outcome.data.total_sellers
                     : undefined
             }
             params={filterParams}
           />
         </>
-      ) : null}
+      )}
     </div>
   );
 }

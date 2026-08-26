@@ -1,7 +1,7 @@
 import { ProductCard } from "@/components/listing-cards";
 import { PaginationNav } from "@/components/pagination";
-import { EmptyState } from "@/components/states";
-import { fetchSearch } from "@/lib/marketplace-api";
+import { EmptyState, ErrorState } from "@/components/states";
+import { describeFetchError, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
@@ -21,13 +21,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const offset = Number(typeof params.offset === "string" ? params.offset : 0);
   const limit = 24;
 
-  const results = await fetchSearch({
+  const outcome = await loadSearch({
     mode: "products",
     category,
     city,
     offset,
     limit,
-  }).catch(() => null);
+  });
 
   return (
     <div className="space-y-8">
@@ -38,14 +38,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </p>
       </div>
 
-      {!results ? (
-        <EmptyState
+      {!outcome.ok ? (
+        <ErrorState
           title="Products unavailable"
-          description="We couldn't load product listings from the API."
-          actionHref="/products"
-          actionLabel="Retry"
+          description={describeFetchError(outcome)}
+          retryHref="/products"
         />
-      ) : results.products.length === 0 ? (
+      ) : outcome.data.products.length === 0 ? (
         <EmptyState
           title="No products found"
           description="Try another category or check back later."
@@ -55,16 +54,16 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {results.products.map((product) => (
+            {outcome.data.products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
           <PaginationNav
             basePath="/products"
-            offset={results.offset}
-            limit={results.limit}
-            hasMore={results.has_more}
-            total={results.total_products}
+            offset={outcome.data.offset}
+            limit={outcome.data.limit}
+            hasMore={outcome.data.has_more}
+            total={outcome.data.total_products}
             params={{ category, city }}
           />
         </>

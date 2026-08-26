@@ -1,11 +1,49 @@
 import { getSiteUrl } from "./config";
 
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
+
+function parseConfiguredPublicApiHost(): string | null {
+  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  if (!configured || !configured.startsWith("http")) return null;
+  try {
+    return new URL(configured).host.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function isMediaPath(pathname: string): boolean {
+  return pathname.startsWith("/media/") || pathname.includes("/media/");
+}
+
+function shouldRewriteAbsoluteMediaUrl(url: URL): boolean {
+  if (!isMediaPath(url.pathname)) return false;
+
+  const host = url.hostname.toLowerCase();
+  if (LOOPBACK_HOSTS.has(host)) return true;
+
+  const publicHost = parseConfiguredPublicApiHost();
+  if (publicHost && host !== publicHost) return true;
+
+  return false;
+}
+
 export function resolveMediaUrl(url: string | null | undefined): string {
   const value = (url || "").trim();
   if (!value) return "";
+
   if (value.startsWith("http://") || value.startsWith("https://")) {
+    try {
+      const parsed = new URL(value);
+      if (shouldRewriteAbsoluteMediaUrl(parsed)) {
+        return `/api-proxy${parsed.pathname}${parsed.search}`;
+      }
+    } catch {
+      return value;
+    }
     return value;
   }
+
   const path = value.startsWith("/") ? value : `/${value}`;
   return `/api-proxy${path}`;
 }

@@ -2,9 +2,15 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { SearchBar } from "@/components/search-bar";
-import { EmptyState, LoadingGrid } from "@/components/states";
+import { EmptyState, ErrorState } from "@/components/states";
 import { BRAND } from "@/lib/config";
-import { fetchCategories, fetchMarketplaces, fetchSearch } from "@/lib/marketplace-api";
+import {
+  describeFetchError,
+  loadCategories,
+  loadMarketplaces,
+  loadSearch,
+  serviceUnavailableDescription,
+} from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 import { categoryLabel } from "@/lib/format";
 
@@ -16,14 +22,30 @@ export const metadata = buildPageMetadata({
 });
 
 export default async function HomePage() {
-  const [search, categories, marketplaces] = await Promise.all([
-    fetchSearch({ mode: "all", limit: 8 }).catch(() => null),
-    fetchCategories().catch(() => []),
-    fetchMarketplaces().catch(() => null),
+  const [searchOutcome, categoriesOutcome, marketplacesOutcome] = await Promise.all([
+    loadSearch({ mode: "all", limit: 8 }),
+    loadCategories(),
+    loadMarketplaces(),
   ]);
+
+  const search = searchOutcome.ok ? searchOutcome.data : null;
+  const searchError = searchOutcome.ok ? null : searchOutcome;
+  const categories = categoriesOutcome.ok ? categoriesOutcome.data : [];
+  const categoriesError = categoriesOutcome.ok ? null : categoriesOutcome;
+  const marketplaces = marketplacesOutcome.ok ? marketplacesOutcome.data : null;
+
+  const apiFailure = searchError || categoriesError;
 
   return (
     <div className="space-y-12">
+      {apiFailure ? (
+        <ErrorState
+          title="Marketplace API unavailable"
+          description={serviceUnavailableDescription(apiFailure)}
+          retryHref="/"
+        />
+      ) : null}
+
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--cream)] via-white to-[var(--primary-muted)] px-6 py-10 sm:px-10">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
@@ -70,6 +92,12 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+      ) : categoriesError ? (
+        <ErrorState
+          title="Categories unavailable"
+          description={describeFetchError(categoriesError)}
+          retryHref="/"
+        />
       ) : null}
 
       <section>
@@ -82,27 +110,26 @@ export default async function HomePage() {
             See all products
           </Link>
         </div>
-        {!search ? (
-          <EmptyState
-            title="Marketplace unavailable"
-            description="The website could not reach the Dribex API. Ensure margem-api is healthy (docker compose ps), then rebuild the web container: docker compose up -d --build web. Public listings only include active sellers in Casablanca."
-            actionHref="/"
-            actionLabel="Refresh"
+        {searchError ? (
+          <ErrorState
+            title="Products unavailable"
+            description={describeFetchError(searchError)}
+            retryHref="/"
           />
-        ) : search.products.length === 0 ? (
+        ) : search && search.products.length === 0 ? (
           <EmptyState
             title="No products yet"
-            description="Check back soon as sellers publish new inventory."
+            description="Public listings require active Casablanca sellers with available, non-hidden products."
             actionHref="/sellers"
             actionLabel="Browse businesses"
           />
-        ) : (
+        ) : search ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {search.products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
-        )}
+        ) : null}
       </section>
 
       <section>
@@ -115,7 +142,7 @@ export default async function HomePage() {
             See all services
           </Link>
         </div>
-        {search && search.services.length > 0 ? (
+        {searchError ? null : search && search.services.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {search.services.slice(0, 4).map((service) => (
               <ServiceCard key={service.id} service={service} />
@@ -141,15 +168,26 @@ export default async function HomePage() {
             View directory
           </Link>
         </div>
-        {search && search.sellers.length > 0 ? (
+        {searchError ? (
+          <ErrorState
+            title="Business directory unavailable"
+            description={describeFetchError(searchError)}
+            retryHref="/"
+          />
+        ) : search && search.sellers.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {search.sellers.slice(0, 6).map((seller) => (
               <SellerCard key={seller.id} seller={seller} />
             ))}
           </div>
-        ) : (
-          <LoadingGrid count={3} />
-        )}
+        ) : search ? (
+          <EmptyState
+            title="No businesses yet"
+            description="Public seller profiles require active Casablanca businesses."
+            actionHref="/search?mode=sellers"
+            actionLabel="Search marketplace"
+          />
+        ) : null}
       </section>
 
       {marketplaces && marketplaces.length > 0 ? (

@@ -3,15 +3,15 @@ services:
     image: postgres:16-alpine
     container_name: margem-db
     environment:
-      POSTGRES_USER: souq
-      POSTGRES_PASSWORD: souq_local_dev
-      POSTGRES_DB: souq_local
+      POSTGRES_USER: ${POSTGRES_USER:-souq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-souq_local_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-souq_local}
     ports:
       - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U souq -d souq_local"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-souq} -d ${POSTGRES_DB:-souq_local}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -27,15 +27,15 @@ services:
       - path: .env
         required: false
     environment:
-      APP_ENV: development
-      DEBUG: "true"
-      DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@postgres:5432/souq_local
-      JWT_SECRET_KEY: local-dev-secret-change-in-production-min-32-chars
-      UPLOAD_TOKEN_SECRET: local-dev-upload-token-secret-change-in-production-min-32-chars
-      STORAGE_BACKEND: local
+      APP_ENV: ${APP_ENV:-development}
+      DEBUG: ${DEBUG:-true}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://souq:souq_local_dev@postgres:5432/souq_local}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-local-dev-secret-change-in-production-min-32-chars}
+      UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET:-local-dev-upload-token-secret-change-in-production-min-32-chars}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
       LOCAL_MEDIA_ROOT: /data/media
-      PUBLIC_API_URL: http://localhost:8000
-      PUBLIC_APP_URL: ${WEB_PUBLIC_SITE_URL:-http://localhost:3000}
+      PUBLIC_API_URL: ${WEB_PUBLIC_API_URL:-${PUBLIC_API_URL:-http://localhost:8000}}
+      PUBLIC_APP_URL: ${WEB_PUBLIC_SITE_URL:-${PUBLIC_APP_URL:-http://localhost:3000}}
       ADMIN_DASHBOARD_DIR: /admin-dashboard
       AUTH_DEV_BYPASS: "false"
       CORS_ORIGINS: ${CORS_ORIGINS:-'["http://localhost:3000","http://127.0.0.1:3000","http://localhost:8000","http://localhost:8080","http://10.0.2.2:8000"]'}
@@ -60,7 +60,7 @@ services:
     ports:
       - "${ADMIN_PORT:-8080}:80"
     environment:
-      MARGEM_API_URL: http://localhost:8000
+      MARGEM_API_URL: ${WEB_PUBLIC_API_URL:-http://localhost:8000}
     depends_on:
       api:
         condition: service_healthy

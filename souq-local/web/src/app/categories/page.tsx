@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { EmptyState } from "@/components/states";
-import { fetchCategories } from "@/lib/marketplace-api";
+import { EmptyState, ErrorState } from "@/components/states";
 import { categoryLabel } from "@/lib/format";
+import { describeFetchError, loadCategories } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
@@ -11,13 +11,25 @@ export const metadata = buildPageMetadata({
 });
 
 export default async function CategoriesPage() {
-  const categories = await fetchCategories().catch(() => []);
+  const outcome = await loadCategories();
+
+  if (!outcome.ok) {
+    return (
+      <ErrorState
+        title="Categories unavailable"
+        description={describeFetchError(outcome)}
+        retryHref="/categories"
+      />
+    );
+  }
+
+  const categories = outcome.data;
 
   if (categories.length === 0) {
     return (
       <EmptyState
         title="No categories available"
-        description="Categories will appear once the marketplace catalog is seeded."
+        description="The marketplace catalog has no categories yet."
         actionHref="/"
         actionLabel="Back home"
       />

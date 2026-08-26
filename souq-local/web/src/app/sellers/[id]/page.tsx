@@ -9,7 +9,7 @@ import {
   truncate,
   verificationLabel,
 } from "@/lib/format";
-import { fetchReviews, fetchSeller } from "@/lib/marketplace-api";
+import { loadReviews, loadSeller } from "@/lib/marketplace-fetch";
 import { resolveMediaUrl } from "@/lib/media";
 import { buildPageMetadata, jsonLd } from "@/lib/seo";
 
@@ -20,7 +20,15 @@ type SellerDetailProps = {
 export async function generateMetadata({ params }: SellerDetailProps) {
   const { id } = await params;
   try {
-    const seller = await fetchSeller(id);
+    const sellerOutcome = await loadSeller(id);
+    if (!sellerOutcome.ok) {
+      return buildPageMetadata({
+        title: "Business not found",
+        description: "This seller profile is unavailable.",
+        path: `/sellers/${id}`,
+      });
+    }
+    const seller = sellerOutcome.data;
     return buildPageMetadata({
       title: seller.business_name,
       description: truncate(seller.description, 155),
@@ -39,22 +47,24 @@ export async function generateMetadata({ params }: SellerDetailProps) {
 export default async function SellerDetailPage({ params }: SellerDetailProps) {
   const { id } = await params;
 
-  let seller;
-  try {
-    seller = await fetchSeller(id);
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) notFound();
+  const sellerOutcome = await loadSeller(id);
+  if (!sellerOutcome.ok) {
+    if (sellerOutcome.error instanceof ApiError && sellerOutcome.error.status === 404) {
+      notFound();
+    }
     return (
       <EmptyState
         title="Profile unavailable"
-        description="We couldn't load this business profile."
+        description={sellerOutcome.error.message}
         actionHref={`/sellers/${id}`}
         actionLabel="Retry"
       />
     );
   }
+  const seller = sellerOutcome.data;
 
-  const reviews = await fetchReviews(id).catch(() => []);
+  const reviewsOutcome = await loadReviews(id);
+  const reviews = reviewsOutcome.ok ? reviewsOutcome.data : [];
   const website = externalHref(seller.website_url);
   const verification = verificationLabel(seller.verification_status);
 

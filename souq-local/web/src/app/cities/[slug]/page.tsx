@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
-import { EmptyState } from "@/components/states";
+import { EmptyState, ErrorState } from "@/components/states";
 import { cityFromSlug } from "@/lib/format";
 import { isActiveLaunchCity } from "@/lib/launch-cities";
 import { ACTIVE_LAUNCH_CITY_NAME } from "@/lib/launch-cities";
-import { fetchGeographyCities, fetchSearch } from "@/lib/marketplace-api";
+import { describeFetchError, loadGeographyCities, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 type CityDetailProps = {
@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: CityDetailProps) {
 
 export default async function CityDetailPage({ params }: CityDetailProps) {
   const { slug } = await params;
-  const geography = await fetchGeographyCities();
+  const geographyOutcome = await loadGeographyCities();
+  const geography = geographyOutcome.ok ? geographyOutcome.data : null;
   const geoCity = geography?.items?.find((city) => city.slug === slug);
   const cityName =
     geoCity?.name_en || cityFromSlug(slug, [ACTIVE_LAUNCH_CITY_NAME]) || slug.replace(/-/g, " ");
@@ -53,9 +54,7 @@ export default async function CityDetailPage({ params }: CityDetailProps) {
     );
   }
 
-  const results = await fetchSearch({ mode: "all", city: cityName, limit: 12 }).catch(
-    () => null,
-  );
+  const searchOutcome = await loadSearch({ mode: "all", city: cityName, limit: 12 });
 
   return (
     <div className="space-y-10">
@@ -69,51 +68,50 @@ export default async function CityDetailPage({ params }: CityDetailProps) {
         </p>
       </div>
 
-      {!results ? (
-        <EmptyState
+      {!searchOutcome.ok ? (
+        <ErrorState
           title="City listings unavailable"
-          description="We couldn't load listings for this city."
-          actionHref={`/cities/${slug}`}
-          actionLabel="Retry"
+          description={describeFetchError(searchOutcome)}
+          retryHref={`/cities/${slug}`}
         />
       ) : (
         <>
-          {results.products.length > 0 ? (
+          {searchOutcome.data.products.length > 0 ? (
             <section className="space-y-4">
               <h2 className="text-lg font-semibold">Products in {cityName}</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {results.products.map((product) => (
+                {searchOutcome.data.products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             </section>
           ) : null}
 
-          {results.services.length > 0 ? (
+          {searchOutcome.data.services.length > 0 ? (
             <section className="space-y-4">
               <h2 className="text-lg font-semibold">Services in {cityName}</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {results.services.map((service) => (
+                {searchOutcome.data.services.map((service) => (
                   <ServiceCard key={service.id} service={service} />
                 ))}
               </div>
             </section>
           ) : null}
 
-          {results.sellers.length > 0 ? (
+          {searchOutcome.data.sellers.length > 0 ? (
             <section className="space-y-4">
               <h2 className="text-lg font-semibold">Businesses in {cityName}</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {results.sellers.map((seller) => (
+                {searchOutcome.data.sellers.map((seller) => (
                   <SellerCard key={seller.id} seller={seller} />
                 ))}
               </div>
             </section>
           ) : null}
 
-          {results.products.length === 0 &&
-          results.services.length === 0 &&
-          results.sellers.length === 0 ? (
+          {searchOutcome.data.products.length === 0 &&
+          searchOutcome.data.services.length === 0 &&
+          searchOutcome.data.sellers.length === 0 ? (
             <EmptyState
               title={`No public listings in ${cityName} yet`}
               description="Check back soon or explore other cities."

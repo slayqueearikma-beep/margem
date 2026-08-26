@@ -14,12 +14,24 @@ async function proxyToApi(request: Request, pathSegments: string[]): Promise<Res
   const accept = request.headers.get("accept");
   if (accept) headers.set("Accept", accept);
 
-  const upstream = await fetch(target, {
-    method: request.method,
-    headers,
-    body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer(),
-    cache: "no-store",
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(target, {
+      method: request.method,
+      headers,
+      body:
+        request.method === "GET" || request.method === "HEAD"
+          ? undefined
+          : await request.arrayBuffer(),
+      cache: "no-store",
+    });
+  } catch (error) {
+    console.error(`[dribex-web] api-proxy failed for ${target}:`, error);
+    return Response.json(
+      { detail: "Upstream API unreachable from the web container." },
+      { status: 503 },
+    );
+  }
 
   const responseHeaders = new Headers();
   const contentType = upstream.headers.get("content-type");

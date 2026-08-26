@@ -67,8 +67,8 @@ services:
       EMAIL_RETRY_DELAY_SECONDS: ${EMAIL_RETRY_DELAY_SECONDS:-0.75}
       # Home LAN servers often have no SMTP; tokens are logged server-side only.
       ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-true}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+      PUBLIC_API_URL: ${WEB_PUBLIC_API_URL:-${PUBLIC_API_URL:-http://localhost:8000}}
+      PUBLIC_APP_URL: ${WEB_PUBLIC_SITE_URL:-${PUBLIC_APP_URL:-http://localhost:8000}}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
       JWT_REFRESH_EXPIRE_DAYS: "7"
       RATE_LIMIT: ${RATE_LIMIT:-300/minute}
@@ -99,6 +99,30 @@ services:
       ADMIN_BASIC_AUTH_PASSWORD: ${ADMIN_BASIC_AUTH_PASSWORD:-}
       ADMIN_ALLOW_PUBLIC: ${ADMIN_ALLOW_PUBLIC:-false}
       ADMIN_EXTRA_ALLOWED_CIDRS: ${ADMIN_EXTRA_ALLOWED_CIDRS:-}
+    depends_on:
+      api:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${WEB_PUBLIC_API_URL:-${PUBLIC_API_URL:-http://localhost:8000}}
+        NEXT_PUBLIC_SITE_URL: ${WEB_PUBLIC_SITE_URL:-${PUBLIC_APP_URL:-http://localhost:3000}}
+        NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
+    container_name: margem-home-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      DRIBEX_WEB_IN_DOCKER: "1"
+      API_BASE_URL: http://api:8000
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${WEB_PUBLIC_API_URL:-${PUBLIC_API_URL:-http://localhost:8000}}
+      NEXT_PUBLIC_SITE_URL: ${WEB_PUBLIC_SITE_URL:-${PUBLIC_APP_URL:-http://localhost:3000}}
+      NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
     depends_on:
       api:
         condition: service_healthy

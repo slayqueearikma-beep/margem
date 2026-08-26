@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
-import { EmptyState } from "@/components/states";
-import { fetchCategories, fetchSearch } from "@/lib/marketplace-api";
+import { EmptyState, ErrorState } from "@/components/states";
 import { categoryLabel } from "@/lib/format";
+import { describeFetchError, loadCategories, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 type CategoryDetailProps = {
@@ -21,13 +21,40 @@ export async function generateMetadata({ params }: CategoryDetailProps) {
 
 export default async function CategoryDetailPage({ params }: CategoryDetailProps) {
   const { slug } = await params;
-  const categories = await fetchCategories().catch(() => []);
-  const category = categories.find((item) => item.slug === slug);
+  const categoriesOutcome = await loadCategories();
+  if (!categoriesOutcome.ok) {
+    return (
+      <ErrorState
+        title="Category unavailable"
+        description={describeFetchError(categoriesOutcome)}
+        retryHref={`/categories/${slug}`}
+      />
+    );
+  }
+
+  const category = categoriesOutcome.data.find((item) => item.slug === slug);
   if (!category) notFound();
 
-  const search = await fetchSearch({ mode: "all", category: slug, limit: 12 }).catch(
-    () => null,
-  );
+  const searchOutcome = await loadSearch({ mode: "all", category: slug, limit: 12 });
+  if (!searchOutcome.ok) {
+    return (
+      <div className="space-y-10">
+        <div>
+          <Link href="/categories" className="text-sm font-semibold text-[var(--primary)]">
+            ← All categories
+          </Link>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight">{categoryLabel(category)}</h1>
+        </div>
+        <ErrorState
+          title="Category listings unavailable"
+          description={describeFetchError(searchOutcome)}
+          retryHref={`/categories/${slug}`}
+        />
+      </div>
+    );
+  }
+
+  const search = searchOutcome.data;
 
   return (
     <div className="space-y-10">
@@ -41,16 +68,7 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
         </p>
       </div>
 
-      {!search ? (
-        <EmptyState
-          title="Category unavailable"
-          description="We couldn't load listings for this category."
-          actionHref={`/categories/${slug}`}
-          actionLabel="Retry"
-        />
-      ) : null}
-
-      {search && search.products.length > 0 ? (
+      {search.products.length > 0 ? (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Products</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -61,7 +79,7 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
         </section>
       ) : null}
 
-      {search && search.services.length > 0 ? (
+      {search.services.length > 0 ? (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Services</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -72,7 +90,7 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
         </section>
       ) : null}
 
-      {search && search.sellers.length > 0 ? (
+      {search.sellers.length > 0 ? (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Businesses</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -83,8 +101,7 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
         </section>
       ) : null}
 
-      {search &&
-      search.products.length === 0 &&
+      {search.products.length === 0 &&
       search.sellers.length === 0 &&
       search.services.length === 0 ? (
         <EmptyState
