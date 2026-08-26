@@ -6,15 +6,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/validation/form_validators.dart';
 import '../../core/config/app_config.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/navigation/post_auth_navigation.dart';
+import '../../core/services/legal_acceptance_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
+import '../../features/legal/signup_terms_footer.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
+import '../../core/widgets/signup_verification_dialogs.dart';
+import '../../core/services/upload_service.dart';
 import '../../l10n/app_localizations.dart';
 
 class BuyerRegistrationScreen extends ConsumerStatefulWidget {
@@ -30,7 +36,6 @@ class _BuyerRegistrationScreenState
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final String _city = AppConfig.launchCity;
   XFile? _profileImage;
   bool _loading = false;
 
@@ -51,12 +56,20 @@ class _BuyerRegistrationScreenState
   Future<void> _submit() async {
     final l10n = context.l10n;
     if (_nameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
-        _passwordController.text.length < 8) {
+        !FormValidators.isValidEmail(_emailController.text.trim()) ||
+        !FormValidators.isValidPassword(_passwordController.text)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.fillRequiredFields)));
       return;
     }
+
+    final email = _emailController.text.trim();
+    final signupProof = await showSignupVerificationFlow(
+      context: context,
+      email: email,
+      phone: '',
+    );
+    if (!mounted || signupProof == null) return;
 
     setState(() => _loading = true);
     try {
@@ -65,26 +78,31 @@ class _BuyerRegistrationScreenState
 
         final auth = ref.read(authServiceProvider);
         final session = await auth.register(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text,
           accountType: 'buyer',
           displayName: _nameController.text.trim(),
+          signupProof: signupProof,
         );
 
         final prefs = await ref.read(sharedPreferencesProvider.future);
         await auth.persistToken(prefs);
 
+        if (_profileImage != null) {
+          final photoUrl = await ref.read(uploadServiceProvider).uploadImage(_profileImage!);
+          await apiServiceProvider.updateProfilePhoto(photoUrl);
+        }
+
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException(
-              'App storage is not ready. Please restart the app.');
+          throw ApiException(l10n.appStorageNotReady);
         }
 
         final userSession = UserSession(
           name: session.user.displayName,
           email: session.user.email,
           accountType: AccountType.buyer,
-          city: _city,
+          city: AppConfig.launchCity,
         );
 
         final guestItems = guestFavoritesMigrationPayload(storage);
@@ -98,9 +116,10 @@ class _BuyerRegistrationScreenState
         await storage.saveAppMode(AppMode.buyer);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
+        syncLegalAcceptanceFromAuthUser(ref, session.user);
 
         if (!mounted) return;
-        context.go('/buyer/home');
+        context.go(await resolveAuthenticatedDestination(ref, storage, userSession));
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -128,6 +147,8 @@ class _BuyerRegistrationScreenState
       bottom: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const SignupTermsFooter(),
+          const SizedBox(height: AppSpacing.sm),
           PrimaryButton(
               label: l10n.createAccount,
               onPressed: _submit,
@@ -184,11 +205,9 @@ class _BuyerRegistrationScreenState
             prefixIcon: Icons.lock_outline,
           ),
           const SizedBox(height: AppSpacing.md),
-          AppTextField(
-            label: l10n.city,
-            hint: AppConfig.launchCity,
-            readOnly: true,
-            prefixIcon: Icons.location_city_outlined,
+          InputDecorator(
+            decoration: InputDecoration(labelText: l10n.city),
+            child: const Text(AppConfig.launchCity),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from tests.auth_helpers import register_test_user
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -20,17 +21,13 @@ async def client():
 async def _register(client: AsyncClient, account_type: str, name: str) -> dict:
     email = f"{account_type}-{uuid4().hex[:8]}@example.com"
     password = "SecurePass1"
-    res = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-            "account_type": account_type,
-            "display_name": name,
-        },
+    body = await register_test_user(
+        client,
+        email=email,
+        password=password,
+        account_type=account_type,
+        display_name=name,
     )
-    assert res.status_code == 201, res.text
-    body = res.json()
     return {
         "email": email,
         "password": password,
@@ -54,6 +51,9 @@ async def _create_store(client: AsyncClient, headers: dict, name: str) -> dict:
             "whatsapp_number": "+212600000077",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert res.status_code == 201, res.text
@@ -125,3 +125,95 @@ async def test_user_to_user_messaging(client: AsyncClient):
         json={"body": "noop"},
     )
     assert self_msg.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_block_prevents_messaging(client: AsyncClient):
+    buyer_a = await _register(client, "buyer", "Buyer A")
+    buyer_b = await _register(client, "buyer", "Buyer B")
+
+    blocked = await client.post(
+        "/users/block",
+        headers=buyer_a["headers"],
+        json={"user_id": buyer_b["user_id"]},
+    )
+    assert blocked.status_code == 201, blocked.text
+
+    cannot_start = await client.post(
+        f"/messages/users/{buyer_b['user_id']}",
+        headers=buyer_a["headers"],
+        json={"body": "Hello"},
+    )
+    assert cannot_start.status_code == 403
+
+    cannot_reply = await client.post(
+        f"/messages/users/{buyer_a['user_id']}",
+        headers=buyer_b["headers"],
+        json={"body": "Hello back"},
+    )
+    assert cannot_reply.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_block_hides_conversation_from_inbox(client: AsyncClient):
+    buyer_a = await _register(client, "buyer", "Buyer A")
+    buyer_b = await _register(client, "buyer", "Buyer B")
+
+    started = await client.post(
+        f"/messages/users/{buyer_b['user_id']}",
+        headers=buyer_a["headers"],
+        json={"body": "Hi"},
+    )
+    assert started.status_code == 201, started.text
+
+    inbox_before = await client.get("/messages/conversations", headers=buyer_a["headers"])
+    assert len(inbox_before.json()) == 1
+
+    blocked = await client.post(
+        "/users/block",
+        headers=buyer_a["headers"],
+        json={"user_id": buyer_b["user_id"]},
+    )
+    assert blocked.status_code == 201, blocked.text
+
+    inbox_after = await client.get("/messages/conversations", headers=buyer_a["headers"])
+    assert inbox_after.status_code == 200
+    assert inbox_after.json() == []
+
+
+@pytest.mark.asyncio
+async def test_conversation_idor_denies_non_participant(client: AsyncClient):
+    buyer_a = await _register(client, "buyer", "Buyer A")
+    buyer_b = await _register(client, "buyer", "Buyer B")
+    outsider = await _register(client, "buyer", "Outsider")
+
+    started = await client.post(
+        f"/messages/users/{buyer_b['user_id']}",
+        headers=buyer_a["headers"],
+        json={"body": "Private thread"},
+    )
+    assert started.status_code == 201, started.text
+    conv_id = started.json()["conversation_id"]
+
+    read_blocked = await client.get(
+        f"/messages/conversations/{conv_id}",
+        headers=outsider["headers"],
+    )
+    assert read_blocked.status_code == 404
+
+    write_blocked = await client.post(
+        f"/messages/conversations/{conv_id}",
+        headers=outsider["headers"],
+        json={"body": "Intrusion attempt"},
+    )
+    assert write_blocked.status_code == 404
+
+    unauth_read = await client.get(f"/messages/conversations/{conv_id}")
+    assert unauth_read.status_code == 401
+
+    unauth_write = await client.post(
+        f"/messages/conversations/{conv_id}",
+        json={"body": "Intrusion attempt"},
+    )
+    assert unauth_write.status_code == 401
+

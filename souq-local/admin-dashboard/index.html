@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dribex Admin — Marketplaces</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
+  <script src="config.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div id="login-screen" class="screen hidden">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        <div>
+          <h1>Dribex Admin</h1>
+          <p>Marketplace management</p>
+        </div>
+      </div>
+      <form id="login-form">
+        <label>
+          Email
+          <input type="email" id="login-email" required autocomplete="username" />
+        </label>
+        <label>
+          Password
+          <input type="password" id="login-password" required autocomplete="current-password" />
+        </label>
+        <p id="login-error" class="error hidden"></p>
+        <button type="submit" class="btn primary">Sign in</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="app-screen" class="screen hidden">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand-mark sm">M</div>
+        <div>
+          <strong>Dribex Admin</strong>
+          <span id="admin-email" class="muted"></span>
+        </div>
+      </div>
+      <nav class="tabs">
+        <button type="button" class="tab active" data-view="marketplaces">Marketplaces</button>
+        <button type="button" class="tab" data-view="categories">Categories</button>
+        <button type="button" class="tab" data-view="users">Users</button>
+        <button type="button" class="tab" data-view="reports">Reports</button>
+      </nav>
+      <button type="button" id="logout-btn" class="btn ghost">Sign out</button>
+    </header>
+
+    <main>
+      <section id="view-marketplaces" class="view">
+        <div class="view-header">
+          <div>
+            <h2>Marketplaces</h2>
+            <p class="muted">Manage physical markets across Morocco</p>
+          </div>
+          <button type="button" id="create-marketplace-btn" class="btn primary">+ New marketplace</button>
+        </div>
+
+        <div class="stats-grid" id="marketplace-stats">
+          <div class="stat-card"><span class="stat-label">Total</span><span class="stat-value" data-stat="total">—</span></div>
+          <div class="stat-card"><span class="stat-label">Active</span><span class="stat-value active" data-stat="active">—</span></div>
+          <div class="stat-card"><span class="stat-label">Hidden</span><span class="stat-value hidden-stat" data-stat="hidden">—</span></div>
+        </div>
+
+        <div class="toolbar">
+          <input type="search" id="mp-search" placeholder="Search name, slug, district…" />
+          <select id="mp-status-filter">
+            <option value="all">All statuses</option>
+            <option value="active">Active only</option>
+            <option value="hidden">Hidden only</option>
+          </select>
+          <input type="text" id="mp-city-filter" placeholder="City filter" value="Casablanca" />
+          <select id="mp-sort">
+            <option value="display_order">Display order</option>
+            <option value="name">Name</option>
+            <option value="city">City</option>
+            <option value="created_at">Created</option>
+          </select>
+          <select id="mp-order">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Marketplace</th>
+                <th>Location</th>
+                <th>Categories</th>
+                <th>Sellers</th>
+                <th>Order</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="marketplaces-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination" id="mp-pagination"></div>
+      </section>
+
+      <section id="view-categories" class="view hidden">
+        <div class="view-header">
+          <div>
+            <h2>Category management</h2>
+            <p class="muted">Select a marketplace, then manage its categories</p>
+          </div>
+          <button type="button" id="create-category-btn" class="btn primary" disabled>+ New category</button>
+        </div>
+
+        <div class="toolbar">
+          <select id="category-marketplace-select">
+            <option value="">Select marketplace…</option>
+          </select>
+          <label class="checkbox-label">
+            <input type="checkbox" id="category-show-hidden" />
+            Show hidden
+          </label>
+        </div>
+
+        <p id="category-marketplace-meta" class="muted meta-line"></p>
+
+        <ul id="category-list" class="category-list"></ul>
+        <p id="category-empty" class="empty-state hidden">No categories yet. Create the first one for this marketplace.</p>
+      </section>
+
+      <section id="view-users" class="view hidden">
+        <div class="view-header">
+          <div>
+            <h2>Users</h2>
+            <p class="muted">All registered buyer and seller accounts</p>
+          </div>
+          <button type="button" id="refresh-users-btn" class="btn ghost">Refresh</button>
+        </div>
+
+        <div class="stats-grid users-stats">
+          <div class="stat-card"><span class="stat-label">Total accounts</span><span class="stat-value" id="users-total-stat">—</span></div>
+          <div class="stat-card"><span class="stat-label">Showing</span><span class="stat-value" id="users-showing-stat">—</span></div>
+          <div class="stat-card"><span class="stat-label">Your role</span><span class="stat-value role-stat" id="users-role-stat">—</span></div>
+        </div>
+
+        <div class="toolbar">
+          <input type="search" id="users-search" placeholder="Search email or name…" />
+          <select id="users-role-filter">
+            <option value="">All roles</option>
+            <option value="customer">Customer</option>
+            <option value="provider">Provider / seller</option>
+            <option value="admin">Admin</option>
+            <option value="support">Support</option>
+          </select>
+          <select id="users-status-filter">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="deleted">Deleted</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Account</th>
+                <th>Status</th>
+                <th>Premium</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+        <p id="users-empty" class="empty-state hidden">No users match your filters.</p>
+        <div class="pagination" id="users-pagination"></div>
+      </section>
+
+      <section id="view-reports" class="view hidden">
+        <div class="view-header">
+          <div>
+            <h2>Discovery reports</h2>
+            <p class="muted">User reports on sellers, listings, and profiles</p>
+          </div>
+          <button type="button" id="refresh-reports-btn" class="btn ghost">Refresh</button>
+        </div>
+        <div class="toolbar">
+          <select id="reports-status-filter">
+            <option value="">All statuses</option>
+            <option value="open">Open</option>
+            <option value="under_review">Under review</option>
+            <option value="resolved">Resolved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Created</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Target</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reports-tbody"></tbody>
+          </table>
+        </div>
+        <p id="reports-empty" class="empty-state hidden">No reports in this queue.</p>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="marketplace-dialog" class="modal">
+    <form id="marketplace-form" method="dialog">
+      <header class="modal-header">
+        <h3 id="marketplace-dialog-title">Marketplace</h3>
+        <button type="button" class="icon-btn" data-close-dialog>&times;</button>
+      </header>
+      <div class="modal-body grid-2">
+        <label>Name <input name="name" required /></label>
+        <label>Slug <input name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" /></label>
+        <label class="span-2">Description <textarea name="description" rows="3"></textarea></label>
+        <label>Address <input name="address" /></label>
+        <label>District <input name="district" /></label>
+        <label>City <input name="city" value="Casablanca" /></label>
+        <label>Display order <input name="display_order" type="number" min="0" value="0" /></label>
+        <label>Latitude <input name="latitude" type="number" step="any" /></label>
+        <label>Longitude <input name="longitude" type="number" step="any" /></label>
+        <label>Cover image URL <input name="cover_image_url" /></label>
+        <label>Logo URL <input name="logo_image_url" /></label>
+        <label class="span-2">
+          Cover upload
+          <input type="file" accept="image/*" data-upload-target="cover_image_url" />
+        </label>
+        <label class="span-2">
+          Logo upload
+          <input type="file" accept="image/*" data-upload-target="logo_image_url" />
+        </label>
+        <fieldset class="span-2 opening-hours">
+          <legend>Opening hours</legend>
+          <div id="opening-hours-fields"></div>
+        </fieldset>
+        <label class="checkbox-label span-2">
+          <input type="checkbox" name="is_active" checked />
+          Active (visible in app)
+        </label>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" data-close-dialog>Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="category-dialog" class="modal">
+    <form id="category-form" method="dialog">
+      <header class="modal-header">
+        <h3 id="category-dialog-title">Category</h3>
+        <button type="button" class="icon-btn" data-close-dialog>&times;</button>
+      </header>
+      <div class="modal-body grid-2">
+        <label>Name <input name="name" required /></label>
+        <label>Slug <input name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" /></label>
+        <label class="span-2">Description <textarea name="description" rows="2"></textarea></label>
+        <label>Icon (Material name) <input name="icon" value="store" /></label>
+        <label>Display order <input name="display_order" type="number" min="0" value="0" /></label>
+        <label>Banner image URL <input name="banner_image_url" class="span-2" /></label>
+        <label class="span-2">
+          Banner upload
+          <input type="file" accept="image/*" data-upload-target="banner_image_url" />
+        </label>
+        <label>Parent category
+          <select name="parent_id">
+            <option value="">None (top level)</option>
+          </select>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_active" checked />
+          Active
+        </label>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" data-close-dialog>Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="preview-dialog" class="modal preview-modal">
+    <header class="modal-header">
+      <h3>Marketplace preview</h3>
+      <button type="button" class="icon-btn" data-close-dialog>&times;</button>
+    </header>
+    <div class="modal-body" id="preview-body"></div>
+    <footer class="modal-footer">
+      <button type="button" class="btn primary" data-close-dialog>Close</button>
+    </footer>
+  </dialog>
+
+  <div id="toast" class="toast hidden"></div>
+</body>
+</html>

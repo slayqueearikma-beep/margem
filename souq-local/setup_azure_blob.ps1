@@ -10,7 +10,7 @@ $EnvHome = Join-Path $Root ".env.home"
 $EnvExample = Join-Path $Root "env.home.example"
 
 Write-Host ""
-Write-Host "=== MarGem Azure Blob only (~`$1-3/mo) ===" -ForegroundColor Cyan
+Write-Host "=== Dribex Azure Blob only (~`$1-3/mo) ===" -ForegroundColor Cyan
 Write-Host ""
 
 if (-not (Get-Command az -ErrorAction SilentlyContinue)) {

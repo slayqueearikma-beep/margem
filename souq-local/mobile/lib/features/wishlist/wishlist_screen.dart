@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
+import '../buyer/buyer_home_screen.dart';
 import '../../l10n/app_localizations.dart';
 
 final favoritesProvider =
@@ -46,50 +48,29 @@ class FavoritesScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final favoritesAsync = ref.watch(favoritesProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.favorites)),
+    return BuyerScreenScaffold(
+      appBar: BuyerAppBar(title: l10n.favorites),
       body: favoritesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: context.colors.primary),
+        ),
         error: (error, _) => AsyncErrorView.fromError(error,
             onRetry: () => ref.invalidate(favoritesProvider)),
         data: (items) {
           if (items.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.favorite_border,
-                        size: 56,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(l10n.emptyFavorites,
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      l10n.emptyFavoritesSubtitle,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    FilledButton(
-                        onPressed: () {
-                          if (context.canPop()) {
-                            context.pop();
-                          } else {
-                            context.go('/buyer/home');
-                          }
-                        },
-                        child: Text(l10n.browseProducts)),
-                  ],
-                ),
-              ),
+            return BuyerEmptyState(
+              icon: Icons.favorite_border_rounded,
+              title: l10n.emptyFavorites,
+              subtitle: l10n.emptyFavoritesSubtitle,
+              actionLabel: l10n.browseProducts,
+              onAction: () {
+                ref.read(buyerTabIndexProvider.notifier).state = 1;
+                context.go('/buyer/home');
+              },
             );
           }
           return RefreshIndicator(
+            color: context.colors.primary,
             onRefresh: () async => ref.invalidate(favoritesProvider),
             child: ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
@@ -114,40 +95,49 @@ class _FavoriteTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    return Card(
+    return BuyerSurfaceCard(
+      onTap: () {
+        if (item.productId.isNotEmpty) {
+          context.push('/product/${item.sellerId}/${item.productId}');
+        } else {
+          context.push('/seller/${item.sellerId}');
+        }
+      },
       child: ListTile(
-        onTap: () {
-          if (item.productId.isNotEmpty) {
-            context.push('/product/${item.sellerId}/${item.productId}');
-          } else {
-            context.push('/seller/${item.sellerId}');
-          }
-        },
-        contentPadding: const EdgeInsets.all(AppSpacing.sm),
+        contentPadding: EdgeInsets.all(AppSpacing.sm),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: SizedBox(
             width: 64,
             height: 64,
             child: NetworkImageView(
-                url: item.imageUrl,
-                placeholderIcon: Icons.shopping_bag_outlined),
+              url: item.imageUrl,
+              placeholderIcon: Icons.shopping_bag_outlined,
+            ),
           ),
         ),
-        title: Text(item.productName,
-            style: const TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(
+          item.productName.isNotEmpty ? item.productName : item.sellerName,
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (item.sellerName.isNotEmpty) Text(item.sellerName),
-            Text(item.priceMad == null
-                ? l10n.priceOnRequest
-                : '${item.priceMad!.toStringAsFixed(2)} MAD'),
+            Text(
+              item.priceMad == null
+                  ? l10n.priceOnRequest
+                  : '${item.priceMad!.toStringAsFixed(2)} MAD',
+              style: TextStyle(
+                color: context.colors.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
         trailing: IconButton(
           tooltip: l10n.remove,
-          icon: const Icon(Icons.favorite, color: AppColors.danger),
+          icon: Icon(Icons.favorite_rounded, color: context.colors.primary),
           onPressed: () => _remove(context, ref),
         ),
       ),
@@ -171,6 +161,7 @@ class _FavoriteTile extends ConsumerWidget {
         await apiServiceProvider.removeFavoriteProduct(item.productId);
       }
       ref.invalidate(favoritesProvider);
+      ref.invalidate(buyerFavoriteSellerIdsProvider);
     } on ApiException catch (error) {
       if (context.mounted) {
         await showAppErrorDialog(context,

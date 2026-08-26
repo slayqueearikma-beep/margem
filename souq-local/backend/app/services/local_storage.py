@@ -102,3 +102,28 @@ def write_local_blob(blob_name: str, data: bytes) -> Path:
     target.write_bytes(data)
     logger.info("local_blob_written path=%s bytes=%s", target, len(data))
     return target
+
+
+def delete_local_blob(blob_name: str) -> bool:
+    root = media_root()
+    target = (root / blob_name).resolve()
+    if not str(target).startswith(str(root)):
+        return False
+    if not target.is_file():
+        return True
+    target.unlink(missing_ok=True)
+    logger.info("local_blob_deleted path=%s", target)
+    return True
+
+
+def delete_user_prefix(prefix: str) -> int:
+    root = media_root()
+    user_root = (root / prefix).resolve()
+    if not str(user_root).startswith(str(root)) or not user_root.exists():
+        return 0
+    count = 0
+    for path in user_root.rglob("*"):
+        if path.is_file():
+            path.unlink(missing_ok=True)
+            count += 1
+    return count
