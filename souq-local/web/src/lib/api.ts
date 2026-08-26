@@ -27,7 +27,7 @@ export async function apiFetch<T>(
       Accept: "application/json",
       ...(options.headers || {}),
     },
-    next: options.next ?? { revalidate: 60 },
+    cache: "no-store",
   });
 
   if (!response.ok) {

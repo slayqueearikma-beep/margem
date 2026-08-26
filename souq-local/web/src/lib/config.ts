@@ -33,9 +33,9 @@ export function getServerApiBaseUrl(): string {
   return resolveServerApiBaseUrl();
 }
 
-/** Browser-facing API base for media URLs and client fetches. */
+/** Browser-facing API base for client fetches (same-origin proxy). */
 export function getPublicApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || DEFAULT_API;
+  return "/api-proxy";
 }
 
 export function getSiteUrl(): string {

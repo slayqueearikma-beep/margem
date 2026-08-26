@@ -1,4 +1,4 @@
-import { getPublicApiBaseUrl } from "./config";
+import { getSiteUrl } from "./config";
 
 export function resolveMediaUrl(url: string | null | undefined): string {
   const value = (url || "").trim();
@@ -6,13 +6,15 @@ export function resolveMediaUrl(url: string | null | undefined): string {
   if (value.startsWith("http://") || value.startsWith("https://")) {
     return value;
   }
-  const base = getPublicApiBaseUrl();
-  if (value.startsWith("/")) {
-    return `${base}${value}`;
-  }
-  return `${base}/${value}`;
+  const path = value.startsWith("/") ? value : `/${value}`;
+  return `/api-proxy${path}`;
 }
 
 export function brandLogoUrl(): string {
-  return `${getPublicApiBaseUrl()}/brand/margem_logo.png`;
+  return "/api-proxy/brand/margem_logo.png";
+}
+
+/** Same-origin proxy so images/API work on LAN/Tailscale without hardcoding localhost. */
+export function getBrowserApiBaseUrl(): string {
+  return `${getSiteUrl()}/api-proxy`;
 }

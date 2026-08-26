@@ -85,7 +85,7 @@ export default async function HomePage() {
         {!search ? (
           <EmptyState
             title="Marketplace unavailable"
-            description="We couldn't reach the Dribex API. Start the backend and refresh this page."
+            description="The website could not reach the Dribex API. Ensure margem-api is healthy (docker compose ps), then rebuild the web container: docker compose up -d --build web. Public listings only include active sellers in Casablanca."
             actionHref="/"
             actionLabel="Refresh"
           />

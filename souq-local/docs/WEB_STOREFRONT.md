@@ -34,6 +34,18 @@ Open `http://localhost:3000`.
 
 Hard-refresh the browser (Ctrl+Shift+R). If port 3000 is already taken by Docker, `./scripts/dev-web.sh` will refuse to start — stop Docker web first or rebuild the container instead.
 
+### No businesses or products showing?
+
+1. **Rebuild web after pull** (see above) — the Docker image used to bake empty pages at build time; current builds fetch live API data on each request.
+2. **Check the API directly** on the server:
+   ```bash
+   curl -s "http://127.0.0.1:8000/search?mode=all&limit=3" | head
+   curl -s "http://127.0.0.1:8000/sellers?limit=3" | head
+   ```
+   If these return `[]`, the database has no public listings yet.
+3. **Public search only includes active sellers in Casablanca** (`city` must match, `is_active=true`). Mobile sellers in other cities or inactive profiles will not appear on the website.
+4. **Tailscale/LAN access**: copy `souq-local/.env.example` to `souq-local/.env`, set your IP, then `docker compose up -d --build web api`.
+
 ## Environment variables
 
 | Variable | Purpose |

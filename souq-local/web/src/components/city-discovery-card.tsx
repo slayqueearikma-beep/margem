@@ -12,10 +12,38 @@ type CityDiscoveryCardProps = {
 function ComingSoonRibbon() {
   return (
     <div
-      className="pointer-events-none absolute -right-px -top-px z-10 h-[4.75rem] w-[4.75rem] overflow-hidden rounded-tr-2xl sm:h-[5.25rem] sm:w-[5.25rem]"
       aria-hidden="true"
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        width: 76,
+        height: 76,
+        overflow: "hidden",
+        borderTopRightRadius: 16,
+        pointerEvents: "none",
+        zIndex: 10,
+      }}
     >
-      <span className="absolute right-[-1.625rem] top-[0.875rem] w-[7rem] rotate-45 bg-[var(--cream)] py-[0.3125rem] text-center text-[9px] font-bold leading-none tracking-[0.1em] text-[var(--foreground)] shadow-sm sm:right-[-1.5rem] sm:top-4 sm:w-[7.5rem] sm:text-[10px]">
+      <span
+        style={{
+          position: "absolute",
+          top: 14,
+          right: -26,
+          width: 112,
+          transform: "rotate(45deg)",
+          background: "var(--cream)",
+          color: "var(--foreground)",
+          padding: "4px 0",
+          textAlign: "center",
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: "0.1em",
+          lineHeight: 1,
+          boxShadow: "0 1px 2px rgb(17 24 39 / 8%)",
+          whiteSpace: "nowrap",
+        }}
+      >
         COMING SOON
       </span>
     </div>
