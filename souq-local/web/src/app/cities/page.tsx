@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { CityDiscoveryCard } from "@/components/city-discovery-card";
 import { LAUNCH_CITIES } from "@/lib/config";
 import { slugifyCity } from "@/lib/format";
 import { fetchGeographyCities } from "@/lib/marketplace-api";
@@ -31,16 +31,7 @@ export default async function CitiesPage() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cities.map((city) => (
-          <Link
-            key={city.id}
-            href={`/cities/${city.slug}`}
-            className="rounded-2xl border border-[var(--border)] bg-white p-6 transition hover:border-[var(--primary)] hover:shadow-sm"
-          >
-            <h2 className="text-lg font-semibold">{city.name_en}</h2>
-            {city.region ? (
-              <p className="mt-2 text-sm text-[var(--muted)]">{city.region}</p>
-            ) : null}
-          </Link>
+          <CityDiscoveryCard key={city.id} city={city} />
         ))}
       </div>
     </div>

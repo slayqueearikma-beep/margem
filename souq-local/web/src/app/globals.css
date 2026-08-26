@@ -35,4 +35,33 @@ a {
   .text-balance {
     text-wrap: balance;
   }
+
+  .city-coming-soon-ribbon {
+    position: absolute;
+    top: 14px;
+    right: -36px;
+    z-index: 1;
+    width: 140px;
+    transform: rotate(45deg);
+    background: var(--cream);
+    color: var(--foreground);
+    padding: 5px 0;
+    text-align: center;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    box-shadow: 0 1px 2px rgb(17 24 39 / 8%);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @media (min-width: 640px) {
+    .city-coming-soon-ribbon {
+      top: 16px;
+      right: -34px;
+      width: 150px;
+      font-size: 0.6875rem;
+    }
+  }
 }
