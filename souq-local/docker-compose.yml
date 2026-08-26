@@ -32,9 +32,10 @@ services:
       STORAGE_BACKEND: local
       LOCAL_MEDIA_ROOT: /data/media
       PUBLIC_API_URL: http://localhost:8000
+      PUBLIC_APP_URL: http://localhost:3000
       ADMIN_DASHBOARD_DIR: /admin-dashboard
       AUTH_DEV_BYPASS: "false"
-      CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000","http://localhost:8080","http://10.0.2.2:8000"]'
+      CORS_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000","http://localhost:8000","http://localhost:8080","http://10.0.2.2:8000"]'
     volumes:
       - api_media:/data/media
       - ./admin-dashboard:/admin-dashboard:ro
@@ -57,6 +58,26 @@ services:
       - "${ADMIN_PORT:-8080}:80"
     environment:
       MARGEM_API_URL: http://localhost:8000
+    depends_on:
+      api:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+        NEXT_PUBLIC_SITE_URL: http://localhost:3000
+        NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
+    container_name: margem-web
+    ports:
+      - "3000:3000"
+    environment:
+      API_BASE_URL: http://api:8000
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
     depends_on:
       api:
         condition: service_healthy
