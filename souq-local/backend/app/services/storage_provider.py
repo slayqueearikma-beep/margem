@@ -161,7 +161,12 @@ class MinioStorageProvider(StorageProvider):
 
         bucket = self.bucket_for(purpose)
         object_key = self.build_object_key(user_id=user.id, purpose=purpose, filename=filename)
-        upload_url, access_url = presign_put_for_bucket(bucket=bucket, object_key=object_key)
+        upload_url, access_url = presign_put_for_bucket(
+            bucket=bucket,
+            object_key=object_key,
+            content_type=content_type,
+            user_id=str(user.id),
+        )
         self.log_event("storage_upload_presigned", user_id=user.id, bucket=bucket, key=object_key)
         return PresignResult(
             upload_url=upload_url,

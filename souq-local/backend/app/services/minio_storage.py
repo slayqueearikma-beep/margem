@@ -59,7 +59,33 @@ def api_media_url(*, bucket: str, object_key: str) -> str:
     return f"{settings.public_api_url.rstrip('/')}/media/{bucket}/{encoded_key}"
 
 
-def presign_put_for_bucket(*, bucket: str, object_key: str) -> tuple[str, str]:
+def presign_put_for_bucket(
+    *,
+    bucket: str,
+    object_key: str,
+    content_type: str,
+    user_id: str,
+) -> tuple[str, str]:
+    """Return client-reachable upload URL and API media URL."""
+    from app.services.local_storage import sign_minio_upload_token
+
+    access_url = api_media_url(bucket=bucket, object_key=object_key)
+    public_endpoint = (settings.minio_public_url or "").strip()
+    if not public_endpoint:
+        token = sign_minio_upload_token(
+            bucket=bucket,
+            object_key=object_key,
+            content_type=content_type,
+            user_id=user_id,
+        )
+        upload_url = f"{settings.public_api_url.rstrip('/')}/uploads/storage/{token}"
+        logger.info(
+            "storage_upload_presigned provider=api_proxy bucket=%s key=%s",
+            bucket,
+            object_key,
+        )
+        return upload_url, access_url
+
     client = _client()
     ensure_bucket(client, bucket)
     upload_url = client.presigned_put_object(
@@ -67,14 +93,18 @@ def presign_put_for_bucket(*, bucket: str, object_key: str) -> tuple[str, str]:
         object_key,
         expires=timedelta(minutes=15),
     )
-    access_url = api_media_url(bucket=bucket, object_key=object_key)
     logger.info("storage_upload_presigned bucket=%s key=%s", bucket, object_key)
     return upload_url, access_url
 
 
-def presign_put(*, blob_name: str) -> tuple[str, str]:
+def presign_put(*, blob_name: str, content_type: str, user_id: str) -> tuple[str, str]:
     """Legacy single-bucket presign (migration compatibility)."""
-    return presign_put_for_bucket(bucket=settings.minio_bucket, object_key=blob_name)
+    return presign_put_for_bucket(
+        bucket=settings.minio_bucket,
+        object_key=blob_name,
+        content_type=content_type,
+        user_id=user_id,
+    )
 
 
 def public_object_url(blob_name: str) -> str:
@@ -82,6 +112,32 @@ def public_object_url(blob_name: str) -> str:
     base = settings.minio_public_url.rstrip("/")
     bucket = settings.minio_bucket.strip("/")
     return f"{base}/{bucket}/{blob_name}"
+
+
+def put_object_bytes(
+    *,
+    bucket: str,
+    object_key: str,
+    data: bytes,
+    content_type: str,
+) -> None:
+    from io import BytesIO
+
+    client = _client()
+    ensure_bucket(client, bucket)
+    client.put_object(
+        bucket,
+        object_key,
+        BytesIO(data),
+        length=len(data),
+        content_type=content_type,
+    )
+    logger.info(
+        "storage_put_success bucket=%s key=%s bytes=%s",
+        bucket,
+        object_key,
+        len(data),
+    )
 
 
 def get_object_bytes(*, bucket: str, object_key: str) -> tuple[bytes, str]:

@@ -17,7 +17,10 @@ _ALLOWED_CONTENT_TYPES = {
     "image/gif",
 }
 _MAX_FILENAME_LENGTH = 120
-_AZURE_BLOB_HOST_SUFFIX = ".blob.core.windows.net"
+_AZURE_BLOB_HOST_SUFFIXES = (
+    ".blob.core.windows.net",
+    ".blob.storage.azure.net",
+)
 
 
 def validate_presign_upload_url(
@@ -46,7 +49,7 @@ def validate_presign_upload_url(
 
     if (
         host == api_host
-        or host.endswith(_AZURE_BLOB_HOST_SUFFIX)
+        or any(host.endswith(suffix) for suffix in _AZURE_BLOB_HOST_SUFFIXES)
         or (minio_host and host == minio_host)
         or host in extra_hosts
     ):
@@ -177,7 +180,7 @@ def validate_media_url(
         return validate_minio_public_url(value, owner_user_id=owner_user_id)
 
     container_name = container or settings.azure_storage_container
-    if not host.endswith(_AZURE_BLOB_HOST_SUFFIX):
+    if not any(host.endswith(suffix) for suffix in _AZURE_BLOB_HOST_SUFFIXES):
         raise ValueError("Media URL host is not allowed")
 
     parts = [p for p in path.split("/") if p]

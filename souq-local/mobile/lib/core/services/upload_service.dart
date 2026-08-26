@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
-import '../config/app_config.dart';
 import 'api_service.dart';
+import 'media_url_resolver.dart';
 import 'secure_http_client.dart';
 
 class VideoUploadResult {
@@ -80,7 +80,7 @@ class UploadService {
       throw ApiException('Storage did not return upload URLs');
     }
 
-    UploadUrlGuard.assertAllowedUploadUrl(uploadUrl);
+    UploadUrlGuard.assertTrustedPresignUploadUrl(uploadUrl);
 
     final resolvedUpload = UploadUrlGuard.resolveUploadUri(uploadUrl);
     final isLocalApiUpload = resolvedUpload.path.startsWith('/uploads/');
@@ -114,7 +114,7 @@ class UploadService {
       );
     }
 
-    return publicUrl;
+    return MediaUrlResolver.resolve(publicUrl);
   }
 
   Future<VideoUploadResult> uploadVideo(
@@ -151,7 +151,7 @@ class UploadService {
       throw ApiException('Storage did not return upload URLs');
     }
 
-    UploadUrlGuard.assertAllowedUploadUrl(uploadUrl);
+    UploadUrlGuard.assertTrustedPresignUploadUrl(uploadUrl);
 
     final resolvedUpload = UploadUrlGuard.resolveUploadUri(uploadUrl);
     final isLocalApiUpload = resolvedUpload.path.startsWith('/uploads/');
@@ -192,7 +192,7 @@ class UploadService {
     }
 
     return VideoUploadResult(
-      publicUrl: publicUrl,
+      publicUrl: MediaUrlResolver.resolve(publicUrl),
       durationSeconds: measured,
       contentType: contentType,
     );

@@ -10,6 +10,7 @@ from app.models import User
 from app.schemas import PresignRequest, PresignResponse
 from app.services.local_storage import (
     public_media_url,
+    verify_minio_upload_token,
     verify_upload_token,
     write_local_blob,
 )
@@ -201,6 +202,124 @@ async def put_local_upload(
         detail=f"bytes={len(sanitized.data)}",
     )
 
+    return Response(status_code=status.HTTP_201_CREATED)
+
+
+@router.put("/storage/{token}")
+@limiter.limit("30/minute")
+async def put_storage_upload(
+    token: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> Response:
+    """Receive a PUT for self-hosted MinIO when MINIO_PUBLIC_URL is not configured."""
+    if settings.effective_storage_provider != "selfhosted":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Self-hosted storage disabled")
+
+    try:
+        meta = verify_minio_upload_token(token)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    if meta["user_id"] != str(user.id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Upload token belongs to another user")
+
+    content_type = (request.headers.get("content-type") or meta["content_type"]).split(";")[0].strip()
+    try:
+        validate_upload_content_type(content_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    body = await request.body()
+    if not body:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty upload body")
+
+    if len(body) > settings.max_upload_bytes:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Image too large")
+
+    if is_video_content_type(content_type):
+        try:
+            validate_video_bytes(body, content_type)
+            from app.services.video_validation import video_duration_seconds
+
+            duration = video_duration_seconds(body, content_type=content_type)
+            if duration is None:
+                raise ValueError("Could not determine video duration")
+            validate_video_duration_seconds(duration)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+        from app.services.media_lifecycle import log_media_event
+        from app.services.media_registry import register_media_object
+        from app.services.minio_storage import all_buckets, api_media_url, put_object_bytes
+
+        bucket = meta["bucket"]
+        if bucket not in all_buckets():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid upload bucket")
+        put_object_bytes(
+            bucket=bucket,
+            object_key=meta["object_key"],
+            data=body,
+            content_type=content_type,
+        )
+        public_url = api_media_url(bucket=bucket, object_key=meta["object_key"])
+        await register_media_object(
+            session,
+            user_id=user.id,
+            public_url=public_url,
+            purpose="video_upload",
+            content_type=content_type,
+            bytes_size=len(body),
+        )
+        await session.commit()
+        log_media_event(
+            "video_uploaded",
+            user_id=user.id,
+            purpose="video",
+            detail=f"bytes={len(body)}",
+        )
+        return Response(status_code=status.HTTP_201_CREATED)
+
+    try:
+        validate_image_bytes(body, content_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    from app.services.image_processing import sanitize_image_bytes
+    from app.services.media_lifecycle import log_media_event
+    from app.services.media_registry import register_media_object
+    from app.services.minio_storage import all_buckets, api_media_url, put_object_bytes
+
+    try:
+        sanitized = sanitize_image_bytes(body, content_type=content_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    bucket = meta["bucket"]
+    if bucket not in all_buckets():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid upload bucket")
+    put_object_bytes(
+        bucket=bucket,
+        object_key=meta["object_key"],
+        data=sanitized.data,
+        content_type=sanitized.content_type,
+    )
+    public_url = api_media_url(bucket=bucket, object_key=meta["object_key"])
+    await register_media_object(
+        session,
+        user_id=user.id,
+        public_url=public_url,
+        purpose="upload",
+        content_type=sanitized.content_type,
+        bytes_size=len(sanitized.data),
+    )
+    await session.commit()
+    log_media_event(
+        "profile_photo_uploaded",
+        user_id=user.id,
+        purpose="upload",
+        detail=f"bytes={len(sanitized.data)}",
+    )
     return Response(status_code=status.HTTP_201_CREATED)
 
 

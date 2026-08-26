@@ -6,7 +6,10 @@ from urllib.parse import unquote, urlparse
 
 from app.config import settings
 
-_AZURE_HOST_SUFFIX = ".blob.core.windows.net"
+_AZURE_HOST_SUFFIXES = (
+    ".blob.core.windows.net",
+    ".blob.storage.azure.net",
+)
 
 
 def all_minio_buckets() -> tuple[str, ...]:
@@ -51,7 +54,7 @@ def parse_media_url(url: str) -> tuple[str, str] | None:
                     return bucket, path[len(prefix) :].lstrip("/") or None
 
     host = (parsed.hostname or "").lower()
-    if host.endswith(_AZURE_HOST_SUFFIX):
+    if any(host.endswith(suffix) for suffix in _AZURE_HOST_SUFFIXES):
         container = settings.azure_storage_container
         if len(parts) >= 2 and parts[0] == container:
             return container, "/".join(parts[1:])

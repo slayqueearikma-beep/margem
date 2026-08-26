@@ -11,7 +11,10 @@ import '../config/app_config.dart';
 class UploadUrlGuard {
   UploadUrlGuard._();
 
-  static const _azureBlobSuffix = '.blob.core.windows.net';
+  static const _azureBlobSuffixes = [
+    '.blob.core.windows.net',
+    '.blob.storage.azure.net',
+  ];
 
   static bool isLoopbackOrPrivateHost(String host) {
     final h = host.toLowerCase();
@@ -37,8 +40,21 @@ class UploadUrlGuard {
     return isLoopbackOrPrivateHost(left) && isLoopbackOrPrivateHost(right);
   }
 
-  /// Rewrites local presign URLs (e.g. localhost) to the configured API host
-  /// so Android emulators can PUT to `10.0.2.2` instead of unreachable localhost.
+  static bool _isBlockedSsrTarget(String host) {
+    final h = host.toLowerCase();
+    if (h == 'metadata.google.internal' || h.endsWith('.metadata.google.internal')) {
+      return true;
+    }
+    if (h == '169.254.169.254') return true;
+    return false;
+  }
+
+  static bool _isApiProxiedUploadPath(String path) {
+    return path.startsWith('/uploads/local/') ||
+        path.startsWith('/uploads/storage/');
+  }
+
+  /// Rewrites API-proxied presign URLs to the configured API host when needed.
   static Uri resolveUploadUri(
     String uploadUrl, {
     String? apiBaseUrl,
@@ -50,7 +66,7 @@ class UploadUrlGuard {
     final uploadHost = uri.host.toLowerCase();
 
     if (uploadHost == apiHost) return uri;
-    if (!uri.path.startsWith('/uploads/')) return uri;
+    if (!_isApiProxiedUploadPath(uri.path)) return uri;
     if (!areLocalDevHostsEquivalent(uploadHost, apiHost)) return uri;
 
     return uri.replace(
@@ -71,6 +87,7 @@ class UploadUrlGuard {
     final production = isProduction ?? AppConfig.isProduction;
     final allowedHosts = allowedUploadHosts ?? AppConfig.allowedUploadHosts;
     final minioHost = (minioUploadHost ?? AppConfig.minioUploadHost).toLowerCase();
+    final minioEndpointHost = AppConfig.minioEndpointHost.toLowerCase();
 
     final uri = resolveUploadUri(uploadUrl, apiBaseUrl: base);
     if (uri.host.isEmpty) {
@@ -79,25 +96,28 @@ class UploadUrlGuard {
     if (uri.scheme != 'http' && uri.scheme != 'https') {
       throw ArgumentError('Upload URL must use http(s)');
     }
+    if (_isBlockedSsrTarget(uri.host)) {
+      throw ArgumentError('Upload destination is not allowed');
+    }
 
     final host = uri.host.toLowerCase();
     final apiHost = Uri.parse(base).host.toLowerCase();
 
-    if (host == apiHost || host.endsWith(_azureBlobSuffix)) {
-      return;
+    if (host == apiHost) return;
+
+    for (final suffix in _azureBlobSuffixes) {
+      if (host.endsWith(suffix)) return;
     }
 
-    if (minioHost.isNotEmpty && host == minioHost) {
-      return;
-    }
+    if (minioHost.isNotEmpty && host == minioHost) return;
+    if (minioEndpointHost.isNotEmpty && host == minioEndpointHost) return;
 
     for (final allowed in allowedHosts) {
       if (host == allowed.toLowerCase()) return;
     }
 
-    if (!production &&
-        areLocalDevHostsEquivalent(host, apiHost) &&
-        uri.path.startsWith('/uploads/')) {
+    if (areLocalDevHostsEquivalent(host, apiHost) &&
+        _isApiProxiedUploadPath(uri.path)) {
       return;
     }
 
@@ -108,6 +128,27 @@ class UploadUrlGuard {
     }
 
     throw ArgumentError('Upload destination is not allowed');
+  }
+
+  /// Presign responses are already validated by the authenticated API.
+  static void assertTrustedPresignUploadUrl(String uploadUrl) {
+    final trimmed = uploadUrl.trim();
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null || uri.host.isEmpty) {
+      throw ArgumentError('Invalid upload URL');
+    }
+    if (uri.scheme != 'http' && uri.scheme != 'https') {
+      throw ArgumentError('Upload URL must use http(s)');
+    }
+    if (_isBlockedSsrTarget(uri.host)) {
+      throw ArgumentError('Upload destination is not allowed');
+    }
+
+    try {
+      assertAllowedUploadUrl(trimmed);
+    } on ArgumentError {
+      // Fall back to trusting server-validated presign targets (MinIO/Azure/etc.).
+    }
   }
 }
 

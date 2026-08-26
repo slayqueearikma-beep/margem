@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/theme_context.dart';
 import 'package:flutter/material.dart';
 
+import '../services/media_url_resolver.dart';
 
 /// Safe network image with placeholder for empty/failed URLs.
 class NetworkImageView extends StatelessWidget {
@@ -25,7 +26,7 @@ class NetworkImageView extends StatelessWidget {
       );
     }
     return CachedNetworkImage(
-      imageUrl: url,
+      imageUrl: MediaUrlResolver.resolve(url),
       fit: fit,
       placeholder: (_, __) => Center(child: CircularProgressIndicator(strokeWidth: 2)),
       errorWidget: (_, __, ___) => ColoredBox(

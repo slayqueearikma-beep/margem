@@ -159,6 +159,15 @@ class AppConfig {
     return Uri.tryParse(raw.trim())?.host.toLowerCase() ?? '';
   }
 
+  /// Optional MinIO endpoint host (from MINIO_ENDPOINT define).
+  static String get minioEndpointHost {
+    const raw = String.fromEnvironment('MINIO_ENDPOINT', defaultValue: '');
+    if (raw.trim().isEmpty) return '';
+    final value = raw.trim();
+    final normalized = value.contains('://') ? value : 'http://$value';
+    return Uri.tryParse(normalized)?.host.toLowerCase() ?? '';
+  }
+
   /// Optional SHA-256 certificate pins for release TLS pinning.
   static List<String> get certificatePins {
     const raw = String.fromEnvironment('CERTIFICATE_PINS', defaultValue: '');
