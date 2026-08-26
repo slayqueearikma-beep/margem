@@ -82,10 +82,11 @@ class UploadService {
 
     UploadUrlGuard.assertAllowedUploadUrl(uploadUrl);
 
-    final isLocalApiUpload = uploadUrl.startsWith(AppConfig.apiBaseUrl);
+    final resolvedUpload = UploadUrlGuard.resolveUploadUri(uploadUrl);
+    final isLocalApiUpload = resolvedUpload.path.startsWith('/uploads/');
     final response = await _uploadClient
         .put(
-          Uri.parse(uploadUrl),
+          resolvedUpload,
           headers: {
             'Content-Type': contentType,
             'x-ms-blob-type': 'BlockBlob',
@@ -152,10 +153,11 @@ class UploadService {
 
     UploadUrlGuard.assertAllowedUploadUrl(uploadUrl);
 
-    final isLocalApiUpload = uploadUrl.startsWith(AppConfig.apiBaseUrl);
+    final resolvedUpload = UploadUrlGuard.resolveUploadUri(uploadUrl);
+    final isLocalApiUpload = resolvedUpload.path.startsWith('/uploads/');
     final response = await _uploadClient
         .put(
-          Uri.parse(uploadUrl),
+          resolvedUpload,
           headers: {
             'Content-Type': contentType,
             'x-ms-blob-type': 'BlockBlob',

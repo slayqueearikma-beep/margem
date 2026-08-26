@@ -152,6 +152,13 @@ class AppConfig {
     return raw.split(',').map((h) => h.trim().toLowerCase()).where((h) => h.isNotEmpty).toList();
   }
 
+  /// Optional MinIO host for direct presigned PUT uploads (from MINIO_PUBLIC_URL define).
+  static String get minioUploadHost {
+    const raw = String.fromEnvironment('MINIO_PUBLIC_URL', defaultValue: '');
+    if (raw.trim().isEmpty) return '';
+    return Uri.tryParse(raw.trim())?.host.toLowerCase() ?? '';
+  }
+
   /// Optional SHA-256 certificate pins for release TLS pinning.
   static List<String> get certificatePins {
     const raw = String.fromEnvironment('CERTIFICATE_PINS', defaultValue: '');
