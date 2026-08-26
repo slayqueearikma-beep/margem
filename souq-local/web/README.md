@@ -9,21 +9,29 @@ Next.js App Router frontend for `https://dribex.ma`.
 
 ## Local development
 
+**You must install dependencies once** (`cp env.example` alone is not enough).
+
 From the repo root:
 
 ```bash
 cd souq-local
 docker compose up -d postgres api
-
 ./scripts/dev-web.sh
 ```
 
-Or manually:
+Or from `souq-local/web`:
+
+```bash
+npm run setup    # installs deps + creates .env.local
+npm run dev
+```
+
+Manual steps:
 
 ```bash
 cd souq-local/web
 cp env.example .env.local
-npm install
+npm install      # required — do not skip; do not use sudo
 npm run dev
 ```
 
