@@ -107,11 +107,30 @@ export interface ServiceListItem {
   is_available: boolean;
 }
 
+export interface ServiceSearchOut {
+  id: string;
+  seller_id: string;
+  seller_name: string;
+  seller_city: string;
+  seller_verified: boolean;
+  seller_premium: boolean;
+  seller_rating: number;
+  name: string;
+  description: string;
+  price_mad: number | null;
+  price_negotiable?: boolean;
+  image_url: string;
+  category_slug: string;
+  is_available: boolean;
+}
+
 export interface SearchPage {
   sellers: SellerSummary[];
   products: ProductSearchOut[];
+  services: ServiceSearchOut[];
   total_sellers: number;
   total_products: number;
+  total_services: number;
   limit: number;
   offset: number;
   has_more: boolean;

@@ -1,8 +1,18 @@
 import Link from "next/link";
+import { MediaImage } from "@/components/media-image";
 import { formatPrice, formatRating, truncate } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
-import type { ProductSearchOut, SellerSummary, ServiceListItem } from "@/lib/types";
+import type { ProductSearchOut, SellerSummary, ServiceSearchOut } from "@/lib/types";
 import { TrustBadges } from "./trust-badges";
+
+function AvailabilityBadge({ available }: { available: boolean }) {
+  if (available) return null;
+  return (
+    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-[var(--muted)]">
+      Unavailable
+    </span>
+  );
+}
 
 export function ProductCard({ product }: { product: ProductSearchOut }) {
   return (
@@ -11,12 +21,10 @@ export function ProductCard({ product }: { product: ProductSearchOut }) {
       className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-[var(--cream)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <MediaImage
           src={resolveMediaUrl(product.image_url)}
           alt={product.name}
           className="h-full w-full object-cover transition group-hover:scale-105"
-          loading="lazy"
         />
       </div>
       <div className="space-y-2 p-4">
@@ -29,29 +37,34 @@ export function ProductCard({ product }: { product: ProductSearchOut }) {
         <p className="line-clamp-2 text-xs text-[var(--muted)]">
           {truncate(product.description, 100)}
         </p>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+          {product.category_slug ? <span>{product.category_slug}</span> : null}
+          <span>{product.seller_city}</span>
+        </div>
         <div className="flex items-center justify-between gap-2 text-xs text-[var(--muted)]">
           <span>{product.seller_name}</span>
           <span>{formatRating(product.seller_rating)} ★</span>
         </div>
-        <TrustBadges verified={product.seller_verified} premium={product.seller_premium} />
+        <div className="flex flex-wrap items-center gap-2">
+          <TrustBadges verified={product.seller_verified} premium={product.seller_premium} />
+          <AvailabilityBadge available={product.is_available} />
+        </div>
       </div>
     </Link>
   );
 }
 
-export function ServiceCard({ service }: { service: ServiceListItem }) {
+export function ServiceCard({ service }: { service: ServiceSearchOut }) {
   return (
     <Link
       href={`/services/${service.id}`}
       className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-[var(--primary-muted)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <MediaImage
           src={resolveMediaUrl(service.image_url)}
           alt={service.name}
           className="h-full w-full object-cover transition group-hover:scale-105"
-          loading="lazy"
         />
       </div>
       <div className="space-y-2 p-4">
@@ -64,7 +77,14 @@ export function ServiceCard({ service }: { service: ServiceListItem }) {
         <p className="line-clamp-2 text-xs text-[var(--muted)]">
           {truncate(service.description, 100)}
         </p>
-        <TrustBadges verified={service.seller_verified} premium={service.seller_premium} />
+        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+          {service.category_slug ? <span>{service.category_slug}</span> : null}
+          <span>{service.seller_city}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <TrustBadges verified={service.seller_verified} premium={service.seller_premium} />
+          <AvailabilityBadge available={service.is_available} />
+        </div>
       </div>
     </Link>
   );
@@ -77,12 +97,10 @@ export function SellerCard({ seller }: { seller: SellerSummary }) {
       className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-[var(--cream)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <MediaImage
           src={resolveMediaUrl(seller.cover_image_url || seller.logo_image_url)}
           alt={seller.business_name}
           className="h-full w-full object-cover transition group-hover:scale-105"
-          loading="lazy"
         />
       </div>
       <div className="space-y-2 p-4">

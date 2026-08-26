@@ -5,7 +5,7 @@
   "scripts": {
     "setup": "npm install && (test -f .env.local || cp env.example .env.local)",
     "predev": "node scripts/ensure-deps.mjs",
-    "dev": "node ./node_modules/next/dist/bin/next dev -H ${HOSTNAME:-0.0.0.0} -p ${PORT:-3000}",
+    "dev": "node ./node_modules/next/dist/bin/next dev -H ${WEB_DEV_HOST:-0.0.0.0} -p ${WEB_DEV_PORT:-3000}",
     "prebuild": "node scripts/ensure-deps.mjs",
     "build": "node ./node_modules/next/dist/bin/next build",
     "prestart": "node scripts/ensure-deps.mjs",

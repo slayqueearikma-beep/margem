@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MediaImage } from "@/components/media-image";
 import { TrustBadges } from "@/components/trust-badges";
 import { EmptyState } from "@/components/states";
 import { ApiError } from "@/lib/api";
@@ -74,8 +75,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
       <div className="overflow-hidden rounded-3xl border border-[var(--border)] bg-white">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <MediaImage
           src={resolveMediaUrl(product.image_url)}
           alt={product.name}
           className="aspect-square w-full object-cover"
@@ -90,6 +90,10 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
           <p className="mt-4 text-2xl font-semibold text-[var(--primary)]">
             {formatPrice(product.price_mad, product.price_negotiable)}
           </p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-sm text-[var(--muted)]">
+          {product.category_slug ? <span>Category: {product.category_slug}</span> : null}
+          <span>{product.is_available ? "Available" : "Unavailable"}</span>
         </div>
         <TrustBadges verified={seller.verified} premium={seller.premium} />
         <p className="text-[var(--muted)]">{product.description}</p>

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProductCard, SellerCard } from "@/components/listing-cards";
+import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { EmptyState } from "@/components/states";
-import { LAUNCH_CITIES } from "@/lib/config";
 import { cityFromSlug } from "@/lib/format";
+import { isActiveLaunchCity } from "@/lib/launch-cities";
+import { ACTIVE_LAUNCH_CITY_NAME } from "@/lib/launch-cities";
 import { fetchGeographyCities, fetchSearch } from "@/lib/marketplace-api";
 import { buildPageMetadata } from "@/lib/seo";
 
@@ -13,7 +14,7 @@ type CityDetailProps = {
 
 export async function generateMetadata({ params }: CityDetailProps) {
   const { slug } = await params;
-  const cityName = cityFromSlug(slug, LAUNCH_CITIES) || slug.replace(/-/g, " ");
+  const cityName = slug.replace(/-/g, " ");
   return buildPageMetadata({
     title: `${cityName} marketplace`,
     description: `Browse Dribex products and businesses in ${cityName}.`,
@@ -26,9 +27,31 @@ export default async function CityDetailPage({ params }: CityDetailProps) {
   const geography = await fetchGeographyCities();
   const geoCity = geography?.items?.find((city) => city.slug === slug);
   const cityName =
-    geoCity?.name_en || cityFromSlug(slug, LAUNCH_CITIES) || slug.replace(/-/g, " ");
+    geoCity?.name_en || cityFromSlug(slug, [ACTIVE_LAUNCH_CITY_NAME]) || slug.replace(/-/g, " ");
 
   if (!cityName) notFound();
+
+  if (geoCity && !isActiveLaunchCity(geoCity)) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <Link href="/cities" className="text-sm font-semibold text-[var(--primary)]">
+            ← All cities
+          </Link>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight">{cityName}</h1>
+          <p className="mt-2 text-[var(--muted)]">
+            Dribex marketplace listings in {cityName} are coming soon.
+          </p>
+        </div>
+        <EmptyState
+          title="Coming soon"
+          description={`${cityName} is not an active launch city yet. Explore listings in ${ACTIVE_LAUNCH_CITY_NAME} today.`}
+          actionHref={`/cities/casablanca`}
+          actionLabel={`Browse ${ACTIVE_LAUNCH_CITY_NAME}`}
+        />
+      </div>
+    );
+  }
 
   const results = await fetchSearch({ mode: "all", city: cityName, limit: 12 }).catch(
     () => null,
@@ -66,6 +89,17 @@ export default async function CityDetailPage({ params }: CityDetailProps) {
             </section>
           ) : null}
 
+          {results.services.length > 0 ? (
+            <section className="space-y-4">
+              <h2 className="text-lg font-semibold">Services in {cityName}</h2>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {results.services.map((service) => (
+                  <ServiceCard key={service.id} service={service} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           {results.sellers.length > 0 ? (
             <section className="space-y-4">
               <h2 className="text-lg font-semibold">Businesses in {cityName}</h2>
@@ -77,7 +111,9 @@ export default async function CityDetailPage({ params }: CityDetailProps) {
             </section>
           ) : null}
 
-          {results.products.length === 0 && results.sellers.length === 0 ? (
+          {results.products.length === 0 &&
+          results.services.length === 0 &&
+          results.sellers.length === 0 ? (
             <EmptyState
               title={`No public listings in ${cityName} yet`}
               description="Check back soon or explore other cities."

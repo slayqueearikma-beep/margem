@@ -1,6 +1,7 @@
 import { ServiceCard } from "@/components/listing-cards";
+import { PaginationNav } from "@/components/pagination";
 import { EmptyState } from "@/components/states";
-import { fetchServices } from "@/lib/marketplace-api";
+import { fetchSearch } from "@/lib/marketplace-api";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
@@ -19,13 +20,15 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
   const city = typeof params.city === "string" ? params.city : undefined;
   const q = typeof params.q === "string" ? params.q : undefined;
   const offset = Number(typeof params.offset === "string" ? params.offset : 0);
+  const limit = 24;
 
-  const results = await fetchServices({
+  const results = await fetchSearch({
+    mode: "services",
     category,
     city,
     q,
     offset,
-    limit: 24,
+    limit,
   }).catch(() => null);
 
   return (
@@ -44,7 +47,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
           actionHref="/services"
           actionLabel="Retry"
         />
-      ) : results.items.length === 0 ? (
+      ) : results.services.length === 0 ? (
         <EmptyState
           title="No services found"
           description="Try another category or browse business profiles for offerings."
@@ -52,11 +55,21 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
           actionLabel="Browse businesses"
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {results.items.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {results.services.map((service) => (
+              <ServiceCard key={service.id} service={service} />
+            ))}
+          </div>
+          <PaginationNav
+            basePath="/services"
+            offset={results.offset}
+            limit={results.limit}
+            hasMore={results.has_more}
+            total={results.total_services}
+            params={{ category, city, q }}
+          />
+        </>
       )}
     </div>
   );

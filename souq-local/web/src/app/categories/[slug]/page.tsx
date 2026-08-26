@@ -1,10 +1,10 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { EmptyState } from "@/components/states";
-import { fetchCategories, fetchSearch, fetchServices } from "@/lib/marketplace-api";
+import { fetchCategories, fetchSearch } from "@/lib/marketplace-api";
 import { categoryLabel } from "@/lib/format";
 import { buildPageMetadata } from "@/lib/seo";
-import { notFound } from "next/navigation";
 
 type CategoryDetailProps = {
   params: Promise<{ slug: string }>;
@@ -25,10 +25,9 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
   const category = categories.find((item) => item.slug === slug);
   if (!category) notFound();
 
-  const [search, services] = await Promise.all([
-    fetchSearch({ mode: "all", category: slug, limit: 12 }).catch(() => null),
-    fetchServices({ category: slug, limit: 12 }).catch(() => null),
-  ]);
+  const search = await fetchSearch({ mode: "all", category: slug, limit: 12 }).catch(
+    () => null,
+  );
 
   return (
     <div className="space-y-10">
@@ -42,7 +41,7 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
         </p>
       </div>
 
-      {!search && !services ? (
+      {!search ? (
         <EmptyState
           title="Category unavailable"
           description="We couldn't load listings for this category."
@@ -62,11 +61,11 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
         </section>
       ) : null}
 
-      {services && services.items.length > 0 ? (
+      {search && search.services.length > 0 ? (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Services</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {services.items.map((service) => (
+            {search.services.map((service) => (
               <ServiceCard key={service.id} service={service} />
             ))}
           </div>
@@ -87,7 +86,7 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
       {search &&
       search.products.length === 0 &&
       search.sellers.length === 0 &&
-      (!services || services.items.length === 0) ? (
+      search.services.length === 0 ? (
         <EmptyState
           title="No listings in this category"
           description="Try another category or search across the full marketplace."

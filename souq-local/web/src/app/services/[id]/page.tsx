@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MediaImage } from "@/components/media-image";
 import { TrustBadges } from "@/components/trust-badges";
 import { EmptyState } from "@/components/states";
 import { ApiError } from "@/lib/api";
@@ -69,8 +70,7 @@ export default async function ServiceDetailPage({ params }: ServiceDetailProps) 
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
       <div className="overflow-hidden rounded-3xl border border-[var(--border)] bg-white">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <MediaImage
           src={resolveMediaUrl(service.image_url)}
           alt={service.name}
           className="aspect-square w-full object-cover"

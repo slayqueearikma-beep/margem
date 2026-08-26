@@ -1,4 +1,5 @@
 import { ProductCard } from "@/components/listing-cards";
+import { PaginationNav } from "@/components/pagination";
 import { EmptyState } from "@/components/states";
 import { fetchSearch } from "@/lib/marketplace-api";
 import { buildPageMetadata } from "@/lib/seo";
@@ -18,13 +19,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const category = typeof params.category === "string" ? params.category : undefined;
   const city = typeof params.city === "string" ? params.city : undefined;
   const offset = Number(typeof params.offset === "string" ? params.offset : 0);
+  const limit = 24;
 
   const results = await fetchSearch({
     mode: "products",
     category,
     city,
     offset,
-    limit: 24,
+    limit,
   }).catch(() => null);
 
   return (
@@ -51,11 +53,21 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           actionLabel="Browse categories"
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {results.products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {results.products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          <PaginationNav
+            basePath="/products"
+            offset={results.offset}
+            limit={results.limit}
+            hasMore={results.has_more}
+            total={results.total_products}
+            params={{ category, city }}
+          />
+        </>
       )}
     </div>
   );

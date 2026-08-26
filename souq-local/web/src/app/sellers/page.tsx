@@ -1,6 +1,7 @@
 import { SellerCard } from "@/components/listing-cards";
+import { PaginationNav } from "@/components/pagination";
 import { EmptyState } from "@/components/states";
-import { fetchSellers } from "@/lib/marketplace-api";
+import { fetchSearch } from "@/lib/marketplace-api";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
@@ -15,11 +16,18 @@ type SellersPageProps = {
 
 export default async function SellersPage({ searchParams }: SellersPageProps) {
   const params = await searchParams;
-  const city = typeof params.city === "string" ? params.city : undefined;
   const category = typeof params.category === "string" ? params.category : undefined;
   const q = typeof params.q === "string" ? params.q : undefined;
+  const offset = Number(typeof params.offset === "string" ? params.offset : 0);
+  const limit = 24;
 
-  const sellers = await fetchSellers({ city, category, q, limit: 48 }).catch(() => null);
+  const results = await fetchSearch({
+    mode: "providers",
+    category,
+    q,
+    offset,
+    limit,
+  }).catch(() => null);
 
   return (
     <div className="space-y-8">
@@ -30,26 +38,36 @@ export default async function SellersPage({ searchParams }: SellersPageProps) {
         </p>
       </div>
 
-      {!sellers ? (
+      {!results ? (
         <EmptyState
           title="Directory unavailable"
           description="We couldn't load business profiles from the API."
           actionHref="/sellers"
           actionLabel="Retry"
         />
-      ) : sellers.length === 0 ? (
+      ) : results.sellers.length === 0 ? (
         <EmptyState
           title="No businesses found"
-          description="Try another city or category filter."
-          actionHref="/cities"
-          actionLabel="Browse cities"
+          description="Try another category filter or search the marketplace."
+          actionHref="/search?mode=sellers"
+          actionLabel="Search businesses"
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sellers.map((seller) => (
-            <SellerCard key={seller.id} seller={seller} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {results.sellers.map((seller) => (
+              <SellerCard key={seller.id} seller={seller} />
+            ))}
+          </div>
+          <PaginationNav
+            basePath="/sellers"
+            offset={results.offset}
+            limit={results.limit}
+            hasMore={results.has_more}
+            total={results.total_sellers}
+            params={{ category, q }}
+          />
+        </>
       )}
     </div>
   );

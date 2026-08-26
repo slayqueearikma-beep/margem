@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ProductCard, SellerCard } from "@/components/listing-cards";
+import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { SearchBar } from "@/components/search-bar";
 import { EmptyState, LoadingGrid } from "@/components/states";
 import { BRAND } from "@/lib/config";
@@ -103,6 +103,32 @@ export default async function HomePage() {
             ))}
           </div>
         )}
+      </section>
+
+      <section>
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold">Featured services</h2>
+            <p className="text-sm text-[var(--muted)]">Local services from verified businesses</p>
+          </div>
+          <Link href="/services" className="text-sm font-semibold text-[var(--primary)]">
+            See all services
+          </Link>
+        </div>
+        {search && search.services.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {search.services.slice(0, 4).map((service) => (
+              <ServiceCard key={service.id} service={service} />
+            ))}
+          </div>
+        ) : search ? (
+          <EmptyState
+            title="No services yet"
+            description="Check back soon as businesses publish new offerings."
+            actionHref="/sellers"
+            actionLabel="Browse businesses"
+          />
+        ) : null}
       </section>
 
       <section>
