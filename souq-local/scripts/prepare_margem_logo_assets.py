@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Prepare official MarGem ribbon-M logo PNGs for Flutter (transparent, trimmed)."""
+"""Prepare official MarGem skyline mark PNGs for Flutter (transparent, trimmed).
+
+Prefer [apply_official_logo.py] when replacing assets from the canonical source PNG.
+"""
 
 from __future__ import annotations
 
