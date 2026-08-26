@@ -152,7 +152,8 @@ async def test_email_verify_request_and_confirm(client: AsyncClient):
 async def test_password_reset_flow(client: AsyncClient):
     user = await _register(client, "buyer")
     requested = await client.post("/auth/password-reset/request", json={"email": user["email"]})
-    assert requested.status_code == 204, requested.text
+    assert requested.status_code == 200, requested.text
+    assert requested.json()["message"]
 
     async with database.SessionLocal() as session:
         from app.routers.auth import _issue_auth_token

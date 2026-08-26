@@ -14,6 +14,7 @@ import 'core/services/locale_provider.dart';
 import 'core/services/theme_mode_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/forgot_password_screen.dart';
+import 'features/auth/reset_password_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_email_screen.dart';
 import 'features/buyer/buyer_home_screen.dart';
@@ -177,8 +178,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           builder: (_, __) => const ForgotPasswordScreen()),
       GoRoute(
         path: '/reset-password',
-        builder: (_, state) => ForgotPasswordScreen(
-          resetMode: true,
+        builder: (_, state) => ResetPasswordScreen(
           initialToken: state.uri.queryParameters['token'] ?? '',
         ),
       ),

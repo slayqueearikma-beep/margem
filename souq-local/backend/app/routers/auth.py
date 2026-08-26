@@ -84,6 +84,28 @@ def _auth_action_body(*, path: str, token: str, intro: str) -> str:
     )
 
 
+def _password_reset_email_body(*, token: str) -> str:
+    """Password-reset email — link only in body (raw token never logged by email service)."""
+    base = settings.public_app_url.rstrip("/")
+    if settings.app_env in {"production", "prod", "staging", "preprod", "preview"}:
+        if not base.startswith("https://"):
+            raise ValueError("PUBLIC_APP_URL must use HTTPS for password reset links")
+    web = f"{base}/reset-password?token={token}"
+    deep = f"margem://app/reset-password?token={token}"
+    hours = settings.password_reset_expire_hours
+    support = settings.smtp_from or "Dribex Support"
+    return (
+        "Dribex — Password reset\n\n"
+        "We received a request to reset the password for your Dribex account.\n\n"
+        f"Open in the Dribex app:\n{deep}\n\n"
+        f"Or reset in your browser:\n{web}\n\n"
+        f"This link expires in {hours} hour(s) and can only be used once.\n\n"
+        "If you did not request a password reset, you can ignore this email. "
+        "Your password will not change unless you use the link above.\n\n"
+        f"Questions? Contact us at {support}."
+    )
+
+
 class EmailRequest(BaseModel):
     email: EmailStr
 
@@ -97,6 +119,16 @@ class TokenConfirmRequest(BaseModel):
 class PasswordResetConfirm(BaseModel):
     token: str = Field(min_length=20, max_length=256)
     new_password: str = Field(min_length=8, max_length=128)
+
+
+class PasswordResetRequestResponse(BaseModel):
+    message: str
+
+
+GENERIC_PASSWORD_RESET_MESSAGE = (
+    "If an account exists for this email address, we have sent instructions to reset your password."
+)
+_MAX_PASSWORD_RESET_ATTEMPTS = 5
 
 
 class SessionOut(BaseModel):
@@ -703,17 +735,14 @@ async def confirm_email_verification(
     await session.commit()
 
 
-@router.post("/password-reset/request", status_code=status.HTTP_204_NO_CONTENT)
-@limiter.limit(settings.auth_rate_limit)
-async def request_password_reset(
-    request: Request,
-    payload: EmailRequest,
-    session: AsyncSession = Depends(get_db),
+async def _send_password_reset_if_account_exists(
+    session: AsyncSession,
+    email: str,
 ) -> None:
-    # Always 204 to avoid account enumeration.
-    result = await session.execute(select(User).where(User.email == payload.email.lower()))
+    """Issue a single-use reset token when the account exists; always silent otherwise."""
+    result = await session.execute(select(User).where(User.email == email.lower()))
     user = result.scalar_one_or_none()
-    if user is None or not user.password_hash:
+    if user is None or not user.password_hash or user.status == UserStatus.DELETED:
         return
     await session.execute(
         update(AuthToken)
@@ -724,21 +753,43 @@ async def request_password_reset(
         )
         .values(used_at=datetime.now(UTC))
     )
-    token = await _issue_auth_token(session, user.id, "password_reset", hours=2)
+    token = await _issue_auth_token(
+        session,
+        user.id,
+        "password_reset",
+        hours=settings.password_reset_expire_hours,
+    )
     await session.commit()
     email_service.send(
         to=user.email,
         subject="Reset your Dribex password",
-        text_body=_auth_action_body(
-            path="/reset-password",
-            token=token,
-            intro="Reset your Dribex password. If you did not request this, ignore this email.",
-        ),
+        text_body=_password_reset_email_body(token=token),
     )
 
 
+@router.post(
+    "/password-reset/request",
+    response_model=PasswordResetRequestResponse,
+    status_code=status.HTTP_200_OK,
+)
+@router.post(
+    "/forgot-password",
+    response_model=PasswordResetRequestResponse,
+    status_code=status.HTTP_200_OK,
+)
+@limiter.limit(settings.password_reset_request_rate_limit)
+async def request_password_reset(
+    request: Request,
+    payload: EmailRequest,
+    session: AsyncSession = Depends(get_db),
+) -> PasswordResetRequestResponse:
+    await _send_password_reset_if_account_exists(session, payload.email)
+    return PasswordResetRequestResponse(message=GENERIC_PASSWORD_RESET_MESSAGE)
+
+
 @router.post("/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT)
-@limiter.limit(settings.auth_rate_limit)
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(settings.password_reset_confirm_rate_limit)
 async def confirm_password_reset(
     request: Request,
     payload: PasswordResetConfirm,
@@ -757,9 +808,25 @@ async def confirm_password_reset(
     )
     token = result.scalar_one_or_none()
     if token is None or token.used_at is not None or token.expires_at < datetime.now(UTC):
+        if token is not None:
+            token.failed_attempts += 1
+            if token.failed_attempts >= _MAX_PASSWORD_RESET_ATTEMPTS:
+                token.used_at = datetime.now(UTC)
+            await session.commit()
+        log_security_event(
+            "password_reset_failed",
+            ip_address=_request_ip(request),
+            detail="invalid_or_expired_token",
+        )
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    if token.failed_attempts >= _MAX_PASSWORD_RESET_ATTEMPTS:
+        token.used_at = datetime.now(UTC)
+        await session.commit()
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
     user = await session.get(User, token.user_id)
-    if user is None:
+    if user is None or user.status == UserStatus.DELETED:
+        token.used_at = datetime.now(UTC)
+        await session.commit()
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
     user.password_hash = hash_password(payload.new_password)
     token.used_at = datetime.now(UTC)

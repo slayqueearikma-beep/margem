@@ -1091,22 +1091,31 @@ class AppStringsEn extends AppStrings {
       'Enter your email and we will send a secure reset link if an account exists.';
   @override
   String get resetPasswordSubtitle =>
-      'Paste the reset token from your email and choose a new password.';
+      'Choose a new password for your account.';
   @override
   String get emailRequired => 'Email is required.';
   @override
   String get resetPasswordValidation =>
-      'Enter the reset token and a password with at least 8 characters.';
+      'Enter a password with at least 8 characters, including upper and lower case letters and a number.';
   @override
   String get sendResetLink => 'Send reset link';
   @override
   String get resetLinkSent =>
-      'If an account exists, a reset link has been sent.';
+      'If an account exists for this email address, we have sent instructions to reset your password.';
   @override
   String get resetToken => 'Reset token';
   @override
   String get passwordResetComplete =>
       'Password reset complete. You can now log in.';
+  @override
+  String get backToLogin => 'Back to login';
+  @override
+  String get confirmPassword => 'Confirm new password';
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match.';
+  @override
+  String get resetTokenInvalidOrExpired =>
+      'This reset link is invalid or has expired. Request a new one to continue.';
   @override
   String get revenue => 'Discovery activity';
   @override

@@ -49,9 +49,10 @@ async def test_password_reset_invalidates_prior_tokens(client: AsyncClient):
     await _register(client, email)
 
     first = await client.post("/auth/password-reset/request", json={"email": email})
-    assert first.status_code == 204
+    assert first.status_code == 200
     second = await client.post("/auth/password-reset/request", json={"email": email})
-    assert second.status_code == 204
+    assert second.status_code == 200
+    assert first.json() == second.json()
 
 
 async def test_mfa_enrollment_and_login_flow(client: AsyncClient):

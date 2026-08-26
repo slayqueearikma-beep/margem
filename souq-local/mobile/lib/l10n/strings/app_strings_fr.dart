@@ -1108,22 +1108,31 @@ class AppStringsFr extends AppStringsEn {
       'Entrez votre e-mail et nous enverrons un lien sécurisé si le compte existe.';
   @override
   String get resetPasswordSubtitle =>
-      'Collez le jeton reçu par e-mail et choisissez un nouveau mot de passe.';
+      'Choisissez un nouveau mot de passe pour votre compte.';
   @override
   String get emailRequired => 'L’e-mail est obligatoire.';
   @override
   String get resetPasswordValidation =>
-      'Entrez le jeton et un mot de passe d’au moins 8 caractères.';
+      'Entrez un mot de passe d’au moins 8 caractères avec majuscule, minuscule et chiffre.';
   @override
   String get sendResetLink => 'Envoyer le lien';
   @override
   String get resetLinkSent =>
-      'Si un compte existe, un lien de réinitialisation a été envoyé.';
+      'Si un compte existe pour cette adresse e-mail, nous avons envoyé les instructions de réinitialisation.';
   @override
   String get resetToken => 'Jeton de réinitialisation';
   @override
   String get passwordResetComplete =>
       'Mot de passe réinitialisé. Vous pouvez vous connecter.';
+  @override
+  String get backToLogin => 'Retour à la connexion';
+  @override
+  String get confirmPassword => 'Confirmer le nouveau mot de passe';
+  @override
+  String get passwordsDoNotMatch => 'Les mots de passe ne correspondent pas.';
+  @override
+  String get resetTokenInvalidOrExpired =>
+      'Ce lien de réinitialisation est invalide ou expiré. Demandez-en un nouveau.';
   @override
   String get revenue => 'Activité de découverte';
   @override

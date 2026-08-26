@@ -1434,9 +1434,17 @@ class ApiService {
     return SellerVideoQuotaModel.fromJson(data);
   }
 
-  Future<void> requestPasswordReset(String email) {
-    return postVoid('/auth/password-reset/request', {'email': email},
-        auth: false);
+  Future<String> requestPasswordReset(String email) async {
+    final data = await postJson(
+      '/auth/password-reset/request',
+      {'email': email},
+      auth: false,
+    );
+    final message = data['message'];
+    if (message is String && message.trim().isNotEmpty) {
+      return message.trim();
+    }
+    return 'If an account exists for this email address, we have sent instructions to reset your password.';
   }
 
   Future<void> confirmPasswordReset({

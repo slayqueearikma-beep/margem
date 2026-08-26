@@ -523,6 +523,10 @@ abstract class AppStrings {
   String get resetLinkSent;
   String get resetToken;
   String get passwordResetComplete;
+  String get backToLogin;
+  String get confirmPassword;
+  String get passwordsDoNotMatch;
+  String get resetTokenInvalidOrExpired;
   String get revenue;
   String pendingOrders(int count);
   String completedOrders(int count);

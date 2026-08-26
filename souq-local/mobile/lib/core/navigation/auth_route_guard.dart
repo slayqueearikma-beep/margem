@@ -30,7 +30,8 @@ bool isLegalAcceptanceExemptLocation(String path) {
       path == '/login' ||
       path.startsWith('/onboarding') ||
       path == '/verify-email' ||
-      path == '/forgot-password') {
+      path == '/forgot-password' ||
+      path == '/reset-password') {
     return true;
   }
   return false;

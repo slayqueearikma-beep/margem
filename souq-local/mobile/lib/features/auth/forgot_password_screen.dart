@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/validation/form_validators.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_brand_logo.dart';
+import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({
-    super.key,
-    this.resetMode = false,
-    this.initialToken = '',
-  });
-
-  final bool resetMode;
-  final String initialToken;
+  const ForgotPasswordScreen({super.key});
 
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
@@ -24,23 +20,13 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-  late final TextEditingController _tokenController;
-  final _passwordController = TextEditingController();
   bool _loading = false;
   bool _requestSent = false;
-  bool _resetComplete = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _tokenController = TextEditingController(text: widget.initialToken);
-  }
+  String? _successMessage;
 
   @override
   void dispose() {
     _emailController.dispose();
-    _tokenController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
@@ -52,10 +38,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           .showSnackBar(SnackBar(content: Text(l10n.emailRequired)));
       return;
     }
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _requestSent = false;
+      _successMessage = null;
+    });
     try {
-      await apiServiceProvider.requestPasswordReset(email);
-      if (mounted) setState(() => _requestSent = true);
+      final message = await apiServiceProvider.requestPasswordReset(email);
+      if (mounted) {
+        setState(() {
+          _requestSent = true;
+          _successMessage = message;
+        });
+      }
     } on ApiException catch (error) {
       if (mounted) {
         await showAppErrorDialog(context,
@@ -66,40 +61,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  Future<void> _confirmReset() async {
-    final l10n = context.l10n;
-    if (_tokenController.text.trim().isEmpty ||
-        !FormValidators.isValidPassword(_passwordController.text)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.resetPasswordValidation)));
-      return;
-    }
-    setState(() => _loading = true);
-    try {
-      await apiServiceProvider.confirmPasswordReset(
-        token: _tokenController.text.trim(),
-        newPassword: _passwordController.text,
-      );
-      if (mounted) setState(() => _resetComplete = true);
-    } on ApiException catch (error) {
-      if (mounted) {
-        await showAppErrorDialog(context,
-            title: l10n.somethingWentWrong, message: error.message);
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  InputDecoration _fieldDecoration({
+    required String label,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon),
+      filled: true,
+      fillColor: context.colors.surfaceVariant.withValues(alpha: 0.65),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: context.colors.border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: context.colors.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: context.colors.primary, width: 1.4),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final resetMode = widget.resetMode;
 
     return BuyerScreenScaffold(
-      appBar: BuyerAppBar(
-        title: resetMode ? l10n.resetPassword : l10n.forgotPassword,
-      ),
+      appBar: BuyerAppBar(title: l10n.forgotPassword),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
@@ -107,62 +98,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             AppBrandHeader(
               tier: AppLogoTier.header,
               includeTopSpacing: true,
-              subtitle: resetMode
-                  ? l10n.resetPasswordSubtitle
-                  : l10n.forgotPasswordSubtitle,
+              subtitle: l10n.forgotPasswordSubtitle,
             ),
             const SizedBox(height: AppSpacing.xl),
-            if (!resetMode) ...[
+            if (_requestSent)
+              _SuccessCard(
+                message: _successMessage ?? l10n.resetLinkSent,
+                actionLabel: l10n.backToLogin,
+                onAction: () => context.go('/login'),
+              )
+            else ...[
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                    labelText: l10n.email,
-                    prefixIcon: const Icon(Icons.email_outlined)),
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.email],
+                onSubmitted: (_) => _requestReset(),
+                decoration: _fieldDecoration(
+                  label: l10n.email,
+                  icon: Icons.email_outlined,
+                ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              FilledButton(
-                onPressed: _loading ? null : _requestReset,
-                child: _loading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(l10n.sendResetLink),
+              PrimaryButton(
+                label: l10n.sendResetLink,
+                onPressed: _requestReset,
+                isLoading: _loading,
               ),
-              if (_requestSent) ...[
-                const SizedBox(height: AppSpacing.md),
-                _SuccessMessage(message: l10n.resetLinkSent),
-              ],
-            ] else ...[
-              TextField(
-                controller: _tokenController,
-                decoration: InputDecoration(
-                    labelText: l10n.resetToken,
-                    prefixIcon: const Icon(Icons.key_outlined)),
+              const SizedBox(height: AppSpacing.sm),
+              TextButton(
+                onPressed: () => context.go('/login'),
+                child: Text(l10n.backToLogin),
               ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                    labelText: l10n.newPassword,
-                    prefixIcon: const Icon(Icons.lock_outline)),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              FilledButton(
-                onPressed: _loading ? null : _confirmReset,
-                child: _loading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(l10n.resetPassword),
-              ),
-              if (_resetComplete) ...[
-                const SizedBox(height: AppSpacing.md),
-                _SuccessMessage(message: l10n.passwordResetComplete),
-              ],
             ],
           ],
         ),
@@ -171,21 +138,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 }
 
-class _SuccessMessage extends StatelessWidget {
-  const _SuccessMessage({required this.message});
+class _SuccessCard extends StatelessWidget {
+  const _SuccessCard({
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
 
   final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
           children: [
-            const Icon(Icons.check_circle_outline, color: Colors.green),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(child: Text(message)),
+            const Icon(Icons.mark_email_read_outlined, size: 40),
+            const SizedBox(height: AppSpacing.sm),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.md),
+            PrimaryButton(label: actionLabel, onPressed: onAction),
           ],
         ),
       ),

@@ -1089,22 +1089,31 @@ class AppStringsAr extends AppStringsEn {
       'أدخل بريدك الإلكتروني وسنرسل رابطاً آمناً إذا كان الحساب موجوداً.';
   @override
   String get resetPasswordSubtitle =>
-      'الصق رمز إعادة التعيين من بريدك واختر كلمة مرور جديدة.';
+      'اختر كلمة مرور جديدة لحسابك.';
   @override
   String get emailRequired => 'البريد الإلكتروني مطلوب.';
   @override
   String get resetPasswordValidation =>
-      'أدخل الرمز وكلمة مرور لا تقل عن 8 أحرف.';
+      'أدخل كلمة مرور لا تقل عن 8 أحرف وتتضمن حرفاً كبيراً وصغيراً ورقماً.';
   @override
   String get sendResetLink => 'إرسال رابط إعادة التعيين';
   @override
   String get resetLinkSent =>
-      'إذا كان الحساب موجوداً، فقد تم إرسال رابط إعادة التعيين.';
+      'إذا كان هناك حساب لهذا البريد الإلكتروني، فقد أرسلنا تعليمات إعادة تعيين كلمة المرور.';
   @override
   String get resetToken => 'رمز إعادة التعيين';
   @override
   String get passwordResetComplete =>
       'تمت إعادة تعيين كلمة المرور. يمكنك تسجيل الدخول الآن.';
+  @override
+  String get backToLogin => 'العودة إلى تسجيل الدخول';
+  @override
+  String get confirmPassword => 'تأكيد كلمة المرور الجديدة';
+  @override
+  String get passwordsDoNotMatch => 'كلمتا المرور غير متطابقتين.';
+  @override
+  String get resetTokenInvalidOrExpired =>
+      'رابط إعادة التعيين غير صالح أو منتهٍ. اطلب رابطاً جديداً للمتابعة.';
   @override
   String get revenue => 'نشاط الاكتشاف';
   @override

@@ -124,6 +124,9 @@ class Settings(BaseSettings):
 
     rate_limit: str = "300/minute"
     auth_rate_limit: str = "30/minute"
+    password_reset_request_rate_limit: str = "5/minute"
+    password_reset_confirm_rate_limit: str = "10/minute"
+    password_reset_expire_hours: int = 2
     signup_otp_verify_rate_limit: str = "5/minute"
     max_request_body_bytes: int = 1_048_576
     redis_url: str = ""
