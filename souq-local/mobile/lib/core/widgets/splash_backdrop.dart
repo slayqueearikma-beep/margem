@@ -102,6 +102,8 @@ class SplashBackdrop extends StatelessWidget {
                   fit: BoxFit.fitWidth,
                   alignment: Alignment.bottomCenter,
                   filterQuality: FilterQuality.high,
+                  color: AppColors.primary,
+                  colorBlendMode: BlendMode.srcIn,
                 ),
                 Positioned(
                   left: 0,
