@@ -9,10 +9,15 @@ cd souq-local
 docker compose up -d postgres api
 docker compose exec api sh -c "cd /app && PYTHONPATH=. python scripts/seed_marketplace_demo.py"
 
+./scripts/dev-web.sh
+```
+
+Or manually:
+
+```bash
 cd web
-cp .env.example .env.local
-# Browser calls API at localhost:8000
-npm install
+cp env.example .env.local
+npm install   # required once — do not use sudo
 npm run dev
 ```
 
@@ -31,7 +36,7 @@ Open `http://localhost:3000`.
 
 ```bash
 cd souq-local
-docker compose up -d
+docker compose up -d --build
 ```
 
 Services:
