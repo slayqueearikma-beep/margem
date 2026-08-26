@@ -5,7 +5,10 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN groupadd --system margem && useradd --system --gid margem --create-home margem
+RUN groupadd --system margem && useradd --system --gid margem --create-home margem \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gosu \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt backend/requirements-telemetry.txt ./
 RUN pip install --no-cache-dir -r requirements.txt -r requirements-telemetry.txt
@@ -17,10 +20,8 @@ COPY backend/alembic.ini .
 COPY backend/static ./static
 COPY admin-dashboard /admin-dashboard
 
-RUN chmod +x /app/scripts/entrypoint.sh \
+RUN chmod +x /app/scripts/entrypoint.sh /app/scripts/docker-entrypoint-wrapper.sh \
     && chown -R margem:margem /app /admin-dashboard
-
-USER margem
 
 ENV ADMIN_DASHBOARD_DIR=/admin-dashboard
 
@@ -29,4 +30,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready')"
 
-ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+ENTRYPOINT ["/app/scripts/docker-entrypoint-wrapper.sh"]

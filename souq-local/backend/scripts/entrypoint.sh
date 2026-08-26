@@ -81,14 +81,19 @@ except OSError as exc:
     gid = os.getgid()
     print(f"Media directory not writable: {root} ({exc})", file=sys.stderr)
     print(
-        "Fix volume ownership from the host (volume name is usually souq-local_margem_home_media):",
+        "Fix volume ownership from the host (rebuild the api image, or run one of):",
         file=sys.stderr,
     )
-    print(
-        f'  docker run --rm --user root -v souq-local_margem_home_media:/data alpine '
-        f'sh -c "chown -R {uid}:{gid} /data && chmod -R u+rwX /data"',
-        file=sys.stderr,
-    )
+    for volume in (
+        "souq-local_api_media",
+        "souq-local_margem_home_media",
+        "margem_home_media",
+    ):
+        print(
+            f'  docker run --rm --user root -v {volume}:/data alpine '
+            f'sh -c "chown -R {uid}:{gid} /data && chmod -R u+rwX /data"',
+            file=sys.stderr,
+        )
     sys.exit(1)
 print(f"Media directory OK: {root}")
 PY
