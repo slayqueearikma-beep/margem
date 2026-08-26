@@ -28,12 +28,12 @@ class AppLogoLayout {
   /// without changing aspect ratio or recoloring the artwork.
   static const double markFillScale = 1.28;
 
-  /// Target rendered mark height for centered toolbar headers (22–26 dp).
-  static const double navbarLogoHeight = 24;
+  /// Target rendered mark height for centered toolbar headers (~32 dp).
+  static const double navbarLogoHeight = 32;
 
   static double markFillScaleFor(AppLogoTier tier) {
     return switch (tier) {
-      // Zoom into PNG padding so the orange mark reads ~24 dp tall in headers.
+      // Zoom into PNG padding so the mark reads at navbarLogoHeight in headers.
       AppLogoTier.navbar => 1.72,
       AppLogoTier.compact => 1.16,
       AppLogoTier.header || AppLogoTier.splash => markFillScale,
@@ -63,8 +63,8 @@ class AppLogoLayout {
           _ => 140.0,
         },
       AppLogoTier.navbar => switch ((isTablet, isLargePhone, isSmallPhone)) {
-          (true, _, _) => 26.0,
-          (_, _, true) => 22.0,
+          (true, _, _) => 34.0,
+          (_, _, true) => 28.0,
           (_, true, _) => navbarLogoHeight,
           _ => navbarLogoHeight,
         },
@@ -96,7 +96,7 @@ class AppBrandSizes {
   static const double settingsBranding = 140;
   static const double emptyState = 140;
   static const double drawerHeader = 42;
-  static const double navbar = 24;
+  static const double navbar = 32;
   static const double compact = 42;
   static const double compactSmall = 40;
   static const double clearSpace = 8;

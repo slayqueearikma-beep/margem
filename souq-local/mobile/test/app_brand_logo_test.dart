@@ -46,7 +46,7 @@ void main() {
       ),
     );
 
-    expect(_logoBoxSize(tester), const Size(24, 24));
+    expect(_logoBoxSize(tester), const Size(32, 32));
   });
 
   testWidgets('MarGemAppBarLogo uses navbar tier', (tester) async {
@@ -61,7 +61,43 @@ void main() {
       ),
     );
 
-    expect(_logoBoxSize(tester), const Size(24, 24));
+    expect(_logoBoxSize(tester), const Size(32, 32));
+  });
+
+  testWidgets('navbar tier scales up on tablet width', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(size: Size(768, 1024)),
+          child: Scaffold(
+            body: AppBrandLogo(
+              tier: AppLogoTier.navbar,
+              includeClearSpace: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(_logoBoxSize(tester), const Size(34, 34));
+  });
+
+  testWidgets('navbar tier scales down on small phones', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(size: Size(320, 640)),
+          child: Scaffold(
+            body: AppBrandLogo(
+              tier: AppLogoTier.navbar,
+              includeClearSpace: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(_logoBoxSize(tester), const Size(28, 28));
   });
 
   testWidgets('forContext honors explicit size override', (tester) async {
