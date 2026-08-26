@@ -10,6 +10,11 @@ if command -v ss >/dev/null 2>&1; then
     echo "Stop the other process first (often margem-web from docker compose):"
     ss -ltnp 2>/dev/null | grep ':3000 ' || true
     echo ""
+    echo "If you use Docker for the website, git pull does NOT update the running"
+    echo "container. Rebuild and restart after pulling:"
+    echo "  docker compose -f \"$ROOT/docker-compose.yml\" up -d --build web"
+    echo ""
+    echo "If you prefer npm dev on the host, stop Docker web first:"
     echo "  docker compose -f \"$ROOT/docker-compose.yml\" stop web"
     exit 1
   fi

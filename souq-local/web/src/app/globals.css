@@ -36,48 +36,4 @@ a {
     text-wrap: balance;
   }
 
-  .city-coming-soon-corner {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1;
-    width: 4.75rem;
-    height: 4.75rem;
-    overflow: hidden;
-    pointer-events: none;
-    border-top-right-radius: 1rem;
-  }
-
-  .city-coming-soon-ribbon {
-    position: absolute;
-    top: 0.875rem;
-    right: -1.625rem;
-    width: 7rem;
-    transform: rotate(45deg);
-    transform-origin: center;
-    background: var(--cream);
-    color: var(--foreground);
-    padding: 0.3125rem 0;
-    text-align: center;
-    font-size: 0.5625rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    line-height: 1;
-    box-shadow: 0 1px 2px rgb(17 24 39 / 8%);
-    user-select: none;
-  }
-
-  @media (min-width: 640px) {
-    .city-coming-soon-corner {
-      width: 5.25rem;
-      height: 5.25rem;
-    }
-
-    .city-coming-soon-ribbon {
-      top: 1rem;
-      right: -1.5rem;
-      width: 7.5rem;
-      font-size: 0.625rem;
-    }
-  }
 }

@@ -11,8 +11,13 @@ type CityDiscoveryCardProps = {
 
 function ComingSoonRibbon() {
   return (
-    <div className="city-coming-soon-corner" aria-hidden="true">
-      <span className="city-coming-soon-ribbon">COMING SOON</span>
+    <div
+      className="pointer-events-none absolute -right-px -top-px z-10 h-[4.75rem] w-[4.75rem] overflow-hidden rounded-tr-2xl sm:h-[5.25rem] sm:w-[5.25rem]"
+      aria-hidden="true"
+    >
+      <span className="absolute right-[-1.625rem] top-[0.875rem] w-[7rem] rotate-45 bg-[var(--cream)] py-[0.3125rem] text-center text-[9px] font-bold leading-none tracking-[0.1em] text-[var(--foreground)] shadow-sm sm:right-[-1.5rem] sm:top-4 sm:w-[7.5rem] sm:text-[10px]">
+        COMING SOON
+      </span>
     </div>
   );
 }

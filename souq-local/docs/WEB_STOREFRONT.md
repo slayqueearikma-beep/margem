@@ -23,6 +23,17 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+### After `git pull`, UI still looks the same?
+
+`git pull` only updates files on disk. The process serving port **3000** must be restarted:
+
+| How you run the website | What to run after pull |
+| --- | --- |
+| Docker (`margem-web`) | `docker compose up -d --build web` from `souq-local/` |
+| Host dev (`npm run dev`) | Stop the dev server, `rm -rf web/.next`, then `./scripts/dev-web.sh` |
+
+Hard-refresh the browser (Ctrl+Shift+R). If port 3000 is already taken by Docker, `./scripts/dev-web.sh` will refuse to start — stop Docker web first or rebuild the container instead.
+
 ## Environment variables
 
 | Variable | Purpose |
