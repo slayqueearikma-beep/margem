@@ -86,14 +86,10 @@ async def send_signup_otp(
 
     destination = normalized_email if channel == "email" else normalized_phone
     if channel == "email":
-        email_service.send(
+        email_service.queue_signup_otp(
             to=normalized_email,
-            subject="Your Dribex verification code",
-            text_body=(
-                "Your Dribex signup verification code is:\n\n"
-                f"{code}\n\n"
-                "This code expires in 10 minutes. If you did not request this, ignore this email."
-            ),
+            code=code,
+            expires_minutes=10,
         )
     else:
         logger.info(

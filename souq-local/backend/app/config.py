@@ -143,6 +143,17 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "Dribex <noreply@dribex.ma>"
     smtp_use_tls: bool = True
+    email_provider: str = ""
+    email_host: str = ""
+    email_port: int = 587
+    email_username: str = ""
+    email_password: str = ""
+    email_from_address: str = ""
+    email_from_name: str = "Dribex"
+    email_reply_to: str = ""
+    email_send_timeout_seconds: int = 20
+    email_max_retries: int = 2
+    email_retry_delay_seconds: float = 0.75
     public_app_url: str = "https://dribex.ma"
     public_api_url: str = "http://localhost:8000"
     # Optional path to admin-dashboard static files (Docker: /admin-dashboard).
@@ -237,6 +248,64 @@ class Settings(BaseSettings):
         if cleaned not in {"azure", "local", "minio"}:
             raise ValueError("STORAGE_BACKEND must be 'azure', 'local', or 'minio'")
         return cleaned
+
+    @field_validator("email_provider", mode="before")
+    @classmethod
+    def normalize_email_provider(cls, value: Any) -> str:
+        if value is None:
+            return ""
+        cleaned = str(value).strip().lower()
+        if not cleaned:
+            return ""
+        if cleaned not in {"smtp", "log", "resend"}:
+            raise ValueError("EMAIL_PROVIDER must be 'smtp', 'log', or 'resend'")
+        return cleaned
+
+    @property
+    def effective_email_host(self) -> str:
+        return (self.email_host or self.smtp_host).strip()
+
+    @property
+    def effective_email_port(self) -> int:
+        return self.email_port or self.smtp_port
+
+    @property
+    def effective_email_username(self) -> str:
+        return (self.email_username or self.smtp_username).strip()
+
+    @property
+    def effective_email_password(self) -> str:
+        return self.email_password or self.smtp_password
+
+    @property
+    def effective_email_use_tls(self) -> bool:
+        return self.smtp_use_tls
+
+    @property
+    def effective_email_provider(self) -> str:
+        explicit = (self.email_provider or "").strip().lower()
+        if explicit:
+            return explicit
+        if not self.effective_email_host:
+            return "log"
+        return "smtp"
+
+    @property
+    def effective_from_header(self) -> str:
+        legacy = (self.smtp_from or "").strip()
+        if legacy and not self.email_from_address.strip():
+            return legacy
+        address = self.email_from_address.strip()
+        name = self.email_from_name.strip() or "Dribex"
+        if address:
+            return f"{name} <{address}>"
+        if legacy:
+            return legacy
+        return "Dribex <noreply@dribex.ma>"
+
+    @property
+    def effective_email_reply_to(self) -> str:
+        return self.email_reply_to.strip()
 
     @property
     def effective_storage_provider(self) -> str:
@@ -333,12 +402,19 @@ class Settings(BaseSettings):
                     raise ValueError("PUBLIC_API_URL is required in production when STORAGE_PROVIDER=selfhosted")
             if provider == "local" and not self.public_api_url:
                 raise ValueError("PUBLIC_API_URL is required in production when STORAGE_PROVIDER=local")
-            if not self.smtp_host and not self.allow_insecure_email_fallback:
+            if not self.effective_email_host and not self.allow_insecure_email_fallback:
                 raise ValueError(
-                    "SMTP_HOST is required in production (set ALLOW_INSECURE_EMAIL_FALLBACK=true "
+                    "EMAIL_HOST/SMTP_HOST is required in production (set ALLOW_INSECURE_EMAIL_FALLBACK=true "
                     "only for emergency break-glass when outbound mail is unavailable)"
                 )
-            if not self.smtp_host and self.allow_insecure_email_fallback:
+            if self.effective_email_provider != "log":
+                if not self.effective_from_header or "@" not in self.effective_from_header:
+                    raise ValueError("EMAIL_FROM_ADDRESS or SMTP_FROM must be configured in production")
+                if self.effective_email_provider == "resend" and not self.effective_email_password:
+                    raise ValueError("EMAIL_PASSWORD (Resend API key) is required when EMAIL_PROVIDER=resend")
+                if self.effective_email_provider == "smtp" and not self.effective_email_host:
+                    raise ValueError("EMAIL_HOST/SMTP_HOST is required when EMAIL_PROVIDER=smtp")
+            if not self.effective_email_host and self.allow_insecure_email_fallback:
                 logger.warning(
                     "ALLOW_INSECURE_EMAIL_FALLBACK enabled — password reset and verification "
                     "emails will only be logged, not delivered"

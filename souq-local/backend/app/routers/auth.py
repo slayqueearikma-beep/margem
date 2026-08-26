@@ -38,7 +38,7 @@ from app.schemas import (
 )
 from app.services.audit import log_security_event
 from app.services.client_ip import get_client_ip
-from app.services.email import email_service
+from app.services.email import SecurityAlertKind, email_service
 from app.services.login_lockout import (
     is_account_locked,
     lockout_remaining_seconds,
@@ -69,41 +69,6 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 def _request_ip(request: Request) -> str:
     return get_client_ip(request)
-
-
-def _auth_action_body(*, path: str, token: str, intro: str) -> str:
-    """Include HTTPS web + custom-scheme deep links so mobile opens the app with the token."""
-    base = settings.public_app_url.rstrip("/")
-    web = f"{base}{path}?token={token}"
-    deep = f"margem://app{path}?token={token}"
-    return (
-        f"{intro}\n\n"
-        f"Open in the Dribex app:\n{deep}\n\n"
-        f"Or use this link:\n{web}\n\n"
-        f"Code: {token}"
-    )
-
-
-def _password_reset_email_body(*, token: str) -> str:
-    """Password-reset email — link only in body (raw token never logged by email service)."""
-    base = settings.public_app_url.rstrip("/")
-    if settings.app_env in {"production", "prod", "staging", "preprod", "preview"}:
-        if not base.startswith("https://"):
-            raise ValueError("PUBLIC_APP_URL must use HTTPS for password reset links")
-    web = f"{base}/reset-password?token={token}"
-    deep = f"margem://app/reset-password?token={token}"
-    hours = settings.password_reset_expire_hours
-    support = settings.smtp_from or "Dribex Support"
-    return (
-        "Dribex — Password reset\n\n"
-        "We received a request to reset the password for your Dribex account.\n\n"
-        f"Open in the Dribex app:\n{deep}\n\n"
-        f"Or reset in your browser:\n{web}\n\n"
-        f"This link expires in {hours} hour(s) and can only be used once.\n\n"
-        "If you did not request a password reset, you can ignore this email. "
-        "Your password will not change unless you use the link above.\n\n"
-        f"Questions? Contact us at {support}."
-    )
 
 
 class EmailRequest(BaseModel):
@@ -302,21 +267,20 @@ async def register(
     await session.flush()
 
     verify_token = await _issue_auth_token(session, user.id, "email_verify", minutes=15)
-    delivery = email_service.send(
+    email_service.queue_email_verification(
         to=user.email,
-        subject="Verify your Dribex email",
-        text_body=_auth_action_body(
-            path="/verify-email",
-            token=verify_token,
-            intro="Welcome to Dribex. Verify your email to secure your account.",
-        ),
+        token=verify_token,
+        expires_minutes=15,
+        user_id=str(user.id),
+    )
+    email_service.queue_welcome_email(
+        to=user.email,
+        display_name=user.display_name,
+        user_id=str(user.id),
     )
     log_security_event("register_success", user_id=str(user.id), account_type=user.account_type.value)
 
-    response = await _token_response(session, user, request)
-    # TokenResponse schema is fixed; verification tokens are delivered by email / logs only.
-    _ = delivery
-    return response
+    return await _token_response(session, user, request)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -531,6 +495,12 @@ async def change_password(
     await revoke_all_refresh_tokens(session, user.id)
     await session.commit()
     log_security_event("password_changed", user_id=str(user.id))
+    email_service.queue_security_alert(
+        to=user.email,
+        alert_type=SecurityAlertKind.PASSWORD_CHANGED,
+        message="Your password was successfully changed.",
+        user_id=str(user.id),
+    )
 
 
 @router.put("/me/profile-photo", response_model=UserOut)
@@ -676,14 +646,11 @@ async def request_email_verification(
     )
     token = await _issue_auth_token(session, user.id, "email_verify", minutes=15)
     await session.commit()
-    email_service.send(
+    email_service.queue_email_verification(
         to=user.email,
-        subject="Verify your Dribex email",
-        text_body=_auth_action_body(
-            path="/verify-email",
-            token=token,
-            intro="Verify your Dribex email address.",
-        ),
+        token=token,
+        expires_minutes=15,
+        user_id=str(user.id),
     )
 
 
@@ -760,10 +727,11 @@ async def _send_password_reset_if_account_exists(
         hours=settings.password_reset_expire_hours,
     )
     await session.commit()
-    email_service.send(
+    email_service.queue_password_reset(
         to=user.email,
-        subject="Reset your Dribex password",
-        text_body=_password_reset_email_body(token=token),
+        token=token,
+        expires_hours=settings.password_reset_expire_hours,
+        user_id=str(user.id),
     )
 
 
@@ -833,6 +801,12 @@ async def confirm_password_reset(
     await revoke_all_refresh_tokens(session, user.id)
     await session.commit()
     log_security_event("password_reset", user_id=str(user.id))
+    email_service.queue_security_alert(
+        to=user.email,
+        alert_type=SecurityAlertKind.PASSWORD_CHANGED,
+        message="Your password was successfully changed using a reset link.",
+        user_id=str(user.id),
+    )
 
 
 @router.post("/mfa/login", response_model=TokenResponse)
@@ -893,6 +867,12 @@ async def confirm_mfa(
         await session.commit()
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    email_service.queue_security_alert(
+        to=user.email,
+        alert_type=SecurityAlertKind.MFA_ENABLED,
+        message="Multi-factor authentication was enabled on your account.",
+        user_id=str(user.id),
+    )
     return MfaConfirmOut(recovery_codes=recovery_codes)
 
 
@@ -911,6 +891,12 @@ async def disable_user_mfa(
         await session.commit()
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    email_service.queue_security_alert(
+        to=user.email,
+        alert_type=SecurityAlertKind.MFA_DISABLED,
+        message="Multi-factor authentication was disabled on your account.",
+        user_id=str(user.id),
+    )
 
 
 @router.get("/me/export")

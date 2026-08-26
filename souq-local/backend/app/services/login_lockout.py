@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.models import User
 from app.services.audit import log_security_event
+from app.services.email import SecurityAlertKind, email_service
 
 _LOCKOUT_THRESHOLDS = (5, 15, 30)  # minutes after 5th, 10th, 15th failures within window
 _LOCKOUT_WINDOW = timedelta(hours=1)
@@ -48,6 +49,16 @@ async def record_failed_login(session: AsyncSession, user: User | None, *, email
             attempts=attempts,
             minutes=minutes,
             client=ip,
+        )
+        email_service.queue_security_alert(
+            to=user.email,
+            alert_type=SecurityAlertKind.ACCOUNT_LOCKED,
+            message="Your Dribex account was temporarily locked after repeated failed sign-in attempts.",
+            detail_lines=[
+                f"Sign-in attempts: {attempts}",
+                f"Lockout duration: {minutes} minute(s)",
+            ],
+            user_id=str(user.id),
         )
     await session.flush()
     log_security_event("login_failed", email=email, user_id=str(user.id), client=ip)

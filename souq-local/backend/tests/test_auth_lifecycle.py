@@ -43,7 +43,7 @@ async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
 
 
 def test_production_requires_smtp_host():
-    with pytest.raises(ValidationError, match="SMTP_HOST"):
+    with pytest.raises(ValidationError, match="EMAIL_HOST/SMTP_HOST"):
         Settings(
             _env_file=None,
             app_env="production",

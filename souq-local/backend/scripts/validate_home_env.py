@@ -74,11 +74,11 @@ def main() -> int:
                 "(phones may get 400 Invalid host header)"
             )
 
-    smtp = raw.get("SMTP_HOST", "")
+    smtp = raw.get("EMAIL_HOST", "") or raw.get("SMTP_HOST", "")
     insecure = raw.get("ALLOW_INSECURE_EMAIL_FALLBACK", "false").lower() == "true"
     if not smtp and not insecure:
         errors.append(
-            "SMTP_HOST is empty and ALLOW_INSECURE_EMAIL_FALLBACK=false — "
+            "EMAIL_HOST/SMTP_HOST is empty and ALLOW_INSECURE_EMAIL_FALLBACK=false — "
             "API will not start in production. For LAN home without SMTP, set "
             "ALLOW_INSECURE_EMAIL_FALLBACK=true"
         )
