@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/models/auth_models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -56,64 +58,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         await apiServiceProvider.checkHealth();
 
         final auth = ref.read(authServiceProvider);
-        final session = await auth.login(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
-
-        final prefs = await ref.read(sharedPreferencesProvider.future);
-        await auth.persistToken(prefs);
-
-        final storage = ref.read(appStorageProvider);
-        if (storage == null) {
-          throw ApiException(
-              'App storage is not ready. Please restart the app.');
-        }
-
-        final existing = storage.getSession();
-        var userSession = UserSession(
-          name: session.user.displayName.isNotEmpty
-              ? session.user.displayName
-              : l10n.returningUser,
-          email: session.user.email,
-          accountType:
-              session.user.canSell ? AccountType.seller : AccountType.buyer,
-          city: AppConfig.launchCity,
-          businessName: existing?.businessName,
-          sellerId: existing?.sellerId,
-        );
-
-        if (session.user.canSell || session.user.hasSellerProfile) {
-          try {
-            final seller = await apiServiceProvider.fetchMySeller();
-            userSession = userSession.copyWith(
-              accountType: AccountType.seller,
-              sellerId: seller.id,
-              businessName: seller.businessName,
-              city: seller.city,
-            );
-          } on ApiException {
-            // Seller may still need to complete onboarding profile creation.
+        AuthSession session;
+        try {
+          session = await auth.login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+        } on MfaRequiredException catch (mfa) {
+          if (!mounted) return;
+          if (mfa.mfaToken.isEmpty) {
+            throw ApiException('Two-factor authentication is required.');
           }
+          final code = await _promptMfaCode();
+          if (code == null || code.isEmpty) return;
+          session = await auth.completeMfaLogin(
+            mfaToken: mfa.mfaToken,
+            code: code,
+          );
         }
 
-        final guestItems = guestFavoritesMigrationPayload(storage);
-        if (guestItems.isNotEmpty) {
-          await apiServiceProvider.migrateGuestFavorites(guestItems);
-          await storage.clearGuestFavorites();
-        }
-
-        await storage.saveSession(userSession);
-        if (userSession.hasSellerProfile &&
-            storage.getAppMode(session: userSession) == AppMode.buyer &&
-            session.user.accountType == 'seller') {
-          await storage.saveAppMode(AppMode.seller);
-        }
-        ref.read(userSessionProvider.notifier).state = userSession;
-        ref.read(authSessionProvider.notifier).state = session;
-
-        if (!mounted) return;
-        context.go(storage.homeRouteFor(userSession));
+        await _finishLogin(session);
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -126,6 +90,97 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<String?> _promptMfaCode() async {
+    final l10n = context.l10n;
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.twoFactorAuthTitle),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: InputDecoration(
+            labelText: l10n.twoFactorAuthCodeLabel,
+            counterText: '',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return code;
+  }
+
+  Future<void> _finishLogin(AuthSession session) async {
+    final l10n = context.l10n;
+    final auth = ref.read(authServiceProvider);
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    await auth.persistToken(prefs);
+
+    final storage = ref.read(appStorageProvider);
+    if (storage == null) {
+      throw ApiException('App storage is not ready. Please restart the app.');
+    }
+
+    final existing = storage.getSession();
+    var userSession = UserSession(
+      name: session.user.displayName.isNotEmpty
+          ? session.user.displayName
+          : l10n.returningUser,
+      email: session.user.email,
+      accountType:
+          session.user.canSell ? AccountType.seller : AccountType.buyer,
+      city: AppConfig.launchCity,
+      businessName: existing?.businessName,
+      sellerId: existing?.sellerId,
+    );
+
+    if (session.user.canSell || session.user.hasSellerProfile) {
+      try {
+        final seller = await apiServiceProvider.fetchMySeller();
+        userSession = userSession.copyWith(
+          accountType: AccountType.seller,
+          sellerId: seller.id,
+          businessName: seller.businessName,
+          city: seller.city,
+        );
+      } on ApiException {
+        // Seller may still need to complete onboarding profile creation.
+      }
+    }
+
+    final guestItems = guestFavoritesMigrationPayload(storage);
+    if (guestItems.isNotEmpty) {
+      await apiServiceProvider.migrateGuestFavorites(guestItems);
+      await storage.clearGuestFavorites();
+    }
+
+    await storage.saveSession(userSession);
+    if (userSession.hasSellerProfile &&
+        storage.getAppMode(session: userSession) == AppMode.buyer &&
+        session.user.accountType == 'seller') {
+      await storage.saveAppMode(AppMode.seller);
+    }
+    ref.read(userSessionProvider.notifier).state = userSession;
+    ref.read(authSessionProvider.notifier).state = session;
+
+    if (!mounted) return;
+    context.go(storage.homeRouteFor(userSession));
   }
 
   InputDecoration _fieldDecoration({

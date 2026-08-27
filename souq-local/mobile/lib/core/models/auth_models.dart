@@ -5,6 +5,7 @@ class AuthUser {
     required this.accountType,
     required this.displayName,
     this.hasSellerProfile = false,
+    this.mfaEnabled = false,
   });
 
   final String id;
@@ -12,20 +13,52 @@ class AuthUser {
   final String accountType;
   final String displayName;
   final bool hasSellerProfile;
+  final bool mfaEnabled;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      accountType: json['account_type'] as String,
+      id: json['id']?.toString() ?? '',
+      email: json['email'] as String? ?? '',
+      accountType: json['account_type']?.toString() ?? 'customer',
       displayName: json['display_name'] as String? ?? '',
       hasSellerProfile: json['has_seller_profile'] as bool? ?? false,
+      mfaEnabled: json['mfa_enabled'] as bool? ?? false,
+    );
+  }
+
+  AuthUser copyWith({
+    String? id,
+    String? email,
+    String? accountType,
+    String? displayName,
+    bool? hasSellerProfile,
+    bool? mfaEnabled,
+  }) {
+    return AuthUser(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      accountType: accountType ?? this.accountType,
+      displayName: displayName ?? this.displayName,
+      hasSellerProfile: hasSellerProfile ?? this.hasSellerProfile,
+      mfaEnabled: mfaEnabled ?? this.mfaEnabled,
     );
   }
 
   bool get isBuyer => accountType == 'buyer' || !hasSellerProfile;
   bool get isSeller => accountType == 'seller' || hasSellerProfile;
   bool get canSell => hasSellerProfile || accountType == 'seller';
+}
+
+class MfaEnrollResult {
+  const MfaEnrollResult({required this.otpauthUri});
+
+  final String otpauthUri;
+
+  factory MfaEnrollResult.fromJson(Map<String, dynamic> json) {
+    return MfaEnrollResult(
+      otpauthUri: json['otpauth_uri'] as String? ?? '',
+    );
+  }
 }
 
 class AuthSession {
