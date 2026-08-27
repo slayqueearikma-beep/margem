@@ -1006,6 +1006,15 @@ class BuyerProfileScreen extends ConsumerWidget {
                 title: l10n.changePassword,
                 onTap: () => _changePasswordDialog(context),
               ),
+              SizedBox(height: AppSpacing.sm),
+              BuyerMenuTile(
+                icon: Icons.verified_user_outlined,
+                title: l10n.mfaSettingsTitle,
+                subtitle: ref.watch(authSessionProvider)?.user.mfaEnabled == true
+                    ? l10n.mfaEnabled
+                    : l10n.enableMfa,
+                onTap: () => context.push('/settings/mfa'),
+              ),
             ],
             if (!isGuest && hasSellerProfile) ...[
               const SizedBox(height: AppSpacing.sm),

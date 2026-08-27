@@ -8,6 +8,7 @@ class AuthUser {
     this.hasSellerProfile = false,
     this.legalAcceptanceComplete = true,
     this.pendingLegalPolicies = const [],
+    this.mfaEnabled = false,
   });
 
   final String id;
@@ -18,6 +19,7 @@ class AuthUser {
   final bool hasSellerProfile;
   final bool legalAcceptanceComplete;
   final List<String> pendingLegalPolicies;
+  final bool mfaEnabled;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -33,6 +35,32 @@ class AuthUser {
           (json['pending_legal_policies'] as List<dynamic>? ?? const [])
               .map((item) => item as String)
               .toList(),
+      mfaEnabled: json['mfa_enabled'] as bool? ?? false,
+    );
+  }
+
+  AuthUser copyWith({
+    String? id,
+    String? email,
+    String? accountType,
+    String? displayName,
+    String? profilePhotoUrl,
+    bool? hasSellerProfile,
+    bool? legalAcceptanceComplete,
+    List<String>? pendingLegalPolicies,
+    bool? mfaEnabled,
+  }) {
+    return AuthUser(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      accountType: accountType ?? this.accountType,
+      displayName: displayName ?? this.displayName,
+      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
+      hasSellerProfile: hasSellerProfile ?? this.hasSellerProfile,
+      legalAcceptanceComplete:
+          legalAcceptanceComplete ?? this.legalAcceptanceComplete,
+      pendingLegalPolicies: pendingLegalPolicies ?? this.pendingLegalPolicies,
+      mfaEnabled: mfaEnabled ?? this.mfaEnabled,
     );
   }
 
@@ -44,6 +72,18 @@ class AuthUser {
       hasSellerProfile ||
       accountType == 'provider' ||
       accountType == 'seller';
+}
+
+class MfaEnrollResult {
+  const MfaEnrollResult({required this.otpauthUri});
+
+  final String otpauthUri;
+
+  factory MfaEnrollResult.fromJson(Map<String, dynamic> json) {
+    return MfaEnrollResult(
+      otpauthUri: json['otpauth_uri'] as String? ?? '',
+    );
+  }
 }
 
 class AuthSession {

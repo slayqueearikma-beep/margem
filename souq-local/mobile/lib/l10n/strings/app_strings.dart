@@ -748,6 +748,28 @@ abstract class AppStrings {
   String requestTimeout(int seconds);
   String get invalidCredentials;
   String get invalidEmailFormat;
+  String get mfaSettingsTitle;
+  String get mfaEnabled;
+  String get mfaDisabled;
+  String get mfaEnabledDescription;
+  String get mfaDisabledDescription;
+  String get enableMfa;
+  String get disableMfa;
+  String get disableMfaConfirm;
+  String get mfaSetupTitle;
+  String get mfaSetupInstructions;
+  String get mfaManualSecret;
+  String get mfaEnterCode;
+  String get mfaConfirmEnable;
+  String get mfaInvalidCode;
+  String get mfaSetupInvalidResponse;
+  String get mfaEnableSuccess;
+  String get mfaEnableFailed;
+  String get mfaDisableSuccess;
+  String get mfaDisableFailed;
+  String get mfaRecoveryCodesTitle;
+  String get mfaRecoveryCodesBody;
+  String get mfaRecoveryCodesSave;
 
   static AppStrings forLocale(String languageCode) {
     switch (languageCode) {

@@ -48,6 +48,8 @@ import 'features/seller/seller_settings_screen.dart';
 import 'features/wishlist/wishlist_screen.dart';
 import 'features/settings/language_selection_screen.dart';
 import 'features/settings/billing_settings_screen.dart';
+import 'features/settings/mfa_settings_screen.dart';
+import 'features/settings/mfa_setup_screen.dart';
 import 'features/legal/legal_acceptance_screen.dart';
 import 'features/legal/account_settings_screen.dart';
 import 'features/legal/legal_document_screen.dart';
@@ -156,6 +158,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => LegalDocumentScreen(
           docSlug: state.pathParameters['doc']!,
         ),
+      ),
+      GoRoute(
+        path: '/settings/mfa',
+        builder: (_, __) => const MfaSettingsScreen(),
+        routes: [
+          GoRoute(
+            path: 'setup',
+            builder: (_, __) => const MfaSetupScreen(),
+          ),
+        ],
       ),
       GoRoute(
           path: '/onboarding',

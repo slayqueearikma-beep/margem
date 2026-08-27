@@ -10,7 +10,8 @@
     "build": "node ./node_modules/next/dist/bin/next build",
     "prestart": "node scripts/ensure-deps.mjs",
     "start": "node ./node_modules/next/dist/bin/next start",
-    "lint": "node ./node_modules/next/dist/bin/next lint"
+    "lint": "node ./node_modules/next/dist/bin/next lint",
+    "test:security": "node --test scripts/test-security.mjs"
   },
   "dependencies": {
     "next": "^15.2.4",

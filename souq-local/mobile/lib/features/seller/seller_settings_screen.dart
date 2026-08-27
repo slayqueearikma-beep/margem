@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/api_service.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
@@ -99,6 +100,20 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
             title: Text(l10n.billingSettingsTitle),
             subtitle: Text(l10n.billingSectionSubtitle),
             onTap: () => context.push('/settings/billing'),
+          ),
+          SizedBox(height: AppSpacing.xl),
+          Text(l10n.twoFactorAuthTitle, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          SizedBox(height: AppSpacing.sm),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.verified_user_outlined),
+            title: Text(l10n.mfaSettingsTitle),
+            subtitle: Text(
+              ref.watch(authSessionProvider)?.user.mfaEnabled == true
+                  ? l10n.mfaEnabled
+                  : l10n.enableMfa,
+            ),
+            onTap: () => context.push('/settings/mfa'),
           ),
           SizedBox(height: AppSpacing.xl),
           Text(l10n.changePassword, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),

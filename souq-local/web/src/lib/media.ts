@@ -1,4 +1,5 @@
 import { getSiteUrl } from "./config";
+import { sanitizeMediaSource } from "./security";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
 
@@ -29,7 +30,7 @@ function shouldRewriteAbsoluteMediaUrl(url: URL): boolean {
 }
 
 export function resolveMediaUrl(url: string | null | undefined): string {
-  const value = (url || "").trim();
+  const value = sanitizeMediaSource(url);
   if (!value) return "";
 
   if (value.startsWith("http://") || value.startsWith("https://")) {

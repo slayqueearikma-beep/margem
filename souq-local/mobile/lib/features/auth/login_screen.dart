@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -90,6 +91,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
         } on MfaRequiredException catch (mfa) {
           if (!mounted) return;
+          if (mfa.mfaToken.isEmpty) {
+            throw ApiException('Two-factor authentication is required.');
+          }
           final code = await _promptMfaCode();
           if (code == null || code.isEmpty) return;
           session = await auth.completeMfaLogin(
@@ -125,7 +129,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          maxLength: 8,
+          maxLength: 6,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
             labelText: l10n.twoFactorAuthCodeLabel,
             counterText: '',

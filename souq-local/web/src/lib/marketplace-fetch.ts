@@ -53,6 +53,9 @@ export async function safeApiFetch<T>(
 export function describeFetchError(outcome: FetchOutcome<unknown>): string {
   if (outcome.ok) return "";
   if (outcome.kind === "network") {
+    if (process.env.NODE_ENV === "production") {
+      return "The marketplace API is temporarily unavailable.";
+    }
     return `The Dribex API is unreachable (${getServerApiBaseUrl()}). Ensure margem-api is healthy and the web container can reach it on the Docker network.`;
   }
   return outcome.error.message || "The marketplace API returned an error.";

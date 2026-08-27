@@ -431,161 +431,28 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final categories = await ref.read(buyerCategoriesProvider.future);
     if (!mounted) return;
 
-    final minPriceController = TextEditingController(
-      text: _filters.minPrice?.toStringAsFixed(0) ?? '',
-    );
-    final maxPriceController = TextEditingController(
-      text: _filters.maxPrice?.toStringAsFixed(0) ?? '',
-    );
-    final minRatingController = TextEditingController(
-      text: _filters.minRating?.toStringAsFixed(1) ?? '',
-    );
-    var category = _filters.category;
-    var deliveryAvailable = _filters.deliveryAvailable;
-    var pickupOnly = _filters.pickupOnly;
-
     final result = await showModalBottomSheet<SearchFilters>(
       context: context,
       isScrollControlled: true,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.md,
-                AppSpacing.screenHorizontal,
-                MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.searchFilters,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    DropdownButtonFormField<String?>(
-                      value: category,
-                      decoration: InputDecoration(labelText: l10n.productCategory),
-                      items: [
-                        DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text(l10n.allCategories),
-                        ),
-                        ...categories.map(
-                          (cat) => DropdownMenuItem(
-                            value: cat.slug,
-                            child: Text(cat.localizedName(
-                              Localizations.localeOf(context).languageCode,
-                            )),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) =>
-                          setModalState(() => category = value),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    TextField(
-                      controller: minPriceController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(labelText: l10n.minPrice),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    TextField(
-                      controller: maxPriceController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(labelText: l10n.maxPrice),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    TextField(
-                      controller: minRatingController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(labelText: l10n.minRating),
-                    ),
-                    if (_mode == 'products') ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(l10n.deliveryAvailable),
-                        value: deliveryAvailable,
-                        onChanged: (value) => setModalState(() {
-                          deliveryAvailable = value;
-                          if (value) pickupOnly = false;
-                        }),
-                      ),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(l10n.pickupOnly),
-                        value: pickupOnly,
-                        onChanged: (value) => setModalState(() {
-                          pickupOnly = value;
-                          if (value) deliveryAvailable = false;
-                        }),
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.lg),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pop(
-                                context,
-                                const SearchFilters(),
-                              );
-                            },
-                            child: Text(l10n.clearFilters),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: FilledButton(
-                            onPressed: () {
-                              Navigator.pop(
-                                context,
-                                SearchFilters(
-                                  category: category,
-                                  minPrice: double.tryParse(
-                                      minPriceController.text.trim()),
-                                  maxPrice: double.tryParse(
-                                      maxPriceController.text.trim()),
-                                  minRating: double.tryParse(
-                                      minRatingController.text.trim()),
-                                  deliveryAvailable: deliveryAvailable,
-                                  pickupOnly: pickupOnly,
-                                ),
-                              );
-                            },
-                            child: Text(l10n.applyFilters),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+      builder: (context) => _SearchFiltersSheet(
+        l10n: l10n,
+        categories: categories,
+        initialFilters: _filters,
+        showDeliveryFilters: _mode == 'products',
+      ),
     );
 
-    minPriceController.dispose();
-    maxPriceController.dispose();
-    minRatingController.dispose();
+    if (!mounted || result == null) return;
+    _applyFilters(result);
+  }
 
-    if (result != null) {
+  void _applyFilters(SearchFilters result) {
+    final previousCategory = ref.read(buyerCategorySlugProvider);
+    setState(() => _filters = result);
+    if (previousCategory != result.category) {
       ref.read(buyerCategorySlugProvider.notifier).state = result.category;
-      setState(() => _filters = result);
+      // buyerCategorySlugProvider listener triggers _reload().
+    } else {
       _reload();
     }
   }
@@ -1008,6 +875,176 @@ class _SearchModeSelector extends StatelessWidget {
           if (item != items.last) const SizedBox(width: 8),
         ],
       ],
+    );
+  }
+}
+
+class _SearchFiltersSheet extends StatefulWidget {
+  const _SearchFiltersSheet({
+    required this.l10n,
+    required this.categories,
+    required this.initialFilters,
+    required this.showDeliveryFilters,
+  });
+
+  final AppStrings l10n;
+  final List<CategoryModel> categories;
+  final SearchFilters initialFilters;
+  final bool showDeliveryFilters;
+
+  @override
+  State<_SearchFiltersSheet> createState() => _SearchFiltersSheetState();
+}
+
+class _SearchFiltersSheetState extends State<_SearchFiltersSheet> {
+  late final TextEditingController _minPriceController;
+  late final TextEditingController _maxPriceController;
+  late final TextEditingController _minRatingController;
+  String? _category;
+  late bool _deliveryAvailable;
+  late bool _pickupOnly;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialFilters;
+    _minPriceController = TextEditingController(
+      text: initial.minPrice?.toStringAsFixed(0) ?? '',
+    );
+    _maxPriceController = TextEditingController(
+      text: initial.maxPrice?.toStringAsFixed(0) ?? '',
+    );
+    _minRatingController = TextEditingController(
+      text: initial.minRating?.toStringAsFixed(1) ?? '',
+    );
+    _category = initial.category;
+    _deliveryAvailable = initial.deliveryAvailable;
+    _pickupOnly = initial.pickupOnly;
+  }
+
+  @override
+  void dispose() {
+    _minPriceController.dispose();
+    _maxPriceController.dispose();
+    _minRatingController.dispose();
+    super.dispose();
+  }
+
+  SearchFilters _filtersFromInputs() {
+    return SearchFilters(
+      category: _category,
+      minPrice: double.tryParse(_minPriceController.text.trim()),
+      maxPrice: double.tryParse(_maxPriceController.text.trim()),
+      minRating: double.tryParse(_minRatingController.text.trim()),
+      deliveryAvailable: _deliveryAvailable,
+      pickupOnly: _pickupOnly,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.md,
+        AppSpacing.screenHorizontal,
+        MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.searchFilters,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            DropdownButtonFormField<String?>(
+              value: _category,
+              decoration: InputDecoration(labelText: l10n.productCategory),
+              items: [
+                DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text(l10n.allCategories),
+                ),
+                ...widget.categories.map(
+                  (cat) => DropdownMenuItem(
+                    value: cat.slug,
+                    child: Text(cat.localizedName(
+                      Localizations.localeOf(context).languageCode,
+                    )),
+                  ),
+                ),
+              ],
+              onChanged: (value) => setState(() => _category = value),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _minPriceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: l10n.minPrice),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _maxPriceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: l10n.maxPrice),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _minRatingController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: l10n.minRating),
+            ),
+            if (widget.showDeliveryFilters) ...[
+              const SizedBox(height: AppSpacing.sm),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.deliveryAvailable),
+                value: _deliveryAvailable,
+                onChanged: (value) => setState(() {
+                  _deliveryAvailable = value;
+                  if (value) _pickupOnly = false;
+                }),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.pickupOnly),
+                value: _pickupOnly,
+                onChanged: (value) => setState(() {
+                  _pickupOnly = value;
+                  if (value) _deliveryAvailable = false;
+                }),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () =>
+                        Navigator.pop(context, const SearchFilters()),
+                    child: Text(l10n.clearFilters),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () =>
+                        Navigator.pop(context, _filtersFromInputs()),
+                    child: Text(l10n.applyFilters),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
