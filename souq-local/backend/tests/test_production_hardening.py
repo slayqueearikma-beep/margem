@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from app.config import Settings
 
-from tests.settings_helpers import _PROD_NAPS
+from tests.settings_helpers import _PROD_BREVO, _PROD_NAPS
 
 _PROD_ADMIN_IP = ["10.0.0.0/8"]
 
@@ -34,7 +34,7 @@ def test_production_rejects_default_jwt_secret():
             jwt_secret_key="change-this-secret-in-production-use-key-vault",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
-            smtp_host="smtp.example.com",
+            **_PROD_BREVO,
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=_PROD_ADMIN_IP,
@@ -53,7 +53,7 @@ def test_production_rejects_debug_true():
             jwt_secret_key="a-real-production-secret-key-32chars-min",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
-            smtp_host="smtp.example.com",
+            **_PROD_BREVO,
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=_PROD_ADMIN_IP,
@@ -73,7 +73,7 @@ def test_production_accepts_rotated_secret():
         mfa_encryption_key="a-separate-production-mfa-encryption-key32",
         cors_origins=["https://margem.ma"],
         allowed_hosts=["api.margem.ma"],
-        smtp_host="smtp.example.com",
+        **_PROD_BREVO,
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
         admin_ip_allowlist=_PROD_ADMIN_IP,
@@ -95,7 +95,7 @@ def test_production_rejects_placeholder_secrets():
             mfa_encryption_key="a-separate-production-mfa-encryption-key32",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
-            smtp_host="smtp.example.com",
+            **_PROD_BREVO,
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=_PROD_ADMIN_IP,
@@ -116,7 +116,7 @@ def test_production_rejects_missing_admin_ip_allowlist():
             mfa_encryption_key="a-separate-production-mfa-encryption-key32",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
-            smtp_host="smtp.example.com",
+            **_PROD_BREVO,
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=[],
@@ -137,7 +137,7 @@ def test_production_rejects_shared_mfa_key():
             mfa_encryption_key="a-real-production-secret-key-32chars-min",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
-            smtp_host="smtp.example.com",
+            **_PROD_BREVO,
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
             admin_ip_allowlist=_PROD_ADMIN_IP,
@@ -180,7 +180,7 @@ def test_naps_sandbox_allowed_for_staging_app_env():
         mfa_encryption_key="a-separate-production-mfa-encryption-key32",
         cors_origins=["https://margem.ma"],
         allowed_hosts=["api.margem.ma"],
-        smtp_host="smtp.example.com",
+        **_PROD_BREVO,
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
         admin_ip_allowlist=_PROD_ADMIN_IP,
@@ -210,7 +210,7 @@ def test_naps_production_allowed_for_production_app_env():
         mfa_encryption_key="a-separate-production-mfa-encryption-key32",
         cors_origins=["https://margem.ma"],
         allowed_hosts=["api.margem.ma"],
-        smtp_host="smtp.example.com",
+        **_PROD_BREVO,
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
         admin_ip_allowlist=_PROD_ADMIN_IP,

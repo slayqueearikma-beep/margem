@@ -12,7 +12,7 @@ from app.services.storage_provider import (
     get_storage_provider,
     reset_storage_provider_cache,
 )
-from tests.settings_helpers import _PROD_NAPS
+from tests.settings_helpers import _PROD_BREVO, _PROD_NAPS
 
 
 @pytest.fixture(autouse=True)
@@ -59,7 +59,7 @@ def test_production_selfhosted_without_azure_starts():
         minio_secret_key="minio-secret-key",
         public_app_url="https://dribex.ma",
         public_api_url="https://api.dribex.ma",
-        smtp_host="smtp.example.com",
+        **_PROD_BREVO,
         admin_ip_allowlist=["10.0.0.0/8"],
         **_PROD_NAPS,
     )
@@ -82,7 +82,7 @@ def test_production_azure_requires_connection_string():
             allowed_hosts=["api.dribex.ma"],
             public_app_url="https://dribex.ma",
             public_api_url="https://api.dribex.ma",
-            smtp_host="smtp.example.com",
+            **_PROD_BREVO,
             admin_ip_allowlist=["10.0.0.0/8"],
             **_PROD_NAPS,
         )

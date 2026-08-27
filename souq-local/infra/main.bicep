@@ -20,22 +20,15 @@ param jwtSecretKey string
 @secure()
 param uploadTokenSecret string
 
-@description('SMTP host for transactional email')
-param smtpHost string
-
-@description('SMTP port')
-param smtpPort int = 587
-
-@description('SMTP username')
+@description('Brevo API key for transactional email')
 @secure()
-param smtpUsername string = ''
+param brevoApiKey string
 
-@description('SMTP password')
-@secure()
-param smtpPassword string = ''
+@description('Verified Brevo sender email address')
+param brevoSenderEmail string = 'noreply@dribex.ma'
 
-@description('SMTP from address')
-param smtpFrom string = 'Dribex <noreply@dribex.ma>'
+@description('Brevo sender display name')
+param brevoSenderName string = 'Dribex'
 
 @description('Public app URL used in email deep links')
 param publicAppUrl string = 'https://dribex.ma'
@@ -168,8 +161,8 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storage.listKeys().keys[0].value}'
         }
         {
-          name: 'smtp-password'
-          value: smtpPassword
+          name: 'brevo-api-key'
+          value: brevoApiKey
         }
       ]
     }
@@ -197,12 +190,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'RATE_LIMIT', value: '300/minute' }
             { name: 'PUBLIC_APP_URL', value: publicAppUrl }
             { name: 'PUBLIC_API_URL', value: publicApiUrl }
-            { name: 'SMTP_HOST', value: smtpHost }
-            { name: 'SMTP_PORT', value: string(smtpPort) }
-            { name: 'SMTP_USERNAME', value: smtpUsername }
-            { name: 'SMTP_PASSWORD', secretRef: 'smtp-password' }
-            { name: 'SMTP_FROM', value: smtpFrom }
-            { name: 'SMTP_USE_TLS', value: 'true' }
+            { name: 'EMAIL_PROVIDER', value: 'brevo' }
+            { name: 'BREVO_API_KEY', secretRef: 'brevo-api-key' }
+            { name: 'BREVO_SENDER_EMAIL', value: brevoSenderEmail }
+            { name: 'BREVO_SENDER_NAME', value: brevoSenderName }
             { name: 'ALLOW_INSECURE_EMAIL_FALLBACK', value: 'false' }
           ]
         }

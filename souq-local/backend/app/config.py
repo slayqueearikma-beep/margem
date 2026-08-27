@@ -137,19 +137,11 @@ class Settings(BaseSettings):
     # When set, /admin/* paths require client IP in these ranges (CIDR ok). Loopback always allowed.
     admin_ip_allowlist: CommaSeparatedList = []
 
-    smtp_host: str = ""
-    smtp_port: int = 587
-    smtp_username: str = ""
-    smtp_password: str = ""
-    smtp_from: str = "Dribex <noreply@dribex.ma>"
-    smtp_use_tls: bool = True
+    # Brevo — official transactional email provider (API key must never be committed).
+    brevo_api_key: str = ""
+    brevo_sender_email: str = ""
+    brevo_sender_name: str = "Dribex"
     email_provider: str = ""
-    email_host: str = ""
-    email_port: int = 587
-    email_username: str = ""
-    email_password: str = ""
-    email_from_address: str = ""
-    email_from_name: str = "Dribex"
     email_reply_to: str = ""
     email_send_timeout_seconds: int = 20
     email_max_retries: int = 2
@@ -257,50 +249,27 @@ class Settings(BaseSettings):
         cleaned = str(value).strip().lower()
         if not cleaned:
             return ""
-        if cleaned not in {"smtp", "log", "resend"}:
-            raise ValueError("EMAIL_PROVIDER must be 'smtp', 'log', or 'resend'")
+        if cleaned not in {"brevo", "log"}:
+            raise ValueError("EMAIL_PROVIDER must be 'brevo' or 'log'")
         return cleaned
-
-    @property
-    def effective_email_host(self) -> str:
-        return (self.email_host or self.smtp_host).strip()
-
-    @property
-    def effective_email_port(self) -> int:
-        return self.email_port or self.smtp_port
-
-    @property
-    def effective_email_username(self) -> str:
-        return (self.email_username or self.smtp_username).strip()
-
-    @property
-    def effective_email_password(self) -> str:
-        return self.email_password or self.smtp_password
-
-    @property
-    def effective_email_use_tls(self) -> bool:
-        return self.smtp_use_tls
 
     @property
     def effective_email_provider(self) -> str:
         explicit = (self.email_provider or "").strip().lower()
         if explicit:
             return explicit
-        if not self.effective_email_host:
+        if self.brevo_api_key.strip():
+            return "brevo"
+        if self.allow_insecure_email_fallback:
             return "log"
-        return "smtp"
+        return "brevo"
 
     @property
     def effective_from_header(self) -> str:
-        legacy = (self.smtp_from or "").strip()
-        if legacy and not self.email_from_address.strip():
-            return legacy
-        address = self.email_from_address.strip()
-        name = self.email_from_name.strip() or "Dribex"
+        address = self.brevo_sender_email.strip()
+        name = self.brevo_sender_name.strip() or "Dribex"
         if address:
             return f"{name} <{address}>"
-        if legacy:
-            return legacy
         return "Dribex <noreply@dribex.ma>"
 
     @property
@@ -402,23 +371,22 @@ class Settings(BaseSettings):
                     raise ValueError("PUBLIC_API_URL is required in production when STORAGE_PROVIDER=selfhosted")
             if provider == "local" and not self.public_api_url:
                 raise ValueError("PUBLIC_API_URL is required in production when STORAGE_PROVIDER=local")
-            if not self.effective_email_host and not self.allow_insecure_email_fallback:
-                raise ValueError(
-                    "EMAIL_HOST/SMTP_HOST is required in production (set ALLOW_INSECURE_EMAIL_FALLBACK=true "
-                    "only for emergency break-glass when outbound mail is unavailable)"
-                )
-            if self.effective_email_provider != "log":
-                if not self.effective_from_header or "@" not in self.effective_from_header:
-                    raise ValueError("EMAIL_FROM_ADDRESS or SMTP_FROM must be configured in production")
-                if self.effective_email_provider == "resend" and not self.effective_email_password:
-                    raise ValueError("EMAIL_PASSWORD (Resend API key) is required when EMAIL_PROVIDER=resend")
-                if self.effective_email_provider == "smtp" and not self.effective_email_host:
-                    raise ValueError("EMAIL_HOST/SMTP_HOST is required when EMAIL_PROVIDER=smtp")
-            if not self.effective_email_host and self.allow_insecure_email_fallback:
+            if not self.allow_insecure_email_fallback:
+                if not self.brevo_api_key.strip():
+                    raise ValueError(
+                        "BREVO_API_KEY is required in staging/production "
+                        "(set ALLOW_INSECURE_EMAIL_FALLBACK=true only for emergency break-glass)"
+                    )
+                if not self.brevo_sender_email.strip():
+                    raise ValueError("BREVO_SENDER_EMAIL is required in staging/production")
+            elif not self.brevo_api_key.strip():
                 logger.warning(
                     "ALLOW_INSECURE_EMAIL_FALLBACK enabled — password reset and verification "
                     "emails will only be logged, not delivered"
                 )
+            if self.effective_email_provider == "brevo" and not self.allow_insecure_email_fallback:
+                if not self.brevo_sender_name.strip():
+                    raise ValueError("BREVO_SENDER_NAME must not be empty when using Brevo")
             if self.public_api_url.startswith("http://") and not _is_loopback_or_private_url(
                 self.public_api_url
             ):

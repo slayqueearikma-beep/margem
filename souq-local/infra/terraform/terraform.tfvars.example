@@ -38,10 +38,7 @@ cors_origins = "[\"https://margem.app\"]"
 public_app_url = "https://dribex.ma"
 public_api_url = "https://api.dribex.ma"
 
-# Transactional email (required — API will refuse to boot in production without SMTP_HOST)
-smtp_host     = "smtp.example.com"
-smtp_port     = 587
-smtp_username = "apikey"
-smtp_password = "CHANGE_ME_SMTP_PASSWORD"
-smtp_from     = "Dribex <noreply@dribex.ma>"
-smtp_use_tls  = true
+# Transactional email — Brevo API (required for production mail delivery)
+brevo_api_key     = "CHANGE_ME_BREVO_API_KEY"
+brevo_sender_email = "noreply@dribex.ma"
+brevo_sender_name  = "Dribex"

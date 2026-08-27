@@ -239,6 +239,70 @@ class EmailService:
             user_id=user_id,
         )
 
+    def send_otp_email(
+        self,
+        *,
+        to: str,
+        code: str,
+        expires_minutes: int = 10,
+        user_id: str | None = None,
+    ) -> dict[str, Any]:
+        return self.send_signup_otp(
+            to=to,
+            code=code,
+            expires_minutes=expires_minutes,
+            user_id=user_id,
+        )
+
+    def send_password_reset_email(
+        self,
+        *,
+        to: str,
+        token: str,
+        expires_hours: int | None = None,
+        user_id: str | None = None,
+    ) -> dict[str, Any]:
+        return self.send_password_reset(
+            to=to,
+            token=token,
+            expires_hours=expires_hours,
+            user_id=user_id,
+        )
+
+    def send_verification_email(
+        self,
+        *,
+        to: str,
+        token: str,
+        expires_minutes: int = 15,
+        user_id: str | None = None,
+    ) -> dict[str, Any]:
+        return self.send_email_verification(
+            to=to,
+            token=token,
+            expires_minutes=expires_minutes,
+            user_id=user_id,
+        )
+
+    def send_transactional_email(
+        self,
+        *,
+        to: str,
+        subject: str,
+        text_body: str,
+        html_body: str | None = None,
+        email_type: EmailType = EmailType.NOTIFICATION,
+        user_id: str | None = None,
+    ) -> dict[str, Any]:
+        return self.send(
+            to=to,
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+            email_type=email_type,
+            user_id=user_id,
+        )
+
     async def send_password_reset_async(self, **kwargs: Any) -> dict[str, Any]:
         return await asyncio.to_thread(self.send_password_reset, **kwargs)
 

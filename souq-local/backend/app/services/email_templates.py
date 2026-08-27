@@ -36,7 +36,7 @@ def _render_layout(
     footer_note: str | None = None,
 ) -> RenderedEmail:
     support = _support_contact()
-    app_name = settings.email_from_name.strip() or "Dribex"
+    app_name = settings.brevo_sender_name.strip() or "Dribex"
     safe_heading = escape(heading)
     safe_intro = escape(intro)
     safe_lines = [escape(line) for line in body_lines]

@@ -12,7 +12,7 @@ from app.config import Settings
 from app.main import app
 from app.models import AuthToken, SellerProfile, User, UserStatus
 from tests.auth_helpers import register_test_user
-from tests.settings_helpers import _PROD_NAPS
+from tests.settings_helpers import _PROD_BREVO, _PROD_NAPS
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -42,8 +42,8 @@ async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
     }
 
 
-def test_production_requires_smtp_host():
-    with pytest.raises(ValidationError, match="EMAIL_HOST/SMTP_HOST"):
+def test_production_requires_brevo_api_key():
+    with pytest.raises(ValidationError, match="BREVO_API_KEY"):
         Settings(
             _env_file=None,
             app_env="production",
@@ -57,7 +57,7 @@ def test_production_requires_smtp_host():
             azure_storage_connection_string=(
                 "DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net"
             ),
-            smtp_host="",
+            brevo_api_key="",
             allow_insecure_email_fallback=False,
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
@@ -80,7 +80,6 @@ def test_production_allows_email_fallback_flag():
         azure_storage_connection_string=(
             "DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net"
         ),
-        smtp_host="",
         allow_insecure_email_fallback=True,
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
@@ -88,6 +87,7 @@ def test_production_allows_email_fallback_flag():
         **_PROD_NAPS,
     )
     assert settings.allow_insecure_email_fallback is True
+    assert settings.effective_email_provider == "log"
 
 
 def test_production_rejects_http_public_urls():
@@ -105,7 +105,7 @@ def test_production_rejects_http_public_urls():
             azure_storage_connection_string=(
                 "DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net"
             ),
-            smtp_host="smtp.example.com",
+            **_PROD_BREVO,
             public_app_url="https://margem.ma",
             public_api_url="http://api.margem.ma",
             admin_ip_allowlist=["10.0.0.0/8"],

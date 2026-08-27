@@ -1,13 +1,11 @@
-"""Email provider abstraction — log fallback, SMTP, and HTTP API providers."""
+"""Email provider abstraction — Brevo API (production) and log fallback (development)."""
 
 from __future__ import annotations
 
 import logging
-import smtplib
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from email.message import EmailMessage
 from typing import Any
 
 import httpx
@@ -15,6 +13,8 @@ import httpx
 from app.config import settings
 
 logger = logging.getLogger("margem.email.provider")
+
+_BREVO_SEND_URL = "https://api.brevo.com/v3/smtp/email"
 
 
 @dataclass(frozen=True)
@@ -65,8 +65,10 @@ class LogEmailProvider(EmailProvider):
         return ProviderSendResult(delivered=False, mode="log", provider=self.name)
 
 
-class SmtpEmailProvider(EmailProvider):
-    name = "smtp"
+class BrevoEmailProvider(EmailProvider):
+    """Send transactional email through the Brevo REST API."""
+
+    name = "brevo"
 
     def send(
         self,
@@ -79,60 +81,9 @@ class SmtpEmailProvider(EmailProvider):
     ) -> ProviderSendResult:
         from app.services.email_redaction import mask_email
 
-        message = EmailMessage()
-        message["From"] = settings.effective_from_header
-        message["To"] = to
-        message["Subject"] = subject
-        if reply_to:
-            message["Reply-To"] = reply_to
-        message.set_content(text_body)
-        if html_body:
-            message.add_alternative(html_body, subtype="html")
-
-        try:
-            with smtplib.SMTP(
-                settings.effective_email_host,
-                settings.effective_email_port,
-                timeout=settings.email_send_timeout_seconds,
-            ) as smtp:
-                if settings.effective_email_use_tls:
-                    smtp.starttls()
-                username = settings.effective_email_username
-                if username:
-                    smtp.login(username, settings.effective_email_password)
-                smtp.send_message(message)
-        except (OSError, smtplib.SMTPException) as exc:
-            logger.exception(
-                "email_send_failed provider=smtp to=%s subject=%s error=%s",
-                mask_email(to),
-                subject,
-                exc,
-            )
-            return ProviderSendResult(
-                delivered=False,
-                mode="smtp_error",
-                provider=self.name,
-                error=type(exc).__name__,
-            )
-        return ProviderSendResult(delivered=True, mode="smtp", provider=self.name)
-
-
-class ResendEmailProvider(EmailProvider):
-    name = "resend"
-
-    def send(
-        self,
-        *,
-        to: str,
-        subject: str,
-        text_body: str,
-        html_body: str | None = None,
-        reply_to: str | None = None,
-    ) -> ProviderSendResult:
-        from app.services.email_redaction import mask_email
-
-        api_key = settings.effective_email_password
+        api_key = settings.brevo_api_key.strip()
         if not api_key:
+            logger.error("email_send_failed provider=brevo error=missing_api_key to=%s", mask_email(to))
             return ProviderSendResult(
                 delivered=False,
                 mode="provider_error",
@@ -140,33 +91,50 @@ class ResendEmailProvider(EmailProvider):
                 error="missing_api_key",
             )
 
+        sender_email = settings.brevo_sender_email.strip()
+        if not sender_email or "@" not in sender_email:
+            logger.error(
+                "email_send_failed provider=brevo error=missing_sender_email to=%s",
+                mask_email(to),
+            )
+            return ProviderSendResult(
+                delivered=False,
+                mode="provider_error",
+                provider=self.name,
+                error="missing_sender_email",
+            )
+
+        sender_name = settings.brevo_sender_name.strip() or "Dribex"
         payload: dict[str, Any] = {
-            "from": settings.effective_from_header,
-            "to": [to],
+            "sender": {"name": sender_name, "email": sender_email},
+            "to": [{"email": to}],
             "subject": subject,
-            "text": text_body,
+            "textContent": text_body,
         }
         if html_body:
-            payload["html"] = html_body
+            payload["htmlContent"] = html_body
         if reply_to:
-            payload["reply_to"] = reply_to
+            payload["replyTo"] = {"email": reply_to}
 
         try:
             with httpx.Client(timeout=settings.email_send_timeout_seconds) as client:
                 response = client.post(
-                    "https://api.resend.com/emails",
+                    _BREVO_SEND_URL,
                     headers={
-                        "Authorization": f"Bearer {api_key}",
+                        "api-key": api_key,
                         "Content-Type": "application/json",
+                        "accept": "application/json",
                     },
                     json=payload,
                 )
                 if response.status_code >= 400:
+                    detail = _safe_brevo_error_detail(response)
                     logger.error(
-                        "email_send_failed provider=resend to=%s subject=%s status=%s",
+                        "email_send_failed provider=brevo to=%s subject=%s status=%s detail=%s",
                         mask_email(to),
                         subject,
                         response.status_code,
+                        detail,
                     )
                     return ProviderSendResult(
                         delivered=False,
@@ -174,12 +142,24 @@ class ResendEmailProvider(EmailProvider):
                         provider=self.name,
                         error=f"http_{response.status_code}",
                     )
-        except httpx.HTTPError as exc:
-            logger.exception(
-                "email_send_failed provider=resend to=%s subject=%s error=%s",
+        except httpx.TimeoutException:
+            logger.error(
+                "email_send_failed provider=brevo to=%s subject=%s error=timeout",
                 mask_email(to),
                 subject,
-                exc,
+            )
+            return ProviderSendResult(
+                delivered=False,
+                mode="provider_error",
+                provider=self.name,
+                error="timeout",
+            )
+        except httpx.HTTPError as exc:
+            logger.exception(
+                "email_send_failed provider=brevo to=%s subject=%s error=%s",
+                mask_email(to),
+                subject,
+                type(exc).__name__,
             )
             return ProviderSendResult(
                 delivered=False,
@@ -187,7 +167,21 @@ class ResendEmailProvider(EmailProvider):
                 provider=self.name,
                 error=type(exc).__name__,
             )
+
         return ProviderSendResult(delivered=True, mode="api", provider=self.name)
+
+
+def _safe_brevo_error_detail(response: httpx.Response) -> str:
+    """Extract a short Brevo error message without leaking secrets from the response body."""
+    try:
+        body = response.json()
+        if isinstance(body, dict):
+            message = str(body.get("message") or body.get("code") or "").strip()
+            if message:
+                return message[:200]
+    except ValueError:
+        pass
+    return f"status_{response.status_code}"
 
 
 _provider_cache: EmailProvider | None = None
@@ -200,10 +194,8 @@ def get_email_provider() -> EmailProvider:
     provider = settings.effective_email_provider
     if provider == "log":
         _provider_cache = LogEmailProvider()
-    elif provider == "resend":
-        _provider_cache = ResendEmailProvider()
     else:
-        _provider_cache = SmtpEmailProvider()
+        _provider_cache = BrevoEmailProvider()
     return _provider_cache
 
 
