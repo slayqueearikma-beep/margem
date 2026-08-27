@@ -18,6 +18,7 @@ const state = {
   usersPageSize: 50,
   staffRole: "",
   reports: [],
+  pendingMfaToken: "",
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -30,10 +31,11 @@ function apiBase() {
 }
 
 function authHeaders() {
-  return {
-    Authorization: `Bearer ${state.token}`,
-    "Content-Type": "application/json",
-  };
+  const headers = { "Content-Type": "application/json" };
+  if (state.token) {
+    headers.Authorization = `Bearer ${state.token}`;
+  }
+  return headers;
 }
 
 function formatApiError(detail, fallback = "Request failed") {
@@ -93,8 +95,66 @@ function showScreen(name) {
 
 function logout() {
   state.token = "";
+  state.pendingMfaToken = "";
   sessionStorage.removeItem(TOKEN_KEY);
+  $("#mfa-field")?.classList.add("hidden");
+  $("#login-mfa-code")?.value = "";
+  $("#login-submit-btn").textContent = "Sign in";
   showScreen("login");
+}
+
+async function loginWithPassword(email, password) {
+  const res = await fetch(`${apiBase()}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(formatApiError(data.detail, "Login failed"));
+  }
+  return data;
+}
+
+async function loginWithMfa(mfaToken, code) {
+  const res = await fetch(`${apiBase()}/auth/mfa/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mfa_token: mfaToken, code: code.trim() }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(formatApiError(data.detail, "Invalid authenticator code"));
+  }
+  return data;
+}
+
+async function finalizeStaffLogin(data) {
+  const token = (data.access_token || "").trim();
+  if (!token) {
+    throw new Error("Login did not return an access token.");
+  }
+  state.token = token;
+  state.pendingMfaToken = "";
+  sessionStorage.setItem(TOKEN_KEY, state.token);
+  const meRes = await fetch(`${apiBase()}/auth/me`, {
+    headers: authHeaders(),
+  });
+  const me = await meRes.json().catch(() => ({}));
+  if (!meRes.ok) {
+    throw new Error(formatApiError(me.detail, "Could not verify account"));
+  }
+  if (me.role !== "admin" && me.role !== "support") {
+    logout();
+    throw new Error("This account does not have staff access.");
+  }
+  state.staffRole = me.role || "";
+  $("#login-error").classList.add("hidden");
+  $("#mfa-field").classList.add("hidden");
+  $("#login-mfa-code").value = "";
+  $("#login-submit-btn").textContent = "Sign in";
+  showScreen("app");
+  await bootstrapApp();
 }
 
 function switchView(view) {
@@ -676,35 +736,33 @@ function bindEvents() {
     event.preventDefault();
     const email = $("#login-email").value.trim();
     const password = $("#login-password").value;
+    const mfaCode = $("#login-mfa-code").value.trim();
     try {
-      const res = await fetch(`${apiBase()}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(formatApiError(data.detail, "Login failed"));
+      let loginData;
+      if (state.pendingMfaToken) {
+        if (!/^\d{6,8}$/.test(mfaCode)) {
+          throw new Error("Enter the 6-digit code from your authenticator app.");
+        }
+        loginData = await loginWithMfa(state.pendingMfaToken, mfaCode);
+      } else {
+        loginData = await loginWithPassword(email, password);
+        if (loginData.mfa_required) {
+          state.pendingMfaToken = loginData.mfa_token || "";
+          if (!state.pendingMfaToken) {
+            throw new Error("Two-factor authentication is required but the server did not return a challenge token.");
+          }
+          $("#mfa-field").classList.remove("hidden");
+          $("#login-submit-btn").textContent = "Verify code";
+          $("#login-mfa-code").focus();
+          $("#login-error").classList.add("hidden");
+          return;
+        }
       }
-      state.token = data.access_token;
-      sessionStorage.setItem(TOKEN_KEY, state.token);
-      const meRes = await fetch(`${apiBase()}/auth/me`, {
-        headers: authHeaders(),
-      });
-      const me = await meRes.json().catch(() => ({}));
-      if (!meRes.ok) {
-        throw new Error(formatApiError(me.detail, "Could not verify account"));
-      }
-      if (me.role !== "admin" && me.role !== "support") {
-        logout();
-        throw new Error("This account does not have staff access.");
-      }
-      state.staffRole = me.role || "";
-      $("#login-error").classList.add("hidden");
-      showScreen("app");
-      await bootstrapApp();
+      await finalizeStaffLogin(loginData);
     } catch (err) {
-      logout();
+      if (!state.pendingMfaToken) {
+        logout();
+      }
       $("#login-error").textContent = err.message;
       $("#login-error").classList.remove("hidden");
     }

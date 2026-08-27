@@ -28,8 +28,19 @@
           Password
           <input type="password" id="login-password" required autocomplete="current-password" />
         </label>
+        <label id="mfa-field" class="hidden">
+          Authenticator code
+          <input
+            type="text"
+            id="login-mfa-code"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="8"
+            placeholder="6-digit code"
+          />
+        </label>
         <p id="login-error" class="error hidden"></p>
-        <button type="submit" class="btn primary">Sign in</button>
+        <button type="submit" id="login-submit-btn" class="btn primary">Sign in</button>
       </form>
     </div>
   </div>
