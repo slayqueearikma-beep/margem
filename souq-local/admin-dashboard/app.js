@@ -97,9 +97,12 @@ function logout() {
   state.token = "";
   state.pendingMfaToken = "";
   sessionStorage.removeItem(TOKEN_KEY);
-  $("#mfa-field")?.classList.add("hidden");
-  $("#login-mfa-code")?.value = "";
-  $("#login-submit-btn").textContent = "Sign in";
+  const mfaField = $("#mfa-field");
+  const mfaCode = $("#login-mfa-code");
+  const submitBtn = $("#login-submit-btn");
+  if (mfaField) mfaField.classList.add("hidden");
+  if (mfaCode) mfaCode.value = "";
+  if (submitBtn) submitBtn.textContent = "Sign in";
   showScreen("login");
 }
 
