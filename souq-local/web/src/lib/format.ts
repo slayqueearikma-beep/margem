@@ -52,11 +52,4 @@ export function verificationLabel(status: string): string | null {
   return null;
 }
 
-export function externalHref(url: string): string | null {
-  const value = url.trim();
-  if (!value) return null;
-  if (value.startsWith("http://") || value.startsWith("https://")) {
-    return value;
-  }
-  return `https://${value}`;
-}
+export { safeExternalHref as externalHref } from "./security";

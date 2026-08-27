@@ -43,10 +43,11 @@ export async function apiFetch<T>(
     });
   } catch (error) {
     console.error(`[dribex-web] Network error fetching ${url}:`, error);
-    throw new ApiNetworkError(
-      `Could not reach the Dribex API at ${base}. Check that margem-api is running and reachable from the web container.`,
-      error,
-    );
+    const publicMessage =
+      process.env.NODE_ENV === "production"
+        ? "The marketplace API is temporarily unavailable."
+        : `Could not reach the Dribex API at ${base}. Check that margem-api is running and reachable from the web container.`;
+    throw new ApiNetworkError(publicMessage, error);
   }
 
   if (!response.ok) {
@@ -58,6 +59,9 @@ export async function apiFetch<T>(
       }
     } catch {
       // ignore parse errors
+    }
+    if (process.env.NODE_ENV === "production" && response.status >= 500) {
+      detail = "The marketplace API returned an error.";
     }
     throw new ApiError(detail || `Request failed (${response.status})`, response.status);
   }
