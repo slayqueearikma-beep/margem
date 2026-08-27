@@ -74,9 +74,14 @@ class AuthService {
   }) async {
     final response = await _api.postJson('/auth/mfa/login', {
       'mfa_token': mfaToken,
-      'code': code,
+      'code': code.trim(),
     });
     return _saveSession(AuthSession.fromJson(response));
+  }
+
+  Future<AuthUser> fetchCurrentUser() async {
+    final me = await _api.getJson('/auth/me', auth: true);
+    return AuthUser.fromJson(me);
   }
 
   /// Returns `true` when refreshed, `false` when auth is invalid, `null` on transient errors.

@@ -1290,6 +1290,59 @@ class AppStringsEn extends AppStrings {
   String get reportDetailsOptional => 'Additional details (optional)';
   @override
   String get submitReport => 'Submit report';
+  @override
+  String get mfaSettingsTitle => 'Two-factor authentication';
+  @override
+  String get mfaEnabled => 'MFA enabled';
+  @override
+  String get mfaDisabled => 'MFA not enabled';
+  @override
+  String get mfaEnabledDescription =>
+      'Your account is protected with an authenticator app.';
+  @override
+  String get mfaDisabledDescription =>
+      'Add an extra layer of security with Google Authenticator, Authy, or another TOTP app.';
+  @override
+  String get enableMfa => 'Enable MFA';
+  @override
+  String get disableMfa => 'Disable MFA';
+  @override
+  String get disableMfaConfirm =>
+      'Enter your password and a current authenticator code to disable two-factor authentication.';
+  @override
+  String get mfaSetupTitle => 'Set up authenticator';
+  @override
+  String get mfaSetupInstructions =>
+      'Scan the QR code with Google Authenticator, Authy, Microsoft Authenticator, or another compatible app. You can also enter the secret manually.';
+  @override
+  String get mfaManualSecret => 'Manual entry secret';
+  @override
+  String get mfaEnterCode => '6-digit verification code';
+  @override
+  String get mfaConfirmEnable => 'Confirm and enable';
+  @override
+  String get mfaInvalidCode =>
+      'Enter a valid 6-digit code from your authenticator app.';
+  @override
+  String get mfaSetupInvalidResponse =>
+      'Could not start MFA setup. Please try again.';
+  @override
+  String get mfaEnableSuccess => 'Two-factor authentication is now enabled.';
+  @override
+  String get mfaEnableFailed =>
+      'Verification succeeded but MFA is not active yet. Please try again.';
+  @override
+  String get mfaDisableSuccess => 'Two-factor authentication has been disabled.';
+  @override
+  String get mfaDisableFailed =>
+      'MFA could not be disabled. Please check your password and code.';
+  @override
+  String get mfaRecoveryCodesTitle => 'Save your recovery codes';
+  @override
+  String get mfaRecoveryCodesBody =>
+      'Store these codes in a safe place. Each code can be used once if you lose access to your authenticator app.';
+  @override
+  String get mfaRecoveryCodesSave => 'I saved these codes';
 
   @override
   String categoryLabel(String key) {

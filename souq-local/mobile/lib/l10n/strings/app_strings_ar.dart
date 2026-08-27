@@ -1290,6 +1290,59 @@ class AppStringsAr extends AppStringsEn {
   String get reportDetailsOptional => 'تفاصيل إضافية (اختياري)';
   @override
   String get submitReport => 'إرسال البلاغ';
+  @override
+  String get mfaSettingsTitle => 'المصادقة الثنائية';
+  @override
+  String get mfaEnabled => 'المصادقة الثنائية مفعّلة';
+  @override
+  String get mfaDisabled => 'المصادقة الثنائية غير مفعّلة';
+  @override
+  String get mfaEnabledDescription =>
+      'حسابك محمي بتطبيق مصادقة.';
+  @override
+  String get mfaDisabledDescription =>
+      'أضف طبقة أمان إضافية باستخدام Google Authenticator أو Authy أو أي تطبيق TOTP متوافق.';
+  @override
+  String get enableMfa => 'تفعيل المصادقة الثنائية';
+  @override
+  String get disableMfa => 'إيقاف المصادقة الثنائية';
+  @override
+  String get disableMfaConfirm =>
+      'أدخل كلمة المرور ورمز المصادقة الحالي لإيقاف المصادقة الثنائية.';
+  @override
+  String get mfaSetupTitle => 'إعداد تطبيق المصادقة';
+  @override
+  String get mfaSetupInstructions =>
+      'امسح رمز QR باستخدام Google Authenticator أو Authy أو Microsoft Authenticator أو أي تطبيق متوافق. يمكنك أيضاً إدخال السر يدوياً.';
+  @override
+  String get mfaManualSecret => 'السر للإدخال اليدوي';
+  @override
+  String get mfaEnterCode => 'رمز التحقق المكوّن من 6 أرقام';
+  @override
+  String get mfaConfirmEnable => 'تأكيد وتفعيل';
+  @override
+  String get mfaInvalidCode =>
+      'أدخل رمزاً صالحاً مكوّناً من 6 أرقام من تطبيق المصادقة.';
+  @override
+  String get mfaSetupInvalidResponse =>
+      'تعذّر بدء إعداد المصادقة الثنائية. حاول مرة أخرى.';
+  @override
+  String get mfaEnableSuccess => 'تم تفعيل المصادقة الثنائية.';
+  @override
+  String get mfaEnableFailed =>
+      'نجح التحقق لكن المصادقة الثنائية غير نشطة بعد. حاول مرة أخرى.';
+  @override
+  String get mfaDisableSuccess => 'تم إيقاف المصادقة الثنائية.';
+  @override
+  String get mfaDisableFailed =>
+      'تعذّر إيقاف المصادقة الثنائية. تحقق من كلمة المرور والرمز.';
+  @override
+  String get mfaRecoveryCodesTitle => 'احفظ رموز الاسترداد';
+  @override
+  String get mfaRecoveryCodesBody =>
+      'احفظ هذه الرموز في مكان آمن. يمكن استخدام كل رمز مرة واحدة إذا فقدت الوصول إلى تطبيق المصادقة.';
+  @override
+  String get mfaRecoveryCodesSave => 'لقد حفظت هذه الرموز';
 
   @override
   String categoryLabel(String key) {
