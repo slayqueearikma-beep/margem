@@ -498,12 +498,12 @@ class AppStringsEn extends AppStrings {
   @override
   String get videoPublished => 'Video published';
   @override
-  String get premiumRequiredTitle => 'Premium required';
+  String get premiumRequiredTitle => 'DriverPro required';
   @override
   String get premiumRequiredForVideo =>
-      'Video uploads are available on Premium seller plans.';
+      'Video uploads require an active DriverPro seller subscription.';
   @override
-  String get upgradeToPremium => 'Upgrade to Premium';
+  String get upgradeToPremium => 'Upgrade to DriverPro';
   @override
   String get retakeVideo => 'Retake';
   @override

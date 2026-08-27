@@ -28,6 +28,11 @@ void main() {
       ),
     ];
 
+    test('plan display names are user-facing', () {
+      expect(plans.first.displayName, 'Dribex Plus+');
+      expect(plans.last.displayName, 'DriverPro');
+    });
+
     test('buyer sees buyer plan only', () {
       const session = UserSession(
         name: 'Buyer',

@@ -495,12 +495,12 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get videoPublished => 'تم نشر الفيديو';
   @override
-  String get premiumRequiredTitle => 'يتطلب Premium';
+  String get premiumRequiredTitle => 'يتطلب DriverPro';
   @override
   String get premiumRequiredForVideo =>
-      'رفع الفيديو متاح لبائعي Premium فقط.';
+      'رفع الفيديو يتطلب اشتراك DriverPro نشطاً للبائع.';
   @override
-  String get upgradeToPremium => 'الترقية إلى Premium';
+  String get upgradeToPremium => 'الترقية إلى DriverPro';
   @override
   String get retakeVideo => 'إعادة التسجيل';
   @override

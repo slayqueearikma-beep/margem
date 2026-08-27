@@ -1032,10 +1032,10 @@ class SubscriptionPlanModel {
   final List<String> features;
   final bool isActive;
 
-  /// User-facing plan label (legacy API rows may still say MarGem Plus).
+  /// User-facing plan label (legacy API rows may still use older names).
   String get displayName {
-    if (code == 'buyer_premium' || name == 'MarGem Plus') return 'Dribex Plus';
-    if (code == 'seller_pro' || name == 'Seller Pro') return 'Dribex Pro';
+    if (code == 'buyer_premium') return 'Dribex Plus+';
+    if (code == 'seller_pro') return 'DriverPro';
     return name;
   }
 
@@ -1214,14 +1214,17 @@ class SellerVideoQuotaModel {
     required this.activeVideos,
     this.limit,
     this.remaining,
+    this.videoUploadsEnabled = false,
   });
 
   final bool isPremium;
   final int activeVideos;
   final int? limit;
   final int? remaining;
+  final bool videoUploadsEnabled;
 
-  bool get isAtLimit => !isPremium && remaining != null && remaining! <= 0;
+  bool get isAtLimit =>
+      !videoUploadsEnabled && remaining != null && remaining! <= 0;
 
   factory SellerVideoQuotaModel.fromJson(Map<String, dynamic> json) {
     return SellerVideoQuotaModel(
@@ -1229,6 +1232,102 @@ class SellerVideoQuotaModel {
       activeVideos: json['active_videos'] as int? ?? 0,
       limit: json['limit'] as int?,
       remaining: json['remaining'] as int?,
+      videoUploadsEnabled: json['video_uploads_enabled'] as bool? ?? false,
+    );
+  }
+}
+
+class BuyerEntitlementsModel {
+  const BuyerEntitlementsModel({
+    this.planCode,
+    this.status,
+    this.plusPlusActive = false,
+    this.showPlusBadge = false,
+    this.promotionalAdsSuppressed = false,
+    this.startedAt,
+    this.expiresAt,
+  });
+
+  final String? planCode;
+  final String? status;
+  final bool plusPlusActive;
+  final bool showPlusBadge;
+  final bool promotionalAdsSuppressed;
+  final String? startedAt;
+  final String? expiresAt;
+
+  factory BuyerEntitlementsModel.fromJson(Map<String, dynamic> json) {
+    return BuyerEntitlementsModel(
+      planCode: json['plan_code'] as String?,
+      status: json['status'] as String?,
+      plusPlusActive: json['plus_plus_active'] as bool? ?? false,
+      showPlusBadge: json['show_plus_badge'] as bool? ?? false,
+      promotionalAdsSuppressed:
+          json['promotional_ads_suppressed'] as bool? ?? false,
+      startedAt: json['started_at'] as String?,
+      expiresAt: json['expires_at'] as String?,
+    );
+  }
+}
+
+class SellerEntitlementsModel {
+  const SellerEntitlementsModel({
+    this.planCode,
+    this.status,
+    this.driverProActive = false,
+    this.combinedListingCount = 0,
+    this.combinedListingLimit = 5,
+    this.combinedListingRemaining = 5,
+    this.videoUploadsEnabled = false,
+    this.startedAt,
+    this.expiresAt,
+  });
+
+  final String? planCode;
+  final String? status;
+  final bool driverProActive;
+  final int combinedListingCount;
+  final int combinedListingLimit;
+  final int combinedListingRemaining;
+  final bool videoUploadsEnabled;
+  final String? startedAt;
+  final String? expiresAt;
+
+  factory SellerEntitlementsModel.fromJson(Map<String, dynamic> json) {
+    return SellerEntitlementsModel(
+      planCode: json['plan_code'] as String?,
+      status: json['status'] as String?,
+      driverProActive: json['driver_pro_active'] as bool? ?? false,
+      combinedListingCount: json['combined_listing_count'] as int? ?? 0,
+      combinedListingLimit: json['combined_listing_limit'] as int? ?? 5,
+      combinedListingRemaining:
+          json['combined_listing_remaining'] as int? ?? 5,
+      videoUploadsEnabled: json['video_uploads_enabled'] as bool? ?? false,
+      startedAt: json['started_at'] as String?,
+      expiresAt: json['expires_at'] as String?,
+    );
+  }
+}
+
+class EntitlementsBundleModel {
+  const EntitlementsBundleModel({
+    required this.buyer,
+    this.seller,
+  });
+
+  final BuyerEntitlementsModel buyer;
+  final SellerEntitlementsModel? seller;
+
+  factory EntitlementsBundleModel.fromJson(Map<String, dynamic> json) {
+    return EntitlementsBundleModel(
+      buyer: BuyerEntitlementsModel.fromJson(
+        json['buyer'] as Map<String, dynamic>? ?? const {},
+      ),
+      seller: json['seller'] is Map<String, dynamic>
+          ? SellerEntitlementsModel.fromJson(
+              json['seller'] as Map<String, dynamic>,
+            )
+          : null,
     );
   }
 }

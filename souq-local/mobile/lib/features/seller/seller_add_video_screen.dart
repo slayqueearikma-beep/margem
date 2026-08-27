@@ -210,7 +210,7 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
                   loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
                   data: (quota) {
-                    if (quota == null || quota.isPremium) {
+                    if (quota == null || quota.videoUploadsEnabled) {
                       return const SizedBox.shrink();
                     }
                     return Padding(
@@ -218,34 +218,32 @@ class _SellerAddVideoScreenState extends ConsumerState<SellerAddVideoScreen> {
                       child: Card(
                         child: ListTile(
                           title: Text(l10n.premiumRequiredTitle),
-                          subtitle: Text(
-                            '${quota.activeVideos}/${quota.limit ?? 5} videos used',
+                          subtitle: Text(l10n.premiumRequiredForVideo),
+                          trailing: FilledButton(
+                            onPressed: () => context.push('/premium'),
+                            child: Text(l10n.upgradeToPremium),
                           ),
-                          trailing: quota.isAtLimit
-                              ? FilledButton(
-                                  onPressed: () => context.push('/premium'),
-                                  child: Text(l10n.upgradeToPremium),
-                                )
-                              : null,
                         ),
                       ),
                     );
                   },
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                _SourceOptionCard(
-                  icon: Icons.videocam_outlined,
-                  title: l10n.createVideo,
-                  subtitle: l10n.createVideoSub,
-                  onTap: _recordVideo,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _SourceOptionCard(
-                  icon: Icons.video_library_outlined,
-                  title: l10n.selectVideo,
-                  subtitle: l10n.selectVideoSub,
-                  onTap: _pickFromGallery,
-                ),
+                if (quotaAsync.valueOrNull?.videoUploadsEnabled ?? false) ...[
+                  _SourceOptionCard(
+                    icon: Icons.videocam_outlined,
+                    title: l10n.createVideo,
+                    subtitle: l10n.createVideoSub,
+                    onTap: _recordVideo,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  _SourceOptionCard(
+                    icon: Icons.video_library_outlined,
+                    title: l10n.selectVideo,
+                    subtitle: l10n.selectVideoSub,
+                    onTap: _pickFromGallery,
+                  ),
+                ],
               ],
             ),
           );

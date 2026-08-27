@@ -48,9 +48,11 @@ class PricingType(str, enum.Enum):
 
 
 class SubscriptionStatus(str, enum.Enum):
+    PENDING = "pending"
     ACTIVE = "active"
     TRIALING = "trialing"
     PAST_DUE = "past_due"
+    PAYMENT_FAILED = "payment_failed"
     CANCELED = "canceled"
     EXPIRED = "expired"
 
@@ -605,6 +607,22 @@ class Subscription(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     plan: Mapped[SubscriptionPlan] = relationship()
+
+
+class SubscriptionEvent(Base):
+    __tablename__ = "subscription_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    subscription_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("subscriptions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    plan_code: Mapped[str] = mapped_column(String(40))
+    event_type: Mapped[str] = mapped_column(String(64), index=True)
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class DribexServicePayment(Base):

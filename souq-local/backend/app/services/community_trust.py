@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Review, SellerProfile, User, VerificationStatus
 from app.schemas.community import CommunitySenderOut
+from app.services.entitlements import has_plus_plus
 
 
 async def compute_trust_score(session: AsyncSession, user: User) -> int:
@@ -18,7 +19,7 @@ async def compute_trust_score(session: AsyncSession, user: User) -> int:
     if user.email_verified_at is not None:
         score += 15
 
-    if user.is_premium:
+    if await has_plus_plus(session, user):
         score += 10
 
     age_days = (datetime.now(UTC) - user.created_at.replace(tzinfo=UTC)).days
@@ -59,8 +60,9 @@ async def sender_profile(session: AsyncSession, user: User) -> CommunitySenderOu
         if seller.golden_crowns and seller.golden_crowns > 0:
             badges.append("elite")
 
-    if user.is_premium:
-        badges.append("premium")
+    plus_active = await has_plus_plus(session, user)
+    if plus_active:
+        badges.append("plus_plus")
 
     if user.email_verified_at is not None:
         badges.append("email_verified")
@@ -77,7 +79,8 @@ async def sender_profile(session: AsyncSession, user: User) -> CommunitySenderOu
         display_name=display_name or "Dribex User",
         avatar_url=avatar_url or "",
         role=role,
-        is_premium=bool(user.is_premium),
+        is_premium=plus_active,
+        show_plus_badge=plus_active,
         is_verified=is_verified,
         trust_score=trust,
         badges=badges,

@@ -9,6 +9,9 @@ class AuthUser {
     this.legalAcceptanceComplete = true,
     this.pendingLegalPolicies = const [],
     this.mfaEnabled = false,
+    this.plusPlusActive = false,
+    this.showPlusBadge = false,
+    this.promotionalAdsSuppressed = false,
   });
 
   final String id;
@@ -20,6 +23,9 @@ class AuthUser {
   final bool legalAcceptanceComplete;
   final List<String> pendingLegalPolicies;
   final bool mfaEnabled;
+  final bool plusPlusActive;
+  final bool showPlusBadge;
+  final bool promotionalAdsSuppressed;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -36,6 +42,10 @@ class AuthUser {
               .map((item) => item as String)
               .toList(),
       mfaEnabled: json['mfa_enabled'] as bool? ?? false,
+      plusPlusActive: json['plus_plus_active'] as bool? ?? false,
+      showPlusBadge: json['show_plus_badge'] as bool? ?? false,
+      promotionalAdsSuppressed:
+          json['promotional_ads_suppressed'] as bool? ?? false,
     );
   }
 
@@ -49,6 +59,9 @@ class AuthUser {
     bool? legalAcceptanceComplete,
     List<String>? pendingLegalPolicies,
     bool? mfaEnabled,
+    bool? plusPlusActive,
+    bool? showPlusBadge,
+    bool? promotionalAdsSuppressed,
   }) {
     return AuthUser(
       id: id ?? this.id,
@@ -61,6 +74,10 @@ class AuthUser {
           legalAcceptanceComplete ?? this.legalAcceptanceComplete,
       pendingLegalPolicies: pendingLegalPolicies ?? this.pendingLegalPolicies,
       mfaEnabled: mfaEnabled ?? this.mfaEnabled,
+      plusPlusActive: plusPlusActive ?? this.plusPlusActive,
+      showPlusBadge: showPlusBadge ?? this.showPlusBadge,
+      promotionalAdsSuppressed:
+          promotionalAdsSuppressed ?? this.promotionalAdsSuppressed,
     );
   }
 

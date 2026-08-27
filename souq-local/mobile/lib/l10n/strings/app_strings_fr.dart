@@ -508,12 +508,12 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get videoPublished => 'Vidéo publiée';
   @override
-  String get premiumRequiredTitle => 'Premium requis';
+  String get premiumRequiredTitle => 'DriverPro requis';
   @override
   String get premiumRequiredForVideo =>
-      'Les vidéos sont réservées aux vendeurs Premium.';
+      'Les envois vidéo nécessitent un abonnement vendeur DriverPro actif.';
   @override
-  String get upgradeToPremium => 'Passer à Premium';
+  String get upgradeToPremium => 'Passer à DriverPro';
   @override
   String get retakeVideo => 'Reprendre';
   @override

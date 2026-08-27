@@ -161,6 +161,10 @@ class Settings(BaseSettings):
 
     # Seller video quotas (free tier)
     free_seller_video_limit: int = 5
+    free_seller_combined_listing_limit: int = 5
+    driver_pro_combined_listing_limit: int = 20
+    buyer_plus_plan_code: str = "buyer_premium"
+    driver_pro_plan_code: str = "seller_pro"
 
     default_cities: list[str] = [
         "Casablanca",

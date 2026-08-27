@@ -56,6 +56,7 @@ class CommunitySenderOut(BaseModel):
     avatar_url: str = ""
     role: str
     is_premium: bool
+    show_plus_badge: bool = False
     is_verified: bool
     trust_score: int
     badges: list[str] = Field(default_factory=list)

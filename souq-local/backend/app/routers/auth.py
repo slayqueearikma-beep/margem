@@ -426,11 +426,18 @@ async def me(
 
     has_store = await user_has_seller_profile(session, user.id)
     pending = await get_pending_policy_ids(session, user.id)
+    from app.services.entitlements import build_entitlements
+
+    entitlements = await build_entitlements(session, user)
+    await session.commit()
     return UserOut.from_user(
         user,
         has_seller_profile=has_store,
         legal_acceptance_complete=not pending,
         pending_legal_policies=pending,
+        plus_plus_active=entitlements.buyer.plus_plus_active,
+        show_plus_badge=entitlements.buyer.show_plus_badge,
+        promotional_ads_suppressed=entitlements.buyer.promotional_ads_suppressed,
     )
 
 

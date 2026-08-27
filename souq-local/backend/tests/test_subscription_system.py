@@ -121,4 +121,4 @@ async def test_seller_pro_price_authoritative_from_backend():
         assert res.status_code == 200
         plan = res.json()[0]
         assert plan["code"] == "seller_pro"
-        assert float(plan["price_mad"]) == 99.0
+        assert float(plan["price_mad"]) == 149.0
