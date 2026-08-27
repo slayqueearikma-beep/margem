@@ -1,3 +1,5 @@
+# Local development stack only — do NOT deploy this compose file to production.
+# Production: use infra/onprem/docker-compose.prod.yml with env.production.example
 services:
   postgres:
     image: postgres:16-alpine
@@ -22,7 +24,7 @@ services:
       dockerfile: backend/Dockerfile
     container_name: margem-api
     ports:
-      - "0.0.0.0:8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - path: .env
         required: false

@@ -43,3 +43,6 @@ backups/
 **/firebase_options.dart
 *.pem
 *.key
+.env.production
+.env.prod
+.env.staging
