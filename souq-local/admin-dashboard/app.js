@@ -18,6 +18,8 @@ const state = {
   usersPageSize: 50,
   staffRole: "",
   reports: [],
+  advertisements: [],
+  editingAdvertisementId: null,
   pendingMfaToken: "",
 };
 
@@ -166,9 +168,11 @@ function switchView(view) {
   $("#view-categories").classList.toggle("hidden", view !== "categories");
   $("#view-users").classList.toggle("hidden", view !== "users");
   $("#view-reports").classList.toggle("hidden", view !== "reports");
+  $("#view-advertisements").classList.toggle("hidden", view !== "advertisements");
   if (view === "categories") loadCategoryMarketplaceOptions();
   if (view === "users") loadUsers().catch((e) => toast(e.message, true));
   if (view === "reports") loadReports().catch((e) => toast(e.message, true));
+  if (view === "advertisements") loadAdvertisements().catch((e) => toast(e.message, true));
 }
 
 function formatDate(value) {
@@ -734,6 +738,81 @@ async function saveCategory(event) {
   }
 }
 
+async function loadAdvertisements() {
+  const rows = await api("/admin/advertisements");
+  state.advertisements = rows || [];
+  renderAdvertisements();
+}
+
+function renderAdvertisements() {
+  const tbody = $("#advertisements-tbody");
+  const empty = $("#advertisements-empty");
+  tbody.innerHTML = "";
+  if (!state.advertisements.length) {
+    empty.classList.remove("hidden");
+    return;
+  }
+  empty.classList.add("hidden");
+  state.advertisements.forEach((ad) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(ad.title)}</td>
+      <td><a href="${escapeHtml(ad.target_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ad.target_url)}</a></td>
+      <td><span class="pill ${ad.is_active ? "active" : "hidden-stat"}">${ad.is_active ? "Active" : "Inactive"}</span></td>
+      <td>${escapeHtml(formatDate(ad.created_at))}</td>
+      <td class="actions">
+        <button type="button" class="btn ghost sm" data-ad-action="edit" data-ad-id="${ad.id}">Edit</button>
+        <button type="button" class="btn ghost sm" data-ad-action="toggle" data-ad-id="${ad.id}">${ad.is_active ? "Deactivate" : "Activate"}</button>
+        <button type="button" class="btn ghost sm danger" data-ad-action="delete" data-ad-id="${ad.id}">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openAdvertisementDialog(ad = null) {
+  const dialog = $("#advertisement-dialog");
+  const form = $("#advertisement-form");
+  state.editingAdvertisementId = ad?.id || null;
+  $("#advertisement-dialog-title").textContent = ad ? "Edit advertisement" : "New advertisement";
+  form.elements.title.value = ad?.title || "";
+  form.elements.image_url.value = ad?.image_url || "";
+  form.elements.target_url.value = ad?.target_url || "";
+  form.elements.is_active.checked = ad ? Boolean(ad.is_active) : true;
+  bindUploadInputs(dialog);
+  dialog.showModal();
+}
+
+async function saveAdvertisement(event) {
+  event.preventDefault();
+  const form = event.target;
+  const payload = {
+    title: form.elements.title.value.trim(),
+    image_url: form.elements.image_url.value.trim(),
+    target_url: form.elements.target_url.value.trim(),
+    is_active: form.elements.is_active.checked,
+  };
+  try {
+    if (state.editingAdvertisementId) {
+      await api(`/admin/advertisements/${state.editingAdvertisementId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+      toast("Advertisement updated");
+    } else {
+      await api("/admin/advertisements", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      toast("Advertisement created");
+    }
+    $("#advertisement-dialog").close();
+    await loadAdvertisements();
+  } catch (err) {
+    toast(err.message, true);
+  }
+}
+
 function bindEvents() {
   $("#login-form").onsubmit = async (event) => {
     event.preventDefault();
@@ -839,6 +918,38 @@ function bindEvents() {
 
   $("#create-marketplace-btn").onclick = () => openMarketplaceDialog();
   $("#marketplace-form").onsubmit = saveMarketplace;
+  $("#create-advertisement-btn").onclick = () => openAdvertisementDialog();
+  $("#advertisement-form").onsubmit = saveAdvertisement;
+  $("#advertisements-tbody").onclick = async (event) => {
+    const btn = event.target.closest("button[data-ad-action]");
+    if (!btn) return;
+    const ad = state.advertisements.find((row) => row.id === btn.dataset.adId);
+    if (!ad) return;
+    const action = btn.dataset.adAction;
+    try {
+      if (action === "edit") {
+        openAdvertisementDialog(ad);
+        return;
+      }
+      if (action === "toggle") {
+        await api(`/admin/advertisements/${ad.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ is_active: !ad.is_active }),
+        });
+        toast(ad.is_active ? "Advertisement deactivated" : "Advertisement activated");
+        await loadAdvertisements();
+        return;
+      }
+      if (action === "delete") {
+        if (!confirm(`Delete advertisement "${ad.title}"?`)) return;
+        await api(`/admin/advertisements/${ad.id}`, { method: "DELETE" });
+        toast("Advertisement deleted");
+        await loadAdvertisements();
+      }
+    } catch (err) {
+      toast(err.message, true);
+    }
+  };
 
   ["mp-search", "mp-city-filter"].forEach((id) => {
     $(`#${id}`).oninput = debounce(() => {

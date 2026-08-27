@@ -9,6 +9,7 @@ const LEGAL_LANGS = new Set(["en", "fr", "ar"]);
 const LEGAL_DOC_PATTERN = /^[a-z0-9-]+$/;
 
 const ALLOWED_EXACT_PATHS = new Set([
+  "ads/active",
   "categories",
   "search",
   "services",

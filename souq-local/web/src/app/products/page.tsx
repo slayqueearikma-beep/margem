@@ -1,7 +1,8 @@
+import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { ProductCard } from "@/components/listing-cards";
 import { PaginationNav } from "@/components/pagination";
 import { EmptyState, ErrorState } from "@/components/states";
-import { describeFetchError, loadSearch } from "@/lib/marketplace-fetch";
+import { describeFetchError, loadActiveAdvertisements, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
@@ -28,6 +29,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     offset,
     limit,
   });
+  const ads = await loadActiveAdvertisements(3);
 
   return (
     <div className="space-y-8">
@@ -37,6 +39,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           Public product listings from verified local sellers.
         </p>
       </div>
+
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} /> : null}
 
       {!outcome.ok ? (
         <ErrorState

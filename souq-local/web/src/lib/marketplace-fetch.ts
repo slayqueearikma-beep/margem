@@ -4,6 +4,7 @@ import type {
   Category,
   GeographyCityList,
   MarketplaceOut,
+  PlatformAdvertisement,
   ProductPublicOut,
   ReviewOut,
   SearchPage,
@@ -106,4 +107,17 @@ export async function loadReviews(sellerId: string): Promise<FetchOutcome<Review
 
 export async function loadGeographyCities(): Promise<FetchOutcome<GeographyCityList>> {
   return safeApiFetch<GeographyCityList>("/geography/cities?country=MA");
+}
+
+export async function loadActiveAdvertisements(
+  limit = 3,
+): Promise<PlatformAdvertisement[]> {
+  const outcome = await safeApiFetch<PlatformAdvertisement[]>(
+    `/ads/active${searchParams({ limit })}`,
+  );
+  if (!outcome.ok) {
+    console.warn("[dribex-web] Advertisement feed unavailable:", outcome.error.message);
+    return [];
+  }
+  return outcome.data;
 }
