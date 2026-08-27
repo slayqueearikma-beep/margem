@@ -321,10 +321,13 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     logging.getLogger("margem.errors").exception(
         "unhandled_error request_id=%s path=%s", request_id, request.url.path
     )
+    detail = "Internal server error"
+    if settings.app_env in {"development", "dev"} or settings.debug:
+        detail = f"Internal server error: {type(exc).__name__}: {exc}"
     return JSONResponse(
         status_code=500,
         content={
-            "detail": "Internal server error",
+            "detail": detail,
             "request_id": request_id,
         },
         headers={"X-Request-ID": request_id},
@@ -350,6 +353,18 @@ async def ready(request: Request):
             )
             schema_ready = row.scalar()
             checks["schema"] = "ok" if schema_ready else "missing"
+            if schema_ready:
+                for table in (
+                    "refresh_tokens",
+                    "legal_acceptances",
+                    "signup_verifications",
+                ):
+                    table_row = await conn.execute(
+                        text("SELECT to_regclass(:table_name) IS NOT NULL"),
+                        {"table_name": f"public.{table}"},
+                    )
+                    present = bool(table_row.scalar())
+                    checks[f"table_{table}"] = "ok" if present else "missing"
     except Exception:
         db_ok = False
         checks["database"] = "error"
@@ -378,6 +393,11 @@ async def ready(request: Request):
         checks.get("database") == "error"
         or checks.get("media") == "error"
         or checks.get("schema") == "missing"
+        or any(
+            value == "missing"
+            for key, value in checks.items()
+            if key.startswith("table_")
+        )
     )
     if unhealthy:
         return JSONResponse(

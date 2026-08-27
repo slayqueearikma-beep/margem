@@ -298,7 +298,14 @@ async def login(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Account temporarily locked. Try again in {lockout_remaining_seconds(user)} seconds.",
         )
-    if user is None or not user.password_hash or not verify_password(payload.password, user.password_hash):
+    if user is None or not user.password_hash:
+        password_ok = False
+    else:
+        try:
+            password_ok = verify_password(payload.password, user.password_hash)
+        except Exception:
+            password_ok = False
+    if user is None or not password_ok:
         await record_failed_login(session, user, email=payload.email.lower(), ip=ip)
         await session.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
