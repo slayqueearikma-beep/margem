@@ -58,7 +58,28 @@ class AuthService {
       'email': email,
       'password': password,
     });
+    if (response['mfa_required'] == true) {
+      throw MfaRequiredException(
+        mfaToken: response['mfa_token'] as String? ?? '',
+      );
+    }
     return _saveSession(AuthSession.fromJson(response));
+  }
+
+  Future<AuthSession> completeMfaLogin({
+    required String mfaToken,
+    required String code,
+  }) async {
+    final response = await _api.postJson('/auth/mfa/login', {
+      'mfa_token': mfaToken,
+      'code': code.trim(),
+    });
+    return _saveSession(AuthSession.fromJson(response));
+  }
+
+  Future<AuthUser> fetchCurrentUser() async {
+    final me = await _api.getJson('/auth/me', auth: true);
+    return AuthUser.fromJson(me);
   }
 
   Future<bool> refreshAccessToken() async {
@@ -162,3 +183,9 @@ final authServiceProvider = Provider<AuthService>((ref) {
 });
 
 final authSessionProvider = StateProvider<AuthSession?>((ref) => null);
+
+class MfaRequiredException implements Exception {
+  MfaRequiredException({required this.mfaToken});
+
+  final String mfaToken;
+}

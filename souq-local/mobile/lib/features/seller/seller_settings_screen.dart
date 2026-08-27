@@ -150,6 +150,20 @@ class _SellerSettingsScreenState extends ConsumerState<SellerSettingsScreen> {
             onTap: () => context.push('/verify-email'),
           ),
           const SizedBox(height: AppSpacing.xl),
+          Text(l10n.twoFactorAuthTitle, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: AppSpacing.sm),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.verified_user_outlined),
+            title: Text(l10n.mfaSettingsTitle),
+            subtitle: Text(
+              ref.watch(authSessionProvider)?.user.mfaEnabled == true
+                  ? l10n.mfaEnabled
+                  : l10n.enableMfa,
+            ),
+            onTap: () => context.push('/settings/mfa'),
+          ),
+          const SizedBox(height: AppSpacing.xl),
           Text(l10n.changePassword, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: AppSpacing.md),
           TextField(

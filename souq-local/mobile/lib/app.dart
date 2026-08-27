@@ -33,6 +33,8 @@ import 'features/seller/seller_reviews_screen.dart';
 import 'features/seller/seller_settings_screen.dart';
 import 'features/wishlist/wishlist_screen.dart';
 import 'features/settings/language_selection_screen.dart';
+import 'features/settings/mfa_settings_screen.dart';
+import 'features/settings/mfa_setup_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'l10n/app_localizations.dart';
 
@@ -74,6 +76,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/language',
         builder: (_, __) => const LanguageSelectionScreen(fromSettings: true),
+      ),
+      GoRoute(
+        path: '/settings/mfa',
+        builder: (_, __) => const MfaSettingsScreen(),
+        routes: [
+          GoRoute(
+            path: 'setup',
+            builder: (_, __) => const MfaSetupScreen(),
+          ),
+        ],
       ),
       GoRoute(
           path: '/onboarding',

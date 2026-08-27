@@ -837,6 +837,64 @@ class AppStringsFr extends AppStringsEn {
   String get verification => 'Vérification';
   @override
   String get markAllRead => 'Tout marquer lu';
+  @override
+  String get twoFactorAuthTitle => 'Authentification à deux facteurs';
+  @override
+  String get twoFactorAuthCodeLabel => 'Code d’authentification';
+  @override
+  String get mfaSettingsTitle => 'Authentification à deux facteurs';
+  @override
+  String get mfaEnabled => 'A2F activée';
+  @override
+  String get mfaDisabled => 'A2F non activée';
+  @override
+  String get mfaEnabledDescription =>
+      'Votre compte est protégé par une application d’authentification.';
+  @override
+  String get mfaDisabledDescription =>
+      'Ajoutez une couche de sécurité avec Google Authenticator, Authy ou une autre application TOTP.';
+  @override
+  String get enableMfa => 'Activer l’A2F';
+  @override
+  String get disableMfa => 'Désactiver l’A2F';
+  @override
+  String get disableMfaConfirm =>
+      'Saisissez votre mot de passe et un code d’authentification actuel pour désactiver l’A2F.';
+  @override
+  String get mfaSetupTitle => 'Configurer l’authentificateur';
+  @override
+  String get mfaSetupInstructions =>
+      'Scannez le code QR avec Google Authenticator, Authy, Microsoft Authenticator ou une autre application compatible. Vous pouvez aussi saisir le secret manuellement.';
+  @override
+  String get mfaManualSecret => 'Secret pour saisie manuelle';
+  @override
+  String get mfaEnterCode => 'Code de vérification à 6 chiffres';
+  @override
+  String get mfaConfirmEnable => 'Confirmer et activer';
+  @override
+  String get mfaInvalidCode =>
+      'Saisissez un code valide à 6 chiffres depuis votre application d’authentification.';
+  @override
+  String get mfaSetupInvalidResponse =>
+      'Impossible de démarrer la configuration A2F. Réessayez.';
+  @override
+  String get mfaEnableSuccess => 'L’authentification à deux facteurs est activée.';
+  @override
+  String get mfaEnableFailed =>
+      'La vérification a réussi mais l’A2F n’est pas encore active. Réessayez.';
+  @override
+  String get mfaDisableSuccess =>
+      'L’authentification à deux facteurs a été désactivée.';
+  @override
+  String get mfaDisableFailed =>
+      'Impossible de désactiver l’A2F. Vérifiez votre mot de passe et votre code.';
+  @override
+  String get mfaRecoveryCodesTitle => 'Enregistrez vos codes de secours';
+  @override
+  String get mfaRecoveryCodesBody =>
+      'Conservez ces codes en lieu sûr. Chaque code ne peut être utilisé qu’une fois si vous perdez l’accès à votre application d’authentification.';
+  @override
+  String get mfaRecoveryCodesSave => 'J’ai enregistré ces codes';
 
   @override
   String dayLabel(String key) {
