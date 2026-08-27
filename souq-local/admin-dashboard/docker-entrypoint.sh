@@ -15,7 +15,9 @@ USE_BASIC_AUTH=false
 if [ -n "${ADMIN_BASIC_AUTH_USER:-}" ] && [ -n "${ADMIN_BASIC_AUTH_PASSWORD:-}" ]; then
   HASH="$(openssl passwd -apr1 "${ADMIN_BASIC_AUTH_PASSWORD}")"
   printf '%s:%s\n' "${ADMIN_BASIC_AUTH_USER}" "${HASH}" > /etc/nginx/.htpasswd
-  chmod 600 /etc/nginx/.htpasswd
+  # Worker processes run as nginx; root-only mode 600 causes auth_basic to 500.
+  chown nginx:nginx /etc/nginx/.htpasswd
+  chmod 640 /etc/nginx/.htpasswd
   USE_BASIC_AUTH=true
   echo "Admin HTTP Basic Auth enabled for user ${ADMIN_BASIC_AUTH_USER}"
 fi
