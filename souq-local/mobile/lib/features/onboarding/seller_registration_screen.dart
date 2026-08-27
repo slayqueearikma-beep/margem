@@ -17,6 +17,7 @@ import '../../core/navigation/post_auth_navigation.dart';
 import '../../core/services/legal_acceptance_service.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
+import '../../core/utils/auth_error_utils.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -334,7 +335,8 @@ class _SellerRegistrationScreenState
     } catch (e) {
       if (!mounted) return;
       await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
+          title: l10n.somethingWentWrong,
+          message: authUnexpectedErrorMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

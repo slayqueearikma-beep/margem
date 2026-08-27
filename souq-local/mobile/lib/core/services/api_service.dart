@@ -26,15 +26,18 @@ class SignupOtpSendResult {
   SignupOtpSendResult({
     required this.channel,
     required this.destinationMasked,
+    this.devCode,
   });
 
   final String channel;
   final String destinationMasked;
+  final String? devCode;
 
   factory SignupOtpSendResult.fromJson(Map<String, dynamic> json) {
     return SignupOtpSendResult(
       channel: json['channel'] as String,
       destinationMasked: json['destination_masked'] as String,
+      devCode: json['dev_code'] as String?,
     );
   }
 }

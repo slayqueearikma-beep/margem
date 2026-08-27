@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -202,10 +203,22 @@ class AuthService {
   }
 
   Future<AuthSession> _saveSession(AuthSession session) async {
+    if (session.accessToken.isEmpty || session.refreshToken.isEmpty) {
+      throw ApiException('Login response did not include session tokens.');
+    }
     _accessToken = session.accessToken;
     _refreshToken = session.refreshToken;
-    await _storage.write(key: _accessTokenKey, value: _accessToken!);
-    await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
+    try {
+      await _storage.write(key: _accessTokenKey, value: _accessToken!);
+      await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
+    } on Object catch (error) {
+      if (kDebugMode) {
+        debugPrint('Secure storage write failed: $error');
+      }
+      throw ApiException(
+        'Could not save your login session securely. Try restarting the app.',
+      );
+    }
     _syncTokenProvider();
     return session;
   }

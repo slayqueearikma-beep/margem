@@ -13,6 +13,7 @@ import '../../core/services/legal_acceptance_service.dart';
 import '../../core/models/auth_models.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
+import '../../core/utils/auth_error_utils.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -108,7 +109,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
+          title: l10n.somethingWentWrong,
+          message: authUnexpectedErrorMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

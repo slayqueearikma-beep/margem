@@ -100,7 +100,7 @@ async def send_signup_otp(
     await session.commit()
     masked = _mask_email(normalized_email) if channel == "email" else _mask_phone(normalized_phone)
     result = {"channel": channel, "destination_masked": masked}
-    if os.environ.get("PYTEST_CURRENT_TEST"):
+    if os.environ.get("PYTEST_CURRENT_TEST") or settings.app_env in {"development", "dev"}:
         result["dev_code"] = code
     return result
 

@@ -21,9 +21,9 @@ class AuthUser {
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      accountType: json['account_type'] as String,
+      id: json['id']?.toString() ?? '',
+      email: json['email'] as String? ?? '',
+      accountType: json['account_type']?.toString() ?? 'customer',
       displayName: json['display_name'] as String? ?? '',
       profilePhotoUrl: json['profile_photo_url'] as String? ?? '',
       hasSellerProfile: json['has_seller_profile'] as bool? ?? false,
@@ -60,11 +60,17 @@ class AuthSession {
   final int expiresIn;
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
+    final userJson = json['user'];
+    if (userJson is! Map<String, dynamic>) {
+      throw FormatException('Login response is missing user profile data.');
+    }
     return AuthSession(
-      accessToken: json['access_token'] as String,
-      refreshToken: json['refresh_token'] as String,
-      expiresIn: json['expires_in'] as int? ?? 3600,
-      user: AuthUser.fromJson(json['user'] as Map<String, dynamic>),
+      accessToken: json['access_token']?.toString() ?? '',
+      refreshToken: json['refresh_token']?.toString() ?? '',
+      expiresIn: json['expires_in'] is int
+          ? json['expires_in'] as int
+          : int.tryParse('${json['expires_in']}') ?? 3600,
+      user: AuthUser.fromJson(userJson),
     );
   }
 }

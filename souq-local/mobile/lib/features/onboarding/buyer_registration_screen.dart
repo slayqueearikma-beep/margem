@@ -14,6 +14,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/navigation/post_auth_navigation.dart';
 import '../../core/services/legal_acceptance_service.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/auth_error_utils.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
@@ -132,7 +133,8 @@ class _BuyerRegistrationScreenState
     } catch (e) {
       if (!mounted) return;
       await showAppErrorDialog(context,
-          title: l10n.somethingWentWrong, message: l10n.serverUnreachable);
+          title: l10n.somethingWentWrong,
+          message: authUnexpectedErrorMessage(e, l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -223,6 +224,7 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
   bool _loading = false;
   bool _resending = false;
   String? _error;
+  String? _devCode;
   int _resendSeconds = 45;
   Timer? _timer;
   late String _destinationMasked;
@@ -278,10 +280,16 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
         channel: _channel,
       );
       if (!mounted) return;
-      setState(() => _destinationMasked = result.destinationMasked);
+      setState(() {
+        _destinationMasked = result.destinationMasked;
+        _devCode = result.devCode;
+      });
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _error = e.message);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = kDebugMode ? e.toString() : 'Could not send verification code.');
     } finally {
       if (mounted) setState(() => _resending = false);
     }
@@ -376,6 +384,27 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
                     height: 1.4,
                   ),
             ),
+            if (_devCode != null && kDebugMode) ...[
+              SizedBox(height: AppSpacing.sm),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: context.colors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: context.colors.border),
+                ),
+                child: Text(
+                  'Dev code: $_devCode',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2,
+                    color: context.colors.primary,
+                  ),
+                ),
+              ),
+            ],
             TextButton(
               onPressed:
                   _loading ? null : () => Navigator.of(context).pop('__change__'),
