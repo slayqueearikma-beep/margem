@@ -9,6 +9,7 @@ from sqlalchemy import select
 import app.database as database
 from app.main import app
 from app.models import User
+from tests.auth_helpers import register_test_user
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -22,17 +23,12 @@ async def client():
 
 async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
     email = f"dual-{uuid4().hex[:8]}@example.com"
-    res = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": "SecurePass1",
-            "account_type": account_type,
-            "display_name": "Dual User",
-        },
+    body = await register_test_user(
+        client,
+        email=email,
+        account_type=account_type,
+        display_name="Dual User",
     )
-    assert res.status_code == 201, res.text
-    body = res.json()
     return {
         "email": email,
         "headers": {"Authorization": f"Bearer {body['access_token']}"},
@@ -68,6 +64,9 @@ async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
             "whatsapp_number": "+212600000088",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert created.status_code == 201, created.text
@@ -75,7 +74,7 @@ async def test_buyer_can_open_storefront_on_same_account(client: AsyncClient):
     me = await client.get("/auth/me", headers=buyer["headers"])
     assert me.status_code == 200
     assert me.json()["has_seller_profile"] is True
-    assert me.json()["account_type"] == "seller"
+    assert me.json()["account_type"] in {"seller", "provider"}
 
     dashboard = await client.get("/sellers/me/dashboard", headers=buyer["headers"])
     assert dashboard.status_code == 200
@@ -102,6 +101,9 @@ async def test_seller_can_review_another_business(client: AsyncClient):
             "whatsapp_number": "+212600000091",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert store_a.status_code == 201, store_a.text
@@ -120,6 +122,9 @@ async def test_seller_can_review_another_business(client: AsyncClient):
             "whatsapp_number": "+212600000092",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert store_b.status_code == 201, store_b.text

@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/product_carousel_card.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -78,7 +79,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.allProducts)),
+      appBar: MarGemAppBar(semanticLabel: l10n.allProducts),
       body: FutureBuilder<SellerModel>(
         future: _future,
         builder: (context, snapshot) {
@@ -212,14 +213,14 @@ class _SortChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: EdgeInsets.only(right: 8),
       child: ChoiceChip(
         label: Text(label),
         selected: selected,
         onSelected: (_) => onTap(),
-        selectedColor: AppColors.primary.withValues(alpha: 0.14),
+        selectedColor: context.colors.primary.withValues(alpha: 0.14),
         labelStyle: TextStyle(
-          color: selected ? AppColors.primary : AppColors.textSecondary,
+          color: selected ? context.colors.primary : context.colors.textSecondary,
           fontWeight: FontWeight.w600,
         ),
       ),

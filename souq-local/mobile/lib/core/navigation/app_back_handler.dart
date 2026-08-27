@@ -23,7 +23,6 @@ bool isAppRootLocation(String path) {
       path == '/seller/dashboard' ||
       path == '/login' ||
       path == '/splash' ||
-      path == '/language' ||
       path == '/onboarding';
 }
 
@@ -70,6 +69,8 @@ Future<bool> handleAppBack({
     if (location.isNotEmpty && !isAppRootLocation(location)) {
       ref.read(backExitPromptAtProvider.notifier).state = null;
       if (location.startsWith('/seller/products') ||
+          location.startsWith('/seller/services') ||
+          location.startsWith('/seller/analytics') ||
           location.startsWith('/seller/profile') ||
           location.startsWith('/seller/reviews') ||
           location.startsWith('/seller/settings') ||
