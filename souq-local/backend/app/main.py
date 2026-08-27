@@ -17,7 +17,7 @@ from sqlalchemy import select, text, update
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
-from app.config import settings
+from app.config import _STRICT_ENVS, settings
 import app.database as database
 from app.limiter import limiter
 from app.logging_config import configure_logging
@@ -208,13 +208,14 @@ async def lifespan(app: FastAPI):
         await database.engine.dispose()
 
 
+_openapi_enabled = settings.app_env in {"development", "dev"}
 app = FastAPI(
     title=settings.app_name,
     version="1.0.0",
     lifespan=lifespan,
-    docs_url="/docs" if settings.debug or settings.app_env == "development" else None,
+    docs_url="/docs" if _openapi_enabled else None,
     redoc_url=None,
-    openapi_url="/openapi.json" if settings.debug or settings.app_env == "development" else None,
+    openapi_url="/openapi.json" if _openapi_enabled else None,
 )
 
 app.state.limiter = limiter
@@ -306,7 +307,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     from fastapi.encoders import jsonable_encoder
 
     request_id = _request_id(request)
-    if settings.app_env in {"production", "prod"} and not settings.debug:
+    if settings.app_env in _STRICT_ENVS and not settings.debug:
         return JSONResponse(
             status_code=422,
             content={

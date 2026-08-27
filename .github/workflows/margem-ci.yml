@@ -62,7 +62,7 @@ jobs:
           docker compose -f docker-compose.yml config >/dev/null
           docker compose -f docker-compose.home.yml config >/dev/null
           docker compose -f docker-compose.budget.yml config >/dev/null
-          docker compose -f infra/onprem/docker-compose.prod.yml config >/dev/null
+          docker compose -f infra/onprem/docker-compose.prod.yml --env-file infra/onprem/env.prod.example config >/dev/null
       - run: pytest -q
         env:
           PYTHONPATH: .
@@ -80,16 +80,19 @@ jobs:
               app_env="production",
               debug=False,
               auth_dev_bypass=False,
+              admin_require_staff_mfa=True,
               jwt_secret_key="ci-production-secret-key-32chars-minxx",
               upload_token_secret="ci-upload-token-secret-key-32chars-min",
+              mfa_encryption_key="ci-mfa-encryption-key-32chars-minimum",
               cors_origins=["https://margem.ma"],
               allowed_hosts=["api.margem.ma"],
               storage_provider="azure",
               azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
-              smtp_host="smtp.example.com",
+              brevo_api_key="ci-brevo-api-key-32chars-minimumxx",
+              brevo_sender_email="noreply@dribex.ma",
+              brevo_sender_name="Dribex",
               public_app_url="https://margem.ma",
               public_api_url="https://api.margem.ma",
-              mfa_encryption_key="ci-mfa-encryption-key-32chars-minimum",
               admin_ip_allowlist=["203.0.113.0/24"],
               payment_provider="naps",
               naps_merchant_id="ci-merchant",
@@ -103,22 +106,53 @@ jobs:
                   app_env="production",
                   debug=False,
                   auth_dev_bypass=False,
+                  admin_require_staff_mfa=True,
                   jwt_secret_key="ci-production-secret-key-32chars-minxx",
                   upload_token_secret="ci-upload-token-secret-key-32chars-min",
+                  mfa_encryption_key="ci-mfa-encryption-key-32chars-minimum",
                   cors_origins=["https://margem.ma"],
                   allowed_hosts=["api.margem.ma"],
+                  storage_provider="azure",
                   azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
-                  smtp_host="",
+                  brevo_api_key="",
+                  brevo_sender_email="noreply@dribex.ma",
                   public_app_url="https://margem.ma",
                   public_api_url="https://api.margem.ma",
+                  admin_ip_allowlist=["203.0.113.0/24"],
+                  payment_provider="naps",
+                  naps_merchant_id="ci-merchant",
+                  naps_secret_key="ci-naps-secret-key-32chars-minimum",
+                  naps_epay_payment_init_url="https://naps.example.com/init",
+                  naps_webhook_secret="ci-naps-webhook-secret-32chars-min",
               )
-              raise SystemExit("expected SMTP validation failure")
+              raise SystemExit("expected Brevo validation failure")
           except ValidationError:
               pass
           print("production settings smoke ok")
           PY
         env:
           PYTHONPATH: .
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: souq-local/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: souq-local/web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.dribex.ma
+          NEXT_PUBLIC_SITE_URL: https://dribex.ma
+          NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
+      - run: npm run test:security
 
   api-image:
     runs-on: ubuntu-latest
