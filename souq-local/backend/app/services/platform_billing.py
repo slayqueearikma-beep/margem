@@ -28,6 +28,13 @@ from app.models import (
 )
 from app.services.notifications import notify_user
 from app.services.payment_provider import CheckoutSession, get_payment_provider, hash_webhook_payload
+from app.services.entitlements import (
+    ensure_plan_purchase_allowed,
+    get_active_subscription_for_audience,
+    plan_audience,
+    sync_entitlement_flags,
+)
+from app.services.subscription_audit import record_subscription_event
 from app.services.subscription_service import ensure_checkout_allowed
 
 logger = logging.getLogger("margem.billing")
@@ -180,11 +187,10 @@ async def activate_subscription_for_payment(
     user: User,
     plan: SubscriptionPlan,
 ) -> Subscription:
-    existing = await session.execute(
-        select(Subscription).where(Subscription.user_id == user.id, Subscription.status == SubscriptionStatus.ACTIVE)
-    )
-    for sub in existing.scalars().all():
-        sub.status = SubscriptionStatus.CANCELED
+    audience = plan_audience(plan.code)
+    existing_same_audience = await get_active_subscription_for_audience(session, user.id, audience)
+    if existing_same_audience is not None:
+        existing_same_audience.status = SubscriptionStatus.CANCELED
 
     now = datetime.now(UTC)
     subscription = Subscription(
@@ -198,20 +204,38 @@ async def activate_subscription_for_payment(
         provider_reference=payment.provider_reference,
     )
     session.add(subscription)
-    user.is_premium = True
-    user.premium_until = subscription.current_period_end
+    await session.flush()
+    await sync_entitlement_flags(session, user)
 
-    if user.account_type.value == "seller" or plan.code.startswith("seller"):
-        seller = (
-            await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
-        ).scalar_one_or_none()
-        if seller:
-            seller.is_premium = True
+    await record_subscription_event(
+        session,
+        user_id=user.id,
+        subscription_id=subscription.id,
+        plan_code=plan.code,
+        event_type="payment_confirmed",
+        metadata={"payment_id": str(payment.id), "amount_mad": float(payment.amount_mad)},
+    )
+    await record_subscription_event(
+        session,
+        user_id=user.id,
+        subscription_id=subscription.id,
+        plan_code=plan.code,
+        event_type="subscription_activated",
+        metadata={"audience": audience},
+    )
+    await record_subscription_event(
+        session,
+        user_id=user.id,
+        subscription_id=subscription.id,
+        plan_code=plan.code,
+        event_type="entitlement_granted",
+        metadata={"audience": audience},
+    )
 
     await notify_user(
         session,
         user_id=user.id,
-        title="Premium activated",
+        title=f"{plan.name} activated",
         body=f"{plan.name} is now active — platform service fee paid to Dribex",
         kind="premium",
         data={"plan_code": plan.code, "payment_id": str(payment.id)},

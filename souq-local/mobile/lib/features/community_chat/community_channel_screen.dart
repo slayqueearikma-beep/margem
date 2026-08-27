@@ -373,13 +373,27 @@ class _MessageBubble extends StatelessWidget {
                                 color: context.colors.primary,
                               ),
                             ),
-                          if (message.sender.isPremium)
+                          if (message.sender.showPlusBadge)
                             Padding(
                               padding: EdgeInsetsDirectional.only(start: 4),
-                              child: Icon(
-                                Icons.workspace_premium_rounded,
-                                size: 14,
-                                color: context.colors.secondary,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: context.colors.secondary
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'Plus+',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: context.colors.secondary,
+                                  ),
+                                ),
                               ),
                             ),
                         ],

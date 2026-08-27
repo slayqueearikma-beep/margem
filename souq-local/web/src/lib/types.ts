@@ -1,3 +1,10 @@
+export interface PlatformAdvertisement {
+  id: string;
+  title: string;
+  image_url: string;
+  target_url: string;
+}
+
 export interface Category {
   id: string;
   slug: string;

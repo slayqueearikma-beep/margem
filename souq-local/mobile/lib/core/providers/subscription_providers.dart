@@ -4,6 +4,19 @@ import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/app_storage.dart';
 
+final myEntitlementsProvider =
+    FutureProvider.autoDispose<EntitlementsBundleModel>((ref) {
+  final session = ref.watch(userSessionProvider);
+  if (session == null || session.isGuest) {
+    return Future.value(
+      const EntitlementsBundleModel(
+        buyer: BuyerEntitlementsModel(),
+      ),
+    );
+  }
+  return apiServiceProvider.fetchEntitlements();
+});
+
 final subscriptionPlansProvider =
     FutureProvider.autoDispose<List<SubscriptionPlanModel>>((ref) {
   final session = ref.watch(userSessionProvider);
@@ -55,6 +68,7 @@ List<SubscriptionPlanModel> filterPlansForSession(
 void invalidateSubscriptionProviders(WidgetRef ref) {
   ref.invalidate(subscriptionPlansProvider);
   ref.invalidate(mySubscriptionProvider);
+  ref.invalidate(myEntitlementsProvider);
   ref.invalidate(billingStatusProvider);
   ref.invalidate(myPlatformPaymentsProvider);
 }
@@ -63,4 +77,16 @@ bool hasBuyerPremiumSubscription(SubscriptionModel? subscription) {
   if (subscription == null) return false;
   if (subscription.status != 'active') return false;
   return subscription.plan.code == 'buyer_premium';
+}
+
+bool hasPlusPlusEntitlement(EntitlementsBundleModel? entitlements) {
+  return entitlements?.buyer.plusPlusActive ?? false;
+}
+
+bool hasPromotionalAdsSuppressed(EntitlementsBundleModel? entitlements) {
+  return entitlements?.promotionalAdsSuppressed ?? false;
+}
+
+bool hasDriverProEntitlement(EntitlementsBundleModel? entitlements) {
+  return entitlements?.seller?.driverProActive ?? false;
 }

@@ -81,6 +81,7 @@ class CommunitySenderModel {
     this.avatarUrl = '',
     this.role = 'buyer',
     this.isPremium = false,
+    this.showPlusBadge = false,
     this.isVerified = false,
     this.trustScore = 0,
     this.badges = const [],
@@ -91,6 +92,7 @@ class CommunitySenderModel {
   final String avatarUrl;
   final String role;
   final bool isPremium;
+  final bool showPlusBadge;
   final bool isVerified;
   final int trustScore;
   final List<String> badges;
@@ -102,6 +104,8 @@ class CommunitySenderModel {
       avatarUrl: json['avatar_url'] as String? ?? '',
       role: json['role'] as String? ?? 'buyer',
       isPremium: json['is_premium'] as bool? ?? false,
+      showPlusBadge:
+          json['show_plus_badge'] as bool? ?? json['is_premium'] as bool? ?? false,
       isVerified: json['is_verified'] as bool? ?? false,
       trustScore: json['trust_score'] as int? ?? 0,
       badges: (json['badges'] as List<dynamic>?)

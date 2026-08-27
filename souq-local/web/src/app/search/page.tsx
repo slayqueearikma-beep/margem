@@ -1,9 +1,10 @@
 import { Suspense } from "react";
+import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { PaginationNav } from "@/components/pagination";
 import { SearchBar } from "@/components/search-bar";
 import { EmptyState, ErrorState } from "@/components/states";
-import { describeFetchError, loadSearch } from "@/lib/marketplace-fetch";
+import { describeFetchError, loadActiveAdvertisements, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
@@ -36,6 +37,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     offset,
     limit,
   });
+  const ads = await loadActiveAdvertisements(3);
 
   const filterParams = {
     q: q || undefined,
@@ -56,6 +58,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <Suspense fallback={null}>
         <SearchBar defaultQuery={q} defaultMode={mode} />
       </Suspense>
+
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} /> : null}
 
       {!outcome.ok ? (
         <ErrorState

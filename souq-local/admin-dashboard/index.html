@@ -59,6 +59,7 @@
         <button type="button" class="tab" data-view="categories">Categories</button>
         <button type="button" class="tab" data-view="users">Users</button>
         <button type="button" class="tab" data-view="reports">Reports</button>
+        <button type="button" class="tab" data-view="advertisements">Advertising</button>
       </nav>
       <button type="button" id="logout-btn" class="btn ghost">Sign out</button>
     </header>
@@ -230,6 +231,32 @@
         </div>
         <p id="reports-empty" class="empty-state hidden">No reports in this queue.</p>
       </section>
+
+      <section id="view-advertisements" class="view hidden">
+        <div class="view-header">
+          <div>
+            <h2>Advertising</h2>
+            <p class="muted">Manage simple promotional banners for the public web storefront</p>
+          </div>
+          <button type="button" id="create-advertisement-btn" class="btn primary">+ New advertisement</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Target URL</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="advertisements-tbody"></tbody>
+          </table>
+        </div>
+        <p id="advertisements-empty" class="empty-state hidden">No advertisements yet.</p>
+      </section>
     </main>
   </div>
 
@@ -298,6 +325,32 @@
           </select>
         </label>
         <label class="checkbox-label">
+          <input type="checkbox" name="is_active" checked />
+          Active
+        </label>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" data-close-dialog>Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="advertisement-dialog" class="modal">
+    <form id="advertisement-form" method="dialog">
+      <header class="modal-header">
+        <h3 id="advertisement-dialog-title">Advertisement</h3>
+        <button type="button" class="icon-btn" data-close-dialog>&times;</button>
+      </header>
+      <div class="modal-body grid-2">
+        <label class="span-2">Title <input name="title" required maxlength="120" /></label>
+        <label class="span-2">Image URL <input name="image_url" required /></label>
+        <label class="span-2">
+          Image upload
+          <input type="file" accept="image/*" data-upload-target="image_url" />
+        </label>
+        <label class="span-2">Destination URL <input name="target_url" required placeholder="https://example.com" /></label>
+        <label class="checkbox-label span-2">
           <input type="checkbox" name="is_active" checked />
           Active
         </label>

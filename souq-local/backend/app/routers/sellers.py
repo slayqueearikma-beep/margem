@@ -32,6 +32,11 @@ from app.schemas import (
     VideoCreate,
     VideoOut,
 )
+from app.services.entitlements import (
+    enforce_combined_listing_limit,
+    has_driver_pro,
+    require_driver_pro_for_video,
+)
 from app.services.premium import apply_seller_premium_expiry, is_premium_active
 from app.services.seller_marketplace import apply_marketplace_selection
 from app.services.ratings import (
@@ -166,40 +171,22 @@ def _validate_optional_http_url(url: str, *, field: str) -> str:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
-def _has_seller_pro_entitlement(user: User, seller: SellerProfile) -> bool:
-    """Seller Pro / storefront premium — not buyer (Dribex Plus) membership."""
-    return is_premium_active(
-        is_premium=bool(seller.is_premium),
-        premium_until=user.premium_until if seller.is_premium else None,
-    )
+async def _has_driver_pro_entitlement(
+    session: AsyncSession,
+    user: User,
+    seller: SellerProfile,
+) -> bool:
+    return await has_driver_pro(session, user, seller)
 
 
 def _require_premium_seller(user: User, seller: SellerProfile) -> None:
-    if not _has_seller_pro_entitlement(user, seller):
+    if not is_premium_active(
+        is_premium=bool(seller.is_premium),
+        premium_until=user.premium_until if seller.is_premium else None,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Premium membership is required for this feature",
-        )
-
-
-async def _enforce_video_quota(session: AsyncSession, user: User, seller: SellerProfile) -> None:
-    """Free sellers: up to N active videos. Premium: unlimited."""
-    if _has_seller_pro_entitlement(user, seller):
-        return
-    active_count = await session.scalar(
-        select(func.count(SellerVideo.id)).where(
-            SellerVideo.seller_id == seller.id,
-            SellerVideo.is_active.is_(True),
-        )
-    )
-    limit = settings.free_seller_video_limit
-    if int(active_count or 0) >= limit:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=(
-                f"Free sellers can publish up to {limit} active videos. "
-                "Upgrade to Dribex Pro for featured placement and advanced analytics."
-            ),
+            detail="DriverPro subscription is required for this feature",
         )
 
 
@@ -537,6 +524,7 @@ async def add_product(
     session: AsyncSession = Depends(get_db),
 ) -> Product:
     seller = await _owned_seller(seller_id, user, session)
+    await enforce_combined_listing_limit(session, seller_id=seller_id, user=user)
 
     image_url = await _validate_owner_media_registered(session, payload.image_url, user.id)
     product_data = payload.model_dump(exclude={"pricing_type", "price_mad"})
@@ -544,10 +532,12 @@ async def add_product(
     product_data["media_urls"] = await _validate_owner_media_list_registered(
         session, list(payload.media_urls or []), user.id
     )
+    if (payload.video_url or "").strip():
+        await require_driver_pro_for_video(session, user, seller)
     product_data["video_url"] = await _validate_owner_media_registered(
         session, payload.video_url or "", user.id
     )
-    if payload.is_featured and not _has_seller_pro_entitlement(user, seller):
+    if payload.is_featured and not await _has_driver_pro_entitlement(session, user, seller):
         product_data["is_featured"] = False
     product = Product(seller_id=seller_id, **product_data)
     from app.models import PricingType
@@ -575,7 +565,8 @@ async def add_service(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Service:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
+    await enforce_combined_listing_limit(session, seller_id=seller_id, user=user)
 
     image_url = await _validate_owner_media_registered(session, payload.image_url, user.id)
     from app.services.service_pricing import normalize_service_pricing
@@ -609,7 +600,7 @@ async def add_video(
     session: AsyncSession = Depends(get_db),
 ) -> SellerVideo:
     seller = await _owned_seller(seller_id, user, session)
-    await _enforce_video_quota(session, user, seller)
+    await require_driver_pro_for_video(session, user, seller)
 
     from app.services.video_validation import (
         assert_video_duration_from_url,
@@ -651,20 +642,21 @@ async def seller_video_quota(
     session: AsyncSession = Depends(get_db),
 ) -> dict:
     seller = await _owned_seller(seller_id, user, session)
-    premium = _has_seller_pro_entitlement(user, seller)
+    driver_pro = await _has_driver_pro_entitlement(session, user, seller)
     active_count = await session.scalar(
         select(func.count(SellerVideo.id)).where(
             SellerVideo.seller_id == seller.id,
             SellerVideo.is_active.is_(True),
         )
     )
-    limit = None if premium else settings.free_seller_video_limit
     used = int(active_count or 0)
     return {
-        "is_premium": premium,
+        "is_premium": driver_pro,
+        "driver_pro_active": driver_pro,
+        "video_uploads_enabled": driver_pro,
         "active_videos": used,
-        "limit": limit,
-        "remaining": None if premium else max(0, settings.free_seller_video_limit - used),
+        "limit": None if driver_pro else 0,
+        "remaining": None if driver_pro else 0,
     }
 
 
@@ -721,8 +713,10 @@ async def update_product(
             session, list(data["media_urls"] or []), user.id
         )
     if "video_url" in data:
+        if (data["video_url"] or "").strip():
+            await require_driver_pro_for_video(session, user, seller)
         data["video_url"] = await _validate_owner_media_registered(session, data["video_url"] or "", user.id)
-    if data.get("is_featured") is True and not _has_seller_pro_entitlement(user, seller):
+    if data.get("is_featured") is True and not await _has_driver_pro_entitlement(session, user, seller):
         data["is_featured"] = False
 
     for key, value in data.items():
@@ -758,7 +752,8 @@ async def duplicate_product(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Product:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
+    await enforce_combined_listing_limit(session, seller_id=seller_id, user=user)
     product = await session.get(Product, product_id)
     if product is None or product.seller_id != seller_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")

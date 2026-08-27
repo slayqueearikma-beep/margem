@@ -117,6 +117,10 @@ class UserOut(BaseModel):
     email_verified: bool = False
     is_premium: bool = False
     premium_until: datetime | None = None
+    plus_plus_active: bool = False
+    show_plus_badge: bool = False
+    promotional_ads_suppressed: bool = False
+    ads_enabled: bool = True
     role: str = "customer"
     status: str = "active"
     mfa_enabled: bool = False
@@ -136,7 +140,17 @@ class UserOut(BaseModel):
         has_seller_profile: bool = False,
         legal_acceptance_complete: bool = True,
         pending_legal_policies: list[str] | None = None,
+        plus_plus_active: bool | None = None,
+        show_plus_badge: bool | None = None,
+        promotional_ads_suppressed: bool | None = None,
+        ads_enabled: bool | None = None,
     ) -> "UserOut":
+        active_plus = plus_plus_active if plus_plus_active is not None else bool(getattr(user, "is_premium", False))
+        ads_suppressed = (
+            promotional_ads_suppressed
+            if promotional_ads_suppressed is not None
+            else active_plus
+        )
         return cls(
             id=user.id,
             email=user.email,
@@ -144,8 +158,12 @@ class UserOut(BaseModel):
             display_name=user.display_name,
             phone=getattr(user, "phone", "") or "",
             email_verified=getattr(user, "email_verified_at", None) is not None,
-            is_premium=bool(getattr(user, "is_premium", False)),
+            is_premium=active_plus,
             premium_until=getattr(user, "premium_until", None),
+            plus_plus_active=active_plus,
+            show_plus_badge=show_plus_badge if show_plus_badge is not None else active_plus,
+            promotional_ads_suppressed=ads_suppressed,
+            ads_enabled=ads_enabled if ads_enabled is not None else not ads_suppressed,
             role=getattr(user, "role", None).value if getattr(user, "role", None) else "customer",
             status=getattr(user, "status", None).value if getattr(user, "status", None) else "active",
             mfa_enabled=bool(getattr(user, "mfa_enabled", False)),

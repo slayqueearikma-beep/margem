@@ -11,6 +11,7 @@ import '../../core/data/city_coordinates.dart';
 import '../../core/models/models.dart';
 import '../../core/navigation/app_back_handler.dart';
 import '../../core/providers/city_providers.dart';
+import '../../core/providers/subscription_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
@@ -168,8 +169,8 @@ class BuyerHomeScreen extends ConsumerWidget {
     final searchOrigin = ref.watch(buyerSearchLocationProvider).valueOrNull ??
         CityCoordinates.centerFor(city);
     final isGuest = session == null || session.isGuest;
-    final hasPremium =
-        ref.watch(mySubscriptionProvider).valueOrNull != null;
+    final hasPremium = ref.watch(authSessionProvider)?.user.showPlusBadge ??
+        hasPlusPlusEntitlement(ref.watch(myEntitlementsProvider).valueOrNull);
 
     final firstName = session?.name.split(' ').first ?? l10n.guestMode;
 

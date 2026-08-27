@@ -1,4 +1,4 @@
-"""Premium membership helpers — keep public flags consistent with expiry."""
+"""Premium membership helpers — keep public flags consistent with subscription entitlements."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ def is_premium_active(
     if not is_premium:
         return False
     if premium_until is None:
-        return True
+        return False
     clock = now or datetime.now(UTC)
     if premium_until.tzinfo is None:
         premium_until = premium_until.replace(tzinfo=UTC)
@@ -24,6 +24,7 @@ def is_premium_active(
 
 
 def buyer_plus_active(user: User | None, *, now: datetime | None = None) -> bool:
+    """Legacy sync helper — flags are synced from subscription records server-side."""
     if user is None:
         return False
     return is_premium_active(
@@ -34,7 +35,7 @@ def buyer_plus_active(user: User | None, *, now: datetime | None = None) -> bool
 
 
 def seller_pro_active(seller: SellerProfile, *, now: datetime | None = None) -> bool:
-    """Seller Pro storefront premium — not buyer (Dribex Plus) membership."""
+    """DriverPro storefront entitlement — synced from seller subscription records."""
     owner: User | None = getattr(seller, "user", None)
     premium_until = owner.premium_until if owner is not None else None
     return is_premium_active(
@@ -45,7 +46,7 @@ def seller_pro_active(seller: SellerProfile, *, now: datetime | None = None) -> 
 
 
 def attach_premium_flags(seller: SellerProfile, *, persist: bool = False) -> bool:
-    """Set is_seller_pro / is_buyer_plus on seller and align is_premium for responses."""
+    """Set is_seller_pro / is_buyer_plus on seller responses."""
     owner: User | None = getattr(seller, "user", None)
     now = datetime.now(UTC)
     seller_active = seller_pro_active(seller, now=now)
@@ -61,9 +62,12 @@ def attach_premium_flags(seller: SellerProfile, *, persist: bool = False) -> boo
 
     setattr(seller, "is_seller_pro", seller_active)
     setattr(seller, "is_buyer_plus", buyer_active)
+    setattr(seller, "is_driver_pro", seller_active)
+    setattr(seller, "show_plus_badge", buyer_active)
+    setattr(seller, "promotional_ads_suppressed", buyer_active or seller_active)
+    setattr(seller, "ads_enabled", not (buyer_active or seller_active))
     return seller_active
 
 
 def apply_seller_premium_expiry(seller: SellerProfile, *, persist: bool = False) -> bool:
-    """Return effective seller-pro status and optionally clear stale ORM flags in-session."""
     return attach_premium_flags(seller, persist=persist)

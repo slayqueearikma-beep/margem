@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/subscription_providers.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_spacing.dart';
@@ -20,6 +21,7 @@ class SellerMoreTab extends ConsumerWidget {
     final session = ref.watch(userSessionProvider);
     final isGuest = session == null || session.isGuest;
     final account = ref.watch(sellerAccountProvider).valueOrNull;
+    final entitlementsAsync = ref.watch(myEntitlementsProvider);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -41,6 +43,30 @@ class SellerMoreTab extends ConsumerWidget {
           subtitle: l10n.premiumUpgradeSub,
           icon: Icons.workspace_premium_outlined,
           onTap: () => context.push('/premium'),
+        ),
+        entitlementsAsync.when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (entitlements) {
+            final seller = entitlements.seller;
+            if (seller == null) return const SizedBox.shrink();
+            final driverPro = seller.driverProActive ? 'DriverPro active' : 'Free seller plan';
+            return Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Card(
+                child: ListTile(
+                  title: Text(driverPro),
+                  subtitle: Text(
+                    '${seller.combinedListingCount}/${seller.combinedListingLimit} combined products & services. '
+                    'Free sellers can create up to 5 combined items; DriverPro raises the limit to 20.',
+                  ),
+                  trailing: seller.videoUploadsEnabled
+                      ? const Icon(Icons.videocam_rounded)
+                      : const Icon(Icons.videocam_off_outlined),
+                ),
+              ),
+            );
+          },
         ),
         DashboardMenuTile(
           title: l10n.navBoost,

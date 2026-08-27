@@ -28,7 +28,9 @@ from app.middleware.request_limits import RequestSizeLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.models import Marketplace, SubscriptionPlan
 from app.routers import (
+    ad_admin,
     admin_moderation,
+    advertisements,
     auth,
     billing,
     bundles,
@@ -105,30 +107,30 @@ async def lifespan(app: FastAPI):
                     SubscriptionPlan(
                         id=uuid4(),
                         code="buyer_premium",
-                        name="Dribex Plus",
-                        description="Saved searches, personalized recommendations, priority support",
-                        price_mad=49,
+                        name="Dribex Plus+",
+                        description="Buyer subscription — suppress promotional ads and show Plus+ badge.",
+                        price_mad=50,
                         billing_period_days=30,
                         features=[
-                            "Saved searches sync",
-                            "Personalized recommendations",
-                            "Priority support",
-                            "Early access to featured listings",
+                            "promotional_ads_suppressed",
+                            "plus_plus_badge",
+                            "saved_searches_sync",
+                            "priority_support",
                         ],
                     ),
                     SubscriptionPlan(
                         id=uuid4(),
                         code="seller_pro",
-                        name="Seller Pro",
-                        description="Featured placement, premium storefront, advanced discovery analytics",
-                        price_mad=99,
+                        name="DriverPro",
+                        description="Seller subscription — ad-free access, up to 20 combined products/services, and video uploads.",
+                        price_mad=149,
                         billing_period_days=30,
                         features=[
-                            "Featured placement",
-                            "Premium badge",
-                            "Advanced analytics",
-                            "Extra media uploads",
-                            "Verification priority",
+                            "promotional_ads_suppressed",
+                            "combined_listing_limit_20",
+                            "video_uploads",
+                            "featured_placement",
+                            "premium_badge",
                         ],
                     ),
                 ]
@@ -143,23 +145,32 @@ async def lifespan(app: FastAPI):
         )
         await session.execute(
             update(SubscriptionPlan)
-            .where(
-                SubscriptionPlan.code == "buyer_premium",
-                SubscriptionPlan.name == "MarGem Plus",
+            .where(SubscriptionPlan.code == "buyer_premium")
+            .values(
+                name="Dribex Plus+",
+                price_mad=50,
+                description="Buyer subscription — suppress promotional ads and show Plus+ badge.",
+                features=[
+                    "promotional_ads_suppressed",
+                    "plus_plus_badge",
+                    "saved_searches_sync",
+                    "priority_support",
+                ],
             )
-            .values(name="Dribex Plus")
         )
         await session.execute(
             update(SubscriptionPlan)
             .where(SubscriptionPlan.code == "seller_pro")
             .values(
-                description="Featured placement, premium storefront, advanced discovery analytics",
+                name="DriverPro",
+                price_mad=149,
+                description="Seller subscription — ad-free access, up to 20 combined products/services, and video uploads.",
                 features=[
-                    "Featured placement",
-                    "Premium badge",
-                    "Advanced analytics",
-                    "Extra media uploads",
-                    "Verification priority",
+                    "promotional_ads_suppressed",
+                    "combined_listing_limit_20",
+                    "video_uploads",
+                    "featured_placement",
+                    "premium_badge",
                 ],
             )
         )
@@ -257,6 +268,8 @@ app.include_router(legal_acceptance.auth_legal_router)
 app.include_router(legal_pages.router)
 app.include_router(privacy.router)
 app.include_router(admin_moderation.router)
+app.include_router(advertisements.router)
+app.include_router(ad_admin.router)
 
 if settings.serve_embedded_admin and _admin_dashboard_dir is not None:
     app.mount(

@@ -13,6 +13,7 @@ from app.models import Subscription, SubscriptionPlan, SubscriptionStatus, User
 from app.services.payment_provider import reset_payment_provider_cache
 from app.services.subscription_maintenance import run_subscription_maintenance
 from tests.auth_helpers import register_test_user
+from tests.seller_helpers import create_test_seller, seller_create_payload
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -67,6 +68,7 @@ async def test_seller_pro_does_not_unlock_saved_searches(monkeypatch):
         email = f"seller-gate-{uuid4().hex[:8]}@example.com"
         body = await register_test_user(client, email=email, account_type="seller")
         headers = {"Authorization": f"Bearer {body['access_token']}"}
+        await create_test_seller(client, headers, **seller_create_payload())
 
         checkout = await client.post(
             "/billing/checkout/subscription/seller_pro",
@@ -128,7 +130,8 @@ async def test_buyer_premium_does_not_unlock_seller_video_quota(monkeypatch):
         assert quota.status_code == 200, quota.text
         body = quota.json()
         assert body["is_premium"] is False
-        assert body["limit"] == settings.free_seller_video_limit
+        assert body["video_uploads_enabled"] is False
+        assert body["limit"] == 0
 
 
 @pytest.mark.asyncio

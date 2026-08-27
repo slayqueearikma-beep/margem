@@ -1429,6 +1429,11 @@ class ApiService {
     return PlatformPaymentModel.fromJson(data);
   }
 
+  Future<EntitlementsBundleModel> fetchEntitlements() async {
+    final data = await getJson('/subscriptions/entitlements', auth: true);
+    return EntitlementsBundleModel.fromJson(data);
+  }
+
   Future<SellerVideoQuotaModel> fetchSellerVideoQuota(String sellerId) async {
     final data = await getJson('/sellers/$sellerId/videos/quota', auth: true);
     return SellerVideoQuotaModel.fromJson(data);

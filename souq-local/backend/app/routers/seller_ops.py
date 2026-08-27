@@ -136,6 +136,37 @@ class BillingStatusOut(BaseModel):
     provider: str | None = None
 
 
+class BuyerEntitlementsResponse(BaseModel):
+    plan_code: str | None = None
+    status: str | None = None
+    plus_plus_active: bool = False
+    show_plus_badge: bool = False
+    promotional_ads_suppressed: bool = False
+    started_at: datetime | None = None
+    expires_at: datetime | None = None
+
+
+class SellerEntitlementsResponse(BaseModel):
+    plan_code: str | None = None
+    status: str | None = None
+    driver_pro_active: bool = False
+    combined_listing_count: int = 0
+    combined_listing_limit: int = 5
+    combined_listing_remaining: int = 5
+    video_uploads_enabled: bool = False
+    promotional_ads_suppressed: bool = False
+    ads_enabled: bool = True
+    started_at: datetime | None = None
+    expires_at: datetime | None = None
+
+
+class EntitlementsResponse(BaseModel):
+    buyer: BuyerEntitlementsResponse
+    seller: SellerEntitlementsResponse | None = None
+    promotional_ads_suppressed: bool = False
+    ads_enabled: bool = True
+
+
 class CheckoutRequest(BaseModel):
     success_url: str = Field(default="margem://premium/success", max_length=500)
     cancel_url: str = Field(default="margem://premium/cancel", max_length=500)
@@ -560,6 +591,23 @@ async def my_subscription(
     )
 
 
+@router.get("/subscriptions/entitlements", response_model=EntitlementsResponse)
+async def my_entitlements(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> EntitlementsResponse:
+    from app.services.entitlements import build_entitlements
+
+    bundle = await build_entitlements(session, user)
+    await session.commit()
+    return EntitlementsResponse(
+        buyer=BuyerEntitlementsResponse(**bundle.buyer.__dict__),
+        seller=SellerEntitlementsResponse(**bundle.seller.__dict__) if bundle.seller else None,
+        promotional_ads_suppressed=bundle.promotional_ads_suppressed,
+        ads_enabled=bundle.ads_enabled,
+    )
+
+
 @router.get("/subscriptions/billing/status", response_model=BillingStatusOut)
 async def billing_status() -> BillingStatusOut:
     from app.config import settings
@@ -601,6 +649,13 @@ async def checkout_plan(
     plan = result.scalar_one_or_none()
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
+
+    from app.services.entitlements import ensure_plan_purchase_allowed
+
+    try:
+        await ensure_plan_purchase_allowed(session, user, plan)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
@@ -857,14 +912,18 @@ async def admin_grant_premium(
     if plan is None:
         raise HTTPException(status_code=404, detail="Plan not found")
 
-    existing = await session.execute(
-        select(Subscription).where(
-            Subscription.user_id == target.id,
-            Subscription.status == SubscriptionStatus.ACTIVE,
-        )
-    )
-    for sub in existing.scalars().all():
-        sub.status = SubscriptionStatus.CANCELED
+    from app.services.entitlements import ensure_plan_purchase_allowed, get_active_subscription_for_audience, plan_audience, sync_entitlement_flags
+    from app.services.subscription_audit import record_subscription_event
+
+    try:
+        await ensure_plan_purchase_allowed(session, target, plan)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    audience = plan_audience(plan.code)
+    existing = await get_active_subscription_for_audience(session, target.id, audience)
+    if existing is not None:
+        existing.status = SubscriptionStatus.CANCELED
 
     now = datetime.now(UTC)
     subscription = Subscription(
@@ -878,14 +937,16 @@ async def admin_grant_premium(
         provider_reference=f"admin-{admin.id.hex[:8]}-{uuid4().hex[:8]}",
     )
     session.add(subscription)
-    target.is_premium = True
-    target.premium_until = subscription.current_period_end
-    if target.account_type.value == "provider" or plan.code.startswith("seller"):
-        seller = (
-            await session.execute(select(SellerProfile).where(SellerProfile.user_id == target.id))
-        ).scalar_one_or_none()
-        if seller:
-            seller.is_premium = True
+    await session.flush()
+    await sync_entitlement_flags(session, target)
+    await record_subscription_event(
+        session,
+        user_id=target.id,
+        subscription_id=subscription.id,
+        plan_code=plan.code,
+        event_type="subscription_activated",
+        metadata={"source": "admin_grant", "actor_id": str(admin.id)},
+    )
 
     session.add(
         AdminAuditLog(

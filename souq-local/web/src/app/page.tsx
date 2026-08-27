@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { SearchBar } from "@/components/search-bar";
 import { EmptyState, ErrorState } from "@/components/states";
 import { BRAND } from "@/lib/config";
 import {
   describeFetchError,
+  loadActiveAdvertisements,
   loadCategories,
   loadMarketplaces,
   loadSearch,
@@ -22,10 +24,11 @@ export const metadata = buildPageMetadata({
 });
 
 export default async function HomePage() {
-  const [searchOutcome, categoriesOutcome, marketplacesOutcome] = await Promise.all([
+  const [searchOutcome, categoriesOutcome, marketplacesOutcome, ads] = await Promise.all([
     loadSearch({ mode: "all", limit: 8 }),
     loadCategories(),
     loadMarketplaces(),
+    loadActiveAdvertisements(3),
   ]);
 
   const search = searchOutcome.ok ? searchOutcome.data : null;
@@ -65,6 +68,8 @@ export default async function HomePage() {
           </Suspense>
         </div>
       </section>
+
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} /> : null}
 
       {categories.length > 0 ? (
         <section>
