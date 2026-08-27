@@ -94,6 +94,54 @@ async def test_plus_does_not_grant_driver_pro(monkeypatch):
         assert ent.json()["buyer"]["plus_plus_active"] is True
         assert ent.json()["seller"]["driver_pro_active"] is False
         assert ent.json()["seller"]["video_uploads_enabled"] is False
+        assert ent.json()["seller"]["promotional_ads_suppressed"] is False
+        assert ent.json()["seller"]["ads_enabled"] is True
+
+
+@pytest.mark.asyncio
+async def test_free_seller_has_promotional_ads_enabled(monkeypatch):
+    monkeypatch.setattr(settings, "payment_provider", "manual")
+    monkeypatch.setattr(settings, "allow_manual_billing", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        user = await register_test_user(client, email=f"free-seller-ads-{uuid4().hex[:8]}@example.com", account_type="seller")
+        headers = {"Authorization": f"Bearer {user['access_token']}"}
+        await create_test_seller(client, headers, **seller_create_payload())
+        ent = await client.get("/subscriptions/entitlements", headers=headers)
+        assert ent.status_code == 200
+        body = ent.json()
+        assert body["seller"]["driver_pro_active"] is False
+        assert body["seller"]["promotional_ads_suppressed"] is False
+        assert body["seller"]["ads_enabled"] is True
+        assert body["promotional_ads_suppressed"] is False
+        assert body["ads_enabled"] is True
+        me = await client.get("/auth/me", headers=headers)
+        assert me.json()["promotional_ads_suppressed"] is False
+        assert me.json()["ads_enabled"] is True
+
+
+@pytest.mark.asyncio
+async def test_driver_pro_suppresses_promotional_ads_for_seller(monkeypatch):
+    monkeypatch.setattr(settings, "payment_provider", "manual")
+    monkeypatch.setattr(settings, "allow_manual_billing", True)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        user = await register_test_user(client, email=f"driver-ads-{uuid4().hex[:8]}@example.com", account_type="seller")
+        headers = {"Authorization": f"Bearer {user['access_token']}"}
+        await create_test_seller(client, headers, **seller_create_payload())
+        await _checkout_plan(client, headers, "seller_pro")
+        ent = await client.get("/subscriptions/entitlements", headers=headers)
+        assert ent.status_code == 200
+        body = ent.json()
+        assert body["seller"]["driver_pro_active"] is True
+        assert body["seller"]["promotional_ads_suppressed"] is True
+        assert body["seller"]["ads_enabled"] is False
+        assert body["promotional_ads_suppressed"] is True
+        assert body["ads_enabled"] is False
+        me = await client.get("/auth/me", headers=headers)
+        assert me.json()["promotional_ads_suppressed"] is True
+        assert me.json()["ads_enabled"] is False
+        assert me.json()["show_plus_badge"] is False
 
 
 @pytest.mark.asyncio

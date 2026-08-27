@@ -12,6 +12,7 @@ class AuthUser {
     this.plusPlusActive = false,
     this.showPlusBadge = false,
     this.promotionalAdsSuppressed = false,
+    this.adsEnabled = true,
   });
 
   final String id;
@@ -26,6 +27,7 @@ class AuthUser {
   final bool plusPlusActive;
   final bool showPlusBadge;
   final bool promotionalAdsSuppressed;
+  final bool adsEnabled;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -46,6 +48,7 @@ class AuthUser {
       showPlusBadge: json['show_plus_badge'] as bool? ?? false,
       promotionalAdsSuppressed:
           json['promotional_ads_suppressed'] as bool? ?? false,
+      adsEnabled: json['ads_enabled'] as bool? ?? true,
     );
   }
 
@@ -62,6 +65,7 @@ class AuthUser {
     bool? plusPlusActive,
     bool? showPlusBadge,
     bool? promotionalAdsSuppressed,
+    bool? adsEnabled,
   }) {
     return AuthUser(
       id: id ?? this.id,
@@ -78,6 +82,7 @@ class AuthUser {
       showPlusBadge: showPlusBadge ?? this.showPlusBadge,
       promotionalAdsSuppressed:
           promotionalAdsSuppressed ?? this.promotionalAdsSuppressed,
+      adsEnabled: adsEnabled ?? this.adsEnabled,
     );
   }
 

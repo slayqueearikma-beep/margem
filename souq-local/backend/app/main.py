@@ -120,10 +120,11 @@ async def lifespan(app: FastAPI):
                         id=uuid4(),
                         code="seller_pro",
                         name="DriverPro",
-                        description="Seller subscription — up to 20 combined products/services and video uploads.",
+                        description="Seller subscription — ad-free access, up to 20 combined products/services, and video uploads.",
                         price_mad=149,
                         billing_period_days=30,
                         features=[
+                            "promotional_ads_suppressed",
                             "combined_listing_limit_20",
                             "video_uploads",
                             "featured_placement",
@@ -161,8 +162,9 @@ async def lifespan(app: FastAPI):
             .values(
                 name="DriverPro",
                 price_mad=149,
-                description="Seller subscription — up to 20 combined products/services and video uploads.",
+                description="Seller subscription — ad-free access, up to 20 combined products/services, and video uploads.",
                 features=[
+                    "promotional_ads_suppressed",
                     "combined_listing_limit_20",
                     "video_uploads",
                     "featured_placement",

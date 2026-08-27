@@ -154,6 +154,8 @@ class SellerEntitlementsResponse(BaseModel):
     combined_listing_limit: int = 5
     combined_listing_remaining: int = 5
     video_uploads_enabled: bool = False
+    promotional_ads_suppressed: bool = False
+    ads_enabled: bool = True
     started_at: datetime | None = None
     expires_at: datetime | None = None
 
@@ -161,6 +163,8 @@ class SellerEntitlementsResponse(BaseModel):
 class EntitlementsResponse(BaseModel):
     buyer: BuyerEntitlementsResponse
     seller: SellerEntitlementsResponse | None = None
+    promotional_ads_suppressed: bool = False
+    ads_enabled: bool = True
 
 
 class CheckoutRequest(BaseModel):
@@ -599,6 +603,8 @@ async def my_entitlements(
     return EntitlementsResponse(
         buyer=BuyerEntitlementsResponse(**bundle.buyer.__dict__),
         seller=SellerEntitlementsResponse(**bundle.seller.__dict__) if bundle.seller else None,
+        promotional_ads_suppressed=bundle.promotional_ads_suppressed,
+        ads_enabled=bundle.ads_enabled,
     )
 
 

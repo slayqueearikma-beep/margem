@@ -83,6 +83,10 @@ bool hasPlusPlusEntitlement(EntitlementsBundleModel? entitlements) {
   return entitlements?.buyer.plusPlusActive ?? false;
 }
 
+bool hasPromotionalAdsSuppressed(EntitlementsBundleModel? entitlements) {
+  return entitlements?.promotionalAdsSuppressed ?? false;
+}
+
 bool hasDriverProEntitlement(EntitlementsBundleModel? entitlements) {
   return entitlements?.seller?.driverProActive ?? false;
 }

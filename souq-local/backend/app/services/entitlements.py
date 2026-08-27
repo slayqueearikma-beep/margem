@@ -230,6 +230,8 @@ class SellerEntitlementsOut:
     combined_listing_limit: int
     combined_listing_remaining: int
     video_uploads_enabled: bool
+    promotional_ads_suppressed: bool
+    ads_enabled: bool
     started_at: datetime | None
     expires_at: datetime | None
 
@@ -237,7 +239,17 @@ class SellerEntitlementsOut:
 @dataclass(frozen=True)
 class EntitlementsBundle:
     buyer: BuyerEntitlementsOut
-    seller: SellerEntitlementsOut | None
+    seller: SellerEntitlementsOut | None = None
+    promotional_ads_suppressed: bool = False
+    ads_enabled: bool = True
+
+
+def combine_promotional_ad_flags(bundle: EntitlementsBundle) -> tuple[bool, bool]:
+    """Return (promotional_ads_suppressed, ads_enabled) for the signed-in user."""
+    suppressed = bundle.buyer.promotional_ads_suppressed or (
+        bundle.seller.promotional_ads_suppressed if bundle.seller is not None else False
+    )
+    return suppressed, not suppressed
 
 
 async def build_entitlements(
@@ -275,8 +287,17 @@ async def build_entitlements(
             combined_listing_limit=limit,
             combined_listing_remaining=max(0, limit - count),
             video_uploads_enabled=driver_active,
+            promotional_ads_suppressed=driver_active,
+            ads_enabled=not driver_active,
             started_at=seller_sub.current_period_start if seller_sub else None,
             expires_at=seller_sub.current_period_end if seller_sub else None,
         )
 
-    return EntitlementsBundle(buyer=buyer, seller=seller_out)
+    bundle = EntitlementsBundle(buyer=buyer, seller=seller_out)
+    suppressed, ads_enabled = combine_promotional_ad_flags(bundle)
+    return EntitlementsBundle(
+        buyer=buyer,
+        seller=seller_out,
+        promotional_ads_suppressed=suppressed,
+        ads_enabled=ads_enabled,
+    )

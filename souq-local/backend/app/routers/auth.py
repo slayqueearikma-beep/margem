@@ -437,7 +437,8 @@ async def me(
         pending_legal_policies=pending,
         plus_plus_active=entitlements.buyer.plus_plus_active,
         show_plus_badge=entitlements.buyer.show_plus_badge,
-        promotional_ads_suppressed=entitlements.buyer.promotional_ads_suppressed,
+        promotional_ads_suppressed=entitlements.promotional_ads_suppressed,
+        ads_enabled=entitlements.ads_enabled,
     )
 
 

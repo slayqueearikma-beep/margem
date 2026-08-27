@@ -1279,6 +1279,8 @@ class SellerEntitlementsModel {
     this.combinedListingLimit = 5,
     this.combinedListingRemaining = 5,
     this.videoUploadsEnabled = false,
+    this.promotionalAdsSuppressed = false,
+    this.adsEnabled = true,
     this.startedAt,
     this.expiresAt,
   });
@@ -1290,6 +1292,8 @@ class SellerEntitlementsModel {
   final int combinedListingLimit;
   final int combinedListingRemaining;
   final bool videoUploadsEnabled;
+  final bool promotionalAdsSuppressed;
+  final bool adsEnabled;
   final String? startedAt;
   final String? expiresAt;
 
@@ -1303,6 +1307,9 @@ class SellerEntitlementsModel {
       combinedListingRemaining:
           json['combined_listing_remaining'] as int? ?? 5,
       videoUploadsEnabled: json['video_uploads_enabled'] as bool? ?? false,
+      promotionalAdsSuppressed:
+          json['promotional_ads_suppressed'] as bool? ?? false,
+      adsEnabled: json['ads_enabled'] as bool? ?? true,
       startedAt: json['started_at'] as String?,
       expiresAt: json['expires_at'] as String?,
     );
@@ -1313,10 +1320,14 @@ class EntitlementsBundleModel {
   const EntitlementsBundleModel({
     required this.buyer,
     this.seller,
+    this.promotionalAdsSuppressed = false,
+    this.adsEnabled = true,
   });
 
   final BuyerEntitlementsModel buyer;
   final SellerEntitlementsModel? seller;
+  final bool promotionalAdsSuppressed;
+  final bool adsEnabled;
 
   factory EntitlementsBundleModel.fromJson(Map<String, dynamic> json) {
     return EntitlementsBundleModel(
@@ -1328,6 +1339,9 @@ class EntitlementsBundleModel {
               json['seller'] as Map<String, dynamic>,
             )
           : null,
+      promotionalAdsSuppressed:
+          json['promotional_ads_suppressed'] as bool? ?? false,
+      adsEnabled: json['ads_enabled'] as bool? ?? true,
     );
   }
 }

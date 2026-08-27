@@ -64,7 +64,8 @@ def attach_premium_flags(seller: SellerProfile, *, persist: bool = False) -> boo
     setattr(seller, "is_buyer_plus", buyer_active)
     setattr(seller, "is_driver_pro", seller_active)
     setattr(seller, "show_plus_badge", buyer_active)
-    setattr(seller, "promotional_ads_suppressed", buyer_active)
+    setattr(seller, "promotional_ads_suppressed", buyer_active or seller_active)
+    setattr(seller, "ads_enabled", not (buyer_active or seller_active))
     return seller_active
 
 

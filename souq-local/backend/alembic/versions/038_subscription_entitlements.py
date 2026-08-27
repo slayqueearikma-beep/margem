@@ -50,8 +50,8 @@ def upgrade() -> None:
         UPDATE subscription_plans
         SET name = 'DriverPro',
             price_mad = 149,
-            description = 'Seller subscription — up to 20 combined products/services and video uploads.',
-            features = '["combined_listing_limit_20", "video_uploads", "featured_placement", "premium_badge"]'::jsonb
+            description = 'Seller subscription — ad-free access, up to 20 combined products/services, and video uploads.',
+            features = '["promotional_ads_suppressed", "combined_listing_limit_20", "video_uploads", "featured_placement", "premium_badge"]'::jsonb
         WHERE code = 'seller_pro'
         """
     )
