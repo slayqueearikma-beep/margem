@@ -46,6 +46,4 @@ export function buildPageMetadata({
   };
 }
 
-export function jsonLd(data: Record<string, unknown>): string {
-  return JSON.stringify(data);
-}
+export { safeJsonLd as jsonLd } from "./security";

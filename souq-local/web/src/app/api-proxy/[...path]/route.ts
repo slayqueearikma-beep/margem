@@ -1,14 +1,34 @@
 import { getServerApiBaseUrl } from "@/lib/config";
+import {
+  isAllowedPublicProxyPath,
+  normalizeProxyPath,
+  PROXY_SAFE_RESPONSE_HEADERS,
+} from "@/lib/security";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
 };
 
+function rejectProxy(message: string, status = 403): Response {
+  return Response.json({ detail: message }, { status });
+}
+
 async function proxyToApi(request: Request, pathSegments: string[]): Promise<Response> {
+  const normalizedPath = normalizeProxyPath(pathSegments);
+  if (!normalizedPath) {
+    return rejectProxy("Invalid proxy path.");
+  }
+  if (!isAllowedPublicProxyPath(normalizedPath)) {
+    return rejectProxy("Path not allowed through the public web proxy.");
+  }
+
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return rejectProxy("Method not allowed.", 405);
+  }
+
   const base = getServerApiBaseUrl();
   const incoming = new URL(request.url);
-  const targetPath = pathSegments.join("/");
-  const target = `${base}/${targetPath}${incoming.search}`;
+  const target = `${base}/${normalizedPath}${incoming.search}`;
 
   const headers = new Headers();
   const accept = request.headers.get("accept");
@@ -19,10 +39,6 @@ async function proxyToApi(request: Request, pathSegments: string[]): Promise<Res
     upstream = await fetch(target, {
       method: request.method,
       headers,
-      body:
-        request.method === "GET" || request.method === "HEAD"
-          ? undefined
-          : await request.arrayBuffer(),
       cache: "no-store",
     });
   } catch (error) {
@@ -34,10 +50,12 @@ async function proxyToApi(request: Request, pathSegments: string[]): Promise<Res
   }
 
   const responseHeaders = new Headers();
-  const contentType = upstream.headers.get("content-type");
-  if (contentType) responseHeaders.set("Content-Type", contentType);
-  const cacheControl = upstream.headers.get("cache-control");
-  if (cacheControl) responseHeaders.set("Cache-Control", cacheControl);
+  for (const name of PROXY_SAFE_RESPONSE_HEADERS) {
+    const value = upstream.headers.get(name);
+    if (value) responseHeaders.set(name, value);
+  }
+  responseHeaders.set("Cache-Control", responseHeaders.get("Cache-Control") || "no-store");
+  responseHeaders.set("X-Content-Type-Options", "nosniff");
 
   return new Response(upstream.body, {
     status: upstream.status,
