@@ -39,7 +39,7 @@ class SellerMoreTab extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         DashboardMenuTile(
-          title: l10n.premium,
+          title: l10n.upgradeToPremium,
           subtitle: l10n.premiumUpgradeSub,
           icon: Icons.workspace_premium_outlined,
           onTap: () => context.push('/premium'),
@@ -67,12 +67,6 @@ class SellerMoreTab extends ConsumerWidget {
               ),
             );
           },
-        ),
-        DashboardMenuTile(
-          title: l10n.navBoost,
-          subtitle: l10n.boostSubtitle,
-          icon: Icons.rocket_launch_outlined,
-          onTap: () => context.push('/seller/boost'),
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
