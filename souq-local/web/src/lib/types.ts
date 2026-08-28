@@ -57,6 +57,7 @@ export interface ServiceOut {
   price_mad: number | null;
   price_negotiable?: boolean;
   image_url: string;
+  video_url?: string;
   category_slug: string;
   is_available: boolean;
   coverage_areas?: string[];
@@ -93,6 +94,7 @@ export interface ProductSearchOut {
   price_mad: number | null;
   price_negotiable?: boolean;
   image_url: string;
+  video_url?: string;
   category_slug: string;
   is_available: boolean;
 }
@@ -110,6 +112,7 @@ export interface ServiceListItem {
   price_mad: number | null;
   price_negotiable?: boolean;
   image_url: string;
+  video_url?: string;
   category_slug: string;
   is_available: boolean;
 }
@@ -127,6 +130,7 @@ export interface ServiceSearchOut {
   price_mad: number | null;
   price_negotiable?: boolean;
   image_url: string;
+  video_url?: string;
   category_slug: string;
   is_available: boolean;
 }

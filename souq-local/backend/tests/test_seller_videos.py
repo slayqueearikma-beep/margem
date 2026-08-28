@@ -87,11 +87,14 @@ async def test_add_video_rejects_unvalidated_media_for_free_seller():
                 "content_type": "video/mp4",
             },
         )
-        assert response.status_code == 400, response.text
+        assert response.status_code == 403, response.text
+        assert "DriverPro" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
-async def test_add_video_rejects_duration_60_seconds():
+async def test_add_video_rejects_duration_60_seconds(monkeypatch):
+    monkeypatch.setattr(settings, "payment_provider", "manual")
+    monkeypatch.setattr(settings, "allow_manual_billing", True)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         seller = await _register(client, "video-long@example.com")
@@ -99,20 +102,12 @@ async def test_add_video_rejects_duration_60_seconds():
         headers = {"Authorization": f"Bearer {token}"}
         created = await _create_seller(client, token)
 
-        from app.database import SessionLocal
-        from app.models import SellerProfile, User
-        from sqlalchemy import select
-
-        async with SessionLocal() as session:
-            result = await session.execute(select(User).where(User.email == "video-long@example.com"))
-            user = result.scalar_one()
-            seller = (
-                await session.execute(
-                    select(SellerProfile).where(SellerProfile.user_id == user.id)
-                )
-            ).scalar_one()
-            seller.is_premium = True
-            await session.commit()
+        checkout = await client.post(
+            "/billing/checkout/subscription/seller_pro",
+            headers=headers,
+            json={},
+        )
+        assert checkout.status_code == 201, checkout.text
 
         response = await client.post(
             f"/sellers/{created['id']}/videos",
@@ -130,6 +125,8 @@ async def test_add_video_rejects_duration_60_seconds():
 async def test_local_video_upload_and_publish(tmp_path, monkeypatch):
     from app.services.storage_provider import reset_storage_provider_cache
 
+    monkeypatch.setattr(settings, "payment_provider", "manual")
+    monkeypatch.setattr(settings, "allow_manual_billing", True)
     monkeypatch.setattr(settings, "storage_provider", "local")
     monkeypatch.setattr(settings, "storage_backend", "local")
     monkeypatch.setattr(settings, "local_media_root", str(tmp_path))
@@ -143,20 +140,12 @@ async def test_local_video_upload_and_publish(tmp_path, monkeypatch):
         headers = {"Authorization": f"Bearer {token}"}
         created = await _create_seller(client, token)
 
-        from app.database import SessionLocal
-        from app.models import SellerProfile, User
-        from sqlalchemy import select
-
-        async with SessionLocal() as session:
-            result = await session.execute(select(User).where(User.email == "video-premium@example.com"))
-            user = result.scalar_one()
-            seller = (
-                await session.execute(
-                    select(SellerProfile).where(SellerProfile.user_id == user.id)
-                )
-            ).scalar_one()
-            seller.is_premium = True
-            await session.commit()
+        checkout = await client.post(
+            "/billing/checkout/subscription/seller_pro",
+            headers=headers,
+            json={},
+        )
+        assert checkout.status_code == 201, checkout.text
 
         mp4 = _minimal_mp4()
         presign = await client.post(
