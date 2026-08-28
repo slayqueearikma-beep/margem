@@ -37,7 +37,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     offset,
     limit,
   });
-  const ads = await loadActiveAdvertisements(3);
+  const ads = await loadActiveAdvertisements("search_results", { city, categorySlug: category });
 
   const filterParams = {
     q: q || undefined,
@@ -59,7 +59,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <SearchBar defaultQuery={q} defaultMode={mode} />
       </Suspense>
 
-      {ads[0] ? <AdvertisementBanner ad={ads[0]} /> : null}
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} placement="search_results" /> : null}
 
       {!outcome.ok ? (
         <ErrorState

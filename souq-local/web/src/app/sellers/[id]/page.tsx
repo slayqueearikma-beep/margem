@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { ProductCard, ServiceCard } from "@/components/listing-cards";
 import { TrustBadges } from "@/components/trust-badges";
 import { EmptyState } from "@/components/states";
@@ -9,7 +10,7 @@ import {
   truncate,
   verificationLabel,
 } from "@/lib/format";
-import { loadReviews, loadSeller } from "@/lib/marketplace-fetch";
+import { loadActiveAdvertisements, loadReviews, loadSeller } from "@/lib/marketplace-fetch";
 import { resolveMediaUrl } from "@/lib/media";
 import { buildPageMetadata, jsonLd } from "@/lib/seo";
 
@@ -62,6 +63,7 @@ export default async function SellerDetailPage({ params }: SellerDetailProps) {
     );
   }
   const seller = sellerOutcome.data;
+  const ads = await loadActiveAdvertisements("seller_profile", { city: seller.city });
 
   const reviewsOutcome = await loadReviews(id);
   const reviews = reviewsOutcome.ok ? reviewsOutcome.data : [];
@@ -88,6 +90,7 @@ export default async function SellerDetailPage({ params }: SellerDetailProps) {
 
   return (
     <div className="space-y-10">
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} placement="seller_profile" /> : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}

@@ -1,7 +1,8 @@
+import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { ServiceCard } from "@/components/listing-cards";
 import { PaginationNav } from "@/components/pagination";
 import { EmptyState, ErrorState } from "@/components/states";
-import { describeFetchError, loadSearch } from "@/lib/marketplace-fetch";
+import { describeFetchError, loadActiveAdvertisements, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
@@ -30,6 +31,11 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
     offset,
     limit,
   });
+  const ads = await loadActiveAdvertisements("service_listing", {
+    city,
+    categorySlug: category,
+    listingType: "service",
+  });
 
   return (
     <div className="space-y-8">
@@ -39,6 +45,8 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
           Discover services from local businesses on Dribex.
         </p>
       </div>
+
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} placement="service_listing" /> : null}
 
       {!outcome.ok ? (
         <ErrorState

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { EmptyState, ErrorState } from "@/components/states";
 import { cityFromSlug } from "@/lib/format";
 import { isActiveLaunchCity } from "@/lib/launch-cities";
 import { ACTIVE_LAUNCH_CITY_NAME } from "@/lib/launch-cities";
-import { describeFetchError, loadGeographyCities, loadSearch } from "@/lib/marketplace-fetch";
+import { describeFetchError, loadActiveAdvertisements, loadGeographyCities, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 type CityDetailProps = {
@@ -55,6 +56,7 @@ export default async function CityDetailPage({ params }: CityDetailProps) {
   }
 
   const searchOutcome = await loadSearch({ mode: "all", city: cityName, limit: 12 });
+  const ads = await loadActiveAdvertisements("city_page", { city: slug });
 
   return (
     <div className="space-y-10">
@@ -67,6 +69,8 @@ export default async function CityDetailPage({ params }: CityDetailProps) {
           Public marketplace listings available in {cityName}.
         </p>
       </div>
+
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} placement="city_page" /> : null}
 
       {!searchOutcome.ok ? (
         <ErrorState

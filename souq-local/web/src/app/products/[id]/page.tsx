@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { MediaImage } from "@/components/media-image";
 import { ListingVideo } from "@/components/listing-video";
 import { TrustBadges } from "@/components/trust-badges";
@@ -7,6 +8,7 @@ import { EmptyState } from "@/components/states";
 import { ApiError } from "@/lib/api";
 import { formatPrice, truncate } from "@/lib/format";
 import { fetchProduct } from "@/lib/marketplace-api";
+import { loadActiveAdvertisements } from "@/lib/marketplace-fetch";
 import { resolveMediaUrl } from "@/lib/media";
 import { buildPageMetadata, jsonLd } from "@/lib/seo";
 
@@ -53,6 +55,11 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
   }
 
   const { product, seller } = data;
+  const ads = await loadActiveAdvertisements("product_detail", {
+    city: seller.city,
+    categorySlug: product.category_slug,
+    listingType: "product",
+  });
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -71,6 +78,11 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
 
   return (
     <article className="grid gap-8 lg:grid-cols-2">
+      {ads[0] ? (
+        <div className="lg:col-span-2">
+          <AdvertisementBanner ad={ads[0]} placement="product_detail" />
+        </div>
+      ) : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}

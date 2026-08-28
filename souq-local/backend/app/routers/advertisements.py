@@ -2,24 +2,122 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user_optional
+from app.config import settings
 from app.database import get_db
 from app.models import User
-from app.schemas.advertisements import AdvertisementPublicOut
-from app.services.platform_advertisements import list_active_advertisements
+from app.schemas.advertisements import AdvertisementPublicOut, ImpressionCreate, ImpressionOut
+from app.services.platform_advertisements import (
+    get_advertisement,
+    list_active_advertisements,
+    record_click,
+    record_impression,
+)
 
 router = APIRouter(prefix="/ads", tags=["advertisements"])
 
 
+def _public_click_url(campaign_id: UUID, placement: str) -> str:
+    return f"/ads/click/{campaign_id}?placement={placement}"
+
+
+def _to_public_out(ad, *, placement: str) -> AdvertisementPublicOut:
+    return AdvertisementPublicOut(
+        id=ad.id,
+        title=ad.title,
+        description=ad.description,
+        image_url=ad.image_url,
+        video_url=ad.video_url,
+        target_url=ad.target_url,
+        placement=ad.placement,
+        click_url=_public_click_url(ad.id, placement),
+    )
+
+
 @router.get("/active", response_model=list[AdvertisementPublicOut])
 async def active_advertisements(
-    limit: int = Query(default=5, ge=1, le=20),
+    placement: str = Query(default="homepage_top"),
+    city: str | None = Query(default=None, max_length=100),
+    category_slug: str | None = Query(default=None, max_length=100),
+    listing_type: str | None = Query(default=None, max_length=20),
+    platform: str = Query(default="web", max_length=20),
+    limit: int = Query(default=1, ge=1, le=5),
+    viewer_key: str | None = Header(default=None, alias="X-Ad-Viewer"),
     user: User | None = Depends(get_current_user_optional),
     session: AsyncSession = Depends(get_db),
 ) -> list[AdvertisementPublicOut]:
-    """Return active promotional ads unless the viewer has an ad-free subscription."""
-    ads = await list_active_advertisements(session, user=user, limit=limit)
-    return [AdvertisementPublicOut.model_validate(ad) for ad in ads]
+    """Return eligible promotional ads for a placement unless ads are disabled or viewer is ad-free."""
+    if not settings.ads_enabled:
+        return []
+    ads = await list_active_advertisements(
+        session,
+        user=user,
+        placement=placement,
+        city=city,
+        category_slug=category_slug,
+        listing_type=listing_type,
+        platform=platform,
+        viewer_key=viewer_key,
+        limit=limit,
+    )
+    return [_to_public_out(ad, placement=placement) for ad in ads]
+
+
+@router.post("/impressions", response_model=ImpressionOut)
+async def register_impression(
+    payload: ImpressionCreate,
+    platform: str = Query(default="web", max_length=20),
+    viewer_key: str | None = Header(default=None, alias="X-Ad-Viewer"),
+    session: AsyncSession = Depends(get_db),
+) -> ImpressionOut:
+    if not settings.ads_enabled:
+        return ImpressionOut(recorded=False)
+    try:
+        recorded = await record_impression(
+            session,
+            campaign_id=payload.campaign_id,
+            placement=payload.placement,
+            view_key=payload.view_key,
+            viewer_key=viewer_key,
+            platform=platform,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    if recorded:
+        await session.commit()
+    return ImpressionOut(recorded=recorded)
+
+
+@router.get("/click/{campaign_id}")
+async def click_advertisement(
+    campaign_id: UUID,
+    request: Request,
+    placement: str = Query(default="homepage_top"),
+    click_key: str | None = Query(default=None, max_length=128),
+    platform: str = Query(default="web", max_length=20),
+    viewer_key: str | None = Header(default=None, alias="X-Ad-Viewer"),
+    session: AsyncSession = Depends(get_db),
+) -> RedirectResponse:
+    if not settings.ads_enabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Advertisement not found")
+    campaign = await get_advertisement(session, campaign_id)
+    if campaign is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Advertisement not found")
+
+    dedupe_key = click_key or request.headers.get("X-Request-Id") or str(campaign_id)
+    await record_click(
+        session,
+        campaign_id=campaign_id,
+        placement=placement,
+        click_key=dedupe_key[:128],
+        viewer_key=viewer_key,
+        platform=platform,
+    )
+    await session.commit()
+    return RedirectResponse(url=campaign.target_url, status_code=status.HTTP_302_FOUND)

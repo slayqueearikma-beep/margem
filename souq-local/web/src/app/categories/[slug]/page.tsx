@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { ProductCard, SellerCard, ServiceCard } from "@/components/listing-cards";
 import { EmptyState, ErrorState } from "@/components/states";
 import { categoryLabel } from "@/lib/format";
-import { describeFetchError, loadCategories, loadSearch } from "@/lib/marketplace-fetch";
+import { describeFetchError, loadActiveAdvertisements, loadCategories, loadSearch } from "@/lib/marketplace-fetch";
 import { buildPageMetadata } from "@/lib/seo";
 
 type CategoryDetailProps = {
@@ -55,6 +56,7 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
   }
 
   const search = searchOutcome.data;
+  const ads = await loadActiveAdvertisements("category_page", { categorySlug: slug });
 
   return (
     <div className="space-y-10">
@@ -67,6 +69,8 @@ export default async function CategoryDetailPage({ params }: CategoryDetailProps
           Products, services, and businesses tagged with {category.slug}.
         </p>
       </div>
+
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} placement="category_page" /> : null}
 
       {search.products.length > 0 ? (
         <section className="space-y-4">

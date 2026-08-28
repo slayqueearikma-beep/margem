@@ -776,17 +776,123 @@ class RewardedAdGrant(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+class PlatformAdCampaignStatus(str, enum.Enum):
+    DRAFT = "draft"
+    SCHEDULED = "scheduled"
+    ACTIVE = "active"
+    PAUSED = "paused"
+    EXPIRED = "expired"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class PlatformAdPaymentStatus(str, enum.Enum):
+    PENDING = "pending"
+    PAID = "paid"
+    CANCELLED = "cancelled"
+    REFUNDED = "refunded"
+
+
+platform_ad_campaign_status_enum = _enum(PlatformAdCampaignStatus, "platformadcampaignstatus")
+platform_ad_payment_status_enum = _enum(PlatformAdPaymentStatus, "platformadpaymentstatus")
+
+
 class PlatformAdvertisement(Base):
-    """Admin-managed promotional banner shown on the public web storefront."""
+    """Admin-managed promotional campaign shown on the public storefront."""
 
     __tablename__ = "platform_advertisements"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    advertiser_name: Mapped[str] = mapped_column(String(200), default="")
+    campaign_name: Mapped[str] = mapped_column(String(200), default="")
     title: Mapped[str] = mapped_column(String(120))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     image_url: Mapped[str] = mapped_column(String(2048))
+    video_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     target_url: Mapped[str] = mapped_column(String(2048))
+    contact_info: Mapped[str] = mapped_column(String(500), default="")
+    placement: Mapped[str] = mapped_column(String(64), default="homepage_top", index=True)
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    status: Mapped[PlatformAdCampaignStatus] = mapped_column(
+        platform_ad_campaign_status_enum,
+        default=PlatformAdCampaignStatus.DRAFT,
+        index=True,
+    )
+    priority: Mapped[int] = mapped_column(Integer, default=5)
+    max_impressions: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_impressions_per_user_per_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_interval_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    impression_count: Mapped[int] = mapped_column(Integer, default=0)
+    click_count: Mapped[int] = mapped_column(Integer, default=0)
+    payment_status: Mapped[PlatformAdPaymentStatus] = mapped_column(
+        platform_ad_payment_status_enum,
+        default=PlatformAdPaymentStatus.PENDING,
+    )
+    payment_override: Mapped[bool] = mapped_column(Boolean, default=False)
+    internal_notes: Mapped[str] = mapped_column(Text, default="")
+    created_by_admin_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    target_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    target_category_slug: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    target_listing_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    target_platform: Mapped[str] = mapped_column(String(20), default="all")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+
+    impressions: Mapped[list["AdImpression"]] = relationship(back_populates="campaign")
+    clicks: Mapped[list["AdClick"]] = relationship(back_populates="campaign")
+
+
+class AdImpression(Base):
+    __tablename__ = "ad_impressions"
+    __table_args__ = (
+        UniqueConstraint("campaign_id", "view_key", name="uq_ad_impressions_campaign_view_key"),
+        Index("ix_ad_impressions_campaign_recorded", "campaign_id", "recorded_at"),
+        Index("ix_ad_impressions_campaign_viewer_day", "campaign_id", "viewer_key", "recorded_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("platform_advertisements.id", ondelete="CASCADE"),
+        index=True,
+    )
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    viewer_key: Mapped[str] = mapped_column(String(128), default="")
+    placement: Mapped[str] = mapped_column(String(64), default="")
+    platform: Mapped[str] = mapped_column(String(20), default="web")
+    view_key: Mapped[str] = mapped_column(String(128))
+
+    campaign: Mapped[PlatformAdvertisement] = relationship(back_populates="impressions")
+
+
+class AdClick(Base):
+    __tablename__ = "ad_clicks"
+    __table_args__ = (
+        UniqueConstraint("campaign_id", "click_key", name="uq_ad_clicks_campaign_click_key"),
+        Index("ix_ad_clicks_campaign_recorded", "campaign_id", "recorded_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("platform_advertisements.id", ondelete="CASCADE"),
+        index=True,
+    )
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    viewer_key: Mapped[str] = mapped_column(String(128), default="")
+    placement: Mapped[str] = mapped_column(String(64), default="")
+    platform: Mapped[str] = mapped_column(String(20), default="web")
+    click_key: Mapped[str] = mapped_column(String(128))
+
+    campaign: Mapped[PlatformAdvertisement] = relationship(back_populates="clicks")
 
 
 class PrivacyRequestType(str, enum.Enum):
