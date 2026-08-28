@@ -537,6 +537,8 @@ abstract class AppStrings {
   String analyticsSummary(int profileViews, int contactClicks);
   String get premiumActiveSub;
   String get premiumUpgradeSub;
+  List<String> get driverProPlanFeatures;
+  List<String> get buyerPlusPlanFeatures;
   String get loading;
   String get pending;
   String get completed;

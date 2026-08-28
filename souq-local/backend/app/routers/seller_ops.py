@@ -555,16 +555,17 @@ async def reply_message(
 async def list_plans(
     audience: str | None = Query(default=None, pattern="^(buyer|seller)$"),
     session: AsyncSession = Depends(get_db),
-) -> list[SubscriptionPlan]:
+) -> list[PlanOut]:
+    from app.services.subscription_catalog import apply_catalog_to_plan
     from app.services.subscription_service import plan_audience
 
     result = await session.execute(
         select(SubscriptionPlan).where(SubscriptionPlan.is_active.is_(True)).order_by(SubscriptionPlan.price_mad.asc())
     )
     plans = list(result.scalars().all())
-    if audience is None:
-        return plans
-    return [plan for plan in plans if plan_audience(plan.code) == audience]
+    if audience is not None:
+        plans = [plan for plan in plans if plan_audience(plan.code) == audience]
+    return [PlanOut.model_validate(apply_catalog_to_plan(plan)) for plan in plans]
 
 
 @router.get("/subscriptions/me", response_model=SubscriptionOut | None)
@@ -572,6 +573,7 @@ async def my_subscription(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> SubscriptionOut | None:
+    from app.services.subscription_catalog import apply_catalog_to_plan
     from app.services.subscription_service import get_active_subscription, revoke_expired_entitlements
 
     sub = await get_active_subscription(session, user.id)
@@ -581,7 +583,7 @@ async def my_subscription(
         return None
     return SubscriptionOut(
         id=sub.id,
-        plan=PlanOut.model_validate(sub.plan),
+        plan=PlanOut.model_validate(apply_catalog_to_plan(sub.plan)),
         status=sub.status,
         current_period_start=sub.current_period_start,
         current_period_end=sub.current_period_end,
@@ -597,6 +599,7 @@ async def my_entitlements(
     session: AsyncSession = Depends(get_db),
 ) -> EntitlementsResponse:
     from app.services.entitlements import build_entitlements
+    from app.services.subscription_catalog import apply_catalog_to_plan
 
     bundle = await build_entitlements(session, user)
     await session.commit()

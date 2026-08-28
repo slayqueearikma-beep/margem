@@ -55,6 +55,10 @@ from app.routers import (
 from app.services.local_storage import media_root
 from app.services.community_chat import ensure_all_city_communities, ensure_default_cities
 from app.services.geography import ensure_geography_seeded, seed_morocco_cities_if_empty
+from app.services.subscription_catalog import (
+    ensure_subscription_plans_seeded,
+    sync_subscription_plans_catalog,
+)
 from app.services.subscription_maintenance import run_subscription_maintenance
 from app.telemetry import configure_telemetry
 
@@ -98,81 +102,16 @@ if settings.serve_embedded_admin:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure premium plans exist after migrations / fresh create_all environments.
     async with database.SessionLocal() as session:
-        existing = await session.execute(select(SubscriptionPlan).limit(1))
-        if existing.scalar_one_or_none() is None:
-            session.add_all(
-                [
-                    SubscriptionPlan(
-                        id=uuid4(),
-                        code="buyer_premium",
-                        name="Dribex Plus+",
-                        description="Buyer subscription — suppress promotional ads and show Plus+ badge.",
-                        price_mad=50,
-                        billing_period_days=30,
-                        features=[
-                            "promotional_ads_suppressed",
-                            "plus_plus_badge",
-                            "saved_searches_sync",
-                            "priority_support",
-                        ],
-                    ),
-                    SubscriptionPlan(
-                        id=uuid4(),
-                        code="seller_pro",
-                        name="DriverPro",
-                        description="Seller subscription — ad-free access, up to 20 combined products/services, and video uploads.",
-                        price_mad=149,
-                        billing_period_days=30,
-                        features=[
-                            "promotional_ads_suppressed",
-                            "combined_listing_limit_20",
-                            "video_uploads",
-                            "featured_placement",
-                            "premium_badge",
-                        ],
-                    ),
-                ]
-            )
-            await session.commit()
+        await ensure_subscription_plans_seeded(session)
+    async with database.SessionLocal() as session:
+        await sync_subscription_plans_catalog(session)
 
     async with database.SessionLocal() as session:
         await session.execute(
             update(Marketplace)
             .where(Marketplace.slug == "9ri3a", Marketplace.name == "9ri3a")
             .values(name="Al Qurayaa")
-        )
-        await session.execute(
-            update(SubscriptionPlan)
-            .where(SubscriptionPlan.code == "buyer_premium")
-            .values(
-                name="Dribex Plus+",
-                price_mad=50,
-                description="Buyer subscription — suppress promotional ads and show Plus+ badge.",
-                features=[
-                    "promotional_ads_suppressed",
-                    "plus_plus_badge",
-                    "saved_searches_sync",
-                    "priority_support",
-                ],
-            )
-        )
-        await session.execute(
-            update(SubscriptionPlan)
-            .where(SubscriptionPlan.code == "seller_pro")
-            .values(
-                name="DriverPro",
-                price_mad=149,
-                description="Seller subscription — ad-free access, up to 20 combined products/services, and video uploads.",
-                features=[
-                    "promotional_ads_suppressed",
-                    "combined_listing_limit_20",
-                    "video_uploads",
-                    "featured_placement",
-                    "premium_badge",
-                ],
-            )
         )
         await session.commit()
 
