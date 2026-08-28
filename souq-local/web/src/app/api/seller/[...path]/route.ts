@@ -2,25 +2,14 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getServerApiBaseUrl } from "@/lib/config";
 import { SELLER_TOKEN_COOKIE } from "@/lib/seller-auth";
-
-const ALLOWED_PREFIXES = [
-  "sellers/",
-  "uploads/",
-  "subscriptions/",
-  "auth/me",
-  "billing/checkout/subscription/",
-];
-
-function isAllowedSellerProxyPath(path: string): boolean {
-  return ALLOWED_PREFIXES.some((prefix) => path === prefix.replace(/\/$/, "") || path.startsWith(prefix));
-}
+import { isAllowedSellerProxyPath, normalizeProxyPath } from "@/lib/security-core.js";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
 };
 
 async function forward(request: Request, pathSegments: string[]): Promise<Response> {
-  const normalized = pathSegments.map((segment) => decodeURIComponent(segment)).join("/");
+  const normalized = normalizeProxyPath(pathSegments);
   if (!normalized || !isAllowedSellerProxyPath(normalized)) {
     return NextResponse.json({ detail: "Path not allowed." }, { status: 403 });
   }

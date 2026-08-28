@@ -179,3 +179,21 @@ export const PROXY_SAFE_RESPONSE_HEADERS = [
   "etag",
   "last-modified",
 ];
+
+const SELLER_PROXY_ALLOWED_PREFIXES = [
+  "sellers/",
+  "uploads/",
+  "subscriptions/",
+  "billing/checkout/subscription/",
+];
+
+const SELLER_PROXY_ALLOWED_EXACT = new Set(["auth/me"]);
+
+export function isAllowedSellerProxyPath(path) {
+  const normalized = (path || "").replace(/^\/+/, "").replace(/\/+$/, "");
+  if (!normalized) return false;
+  if (SELLER_PROXY_ALLOWED_EXACT.has(normalized)) return true;
+  return SELLER_PROXY_ALLOWED_PREFIXES.some(
+    (prefix) => normalized === prefix.replace(/\/$/, "") || normalized.startsWith(prefix),
+  );
+}
