@@ -126,7 +126,7 @@ services:
       PAYMENTS_ENABLED: ${PAYMENTS_ENABLED:-false}
       SUBSCRIPTIONS_ENABLED: ${SUBSCRIPTIONS_ENABLED:-false}
       ADS_ENABLED: ${ADS_ENABLED:-true}
-      REWARDED_ADS_ENABLED: ${REWARDED_ADS_ENABLED:-true}
+      REWARDED_ADS_ENABLED: ${REWARDED_ADS_ENABLED:-false}
       REWARDED_AD_SIGNING_SECRET: ${REWARDED_AD_SIGNING_SECRET:?set REWARDED_AD_SIGNING_SECRET}
       NAPS_ENVIRONMENT: ${NAPS_ENVIRONMENT:-sandbox}
       NAPS_MERCHANT_ID: ${NAPS_MERCHANT_ID:-}
@@ -158,6 +158,39 @@ services:
           memory: 1G
           cpus: "1.0"
 
+  web:
+    build:
+      context: ../..
+      dockerfile: web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${PUBLIC_API_URL}
+        NEXT_PUBLIC_SITE_URL: ${PUBLIC_APP_URL}
+        NEXT_PUBLIC_LAUNCH_CITIES: ${NEXT_PUBLIC_LAUNCH_CITIES:-Casablanca}
+    restart: unless-stopped
+    environment:
+      DRIBEX_WEB_IN_DOCKER: "1"
+      API_BASE_URL: http://api:8000
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${PUBLIC_API_URL}
+      NEXT_PUBLIC_SITE_URL: ${PUBLIC_APP_URL}
+      NEXT_PUBLIC_LAUNCH_CITIES: ${NEXT_PUBLIC_LAUNCH_CITIES:-Casablanca}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
   nginx:
     image: nginx:1.27-alpine
     restart: unless-stopped
@@ -170,6 +203,8 @@ services:
       - nginx_logs:/var/log/nginx
     depends_on:
       api:
+        condition: service_healthy
+      web:
         condition: service_healthy
     networks: [internal, edge]
     healthcheck:

@@ -16,6 +16,7 @@ export const VIDEO_MESSAGES: Record<
     rewardedAdLoading: string;
     rewardedAdFailed: string;
     rewardedAdPlaying: string;
+    rewardedAdSimulatedNotice: string;
     videoUploadHint: string;
     videoPreview: string;
     removeVideo: string;
@@ -41,6 +42,8 @@ export const VIDEO_MESSAGES: Record<
     rewardedAdLoading: "Unlocking…",
     rewardedAdFailed: "Could not verify the rewarded ad. Please try again.",
     rewardedAdPlaying: "Advertisement playing…",
+    rewardedAdSimulatedNotice:
+      "Feature unlock only — this is not a paid advertisement and does not generate ad revenue.",
     videoUploadHint: "Add a video to your listing. MP4 or MOV, under 1 minute, max 50 MB.",
     videoPreview: "Video preview",
     removeVideo: "Remove video",
@@ -65,6 +68,8 @@ export const VIDEO_MESSAGES: Record<
     rewardedAdLoading: "Déblocage…",
     rewardedAdFailed: "Impossible de vérifier la publicité récompensée. Réessayez.",
     rewardedAdPlaying: "Publicité en cours…",
+    rewardedAdSimulatedNotice:
+      "Déblocage de fonctionnalité uniquement — ce n'est pas une publicité payante et ne génère pas de revenus publicitaires.",
     videoUploadHint: "Ajoutez une vidéo à votre annonce. MP4 ou MOV, moins d'une minute, 50 Mo max.",
     videoPreview: "Aperçu vidéo",
     removeVideo: "Supprimer la vidéo",
@@ -91,6 +96,8 @@ export const VIDEO_MESSAGES: Record<
     rewardedAdLoading: "جارٍ الفتح…",
     rewardedAdFailed: "تعذر التحقق من الإعلان المكافأ. حاول مرة أخرى.",
     rewardedAdPlaying: "الإعلان قيد التشغيل…",
+    rewardedAdSimulatedNotice:
+      "لفتح الميزة فقط — هذا ليس إعلانًا مدفوعًا ولا يولّد إيرادات إعلانية.",
     videoUploadHint: "أضف فيديو إلى إعلانك. MP4 أو MOV، أقل من دقيقة، بحد أقصى 50 ميغابايت.",
     videoPreview: "معاينة الفيديو",
     removeVideo: "إزالة الفيديو",

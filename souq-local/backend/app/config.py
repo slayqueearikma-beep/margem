@@ -203,7 +203,7 @@ class Settings(BaseSettings):
     payments_enabled: bool = False
     subscriptions_enabled: bool = False
     ads_enabled: bool = True
-    rewarded_ads_enabled: bool = True
+    rewarded_ads_enabled: bool = False
     rewarded_ad_signing_secret: str = ""
 
     # NAPS ePay — preserved for future paid subscriptions (inactive when payments_enabled=false).
