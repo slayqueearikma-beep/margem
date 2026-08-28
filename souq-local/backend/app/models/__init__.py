@@ -330,6 +330,7 @@ class Service(Base):
     category_slug: Mapped[str] = mapped_column(String(80), default="")
     coverage_areas: Mapped[list] = mapped_column(JSONB, default=list)
     image_url: Mapped[str] = mapped_column(String(512), default="")
+    video_url: Mapped[str] = mapped_column(String(512), default="")
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
