@@ -45,13 +45,18 @@ export function ListingEditorForm({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    void (async () => {
-      const response = await fetch("/api/seller/subscriptions/entitlements");
-      if (response.ok) {
-        setEntitlements((await response.json()) as SellerEntitlements);
-      }
-    })();
+    void refreshEntitlements();
   }, []);
+
+  async function refreshEntitlements() {
+    const response = await fetch("/api/seller/subscriptions/entitlements");
+    if (response.ok) {
+      setEntitlements((await response.json()) as SellerEntitlements);
+    }
+  }
+
+  const videoUploadsEnabled = entitlements?.seller?.video_uploads_enabled ?? false;
+  const rewardedAdsEnabled = entitlements?.rewarded_ads_enabled ?? true;
 
   async function saveListing(event: FormEvent) {
     event.preventDefault();
@@ -106,8 +111,6 @@ export function ListingEditorForm({
       setSaving(false);
     }
   }
-
-  const videoUploadsEnabled = entitlements?.seller?.video_uploads_enabled ?? false;
 
   return (
     <form onSubmit={saveListing} className="mx-auto max-w-2xl space-y-6">
@@ -169,10 +172,12 @@ export function ListingEditorForm({
       <ListingVideoField
         locale={locale}
         videoUploadsEnabled={videoUploadsEnabled}
+        rewardedAdsEnabled={rewardedAdsEnabled}
         initialVideoUrl={initial?.videoUrl || ""}
         value={videoUrl}
         onChange={setVideoUrl}
         onError={(message) => setError(message)}
+        onUnlock={refreshEntitlements}
       />
 
       {isEditing ? (

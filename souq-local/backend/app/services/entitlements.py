@@ -13,6 +13,12 @@ from sqlalchemy.orm import selectinload
 
 from app.config import settings
 from app.models import Product, SellerProfile, Service, Subscription, SubscriptionPlan, SubscriptionStatus, User
+from app.services.rewarded_ads import (
+    FEATURE_SAVED_SEARCH,
+    FEATURE_VIDEO_UPLOAD,
+    has_active_reward,
+    rewarded_ads_operational,
+)
 
 BUYER_PLUS_PLAN_CODE = settings.buyer_plus_plan_code
 DRIVER_PRO_PLAN_CODE = settings.driver_pro_plan_code
@@ -76,6 +82,8 @@ async def get_active_subscription_for_audience(
 
 
 async def has_plus_plus(session: AsyncSession, user: User, *, now: datetime | None = None) -> bool:
+    if not settings.subscriptions_enabled:
+        return False
     sub = await get_active_subscription_for_audience(session, user.id, "buyer", now=now)
     return subscription_grants_benefits(sub, now=now)
 
@@ -87,11 +95,40 @@ async def has_driver_pro(
     *,
     now: datetime | None = None,
 ) -> bool:
+    if not settings.subscriptions_enabled:
+        return False
     profile = seller or await get_seller_profile(session, user.id)
     if profile is None:
         return False
     sub = await get_active_subscription_for_audience(session, user.id, "seller", now=now)
     return subscription_grants_benefits(sub, now=now)
+
+
+async def has_video_upload_access(
+    session: AsyncSession,
+    user: User,
+    seller: SellerProfile,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    if await has_driver_pro(session, user, seller, now=now):
+        return True
+    if rewarded_ads_operational():
+        return await has_active_reward(session, user.id, FEATURE_VIDEO_UPLOAD, now=now)
+    return not settings.subscriptions_enabled and not settings.rewarded_ads_enabled
+
+
+async def has_saved_search_access(
+    session: AsyncSession,
+    user: User,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    if settings.subscriptions_enabled and await has_plus_plus(session, user, now=now):
+        return True
+    if rewarded_ads_operational():
+        return await has_active_reward(session, user.id, FEATURE_SAVED_SEARCH, now=now)
+    return not settings.subscriptions_enabled
 
 
 async def combined_listing_limit(
@@ -101,6 +138,8 @@ async def combined_listing_limit(
     *,
     now: datetime | None = None,
 ) -> int:
+    if not settings.subscriptions_enabled:
+        return settings.driver_pro_combined_listing_limit
     if await has_driver_pro(session, user, seller, now=now):
         return settings.driver_pro_combined_listing_limit
     return settings.free_seller_combined_listing_limit
@@ -134,16 +173,34 @@ async def enforce_combined_listing_limit(
     limit = await combined_listing_limit(session, user, seller)
     count = await count_combined_listings(session, seller_id)
     if count >= limit:
-        if limit <= settings.free_seller_combined_listing_limit:
+        if settings.subscriptions_enabled and limit <= settings.free_seller_combined_listing_limit:
             detail = (
                 f"You have reached the free limit of {limit} combined products and services. "
                 "Upgrade to DriverPro to create up to 20 combined items."
             )
         else:
             detail = (
-                f"You have reached the DriverPro limit of {limit} combined products and services."
+                f"You have reached the listing limit of {limit} combined products and services."
             )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+
+async def require_video_upload_access(
+    session: AsyncSession,
+    user: User,
+    seller: SellerProfile,
+) -> None:
+    if await has_video_upload_access(session, user, seller):
+        return
+    if rewarded_ads_operational():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Watch a rewarded advertisement to unlock video uploads.",
+        )
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="DriverPro subscription is required to upload videos.",
+    )
 
 
 async def require_driver_pro_for_video(
@@ -151,11 +208,7 @@ async def require_driver_pro_for_video(
     user: User,
     seller: SellerProfile,
 ) -> None:
-    if not await has_driver_pro(session, user, seller):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="DriverPro subscription is required to upload videos.",
-        )
+    await require_video_upload_access(session, user, seller)
 
 
 async def sync_entitlement_flags(session: AsyncSession, user: User) -> None:
@@ -230,6 +283,7 @@ class SellerEntitlementsOut:
     combined_listing_limit: int
     combined_listing_remaining: int
     video_uploads_enabled: bool
+    video_reward_active: bool
     promotional_ads_suppressed: bool
     ads_enabled: bool
     started_at: datetime | None
@@ -242,6 +296,9 @@ class EntitlementsBundle:
     seller: SellerEntitlementsOut | None = None
     promotional_ads_suppressed: bool = False
     ads_enabled: bool = True
+    payments_enabled: bool = False
+    subscriptions_enabled: bool = False
+    rewarded_ads_enabled: bool = False
 
 
 def combine_promotional_ad_flags(bundle: EntitlementsBundle) -> tuple[bool, bool]:
@@ -261,13 +318,13 @@ async def build_entitlements(
     await revoke_expired_subscriptions(session, user)
     now = _utc_now()
     buyer_sub = await get_active_subscription_for_audience(session, user.id, "buyer", now=now)
-    buyer_active = subscription_grants_benefits(buyer_sub, now=now)
+    buyer_active = subscription_grants_benefits(buyer_sub, now=now) if settings.subscriptions_enabled else False
     buyer = BuyerEntitlementsOut(
         plan_code=buyer_sub.plan.code if buyer_sub and buyer_sub.plan else None,
         status=buyer_sub.status.value if buyer_sub else None,
         plus_plus_active=buyer_active,
         show_plus_badge=buyer_active,
-        promotional_ads_suppressed=buyer_active,
+        promotional_ads_suppressed=buyer_active and settings.subscriptions_enabled,
         started_at=buyer_sub.current_period_start if buyer_sub else None,
         expires_at=buyer_sub.current_period_end if buyer_sub else None,
     )
@@ -276,9 +333,20 @@ async def build_entitlements(
     seller_out: SellerEntitlementsOut | None = None
     if profile is not None:
         seller_sub = await get_active_subscription_for_audience(session, user.id, "seller", now=now)
-        driver_active = subscription_grants_benefits(seller_sub, now=now)
+        driver_active = (
+            subscription_grants_benefits(seller_sub, now=now) if settings.subscriptions_enabled else False
+        )
+        video_reward_active = (
+            await has_active_reward(session, user.id, FEATURE_VIDEO_UPLOAD, now=now)
+            if rewarded_ads_operational()
+            else False
+        )
+        video_enabled = driver_active or video_reward_active or (
+            not settings.subscriptions_enabled and not rewarded_ads_operational()
+        )
         count = await count_combined_listings(session, profile.id)
         limit = await combined_listing_limit(session, user, profile, now=now)
+        suppress_ads = driver_active and settings.subscriptions_enabled
         seller_out = SellerEntitlementsOut(
             plan_code=seller_sub.plan.code if seller_sub and seller_sub.plan else None,
             status=seller_sub.status.value if seller_sub else None,
@@ -286,18 +354,24 @@ async def build_entitlements(
             combined_listing_count=count,
             combined_listing_limit=limit,
             combined_listing_remaining=max(0, limit - count),
-            video_uploads_enabled=driver_active,
-            promotional_ads_suppressed=driver_active,
-            ads_enabled=not driver_active,
+            video_uploads_enabled=video_enabled,
+            video_reward_active=video_reward_active,
+            promotional_ads_suppressed=suppress_ads,
+            ads_enabled=settings.ads_enabled and not suppress_ads,
             started_at=seller_sub.current_period_start if seller_sub else None,
             expires_at=seller_sub.current_period_end if seller_sub else None,
         )
 
     bundle = EntitlementsBundle(buyer=buyer, seller=seller_out)
     suppressed, ads_enabled = combine_promotional_ad_flags(bundle)
+    if not settings.ads_enabled:
+        ads_enabled = False
     return EntitlementsBundle(
         buyer=buyer,
         seller=seller_out,
-        promotional_ads_suppressed=suppressed,
+        promotional_ads_suppressed=suppressed and settings.subscriptions_enabled,
         ads_enabled=ads_enabled,
+        payments_enabled=settings.payments_enabled,
+        subscriptions_enabled=settings.subscriptions_enabled,
+        rewarded_ads_enabled=settings.rewarded_ads_enabled,
     )

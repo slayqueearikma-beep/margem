@@ -196,10 +196,17 @@ class Settings(BaseSettings):
     ]
 
     # Platform billing only — never buyer↔seller marketplace checkout.
-    payment_provider: str = "manual"
+    payment_provider: str = "none"
     payment_currency: str = "mad"
 
-    # NAPS ePay — sole production payment provider (Morocco)
+    # Launch monetization flags — advertising-first production model.
+    payments_enabled: bool = False
+    subscriptions_enabled: bool = False
+    ads_enabled: bool = True
+    rewarded_ads_enabled: bool = True
+    rewarded_ad_signing_secret: str = ""
+
+    # NAPS ePay — preserved for future paid subscriptions (inactive when payments_enabled=false).
     naps_environment: str = "sandbox"
     naps_merchant_id: str = ""
     naps_api_key: str = ""
@@ -348,6 +355,12 @@ class Settings(BaseSettings):
     def validate_production_settings(self) -> "Settings":
         if not self.mfa_encryption_key:
             object.__setattr__(self, "mfa_encryption_key", self.jwt_secret_key)
+        if not self.rewarded_ad_signing_secret:
+            object.__setattr__(self, "rewarded_ad_signing_secret", self.upload_token_secret or self.jwt_secret_key)
+        if not self.payments_enabled:
+            object.__setattr__(self, "payment_provider", "none")
+        elif self.payment_provider == "none":
+            object.__setattr__(self, "payment_provider", "manual")
         if self.app_env != "production" and self.naps_environment == "production":
             raise ValueError(
                 "Refusing to start: non-production APP_ENV with NAPS_ENVIRONMENT=production. "
@@ -432,17 +445,25 @@ class Settings(BaseSettings):
                     "ADMIN_IP_ALLOWLIST is required in production — "
                     "admin APIs must not be reachable from any IP"
                 )
-            if self.payment_provider == "naps" and self.app_env in {"production", "prod"}:
-                missing = self.naps_missing_config_fields()
-                if missing:
+            if self.payments_enabled:
+                if self.payment_provider == "naps" and self.app_env in {"production", "prod"}:
+                    missing = self.naps_missing_config_fields()
+                    if missing:
+                        raise ValueError(
+                            "NAPS ePay configuration incomplete for production: "
+                            + ", ".join(missing)
+                        )
+                if self.payment_provider == "manual" and self.app_env in {"production", "prod"}:
                     raise ValueError(
-                        "NAPS ePay configuration incomplete for production: "
-                        + ", ".join(missing)
+                        "PAYMENT_PROVIDER=manual is not allowed in production. "
+                        "Use PAYMENT_PROVIDER=naps or set PAYMENTS_ENABLED=false."
                     )
-            if self.payment_provider == "manual" and self.app_env in {"production", "prod"}:
-                raise ValueError(
-                    "PAYMENT_PROVIDER=manual is not allowed in production. Use PAYMENT_PROVIDER=naps."
-                )
+            if self.rewarded_ads_enabled:
+                secret = self.rewarded_ad_signing_secret.strip()
+                if len(secret) < 32:
+                    raise ValueError("REWARDED_AD_SIGNING_SECRET must be at least 32 characters when rewarded ads are enabled")
+                if self._looks_like_placeholder(secret):
+                    raise ValueError("REWARDED_AD_SIGNING_SECRET must not use placeholder values in production")
             for host in self.allowed_hosts:
                 if _is_loopback_or_private_host(host):
                     raise ValueError(

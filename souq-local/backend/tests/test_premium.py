@@ -5,7 +5,7 @@ from app.services.premium import apply_seller_premium_expiry, is_premium_active
 
 def test_is_premium_active_respects_expiry():
     now = datetime(2026, 7, 21, tzinfo=UTC)
-    assert is_premium_active(is_premium=True, premium_until=None, now=now) is True
+    assert is_premium_active(is_premium=True, premium_until=None, now=now) is False
     assert (
         is_premium_active(
             is_premium=True,

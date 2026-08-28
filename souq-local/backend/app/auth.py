@@ -268,13 +268,13 @@ async def require_buyer_premium(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> User:
-    """Require an active Dribex Plus (buyer_premium) subscription."""
-    from app.services.subscription_service import user_has_buyer_premium
+    """Require saved-search access (subscription or rewarded ad grant)."""
+    from app.services.entitlements import has_saved_search_access
 
-    if not await user_has_buyer_premium(session, user):
+    if not await has_saved_search_access(session, user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Dribex Plus subscription required",
+            detail="Saved searches require a rewarded advertisement unlock or Dribex Plus subscription.",
         )
     return user
 

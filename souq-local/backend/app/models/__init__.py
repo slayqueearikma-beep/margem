@@ -730,6 +730,52 @@ class AdminAuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class RewardedAdSessionStatus(str, enum.Enum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    EXPIRED = "expired"
+
+
+class RewardedAdSession(Base):
+    """Short-lived session while a user watches a rewarded advertisement."""
+
+    __tablename__ = "rewarded_ad_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    feature_code: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16), default=RewardedAdSessionStatus.PENDING.value, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class RewardedAdGrant(Base):
+    """Temporary entitlement granted after server-verified rewarded ad completion."""
+
+    __tablename__ = "rewarded_ad_grants"
+    __table_args__ = (
+        UniqueConstraint("provider", "provider_reward_id", name="uq_rewarded_ad_grants_provider_reward"),
+        Index("ix_rewarded_ad_grants_user_feature", "user_id", "feature_code"),
+        Index("ix_rewarded_ad_grants_expires_at", "expires_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    feature_code: Mapped[str] = mapped_column(String(64))
+    session_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("rewarded_ad_sessions.id", ondelete="SET NULL"), nullable=True
+    )
+    provider: Mapped[str] = mapped_column(String(32), default="internal")
+    provider_reward_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    granted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class PlatformAdvertisement(Base):
     """Admin-managed promotional banner shown on the public web storefront."""
 

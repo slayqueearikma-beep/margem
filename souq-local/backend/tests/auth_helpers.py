@@ -57,3 +57,21 @@ async def register_test_user(
         )
         assert accept.status_code == 200, accept.text
     return body
+
+
+async def register_verified_user(
+    client: AsyncClient,
+    *,
+    email: str | None = None,
+    account_type: str = "buyer",
+) -> dict:
+    from uuid import uuid4
+
+    resolved_email = email or f"user-{uuid4().hex[:8]}@example.com"
+    body = await register_test_user(
+        client,
+        email=resolved_email,
+        account_type=account_type,
+        display_name=account_type.title(),
+    )
+    return {"headers": {"Authorization": f"Bearer {body['access_token']}"}, **body}

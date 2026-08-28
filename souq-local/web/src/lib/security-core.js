@@ -185,6 +185,7 @@ const SELLER_PROXY_ALLOWED_PREFIXES = [
   "uploads/",
   "subscriptions/",
   "billing/checkout/subscription/",
+  "rewards/",
 ];
 
 const SELLER_PROXY_ALLOWED_EXACT = new Set(["auth/me"]);

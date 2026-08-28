@@ -2,11 +2,12 @@
 
 import { useRef, useState } from "react";
 import { ListingVideo } from "@/components/listing-video";
-import { DriverProVideoRibbon } from "@/components/seller/driver-pro-video-ribbon";
+import { RewardedAdVideoRibbon } from "@/components/seller/rewarded-ad-video-ribbon";
 import type { AppLocale } from "@/lib/i18n/video-messages";
 import { videoMessages } from "@/lib/i18n/video-messages";
 
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const VIDEO_FEATURE = "video_upload";
 
 function resolveSellerUploadUrl(uploadUrl: string): string {
   try {
@@ -23,10 +24,12 @@ function resolveSellerUploadUrl(uploadUrl: string): string {
 type ListingVideoFieldProps = {
   locale: AppLocale;
   videoUploadsEnabled: boolean;
+  rewardedAdsEnabled?: boolean;
   initialVideoUrl?: string;
   value: string;
   onChange: (url: string) => void;
   onError: (message: string) => void;
+  onUnlock?: () => void | Promise<void>;
 };
 
 async function readVideoDuration(file: File): Promise<number> {
@@ -49,17 +52,71 @@ async function readVideoDuration(file: File): Promise<number> {
 export function ListingVideoField({
   locale,
   videoUploadsEnabled,
+  rewardedAdsEnabled = true,
   initialVideoUrl = "",
   value,
   onChange,
   onError,
+  onUnlock,
 }: ListingVideoFieldProps) {
   const t = videoMessages(locale);
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+  const [adPlaying, setAdPlaying] = useState(false);
   const displayVideoUrl = value || initialVideoUrl;
   const hasExistingVideo = Boolean(displayVideoUrl.trim());
   const locked = !videoUploadsEnabled;
+
+  async function watchRewardedAd() {
+    if (!rewardedAdsEnabled) {
+      onError(t.rewardedAdFailed);
+      return;
+    }
+
+    setUnlocking(true);
+    try {
+      const sessionRes = await fetch("/api/seller/rewards/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feature_code: VIDEO_FEATURE }),
+      });
+      if (!sessionRes.ok) {
+        const body = (await sessionRes.json().catch(() => ({}))) as { detail?: string };
+        throw new Error(body.detail || t.rewardedAdFailed);
+      }
+      const session = (await sessionRes.json()) as {
+        session_id: string;
+        session_token: string;
+      };
+
+      setAdPlaying(true);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const completeRes = await fetch("/api/seller/rewards/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: session.session_id,
+          session_token: session.session_token,
+          provider: "internal",
+        }),
+      });
+      if (!completeRes.ok) {
+        const body = (await completeRes.json().catch(() => ({}))) as { detail?: string };
+        throw new Error(body.detail || t.rewardedAdFailed);
+      }
+
+      if (onUnlock) {
+        await onUnlock();
+      }
+    } catch (error) {
+      onError(error instanceof Error ? error.message : t.rewardedAdFailed);
+    } finally {
+      setAdPlaying(false);
+      setUnlocking(false);
+    }
+  }
 
   async function uploadVideo(file: File) {
     if (file.size > MAX_VIDEO_BYTES) {
@@ -139,7 +196,9 @@ export function ListingVideoField({
         locked ? "border-dashed border-[var(--border)] bg-[var(--background)]" : "border-[var(--border)]"
       }`}
     >
-      {locked ? <DriverProVideoRibbon locale={locale} /> : null}
+      {locked && rewardedAdsEnabled ? (
+        <RewardedAdVideoRibbon locale={locale} onWatchAd={() => void watchRewardedAd()} loading={unlocking} />
+      ) : null}
 
       <div className={locked ? "opacity-80" : undefined}>
         <p className="text-sm font-semibold">{t.videoSectionTitle}</p>
@@ -151,7 +210,7 @@ export function ListingVideoField({
       {locked ? (
         <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-2.5 text-sm text-[var(--muted)]">
           <span aria-hidden="true">🔒</span>
-          <span>{t.videoLockedHint}</span>
+          <span>{adPlaying ? t.rewardedAdPlaying : t.videoLockedHint}</span>
         </div>
       ) : (
         <input
@@ -172,7 +231,7 @@ export function ListingVideoField({
       {hasExistingVideo ? (
         <div className="space-y-2">
           {locked ? (
-            <p className="text-xs text-[var(--muted)]">{t.replaceVideoRequiresDriverPro}</p>
+            <p className="text-xs text-[var(--muted)]">{t.videoLockedHint}</p>
           ) : (
             <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
               {t.videoPreview}
@@ -189,18 +248,6 @@ export function ListingVideoField({
             </button>
           ) : null}
         </div>
-      ) : null}
-
-      {locked ? (
-        <input
-          ref={inputRef}
-          type="file"
-          accept="video/mp4,video/quicktime,.mp4,.mov"
-          className="sr-only"
-          disabled
-          tabIndex={-1}
-          aria-hidden="true"
-        />
       ) : null}
     </div>
   );

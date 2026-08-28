@@ -27,7 +27,11 @@ def _minimal_mp4(duration_units: int = 45000, timescale: int = 1000) -> bytes:
     return ftyp + moov_atom + b"\x00" * 64
 
 
-async def _checkout_driver_pro(client: AsyncClient, headers: dict) -> None:
+async def _checkout_driver_pro(client: AsyncClient, headers: dict, monkeypatch) -> None:
+    monkeypatch.setattr(settings, "subscriptions_enabled", True)
+    monkeypatch.setattr(settings, "payments_enabled", True)
+    monkeypatch.setattr(settings, "payment_provider", "manual")
+    monkeypatch.setattr(settings, "allow_manual_billing", True)
     res = await client.post(
         "/billing/checkout/subscription/seller_pro",
         headers=headers,
@@ -74,6 +78,7 @@ async def _upload_validated_video(client: AsyncClient, headers: dict) -> str:
 async def test_free_seller_cannot_presign_video(monkeypatch):
     monkeypatch.setattr(settings, "payment_provider", "manual")
     monkeypatch.setattr(settings, "allow_manual_billing", True)
+    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         user = await register_test_user(
@@ -97,6 +102,7 @@ async def test_free_seller_cannot_presign_video(monkeypatch):
 async def test_free_seller_cannot_attach_product_video(monkeypatch):
     monkeypatch.setattr(settings, "payment_provider", "manual")
     monkeypatch.setattr(settings, "allow_manual_billing", True)
+    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         user = await register_test_user(
@@ -125,6 +131,7 @@ async def test_free_seller_cannot_attach_product_video(monkeypatch):
 async def test_free_seller_cannot_attach_service_video(monkeypatch):
     monkeypatch.setattr(settings, "payment_provider", "manual")
     monkeypatch.setattr(settings, "allow_manual_billing", True)
+    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         user = await register_test_user(
@@ -163,7 +170,7 @@ async def test_driver_pro_can_attach_product_and_service_video(tmp_path, monkeyp
         )
         headers = {"Authorization": f"Bearer {user['access_token']}"}
         shop = await create_test_seller(client, headers, **seller_create_payload())
-        await _checkout_driver_pro(client, headers)
+        await _checkout_driver_pro(client, headers, monkeypatch)
 
         from app.services.storage_provider import reset_storage_provider_cache
 
@@ -232,7 +239,7 @@ async def test_seller_cannot_attach_video_to_other_sellers_listing(monkeypatch, 
         )
         intruder_headers = {"Authorization": f"Bearer {intruder['access_token']}"}
         await create_test_seller(client, intruder_headers, **seller_create_payload())
-        await _checkout_driver_pro(client, intruder_headers)
+        await _checkout_driver_pro(client, intruder_headers, monkeypatch)
 
         from app.services.storage_provider import reset_storage_provider_cache
 

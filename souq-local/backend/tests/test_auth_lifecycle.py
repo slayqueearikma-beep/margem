@@ -72,6 +72,7 @@ def test_production_allows_email_fallback_flag():
         app_env="production",
         debug=False,
         auth_dev_bypass=False,
+        admin_require_staff_mfa=True,
         jwt_secret_key="a-real-production-secret-key-32chars-min",
         upload_token_secret="a-separate-production-upload-secret-32chars",
         mfa_encryption_key="a-separate-production-mfa-encryption-key32",
