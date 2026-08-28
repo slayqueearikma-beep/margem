@@ -20,6 +20,7 @@ os.environ.setdefault("PAYMENT_PROVIDER", "manual")
 os.environ.setdefault("REWARDED_ADS_ENABLED", "true")
 os.environ.setdefault("ADS_ENABLED", "true")
 os.environ.setdefault("REWARDED_AD_SIGNING_SECRET", "test-rewarded-ad-signing-secret-32chars")
+os.environ.setdefault("LISTING_VIDEO_UPLOADS_ENABLED", "true")
 
 import pytest_asyncio
 from sqlalchemy import select, text

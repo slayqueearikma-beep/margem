@@ -262,3 +262,78 @@ async def test_seller_cannot_attach_video_to_other_sellers_listing(monkeypatch, 
             },
         )
         assert product.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_listing_video_uploads_disabled_rejects_presign(monkeypatch):
+    monkeypatch.setattr(settings, "listing_video_uploads_enabled", False)
+    monkeypatch.setattr(settings, "subscriptions_enabled", False)
+    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+        seller = await register_test_user(
+            client,
+            email=f"video-off-{uuid4().hex[:8]}@example.com",
+            account_type="seller",
+        )
+        headers = {"Authorization": f"Bearer {seller['access_token']}"}
+        await create_test_seller(client, headers, **seller_create_payload())
+
+        presign = await client.post(
+            "/uploads/presign",
+            headers=headers,
+            json={"filename": "listing.mp4", "content_type": "video/mp4", "purpose": "video"},
+        )
+        assert presign.status_code == 403
+        assert "disabled" in presign.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_listing_video_uploads_disabled_rejects_product_video_url(monkeypatch):
+    monkeypatch.setattr(settings, "listing_video_uploads_enabled", False)
+    monkeypatch.setattr(settings, "subscriptions_enabled", False)
+    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+        seller = await register_test_user(
+            client,
+            email=f"video-off-product-{uuid4().hex[:8]}@example.com",
+            account_type="seller",
+        )
+        headers = {"Authorization": f"Bearer {seller['access_token']}"}
+        shop = await create_test_seller(client, headers, **seller_create_payload())
+
+        product = await client.post(
+            f"/sellers/{shop['id']}/products",
+            headers=headers,
+            json={
+                "name": "No video",
+                "description": "Launch",
+                "price_mad": 10,
+                "video_url": "https://api.dribex.ma/storage/videos/test.mp4",
+            },
+        )
+        assert product.status_code == 403
+        assert "disabled" in product.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_listing_video_uploads_disabled_entitlements_flag(monkeypatch):
+    monkeypatch.setattr(settings, "listing_video_uploads_enabled", False)
+    monkeypatch.setattr(settings, "subscriptions_enabled", False)
+    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+        seller = await register_test_user(
+            client,
+            email=f"video-off-ent-{uuid4().hex[:8]}@example.com",
+            account_type="seller",
+        )
+        headers = {"Authorization": f"Bearer {seller['access_token']}"}
+        await create_test_seller(client, headers, **seller_create_payload())
+
+        ent = await client.get("/subscriptions/entitlements", headers=headers)
+        assert ent.status_code == 200
+        body = ent.json()
+        assert body["listing_video_uploads_enabled"] is False
+        assert body["seller"]["video_uploads_enabled"] is False

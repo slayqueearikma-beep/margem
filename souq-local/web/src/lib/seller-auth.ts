@@ -10,6 +10,7 @@ export type SellerEntitlements = {
     combined_listing_remaining: number;
   } | null;
   rewarded_ads_enabled?: boolean;
+  listing_video_uploads_enabled?: boolean;
 };
 
 export type SellerProfile = {

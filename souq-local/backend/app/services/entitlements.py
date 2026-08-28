@@ -104,6 +104,11 @@ async def has_driver_pro(
     return subscription_grants_benefits(sub, now=now)
 
 
+def listing_video_uploads_operational() -> bool:
+    """Master switch for seller listing/product/service video uploads."""
+    return settings.listing_video_uploads_enabled
+
+
 async def has_video_upload_access(
     session: AsyncSession,
     user: User,
@@ -111,6 +116,8 @@ async def has_video_upload_access(
     *,
     now: datetime | None = None,
 ) -> bool:
+    if not listing_video_uploads_operational():
+        return False
     if await has_driver_pro(session, user, seller, now=now):
         return True
     if rewarded_ads_operational():
@@ -190,6 +197,11 @@ async def require_video_upload_access(
     user: User,
     seller: SellerProfile,
 ) -> None:
+    if not listing_video_uploads_operational():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Listing video uploads are disabled.",
+        )
     if await has_video_upload_access(session, user, seller):
         return
     if rewarded_ads_operational():
@@ -299,6 +311,7 @@ class EntitlementsBundle:
     payments_enabled: bool = False
     subscriptions_enabled: bool = False
     rewarded_ads_enabled: bool = False
+    listing_video_uploads_enabled: bool = False
 
 
 def combine_promotional_ad_flags(bundle: EntitlementsBundle) -> tuple[bool, bool]:
@@ -341,8 +354,10 @@ async def build_entitlements(
             if rewarded_ads_operational()
             else False
         )
-        video_enabled = driver_active or video_reward_active or (
-            not settings.subscriptions_enabled and not rewarded_ads_operational()
+        video_enabled = listing_video_uploads_operational() and (
+            driver_active
+            or video_reward_active
+            or (not settings.subscriptions_enabled and not rewarded_ads_operational())
         )
         count = await count_combined_listings(session, profile.id)
         limit = await combined_listing_limit(session, user, profile, now=now)
@@ -374,4 +389,5 @@ async def build_entitlements(
         payments_enabled=settings.payments_enabled,
         subscriptions_enabled=settings.subscriptions_enabled,
         rewarded_ads_enabled=settings.rewarded_ads_enabled,
+        listing_video_uploads_enabled=listing_video_uploads_operational(),
     )

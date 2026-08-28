@@ -57,6 +57,7 @@ export function ListingEditorForm({
 
   const videoUploadsEnabled = entitlements?.seller?.video_uploads_enabled ?? false;
   const rewardedAdsEnabled = entitlements?.rewarded_ads_enabled ?? true;
+  const listingVideoFeatureEnabled = entitlements?.listing_video_uploads_enabled ?? false;
 
   async function saveListing(event: FormEvent) {
     event.preventDefault();
@@ -67,8 +68,11 @@ export function ListingEditorForm({
       name: name.trim(),
       description: description.trim(),
       image_url: imageUrl.trim(),
-      video_url: videoUrl.trim(),
     };
+
+    if (listingVideoFeatureEnabled) {
+      payload.video_url = videoUrl.trim();
+    }
 
     if (kind === "product") {
       if (priceMad.trim()) {
@@ -169,16 +173,18 @@ export function ListingEditorForm({
         />
       </label>
 
-      <ListingVideoField
-        locale={locale}
-        videoUploadsEnabled={videoUploadsEnabled}
-        rewardedAdsEnabled={rewardedAdsEnabled}
-        initialVideoUrl={initial?.videoUrl || ""}
-        value={videoUrl}
-        onChange={setVideoUrl}
-        onError={(message) => setError(message)}
-        onUnlock={refreshEntitlements}
-      />
+      {listingVideoFeatureEnabled ? (
+        <ListingVideoField
+          locale={locale}
+          videoUploadsEnabled={videoUploadsEnabled}
+          rewardedAdsEnabled={rewardedAdsEnabled}
+          initialVideoUrl={initial?.videoUrl || ""}
+          value={videoUrl}
+          onChange={setVideoUrl}
+          onError={(message) => setError(message)}
+          onUnlock={refreshEntitlements}
+        />
+      ) : null}
 
       {isEditing ? (
         <label className="flex items-center gap-2 text-sm">

@@ -20,6 +20,7 @@ def launch_monetization(monkeypatch):
     monkeypatch.setattr(settings, "payment_provider", "none")
     monkeypatch.setattr(settings, "ads_enabled", True)
     monkeypatch.setattr(settings, "rewarded_ads_enabled", True)
+    monkeypatch.setattr(settings, "listing_video_uploads_enabled", True)
 
 
 @pytest.fixture
@@ -103,6 +104,32 @@ async def test_reward_session_and_complete_unlocks_video(client: AsyncClient, la
 
     entitlements_after = await client.get("/subscriptions/entitlements", headers=headers)
     assert entitlements_after.json()["seller"]["video_uploads_enabled"] is True
+
+
+@pytest.mark.asyncio
+async def test_reward_video_session_rejected_when_listing_video_disabled(
+    client: AsyncClient,
+    launch_monetization,
+    monkeypatch,
+):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "listing_video_uploads_enabled", False)
+
+    user = await register_verified_user(client, account_type="provider")
+    headers = user["headers"]
+
+    from tests.seller_helpers import create_test_seller, seller_create_payload
+
+    await create_test_seller(client, headers, **seller_create_payload())
+
+    session_res = await client.post(
+        "/rewards/sessions",
+        headers=headers,
+        json={"feature_code": "video_upload"},
+    )
+    assert session_res.status_code == 403
+    assert "disabled" in session_res.json()["detail"].lower()
 
 
 @pytest.mark.asyncio

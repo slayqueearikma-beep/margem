@@ -110,6 +110,11 @@ async def start_reward_session(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> RewardSessionOut:
+    if payload.feature_code == FEATURE_VIDEO_UPLOAD and not settings.listing_video_uploads_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Listing video uploads are disabled.",
+        )
     if payload.feature_code not in ALLOWED_REWARD_FEATURES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported reward feature.")
     reward_session, token = await create_reward_session(

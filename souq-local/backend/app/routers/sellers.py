@@ -35,6 +35,7 @@ from app.schemas import (
 from app.services.entitlements import (
     enforce_combined_listing_limit,
     has_driver_pro,
+    listing_video_uploads_operational,
     require_driver_pro_for_video,
 )
 from app.services.premium import apply_seller_premium_expiry, is_premium_active
@@ -160,6 +161,11 @@ async def _validate_listing_video_url(
     cleaned = (url or "").strip()
     if not cleaned:
         return ""
+    if not listing_video_uploads_operational():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Listing video uploads are disabled.",
+        )
     await require_driver_pro_for_video(session, user, seller)
     validated = await _validate_owner_media_registered(session, cleaned, user.id)
     if not validated:
@@ -693,6 +699,7 @@ async def seller_video_quota(
 ) -> dict:
     seller = await _owned_seller(seller_id, user, session)
     driver_pro = await _has_driver_pro_entitlement(session, user, seller)
+    uploads_enabled = listing_video_uploads_operational() and driver_pro
     active_count = await session.scalar(
         select(func.count(SellerVideo.id)).where(
             SellerVideo.seller_id == seller.id,
@@ -703,10 +710,10 @@ async def seller_video_quota(
     return {
         "is_premium": driver_pro,
         "driver_pro_active": driver_pro,
-        "video_uploads_enabled": driver_pro,
+        "video_uploads_enabled": uploads_enabled,
         "active_videos": used,
-        "limit": None if driver_pro else 0,
-        "remaining": None if driver_pro else 0,
+        "limit": None if uploads_enabled else 0,
+        "remaining": None if uploads_enabled else 0,
     }
 
 

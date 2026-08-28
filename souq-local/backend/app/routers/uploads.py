@@ -8,7 +8,7 @@ from app.database import get_db
 from app.limiter import limiter
 from app.models import User
 from app.schemas import PresignRequest, PresignResponse
-from app.services.entitlements import get_seller_profile, require_driver_pro_for_video
+from app.services.entitlements import get_seller_profile, listing_video_uploads_operational, require_driver_pro_for_video
 from app.services.local_storage import (
     public_media_url,
     verify_minio_upload_token,
@@ -140,6 +140,11 @@ async def put_local_upload(
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail)
 
     if is_video_content_type(content_type):
+        if not listing_video_uploads_operational():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Listing video uploads are disabled.",
+            )
         try:
             validate_video_bytes(body, content_type)
             from app.services.video_validation import video_duration_seconds
@@ -255,6 +260,11 @@ async def put_storage_upload(
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail)
 
     if is_video_content_type(content_type):
+        if not listing_video_uploads_operational():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Listing video uploads are disabled.",
+            )
         try:
             validate_video_bytes(body, content_type)
             from app.services.video_validation import video_duration_seconds

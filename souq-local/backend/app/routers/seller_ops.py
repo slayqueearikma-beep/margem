@@ -173,6 +173,7 @@ class EntitlementsResponse(BaseModel):
     payments_enabled: bool = False
     subscriptions_enabled: bool = False
     rewarded_ads_enabled: bool = False
+    listing_video_uploads_enabled: bool = False
 
 
 class CheckoutRequest(BaseModel):
@@ -619,6 +620,7 @@ async def my_entitlements(
         payments_enabled=bundle.payments_enabled,
         subscriptions_enabled=bundle.subscriptions_enabled,
         rewarded_ads_enabled=bundle.rewarded_ads_enabled,
+        listing_video_uploads_enabled=bundle.listing_video_uploads_enabled,
     )
 
 
