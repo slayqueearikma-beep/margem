@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "040_services_video_url"
-down_revision = "039_platform_advertisements"
+down_revision = "039"
 branch_labels = None
 depends_on = None
 

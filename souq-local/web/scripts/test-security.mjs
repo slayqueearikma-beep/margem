@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   isAllowedPublicProxyPath,
+  isAllowedSellerProxyPath,
   normalizeProxyPath,
   safeExternalHref,
   safeJsonLd,
@@ -51,4 +52,15 @@ test("safeJsonLd escapes script breakouts", () => {
   const payload = safeJsonLd({ name: "</script><script>alert(1)</script>" });
   assert.equal(payload.includes("</script>"), false);
   assert.equal(payload.includes("\\u003c/script\\u003e"), true);
+});
+
+test("seller proxy rejects traversal and sensitive namespaces", () => {
+  assert.equal(normalizeProxyPath(["sellers", "..", "auth", "me"]), null);
+  assert.equal(normalizeProxyPath(["uploads", "..", "auth", "refresh"]), null);
+  assert.equal(isAllowedSellerProxyPath("admin/users"), false);
+  assert.equal(isAllowedSellerProxyPath("auth/refresh"), false);
+  assert.equal(isAllowedSellerProxyPath("sellers/me"), true);
+  assert.equal(isAllowedSellerProxyPath("uploads/presign"), true);
+  assert.equal(isAllowedSellerProxyPath("subscriptions/entitlements"), true);
+  assert.equal(isAllowedSellerProxyPath("billing/checkout/subscription/seller_pro"), true);
 });
