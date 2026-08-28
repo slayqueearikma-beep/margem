@@ -363,6 +363,7 @@ class ServiceCreate(BaseModel):
     category_slug: str = Field(default="", max_length=80)
     coverage_areas: list[str] = Field(default_factory=list)
     image_url: str = ""
+    video_url: str = Field(default="", max_length=512)
     is_featured: bool = False
 
     @field_validator("pricing_type", mode="before")
@@ -384,9 +385,9 @@ class ServiceCreate(BaseModel):
             raise ValueError("Unknown category")
         return cleaned
 
-    @field_validator("image_url")
+    @field_validator("image_url", "video_url")
     @classmethod
-    def validate_image_url(cls, value: str) -> str:
+    def validate_media_urls(cls, value: str) -> str:
         return _validate_http_url(value)
 
     @model_validator(mode="before")
@@ -415,12 +416,13 @@ class ServiceUpdate(BaseModel):
     category_slug: str | None = Field(default=None, max_length=80)
     coverage_areas: list[str] | None = None
     image_url: str | None = None
+    video_url: str | None = Field(default=None, max_length=512)
     is_available: bool | None = None
     is_featured: bool | None = None
 
-    @field_validator("image_url")
+    @field_validator("image_url", "video_url")
     @classmethod
-    def validate_image_url(cls, value: str | None) -> str | None:
+    def validate_media_urls(cls, value: str | None) -> str | None:
         if value is None:
             return None
         return _validate_http_url(value)
@@ -439,6 +441,7 @@ class ServiceOut(BaseModel):
     category_slug: str = ""
     coverage_areas: list = Field(default_factory=list)
     image_url: str
+    video_url: str = ""
     is_available: bool
     is_featured: bool = False
 
