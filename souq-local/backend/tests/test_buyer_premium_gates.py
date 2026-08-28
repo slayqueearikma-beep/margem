@@ -27,6 +27,8 @@ def reset_provider_cache():
 
 @pytest.mark.asyncio
 async def test_saved_search_requires_buyer_premium(monkeypatch):
+    monkeypatch.setattr(settings, "subscriptions_enabled", True)
+    monkeypatch.setattr(settings, "payments_enabled", True)
     monkeypatch.setattr(settings, "payment_provider", "manual")
     monkeypatch.setattr(settings, "allow_manual_billing", True)
 

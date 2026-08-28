@@ -265,14 +265,24 @@ async def test_product_rejects_invalid_media_url(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_subscribe_premium_visibility(client: AsyncClient):
+async def test_subscribe_premium_visibility(client: AsyncClient, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "subscriptions_enabled", True)
+    monkeypatch.setattr(settings, "payments_enabled", True)
+    monkeypatch.setattr(settings, "payment_provider", "manual")
+    monkeypatch.setattr(settings, "allow_manual_billing", True)
+
     seller = await _register(client, "seller")
+    from tests.seller_helpers import create_test_seller, seller_create_payload
+
+    await create_test_seller(client, seller["headers"], **seller_create_payload(business_name="Premium Seller"))
+
     plans = await client.get("/subscriptions/plans")
     assert plans.status_code == 200
-    assert len(plans.json()) >= 1
-    code = plans.json()[-1]["code"]
+    buyer_plan = next(plan for plan in plans.json() if plan["code"] == "buyer_premium")
     sub = await client.post(
-        f"/subscriptions/subscribe/{code}",
+        f"/subscriptions/subscribe/{buyer_plan['code']}",
         headers=seller["headers"],
         json={"subscription_terms_accepted": True},
     )

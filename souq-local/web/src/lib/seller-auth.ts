@@ -4,10 +4,12 @@ export type SellerEntitlements = {
   seller: {
     driver_pro_active: boolean;
     video_uploads_enabled: boolean;
+    video_reward_active?: boolean;
     combined_listing_count: number;
     combined_listing_limit: number;
     combined_listing_remaining: number;
   } | null;
+  rewarded_ads_enabled?: boolean;
 };
 
 export type SellerProfile = {

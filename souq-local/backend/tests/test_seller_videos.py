@@ -70,7 +70,8 @@ def _minimal_mp4(duration_units: int = 45000, timescale: int = 1000) -> bytes:
 
 
 @pytest.mark.asyncio
-async def test_add_video_rejects_unvalidated_media_for_free_seller():
+async def test_add_video_rejects_unvalidated_media_for_free_seller(monkeypatch):
+    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         seller = await _register(client, "video-free@example.com")

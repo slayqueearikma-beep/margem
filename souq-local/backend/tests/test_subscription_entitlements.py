@@ -174,6 +174,7 @@ async def test_free_seller_combined_listing_limit(monkeypatch):
 async def test_free_seller_cannot_upload_videos(monkeypatch):
     monkeypatch.setattr(settings, "payment_provider", "manual")
     monkeypatch.setattr(settings, "allow_manual_billing", True)
+    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         user = await register_test_user(client, email=f"video-free-{uuid4().hex[:8]}@example.com", account_type="seller")

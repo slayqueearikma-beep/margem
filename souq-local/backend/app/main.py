@@ -47,6 +47,7 @@ from app.routers import (
     media,
     privacy,
     qr,
+    rewards,
     search,
     seller_ops,
     sellers,
@@ -197,6 +198,8 @@ app.include_router(qr.router)
 app.include_router(search.router)
 app.include_router(seller_ops.router)
 app.include_router(billing.router)
+app.include_router(rewards.router)
+app.include_router(rewards.platform_router)
 app.include_router(community.router)
 app.include_router(marketplaces.router)
 app.include_router(marketplace_community.router)

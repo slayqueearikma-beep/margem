@@ -9,6 +9,13 @@ export const VIDEO_MESSAGES: Record<
     driverProRibbonPrice: string;
     driverProRibbonAria: string;
     upgradeAction: string;
+    rewardedAdRibbonLabel: string;
+    rewardedAdRibbonHint: string;
+    rewardedAdRibbonAria: string;
+    rewardedAdAction: string;
+    rewardedAdLoading: string;
+    rewardedAdFailed: string;
+    rewardedAdPlaying: string;
     videoUploadHint: string;
     videoPreview: string;
     removeVideo: string;
@@ -22,11 +29,18 @@ export const VIDEO_MESSAGES: Record<
 > = {
   en: {
     videoSectionTitle: "Video",
-    videoLockedHint: "Available with DriverPro",
+    videoLockedHint: "Watch a short ad to unlock video uploads for 24 hours",
     driverProRibbonLabel: "DriverPro",
     driverProRibbonPrice: "149 DH",
     driverProRibbonAria: "DriverPro feature — 149 DH",
     upgradeAction: "Upgrade",
+    rewardedAdRibbonLabel: "Rewarded ad",
+    rewardedAdRibbonHint: "24h unlock",
+    rewardedAdRibbonAria: "Watch a rewarded ad to unlock video uploads",
+    rewardedAdAction: "Watch ad",
+    rewardedAdLoading: "Unlocking…",
+    rewardedAdFailed: "Could not verify the rewarded ad. Please try again.",
+    rewardedAdPlaying: "Advertisement playing…",
     videoUploadHint: "Add a video to your listing. MP4 or MOV, under 1 minute, max 50 MB.",
     videoPreview: "Video preview",
     removeVideo: "Remove video",
@@ -39,11 +53,18 @@ export const VIDEO_MESSAGES: Record<
   },
   fr: {
     videoSectionTitle: "Vidéo",
-    videoLockedHint: "Disponible avec DriverPro",
+    videoLockedHint: "Regardez une courte publicité pour débloquer les vidéos pendant 24 h",
     driverProRibbonLabel: "DriverPro",
     driverProRibbonPrice: "149 DH",
     driverProRibbonAria: "Fonctionnalité DriverPro — 149 DH",
     upgradeAction: "Mettre à niveau",
+    rewardedAdRibbonLabel: "Pub récompensée",
+    rewardedAdRibbonHint: "24 h",
+    rewardedAdRibbonAria: "Regardez une publicité récompensée pour débloquer les vidéos",
+    rewardedAdAction: "Voir la pub",
+    rewardedAdLoading: "Déblocage…",
+    rewardedAdFailed: "Impossible de vérifier la publicité récompensée. Réessayez.",
+    rewardedAdPlaying: "Publicité en cours…",
     videoUploadHint: "Ajoutez une vidéo à votre annonce. MP4 ou MOV, moins d'une minute, 50 Mo max.",
     videoPreview: "Aperçu vidéo",
     removeVideo: "Supprimer la vidéo",
@@ -58,11 +79,18 @@ export const VIDEO_MESSAGES: Record<
   },
   ar: {
     videoSectionTitle: "فيديو",
-    videoLockedHint: "متاح مع DriverPro",
+    videoLockedHint: "شاهد إعلانًا قصيرًا لفتح رفع الفيديو لمدة 24 ساعة",
     driverProRibbonLabel: "DriverPro",
     driverProRibbonPrice: "149 درهم",
     driverProRibbonAria: "ميزة DriverPro — 149 درهم",
     upgradeAction: "ترقية",
+    rewardedAdRibbonLabel: "إعلان مكافأة",
+    rewardedAdRibbonHint: "24 ساعة",
+    rewardedAdRibbonAria: "شاهد إعلانًا مكافأة لفتح رفع الفيديو",
+    rewardedAdAction: "شاهد الإعلان",
+    rewardedAdLoading: "جارٍ الفتح…",
+    rewardedAdFailed: "تعذر التحقق من الإعلان المكافأ. حاول مرة أخرى.",
+    rewardedAdPlaying: "الإعلان قيد التشغيل…",
     videoUploadHint: "أضف فيديو إلى إعلانك. MP4 أو MOV، أقل من دقيقة، بحد أقصى 50 ميغابايت.",
     videoPreview: "معاينة الفيديو",
     removeVideo: "إزالة الفيديو",

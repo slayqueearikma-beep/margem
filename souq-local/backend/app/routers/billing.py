@@ -138,6 +138,11 @@ def _payment_out(row: DribexServicePayment) -> PlatformPaymentOut:
 
 
 def _ensure_self_serve_available() -> None:
+    if not settings.payments_enabled or not settings.subscriptions_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Billing is not available during the initial launch.",
+        )
     if settings.app_env in {"production", "prod", "staging"} and settings.payment_provider != "naps":
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

@@ -134,6 +134,10 @@ class SubscriptionOut(BaseModel):
 class BillingStatusOut(BaseModel):
     self_serve_enabled: bool
     provider: str | None = None
+    payments_enabled: bool = False
+    subscriptions_enabled: bool = False
+    ads_enabled: bool = True
+    rewarded_ads_enabled: bool = False
 
 
 class BuyerEntitlementsResponse(BaseModel):
@@ -154,6 +158,7 @@ class SellerEntitlementsResponse(BaseModel):
     combined_listing_limit: int = 5
     combined_listing_remaining: int = 5
     video_uploads_enabled: bool = False
+    video_reward_active: bool = False
     promotional_ads_suppressed: bool = False
     ads_enabled: bool = True
     started_at: datetime | None = None
@@ -165,6 +170,9 @@ class EntitlementsResponse(BaseModel):
     seller: SellerEntitlementsResponse | None = None
     promotional_ads_suppressed: bool = False
     ads_enabled: bool = True
+    payments_enabled: bool = False
+    subscriptions_enabled: bool = False
+    rewarded_ads_enabled: bool = False
 
 
 class CheckoutRequest(BaseModel):
@@ -608,6 +616,9 @@ async def my_entitlements(
         seller=SellerEntitlementsResponse(**bundle.seller.__dict__) if bundle.seller else None,
         promotional_ads_suppressed=bundle.promotional_ads_suppressed,
         ads_enabled=bundle.ads_enabled,
+        payments_enabled=bundle.payments_enabled,
+        subscriptions_enabled=bundle.subscriptions_enabled,
+        rewarded_ads_enabled=bundle.rewarded_ads_enabled,
     )
 
 
@@ -620,7 +631,14 @@ async def billing_status() -> BillingStatusOut:
     provider: str | None = None
     if enabled:
         provider = settings.payment_provider
-    return BillingStatusOut(self_serve_enabled=enabled, provider=provider)
+    return BillingStatusOut(
+        self_serve_enabled=enabled,
+        provider=provider,
+        payments_enabled=settings.payments_enabled,
+        subscriptions_enabled=settings.subscriptions_enabled,
+        ads_enabled=settings.ads_enabled,
+        rewarded_ads_enabled=settings.rewarded_ads_enabled,
+    )
 
 
 @router.post("/subscriptions/checkout/{plan_code}", response_model=CheckoutOut)
@@ -637,6 +655,11 @@ async def checkout_plan(
     from app.services.electronic_acceptance import record_subscription_agreement_acceptance
     from app.services.platform_billing import create_subscription_checkout
 
+    if not settings.subscriptions_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Subscriptions are not available during the initial launch.",
+        )
     if not billing_self_serve_enabled():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -738,6 +761,11 @@ async def subscribe(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Use /billing/checkout/subscription/{plan_code} with NAPS in production.",
+        )
+    if not settings.subscriptions_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Subscriptions are not available during the initial launch.",
         )
     if not billing_self_serve_enabled() or not manual_billing_allowed():
         raise HTTPException(

@@ -48,6 +48,7 @@ def test_production_selfhosted_without_azure_starts():
         app_env="production",
         debug=False,
         auth_dev_bypass=False,
+        admin_require_staff_mfa=True,
         storage_provider="selfhosted",
         jwt_secret_key="a-real-production-secret-key-32chars-min",
         upload_token_secret="a-separate-production-upload-secret-32chars",
