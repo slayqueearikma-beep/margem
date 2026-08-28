@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ListingVideo } from "@/components/listing-video";
-import { DriverProVideoBanner } from "@/components/seller/driver-pro-video-banner";
+import { DriverProVideoRibbon } from "@/components/seller/driver-pro-video-ribbon";
 import type { AppLocale } from "@/lib/i18n/video-messages";
 import { videoMessages } from "@/lib/i18n/video-messages";
 
@@ -57,21 +57,9 @@ export function ListingVideoField({
   const t = videoMessages(locale);
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const hasExistingVideo = Boolean((initialVideoUrl || value).trim());
-
-  if (!videoUploadsEnabled) {
-    return (
-      <div className="space-y-4">
-        <DriverProVideoBanner locale={locale} />
-        {hasExistingVideo ? (
-          <div className="space-y-2">
-            <p className="text-sm text-[var(--muted)]">{t.replaceVideoRequiresDriverPro}</p>
-            <ListingVideo src={value || initialVideoUrl} title={t.listingVideo} />
-          </div>
-        ) : null}
-      </div>
-    );
-  }
+  const displayVideoUrl = value || initialVideoUrl;
+  const hasExistingVideo = Boolean(displayVideoUrl.trim());
+  const locked = !videoUploadsEnabled;
 
   async function uploadVideo(file: File) {
     if (file.size > MAX_VIDEO_BYTES) {
@@ -146,40 +134,73 @@ export function ListingVideoField({
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-white p-4">
-      <div>
-        <p className="text-sm font-semibold">{t.videoUploadLabel}</p>
-        <p className="mt-1 text-xs text-[var(--muted)]">{t.videoUploadHint}</p>
+    <div
+      className={`relative space-y-3 rounded-2xl border bg-white p-4 pr-24 ${
+        locked ? "border-dashed border-[var(--border)] bg-[var(--background)]" : "border-[var(--border)]"
+      }`}
+    >
+      {locked ? <DriverProVideoRibbon locale={locale} /> : null}
+
+      <div className={locked ? "opacity-80" : undefined}>
+        <p className="text-sm font-semibold">{t.videoSectionTitle}</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          {locked ? t.videoLockedHint : t.videoUploadHint}
+        </p>
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="video/mp4,video/quicktime,.mp4,.mov"
-        className="block w-full text-sm"
-        disabled={uploading}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) void uploadVideo(file);
-        }}
-      />
-
-      {uploading ? <p className="text-sm text-[var(--muted)]">Uploading video…</p> : null}
-
-      {value ? (
-        <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-            {t.videoPreview}
-          </p>
-          <ListingVideo src={value} title={t.listingVideo} />
-          <button
-            type="button"
-            className="text-sm font-medium text-[var(--primary)]"
-            onClick={() => onChange("")}
-          >
-            {t.removeVideo}
-          </button>
+      {locked ? (
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-2.5 text-sm text-[var(--muted)]">
+          <span aria-hidden="true">🔒</span>
+          <span>{t.videoLockedHint}</span>
         </div>
+      ) : (
+        <input
+          ref={inputRef}
+          type="file"
+          accept="video/mp4,video/quicktime,.mp4,.mov"
+          className="block w-full text-sm"
+          disabled={uploading}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) void uploadVideo(file);
+          }}
+        />
+      )}
+
+      {!locked && uploading ? <p className="text-sm text-[var(--muted)]">{t.uploadingVideo}</p> : null}
+
+      {hasExistingVideo ? (
+        <div className="space-y-2">
+          {locked ? (
+            <p className="text-xs text-[var(--muted)]">{t.replaceVideoRequiresDriverPro}</p>
+          ) : (
+            <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+              {t.videoPreview}
+            </p>
+          )}
+          <ListingVideo src={displayVideoUrl} title={t.listingVideo} />
+          {!locked ? (
+            <button
+              type="button"
+              className="text-sm font-medium text-[var(--primary)]"
+              onClick={() => onChange("")}
+            >
+              {t.removeVideo}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {locked ? (
+        <input
+          ref={inputRef}
+          type="file"
+          accept="video/mp4,video/quicktime,.mp4,.mov"
+          className="sr-only"
+          disabled
+          tabIndex={-1}
+          aria-hidden="true"
+        />
       ) : null}
     </div>
   );

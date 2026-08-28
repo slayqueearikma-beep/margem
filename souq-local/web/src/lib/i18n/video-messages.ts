@@ -3,11 +3,12 @@ export type AppLocale = "en" | "fr" | "ar";
 export const VIDEO_MESSAGES: Record<
   AppLocale,
   {
-    videoListingsTitle: string;
-    videoListingsBody: string;
-    driverProPrice: string;
-    upgradeToDriverPro: string;
-    videoUploadLabel: string;
+    videoSectionTitle: string;
+    videoLockedHint: string;
+    driverProRibbonLabel: string;
+    driverProRibbonPrice: string;
+    driverProRibbonAria: string;
+    upgradeAction: string;
     videoUploadHint: string;
     videoPreview: string;
     removeVideo: string;
@@ -16,15 +17,17 @@ export const VIDEO_MESSAGES: Record<
     videoTooLong: string;
     videoTooLarge: string;
     listingVideo: string;
+    uploadingVideo: string;
   }
 > = {
   en: {
-    videoListingsTitle: "Video listings",
-    videoListingsBody: "Make your products and services stand out with video.",
-    driverProPrice: "Available with DriverPro — 149 DH",
-    upgradeToDriverPro: "Upgrade to DriverPro",
-    videoUploadLabel: "Listing video (optional)",
-    videoUploadHint: "MP4 or MOV, under 1 minute, max 50 MB.",
+    videoSectionTitle: "Video",
+    videoLockedHint: "Available with DriverPro",
+    driverProRibbonLabel: "DriverPro",
+    driverProRibbonPrice: "149 DH",
+    driverProRibbonAria: "DriverPro feature — 149 DH",
+    upgradeAction: "Upgrade",
+    videoUploadHint: "Add a video to your listing. MP4 or MOV, under 1 minute, max 50 MB.",
     videoPreview: "Video preview",
     removeVideo: "Remove video",
     replaceVideoRequiresDriverPro: "Uploading or replacing videos requires an active DriverPro subscription.",
@@ -32,14 +35,16 @@ export const VIDEO_MESSAGES: Record<
     videoTooLong: "Video must be less than 1 minute.",
     videoTooLarge: "Video must be 50 MB or smaller.",
     listingVideo: "Listing video",
+    uploadingVideo: "Uploading video…",
   },
   fr: {
-    videoListingsTitle: "Annonces vidéo",
-    videoListingsBody: "Faites ressortir vos produits et services grâce à la vidéo.",
-    driverProPrice: "Disponible avec DriverPro — 149 DH",
-    upgradeToDriverPro: "Passer à DriverPro",
-    videoUploadLabel: "Vidéo de l'annonce (facultatif)",
-    videoUploadHint: "MP4 ou MOV, moins d'une minute, 50 Mo max.",
+    videoSectionTitle: "Vidéo",
+    videoLockedHint: "Disponible avec DriverPro",
+    driverProRibbonLabel: "DriverPro",
+    driverProRibbonPrice: "149 DH",
+    driverProRibbonAria: "Fonctionnalité DriverPro — 149 DH",
+    upgradeAction: "Mettre à niveau",
+    videoUploadHint: "Ajoutez une vidéo à votre annonce. MP4 ou MOV, moins d'une minute, 50 Mo max.",
     videoPreview: "Aperçu vidéo",
     removeVideo: "Supprimer la vidéo",
     replaceVideoRequiresDriverPro:
@@ -49,14 +54,16 @@ export const VIDEO_MESSAGES: Record<
     videoTooLong: "La vidéo doit durer moins d'une minute.",
     videoTooLarge: "La vidéo doit faire 50 Mo ou moins.",
     listingVideo: "Vidéo de l'annonce",
+    uploadingVideo: "Téléversement en cours…",
   },
   ar: {
-    videoListingsTitle: "إعلانات الفيديو",
-    videoListingsBody: "اجعل منتجاتك وخدماتك أكثر بروزًا بالفيديو.",
-    driverProPrice: "متاح مع DriverPro — 149 درهم",
-    upgradeToDriverPro: "الترقية إلى DriverPro",
-    videoUploadLabel: "فيديو الإعلان (اختياري)",
-    videoUploadHint: "MP4 أو MOV، أقل من دقيقة، بحد أقصى 50 ميغابايت.",
+    videoSectionTitle: "فيديو",
+    videoLockedHint: "متاح مع DriverPro",
+    driverProRibbonLabel: "DriverPro",
+    driverProRibbonPrice: "149 درهم",
+    driverProRibbonAria: "ميزة DriverPro — 149 درهم",
+    upgradeAction: "ترقية",
+    videoUploadHint: "أضف فيديو إلى إعلانك. MP4 أو MOV، أقل من دقيقة، بحد أقصى 50 ميغابايت.",
     videoPreview: "معاينة الفيديو",
     removeVideo: "إزالة الفيديو",
     replaceVideoRequiresDriverPro: "رفع أو استبدال الفيديو يتطلب اشتراك DriverPro نشطًا.",
@@ -65,6 +72,7 @@ export const VIDEO_MESSAGES: Record<
     videoTooLong: "يجب أن يكون الفيديو أقل من دقيقة.",
     videoTooLarge: "يجب ألا يتجاوز حجم الفيديو 50 ميغابايت.",
     listingVideo: "فيديو الإعلان",
+    uploadingVideo: "جارٍ رفع الفيديو…",
   },
 };
 
