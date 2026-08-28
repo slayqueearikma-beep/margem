@@ -1140,6 +1140,21 @@ class AppStringsEn extends AppStrings {
   @override
   String get premiumUpgradeSub => 'Upgrade visibility and discovery tools';
   @override
+  List<String> get driverProPlanFeatures => const [
+        'Ad-free seller experience',
+        'Up to 20 combined products & services',
+        'Video uploads',
+        'Featured placement',
+        'DriverPro badge',
+      ];
+  @override
+  List<String> get buyerPlusPlanFeatures => const [
+        'No promotional ads',
+        'Plus+ badge in community',
+        'Saved searches sync',
+        'Priority support',
+      ];
+  @override
   String get loading => 'Loading...';
   @override
   String get pending => 'Pending';

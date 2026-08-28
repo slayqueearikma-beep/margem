@@ -1039,6 +1039,18 @@ class SubscriptionPlanModel {
     return name;
   }
 
+  /// Marketing bullets for checkout UI — authoritative per plan code.
+  List<String> marketingFeatureLines(AppStrings l10n) {
+    switch (code) {
+      case 'seller_pro':
+        return l10n.driverProPlanFeatures;
+      case 'buyer_premium':
+        return l10n.buyerPlusPlanFeatures;
+      default:
+        return features.isNotEmpty ? features : [description];
+    }
+  }
+
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanModel(
       id: json['id'] as String,

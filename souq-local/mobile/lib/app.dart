@@ -37,7 +37,6 @@ import 'features/seller/seller_catalog_screen.dart';
 import 'features/seller/seller_add_service_wizard.dart';
 import 'features/seller/seller_add_video_screen.dart';
 import 'features/seller/seller_video_record_screen.dart';
-import 'features/seller/seller_boost_screen.dart';
 import 'features/seller/seller_dashboard_screen.dart';
 import 'features/seller/seller_detail_screen.dart';
 import 'features/seller/seller_products_screen.dart';
@@ -332,9 +331,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           builder: (_, __) => const SellerSettingsScreen()),
       GoRoute(
         path: '/seller/boost',
-        builder: (_, state) => SellerBoostScreen(
-          checkoutNotice: state.uri.queryParameters['checkout'],
-        ),
+        redirect: (_, state) {
+          final checkout = state.uri.queryParameters['checkout'];
+          if (checkout != null && checkout.isNotEmpty) {
+            return '/premium?checkout=$checkout';
+          }
+          return '/premium';
+        },
       ),
       GoRoute(
         path: '/seller/:id',

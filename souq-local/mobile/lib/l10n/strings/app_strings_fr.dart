@@ -1158,6 +1158,21 @@ class AppStringsFr extends AppStringsEn {
   String get premiumUpgradeSub =>
       'Améliorez visibilité et outils de découverte';
   @override
+  List<String> get driverProPlanFeatures => const [
+        'Expérience vendeur sans publicité',
+        'Jusqu\'à 20 produits et services combinés',
+        'Téléversement de vidéos',
+        'Mise en avant',
+        'Badge DriverPro',
+      ];
+  @override
+  List<String> get buyerPlusPlanFeatures => const [
+        'Sans publicités promotionnelles',
+        'Badge Plus+ dans la communauté',
+        'Synchronisation des recherches enregistrées',
+        'Support prioritaire',
+      ];
+  @override
   String get loading => 'Chargement...';
   @override
   String get pending => 'En attente';

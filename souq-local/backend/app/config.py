@@ -33,6 +33,31 @@ def _is_loopback_or_private_url(url: str) -> bool:
     return bool(addr.is_loopback or addr.is_private)
 
 
+def _is_loopback_or_private_host(host: str) -> bool:
+    """True for localhost, loopback, or RFC1918 hostnames (not full URLs)."""
+    from ipaddress import ip_address
+
+    clean = _normalize_host(host).lower()
+    if clean in {"localhost", "127.0.0.1", "0.0.0.0", "::1"}:
+        return True
+    try:
+        addr = ip_address(clean)
+    except ValueError:
+        return False
+    return bool(addr.is_loopback or addr.is_private)
+
+
+def _cors_origin_is_dev_only(origin: str) -> bool:
+    """True when a CORS origin points at localhost or a private/LAN address."""
+    from urllib.parse import urlparse
+
+    parsed = urlparse(origin.strip())
+    host = (parsed.hostname or "").lower()
+    if not host:
+        return True
+    return _is_loopback_or_private_host(host)
+
+
 def _parse_string_list(value: Any) -> list[str]:
     if isinstance(value, list):
         return value
@@ -309,9 +334,6 @@ class Settings(BaseSettings):
             clean = _normalize_host(host)
             if clean and clean not in normalized:
                 normalized.append(clean)
-        for loopback in ("localhost", "127.0.0.1"):
-            if loopback not in normalized:
-                normalized.append(loopback)
         return normalized
 
     @staticmethod
@@ -421,6 +443,31 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "PAYMENT_PROVIDER=manual is not allowed in production. Use PAYMENT_PROVIDER=naps."
                 )
+            for host in self.allowed_hosts:
+                if _is_loopback_or_private_host(host):
+                    raise ValueError(
+                        f"ALLOWED_HOSTS must not include development-only host '{host}' "
+                        f"when APP_ENV={self.app_env}"
+                    )
+            for origin in self.cors_origins:
+                if _cors_origin_is_dev_only(origin):
+                    raise ValueError(
+                        f"CORS_ORIGINS must not include development-only origin '{origin}' "
+                        f"when APP_ENV={self.app_env}"
+                    )
+            if self.app_env in {"production", "prod"} and not self.admin_require_staff_mfa:
+                raise ValueError("ADMIN_REQUIRE_STAFF_MFA must be true in production")
+            if not self.redis_url.strip():
+                logger.warning(
+                    "REDIS_URL is not configured — rate limits are per-process only and will "
+                    "not share state across API replicas"
+                )
+        if self.app_env in {"development", "dev", "test"} and "*" not in self.allowed_hosts:
+            dev_hosts = list(self.allowed_hosts)
+            for loopback in ("localhost", "127.0.0.1"):
+                if loopback not in dev_hosts:
+                    dev_hosts.append(loopback)
+            object.__setattr__(self, "allowed_hosts", dev_hosts)
         if self.auth_dev_bypass and self.app_env not in {"development", "dev"}:
             raise ValueError("AUTH_DEV_BYPASS is only allowed when APP_ENV is development or dev")
         return self

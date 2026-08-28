@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MediaImage } from "@/components/media-image";
+import { ListingVideo } from "@/components/listing-video";
 import { TrustBadges } from "@/components/trust-badges";
 import { EmptyState } from "@/components/states";
 import { ApiError } from "@/lib/api";
@@ -74,12 +75,17 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
-      <div className="overflow-hidden rounded-3xl border border-[var(--border)] bg-white">
-        <MediaImage
-          src={resolveMediaUrl(product.image_url)}
-          alt={product.name}
-          className="aspect-square w-full object-cover"
-        />
+      <div className="space-y-4">
+        <div className="overflow-hidden rounded-3xl border border-[var(--border)] bg-white">
+          <MediaImage
+            src={resolveMediaUrl(product.image_url)}
+            alt={product.name}
+            className="aspect-square w-full object-cover"
+          />
+        </div>
+        {product.video_url ? (
+          <ListingVideo src={product.video_url} title={`${product.name} video`} />
+        ) : null}
       </div>
       <div className="space-y-6">
         <div>

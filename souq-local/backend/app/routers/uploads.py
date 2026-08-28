@@ -8,6 +8,7 @@ from app.database import get_db
 from app.limiter import limiter
 from app.models import User
 from app.schemas import PresignRequest, PresignResponse
+from app.services.entitlements import get_seller_profile, require_driver_pro_for_video
 from app.services.local_storage import (
     public_media_url,
     verify_minio_upload_token,
@@ -15,6 +16,7 @@ from app.services.local_storage import (
     write_local_blob,
 )
 from app.services.storage_provider import (
+    StoragePurpose,
     get_storage_provider,
     purpose_from_string,
 )
@@ -52,6 +54,7 @@ async def presign_upload(
     request: Request,
     payload: PresignRequest,
     user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ) -> PresignResponse:
     try:
         safe_filename = sanitize_upload_filename(payload.filename)
@@ -60,6 +63,15 @@ async def presign_upload(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     purpose = purpose_from_string(payload.purpose)
+    if purpose == StoragePurpose.VIDEO or is_video_content_type(payload.content_type):
+        seller = await get_seller_profile(session, user.id)
+        if seller is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Seller profile is required to upload videos.",
+            )
+        await require_driver_pro_for_video(session, user, seller)
+
     provider = get_storage_provider()
 
     try:
@@ -234,8 +246,13 @@ async def put_storage_upload(
     if not body:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty upload body")
 
-    if len(body) > settings.max_upload_bytes:
+    if len(body) > settings.max_upload_bytes and not is_video_content_type(content_type):
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Image too large")
+
+    max_bytes = settings.max_video_upload_bytes if is_video_content_type(content_type) else settings.max_upload_bytes
+    if len(body) > max_bytes:
+        detail = "Video too large" if is_video_content_type(content_type) else "Image too large"
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail)
 
     if is_video_content_type(content_type):
         try:
@@ -343,6 +360,14 @@ async def validate_uploaded_video(
     session: AsyncSession = Depends(get_db),
 ) -> dict:
     """Server-side video duration validation after direct-to-storage upload."""
+    seller = await get_seller_profile(session, user.id)
+    if seller is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seller profile is required to upload videos.",
+        )
+    await require_driver_pro_for_video(session, user, seller)
+
     try:
         validate_upload_content_type(payload.content_type)
         if not is_video_content_type(payload.content_type):

@@ -21,7 +21,7 @@ void main() {
         code: 'seller_pro',
         name: 'Dribex Pro',
         description: 'Seller premium',
-        priceMad: 99,
+        priceMad: 149,
         billingPeriodDays: 30,
         features: ['unlimited_videos'],
         isActive: true,

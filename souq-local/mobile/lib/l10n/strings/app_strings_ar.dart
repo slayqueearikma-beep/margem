@@ -1138,6 +1138,21 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get premiumUpgradeSub => 'طوّر ظهور متجرك وأدوات الاكتشاف';
   @override
+  List<String> get driverProPlanFeatures => const [
+        'تجربة بائع بدون إعلانات',
+        'حتى 20 منتجاً وخدمة مجمّعة',
+        'رفع الفيديو',
+        'ظهور مميز',
+        'شارة DriverPro',
+      ];
+  @override
+  List<String> get buyerPlusPlanFeatures => const [
+        'بدون إعلانات ترويجية',
+        'شارة Plus+ في المجتمع',
+        'مزامنة عمليات البحث المحفوظة',
+        'دعم أولوية',
+      ];
+  @override
   String get loading => 'جاري التحميل...';
   @override
   String get pending => 'قيد الانتظار';

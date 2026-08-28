@@ -535,9 +535,9 @@ class _PlanCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              if (plan.features.isNotEmpty) ...[
+              if (plan.marketingFeatureLines(l10n).isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.md),
-                ...plan.features.map(
+                ...plan.marketingFeatureLines(l10n).map(
                   (feature) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: Row(
