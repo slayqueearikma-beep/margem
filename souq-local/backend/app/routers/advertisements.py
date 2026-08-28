@@ -14,7 +14,6 @@ from app.database import get_db
 from app.models import User
 from app.schemas.advertisements import AdvertisementPublicOut, ImpressionCreate, ImpressionOut
 from app.services.platform_advertisements import (
-    get_advertisement,
     list_active_advertisements,
     record_click,
     record_impression,
@@ -106,12 +105,8 @@ async def click_advertisement(
 ) -> RedirectResponse:
     if not settings.ads_enabled:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Advertisement not found")
-    campaign = await get_advertisement(session, campaign_id)
-    if campaign is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Advertisement not found")
-
     dedupe_key = click_key or request.headers.get("X-Request-Id") or str(campaign_id)
-    await record_click(
+    campaign = await record_click(
         session,
         campaign_id=campaign_id,
         placement=placement,
@@ -120,4 +115,6 @@ async def click_advertisement(
         platform=platform,
     )
     await session.commit()
+    if campaign is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Advertisement not found")
     return RedirectResponse(url=campaign.target_url, status_code=status.HTTP_302_FOUND)

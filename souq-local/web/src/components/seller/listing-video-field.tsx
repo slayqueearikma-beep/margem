@@ -196,6 +196,9 @@ export function ListingVideoField({
         locked ? "border-dashed border-[var(--border)] bg-[var(--background)]" : "border-[var(--border)]"
       }`}
     >
+      {adPlaying ? (
+        <p className="text-xs text-[var(--muted)]">{t.rewardedAdSimulatedNotice}</p>
+      ) : null}
       {locked && rewardedAdsEnabled ? (
         <RewardedAdVideoRibbon locale={locale} onWatchAd={() => void watchRewardedAd()} loading={unlocking} />
       ) : null}

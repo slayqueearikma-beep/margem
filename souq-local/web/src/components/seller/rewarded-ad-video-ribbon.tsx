@@ -21,6 +21,9 @@ export function RewardedAdVideoRibbon({ locale, onWatchAd, loading = false }: Re
         {t.rewardedAdRibbonLabel}
       </span>
       <span className="text-[11px] font-semibold leading-tight">{t.rewardedAdRibbonHint}</span>
+      <span className="mt-0.5 max-w-[9rem] text-[9px] font-normal leading-tight opacity-90">
+        {t.rewardedAdSimulatedNotice}
+      </span>
       <button
         type="button"
         className="mt-0.5 text-[10px] font-medium leading-tight underline underline-offset-2 hover:no-underline disabled:opacity-60"

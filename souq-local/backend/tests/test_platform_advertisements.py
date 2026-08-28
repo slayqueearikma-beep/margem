@@ -282,6 +282,22 @@ async def test_soft_delete_hides_campaign():
 
 
 @pytest.mark.asyncio
+async def test_click_rejected_for_paused_campaign():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test", follow_redirects=False) as client:
+        headers = await _admin_headers(client)
+        created = await _create_ad(client, headers)
+        await client.post(f"/admin/advertisements/{created['id']}/pause", headers=headers)
+        click = await client.get(
+            f"/ads/click/{created['id']}",
+            params={"placement": "homepage_top", "click_key": f"click-{uuid4().hex}"},
+        )
+        assert click.status_code == 404
+        detail = await client.get(f"/admin/advertisements/{created['id']}", headers=headers)
+        assert detail.json()["click_count"] == 0
+
+
+@pytest.mark.asyncio
 async def test_invalid_placement_rejected():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

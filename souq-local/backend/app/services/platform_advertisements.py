@@ -483,6 +483,17 @@ async def record_click(
     if campaign is None:
         return None
     validated_placement = validate_placement(placement)
+    now = _utcnow()
+    if not _is_eligible_for_display(
+        campaign,
+        placement=validated_placement,
+        city=None,
+        category_slug=None,
+        listing_type=None,
+        platform=platform,
+        now=now,
+    ):
+        return None
 
     click = AdClick(
         id=uuid4(),
