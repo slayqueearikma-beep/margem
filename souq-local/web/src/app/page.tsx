@@ -28,7 +28,7 @@ export default async function HomePage() {
     loadSearch({ mode: "all", limit: 8 }),
     loadCategories(),
     loadMarketplaces(),
-    loadActiveAdvertisements(3),
+    loadActiveAdvertisements("homepage_top"),
   ]);
 
   const search = searchOutcome.ok ? searchOutcome.data : null;
@@ -69,7 +69,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {ads[0] ? <AdvertisementBanner ad={ads[0]} /> : null}
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} placement="homepage_top" /> : null}
 
       {categories.length > 0 ? (
         <section>

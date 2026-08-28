@@ -19,6 +19,11 @@ test("proxy allowlist permits storefront reads only", () => {
   assert.equal(isAllowedPublicProxyPath("categories"), true);
   assert.equal(isAllowedPublicProxyPath("search"), true);
   assert.equal(isAllowedPublicProxyPath("ads/active"), true);
+  assert.equal(isAllowedPublicProxyPath("ads/impressions"), true);
+  assert.equal(
+    isAllowedPublicProxyPath("ads/click/550e8400-e29b-41d4-a716-446655440000"),
+    true,
+  );
   assert.equal(
     isAllowedPublicProxyPath("products/550e8400-e29b-41d4-a716-446655440000"),
     true,

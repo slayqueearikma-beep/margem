@@ -19,6 +19,8 @@ const state = {
   staffRole: "",
   reports: [],
   advertisements: [],
+  advertisementMeta: null,
+  advertisingOverview: null,
   editingAdvertisementId: null,
   pendingMfaToken: "",
 };
@@ -738,10 +740,80 @@ async function saveCategory(event) {
   }
 }
 
+async function loadAdvertisementMeta() {
+  if (state.advertisementMeta) return state.advertisementMeta;
+  state.advertisementMeta = await api("/admin/advertisements/meta");
+  return state.advertisementMeta;
+}
+
+function populatePlacementSelect(selected) {
+  const select = $("#ad-placement-select");
+  if (!select || !state.advertisementMeta) return;
+  select.innerHTML = "";
+  (state.advertisementMeta.placements || []).forEach((option) => {
+    const el = document.createElement("option");
+    el.value = option.value;
+    el.textContent = option.label;
+    if (option.value === selected) el.selected = true;
+    select.appendChild(el);
+  });
+}
+
+function toDatetimeLocalValue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function fromDatetimeLocalValue(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+function renderAdvertisingOverview() {
+  const container = $("#advertising-overview");
+  if (!container) return;
+  const stats = state.advertisingOverview || {};
+  const cards = [
+    ["Active", stats.active_campaigns || 0],
+    ["Scheduled", stats.scheduled_campaigns || 0],
+    ["Paused", stats.paused_campaigns || 0],
+    ["Expired", stats.expired_campaigns || 0],
+    ["Impressions", stats.total_impressions || 0],
+    ["Clicks", stats.total_clicks || 0],
+  ];
+  container.innerHTML = cards
+    .map(
+      ([label, value]) => `
+      <div class="stat-card">
+        <p class="stat-label">${escapeHtml(label)}</p>
+        <p class="stat-value">${escapeHtml(String(value))}</p>
+      </div>`,
+    )
+    .join("");
+}
+
 async function loadAdvertisements() {
-  const rows = await api("/admin/advertisements");
+  await loadAdvertisementMeta();
+  const [rows, overview] = await Promise.all([
+    api("/admin/advertisements"),
+    api("/admin/advertisements/overview"),
+  ]);
   state.advertisements = rows || [];
+  state.advertisingOverview = overview || {};
+  renderAdvertisingOverview();
   renderAdvertisements();
+}
+
+function formatImpressions(ad) {
+  if (ad.max_impressions) {
+    return `${ad.impression_count || 0} / ${ad.max_impressions}`;
+  }
+  return String(ad.impression_count || 0);
 }
 
 function renderAdvertisements() {
@@ -753,16 +825,29 @@ function renderAdvertisements() {
     return;
   }
   empty.classList.add("hidden");
+  const placementLabels = Object.fromEntries(
+    (state.advertisementMeta?.placements || []).map((item) => [item.value, item.label]),
+  );
   state.advertisements.forEach((ad) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${escapeHtml(ad.title)}</td>
-      <td><a href="${escapeHtml(ad.target_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ad.target_url)}</a></td>
-      <td><span class="pill ${ad.is_active ? "active" : "hidden-stat"}">${ad.is_active ? "Active" : "Inactive"}</span></td>
-      <td>${escapeHtml(formatDate(ad.created_at))}</td>
+      <td>
+        <strong>${escapeHtml(ad.campaign_name || ad.title)}</strong>
+        <div class="muted">${escapeHtml(ad.title)}</div>
+      </td>
+      <td>${escapeHtml(ad.advertiser_name || "—")}</td>
+      <td>${escapeHtml(placementLabels[ad.placement] || ad.placement || "—")}</td>
+      <td><span class="pill ${ad.status === "active" ? "active" : "hidden-stat"}">${escapeHtml(ad.status || "—")}</span></td>
+      <td>${escapeHtml(ad.payment_status || "—")}</td>
+      <td>${escapeHtml(formatDate(ad.starts_at))}</td>
+      <td>${escapeHtml(formatDate(ad.ends_at))}</td>
+      <td>${escapeHtml(formatImpressions(ad))}</td>
+      <td>${escapeHtml(String(ad.click_count || 0))}</td>
       <td class="actions">
+        <button type="button" class="btn ghost sm" data-ad-action="preview" data-ad-id="${ad.id}">Preview</button>
         <button type="button" class="btn ghost sm" data-ad-action="edit" data-ad-id="${ad.id}">Edit</button>
-        <button type="button" class="btn ghost sm" data-ad-action="toggle" data-ad-id="${ad.id}">${ad.is_active ? "Deactivate" : "Activate"}</button>
+        <button type="button" class="btn ghost sm" data-ad-action="pause" data-ad-id="${ad.id}">Pause</button>
+        <button type="button" class="btn ghost sm" data-ad-action="resume" data-ad-id="${ad.id}">Resume</button>
         <button type="button" class="btn ghost sm danger" data-ad-action="delete" data-ad-id="${ad.id}">Delete</button>
       </td>
     `;
@@ -774,43 +859,112 @@ function openAdvertisementDialog(ad = null) {
   const dialog = $("#advertisement-dialog");
   const form = $("#advertisement-form");
   state.editingAdvertisementId = ad?.id || null;
-  $("#advertisement-dialog-title").textContent = ad ? "Edit advertisement" : "New advertisement";
+  $("#advertisement-dialog-title").textContent = ad ? "Edit campaign" : "New campaign";
+  populatePlacementSelect(ad?.placement || "homepage_top");
+  form.elements.advertiser_name.value = ad?.advertiser_name || "";
+  form.elements.campaign_name.value = ad?.campaign_name || "";
   form.elements.title.value = ad?.title || "";
+  form.elements.description.value = ad?.description || "";
   form.elements.image_url.value = ad?.image_url || "";
+  form.elements.video_url.value = ad?.video_url || "";
   form.elements.target_url.value = ad?.target_url || "";
-  form.elements.is_active.checked = ad ? Boolean(ad.is_active) : true;
+  form.elements.contact_info.value = ad?.contact_info || "";
+  form.elements.placement.value = ad?.placement || "homepage_top";
+  form.elements.starts_at.value = toDatetimeLocalValue(ad?.starts_at);
+  form.elements.ends_at.value = toDatetimeLocalValue(ad?.ends_at);
+  form.elements.status.value = ad?.status || "draft";
+  form.elements.payment_status.value = ad?.payment_status || "pending";
+  form.elements.priority.value = ad?.priority ?? 5;
+  form.elements.max_impressions.value = ad?.max_impressions ?? "";
+  form.elements.max_impressions_per_user_per_day.value = ad?.max_impressions_per_user_per_day ?? "";
+  form.elements.min_interval_minutes.value = ad?.min_interval_minutes ?? "";
+  form.elements.target_city.value = ad?.target_city || "";
+  form.elements.target_category_slug.value = ad?.target_category_slug || "";
+  form.elements.target_listing_type.value = ad?.target_listing_type || "";
+  form.elements.target_platform.value = ad?.target_platform || "all";
+  form.elements.payment_override.checked = Boolean(ad?.payment_override);
+  form.elements.internal_notes.value = ad?.internal_notes || "";
   bindUploadInputs(dialog);
   dialog.showModal();
+}
+
+function buildAdvertisementPayload(form) {
+  const payload = {
+    advertiser_name: form.elements.advertiser_name.value.trim(),
+    campaign_name: form.elements.campaign_name.value.trim(),
+    title: form.elements.title.value.trim(),
+    description: form.elements.description.value.trim() || null,
+    image_url: form.elements.image_url.value.trim(),
+    video_url: form.elements.video_url.value.trim() || null,
+    target_url: form.elements.target_url.value.trim(),
+    contact_info: form.elements.contact_info.value.trim(),
+    placement: form.elements.placement.value,
+    starts_at: fromDatetimeLocalValue(form.elements.starts_at.value),
+    ends_at: fromDatetimeLocalValue(form.elements.ends_at.value),
+    status: form.elements.status.value,
+    payment_status: form.elements.payment_status.value,
+    priority: Number(form.elements.priority.value || 5),
+    max_impressions: form.elements.max_impressions.value ? Number(form.elements.max_impressions.value) : null,
+    max_impressions_per_user_per_day: form.elements.max_impressions_per_user_per_day.value
+      ? Number(form.elements.max_impressions_per_user_per_day.value)
+      : null,
+    min_interval_minutes: form.elements.min_interval_minutes.value
+      ? Number(form.elements.min_interval_minutes.value)
+      : null,
+    target_city: form.elements.target_city.value.trim() || null,
+    target_category_slug: form.elements.target_category_slug.value.trim() || null,
+    target_listing_type: form.elements.target_listing_type.value || null,
+    target_platform: form.elements.target_platform.value,
+    payment_override: form.elements.payment_override.checked,
+    internal_notes: form.elements.internal_notes.value.trim(),
+  };
+  return payload;
 }
 
 async function saveAdvertisement(event) {
   event.preventDefault();
   const form = event.target;
-  const payload = {
-    title: form.elements.title.value.trim(),
-    image_url: form.elements.image_url.value.trim(),
-    target_url: form.elements.target_url.value.trim(),
-    is_active: form.elements.is_active.checked,
-  };
+  const payload = buildAdvertisementPayload(form);
   try {
     if (state.editingAdvertisementId) {
       await api(`/admin/advertisements/${state.editingAdvertisementId}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
-      toast("Advertisement updated");
+      toast("Campaign updated");
     } else {
       await api("/admin/advertisements", {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      toast("Advertisement created");
+      toast("Campaign created");
     }
     $("#advertisement-dialog").close();
     await loadAdvertisements();
   } catch (err) {
     toast(err.message, true);
   }
+}
+
+async function previewAdvertisement(adId) {
+  const preview = await api(`/admin/advertisements/${adId}/preview`);
+  const body = $("#ad-preview-body");
+  body.innerHTML = `
+    <div class="preview-card">
+      ${preview.image_url ? `<img src="${escapeHtml(preview.image_url)}" alt="${escapeHtml(preview.title)}" class="preview-image" />` : ""}
+      ${preview.video_url ? `<p class="muted">Video: ${escapeHtml(preview.video_url)}</p>` : ""}
+      <h4>${escapeHtml(preview.title)}</h4>
+      <p>${escapeHtml(preview.description || "")}</p>
+      <p><strong>Placement:</strong> ${escapeHtml(preview.placement_label || preview.placement)}</p>
+      <p><strong>Destination:</strong> <a href="${escapeHtml(preview.target_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(preview.target_url)}</a></p>
+      <p><strong>Status:</strong> ${escapeHtml(preview.status)} · <strong>Payment:</strong> ${escapeHtml(preview.payment_status)}</p>
+      <p><strong>Schedule:</strong> ${escapeHtml(formatDate(preview.starts_at))} → ${escapeHtml(formatDate(preview.ends_at))}</p>
+      <p><strong>Targeting:</strong> city=${escapeHtml(preview.target_city || "any")}, category=${escapeHtml(preview.target_category_slug || "any")}, listing=${escapeHtml(preview.target_listing_type || "any")}, platform=${escapeHtml(preview.target_platform || "all")}</p>
+      <p><strong>Frequency:</strong> max ${escapeHtml(String(preview.max_impressions || "∞"))} impressions, ${escapeHtml(String(preview.max_impressions_per_user_per_day || "∞"))}/user/day, ${escapeHtml(String(preview.min_interval_minutes || "—"))} min interval</p>
+      <p class="muted">Preview does not record impressions.</p>
+    </div>
+  `;
+  $("#ad-preview-dialog").showModal();
 }
 
 function bindEvents() {
@@ -931,19 +1085,26 @@ function bindEvents() {
         openAdvertisementDialog(ad);
         return;
       }
-      if (action === "toggle") {
-        await api(`/admin/advertisements/${ad.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ is_active: !ad.is_active }),
-        });
-        toast(ad.is_active ? "Advertisement deactivated" : "Advertisement activated");
+      if (action === "preview") {
+        await previewAdvertisement(ad.id);
+        return;
+      }
+      if (action === "pause") {
+        await api(`/admin/advertisements/${ad.id}/pause`, { method: "POST" });
+        toast("Campaign paused");
+        await loadAdvertisements();
+        return;
+      }
+      if (action === "resume") {
+        await api(`/admin/advertisements/${ad.id}/resume`, { method: "POST" });
+        toast("Campaign resumed");
         await loadAdvertisements();
         return;
       }
       if (action === "delete") {
-        if (!confirm(`Delete advertisement "${ad.title}"?`)) return;
+        if (!confirm(`Delete campaign "${ad.campaign_name || ad.title}"? Historical statistics are retained.`)) return;
         await api(`/admin/advertisements/${ad.id}`, { method: "DELETE" });
-        toast("Advertisement deleted");
+        toast("Campaign deleted");
         await loadAdvertisements();
       }
     } catch (err) {

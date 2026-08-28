@@ -29,7 +29,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     offset,
     limit,
   });
-  const ads = await loadActiveAdvertisements(3);
+  const ads = await loadActiveAdvertisements("products_listing", { city, categorySlug: category });
 
   return (
     <div className="space-y-8">
@@ -40,7 +40,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </p>
       </div>
 
-      {ads[0] ? <AdvertisementBanner ad={ads[0]} /> : null}
+      {ads[0] ? <AdvertisementBanner ad={ads[0]} placement="products_listing" /> : null}
 
       {!outcome.ok ? (
         <ErrorState

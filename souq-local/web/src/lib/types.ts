@@ -1,8 +1,12 @@
 export interface PlatformAdvertisement {
   id: string;
   title: string;
+  description?: string | null;
   image_url: string;
+  video_url?: string | null;
   target_url: string;
+  placement: string;
+  click_url: string;
 }
 
 export interface Category {

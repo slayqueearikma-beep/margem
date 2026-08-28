@@ -10,6 +10,7 @@ const LEGAL_DOC_PATTERN = /^[a-z0-9-]+$/;
 
 const ALLOWED_EXACT_PATHS = new Set([
   "ads/active",
+  "ads/impressions",
   "categories",
   "search",
   "services",
@@ -122,6 +123,14 @@ export function isAllowedPublicProxyPath(path) {
   const segments = normalized.split("/");
 
   if (segments[0] === "products" && segments.length === 2 && UUID_PATTERN.test(segments[1])) {
+    return true;
+  }
+  if (
+    segments[0] === "ads" &&
+    segments[1] === "click" &&
+    segments.length === 3 &&
+    UUID_PATTERN.test(segments[2])
+  ) {
     return true;
   }
   if (segments[0] === "services" && segments.length === 2 && UUID_PATTERN.test(segments[1])) {

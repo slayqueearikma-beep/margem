@@ -110,10 +110,23 @@ export async function loadGeographyCities(): Promise<FetchOutcome<GeographyCityL
 }
 
 export async function loadActiveAdvertisements(
-  limit = 3,
+  placement = "homepage_top",
+  options: {
+    city?: string;
+    categorySlug?: string;
+    listingType?: string;
+    limit?: number;
+  } = {},
 ): Promise<PlatformAdvertisement[]> {
   const outcome = await safeApiFetch<PlatformAdvertisement[]>(
-    `/ads/active${searchParams({ limit })}`,
+    `/ads/active${searchParams({
+      placement,
+      city: options.city,
+      category_slug: options.categorySlug,
+      listing_type: options.listingType,
+      platform: "web",
+      limit: options.limit ?? 1,
+    })}`,
   );
   if (!outcome.ok) {
     console.warn("[dribex-web] Advertisement feed unavailable:", outcome.error.message);
