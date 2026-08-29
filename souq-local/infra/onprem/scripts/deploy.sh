@@ -22,7 +22,7 @@ if [[ ! -f "$ROOT/nginx/certs/fullchain.pem" ]]; then
     -subj "/CN=localhost"
 fi
 
-$COMPOSE build api web
+$COMPOSE build api web admin
 $COMPOSE up -d
 $COMPOSE ps
 

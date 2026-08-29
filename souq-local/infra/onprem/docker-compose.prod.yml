@@ -191,6 +191,35 @@ services:
           memory: 512M
           cpus: "0.5"
 
+  admin:
+    build:
+      context: ../../admin-dashboard
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${ADMIN_PORT:-8080}:80"
+    environment:
+      MARGEM_API_URL: ${PUBLIC_API_URL}
+      ADMIN_BASIC_AUTH_USER: ${ADMIN_BASIC_AUTH_USER:-}
+      ADMIN_BASIC_AUTH_PASSWORD: ${ADMIN_BASIC_AUTH_PASSWORD:-}
+      ADMIN_ALLOW_PUBLIC: ${ADMIN_ALLOW_PUBLIC:-false}
+      ADMIN_EXTRA_ALLOWED_CIDRS: ${ADMIN_EXTRA_ALLOWED_CIDRS:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [edge]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+
   nginx:
     image: nginx:1.27-alpine
     restart: unless-stopped

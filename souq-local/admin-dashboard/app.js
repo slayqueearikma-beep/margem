@@ -868,6 +868,22 @@ function formatImpressions(ad) {
   return String(ad.impression_count || 0);
 }
 
+function formatAdTargeting(ad) {
+  const parts = [];
+  if (ad.target_marketplace_slug) parts.push(`mp:${ad.target_marketplace_slug}`);
+  if (ad.target_category_slug) parts.push(`cat:${ad.target_category_slug}`);
+  if (ad.target_city) parts.push(`city:${ad.target_city}`);
+  if (ad.target_platform && ad.target_platform !== "all") parts.push(ad.target_platform);
+  return parts.length ? parts.join(" · ") : "All";
+}
+
+function renderAdminBuildStamp() {
+  const stamp = $("#admin-build-stamp");
+  if (!stamp) return;
+  const build = window.MARGEM_ADMIN_BUILD || "dev";
+  stamp.textContent = `Admin UI build ${build}`;
+}
+
 function renderAdvertisements() {
   const tbody = $("#advertisements-tbody");
   const empty = $("#advertisements-empty");
@@ -889,6 +905,7 @@ function renderAdvertisements() {
       </td>
       <td>${escapeHtml(ad.advertiser_name || "—")}</td>
       <td>${escapeHtml(placementLabels[ad.placement] || ad.placement || "—")}</td>
+      <td class="muted">${escapeHtml(formatAdTargeting(ad))}</td>
       <td><span class="pill ${ad.status === "active" ? "active" : "hidden-stat"}">${escapeHtml(ad.status || "—")}</span></td>
       <td>${escapeHtml(ad.payment_status || "—")}</td>
       <td>${escapeHtml(formatDate(ad.starts_at))}</td>
@@ -1275,6 +1292,7 @@ function debounce(fn, ms) {
 }
 
 async function bootstrapApp() {
+  renderAdminBuildStamp();
   try {
     const me = await api("/auth/me");
     state.staffRole = me.role || "";

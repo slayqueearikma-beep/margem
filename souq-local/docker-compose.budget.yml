@@ -34,6 +34,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET}
       ADMIN_DASHBOARD_DIR: /admin-dashboard
+      SERVE_EMBEDDED_ADMIN: ${SERVE_EMBEDDED_ADMIN:-true}
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}
@@ -56,6 +57,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - ./admin-dashboard:/admin-dashboard:ro
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready')\""]
       interval: 15s
