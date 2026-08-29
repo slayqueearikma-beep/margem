@@ -1,0 +1,380 @@
+\chapter{Architecture technique et flux d'information}
+\label{ch:flux}
+
+\section{Introduction}
+
+Les chapitres précédents ont posé les fondations de gouvernance, de sécurité et de stratégie cloud de MABRID. Ce chapitre complète cette vision en décrivant de manière opérationnelle \textbf{comment l'information circule} au sein de la plateforme MarGem : des utilisateurs finaux (acheteurs, vendeurs, visiteurs) jusqu'aux services persistants (base de données, stockage, courriel) en passant par l'application mobile Flutter, l'API FastAPI et le tableau de bord administrateur web séparé.
+
+L'objectif est triple :
+\begin{enumerate}
+  \item fournir une cartographie lisible pour les parties prenantes non techniques ;
+  \item documenter les chemins de données sensibles (authentification, médias, modération) ;
+  \item comparer deux modèles de déploiement --- \textbf{cloud Azure} et \textbf{serveur on-premise Ubuntu} --- alignés sur la feuille de route de MABRID.
+\end{enumerate}
+
+\section{Vue d'ensemble du système}
+
+\subsection{Acteurs et composants}
+
+MarGem est une plateforme de \emph{découverte et de mise en relation locale} : elle ne traite pas les paiements in-app ; les transactions se concluent hors plateforme. Les composants logiciels principaux sont résumés au tableau~\ref{tab:composants-margem}.
+
+\begin{table}[H]
+  \centering
+  \caption{Composants logiciels et rôles dans l'écosystème MarGem}
+  \label{tab:composants-margem}
+  \begin{tabularx}{\textwidth}{@{}lXl@{}}
+    \toprule
+    \textbf{Composant} & \textbf{Rôle} & \textbf{Technologie} \\
+    \midrule
+    Application mobile & Interface acheteur / vendeur & Flutter (Android, iOS) \\
+    API backend & Logique métier, authentification, modération & FastAPI (Python) \\
+    Base de données & Persistance relationnelle & PostgreSQL 16 \\
+    Stockage médias & Images produits, avatars & Disque local, Azure Blob ou MinIO \\
+    Tableau de bord admin & Gestion staff (hors app mobile) & Web statique (nginx) \\
+    Observabilité & Métriques, journaux, alertes & App Insights / Prometheus--Grafana \\
+  \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Schéma général des flux}
+
+La figure~\ref{fig:flux-overview} synthétise les flux de requêtes entre clients, backend et services externes. Les flèches pleines représentent les échanges de données ; les services en pointillés sont optionnels selon l'environnement de déploiement.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.1cm and 1.4cm,
+    comp/.style={rectangle, draw=mabridblue, fill=mabridblue!8, rounded corners=3pt,
+      minimum width=2.6cm, minimum height=0.85cm, align=center, font=\small},
+    ext/.style={rectangle, draw=mabridaccent, fill=mabridaccent!10, dashed,
+      minimum width=2.4cm, minimum height=0.75cm, align=center, font=\footnotesize},
+    user/.style={ellipse, draw=mabridblue, fill=white, minimum width=2.2cm, align=center, font=\small},
+    arr/.style={-{Stealth[length=2.2mm]}, thick, mabridblue}
+  ]
+    \node[user] (buyer) {Acheteur\\Vendeur};
+    \node[user, right=of buyer] (admin) {Staff\\admin};
+    \node[comp, below=1.3cm of buyer] (flutter) {App Flutter\\mobile};
+    \node[comp, below=1.3cm of admin] (webadmin) {Admin web\\:8080};
+    \node[comp, below=1.6cm of flutter] (api) {API FastAPI\\:8000 / :7226};
+    \node[comp, below left=1.2cm and 0.3cm of api] (pg) {PostgreSQL};
+    \node[comp, below right=1.2cm and 0.3cm of api] (media) {Stockage\\médias};
+    \node[ext, right=2.2cm of api] (smtp) {SMTP};
+    \node[ext, above=0.5cm of smtp] (maps) {Google Maps};
+    \node[ext, below=0.5cm of smtp] (stripe) {Stripe};
+
+    \draw[arr] (buyer) -- (flutter);
+    \draw[arr] (admin) -- (webadmin);
+    \draw[arr] (flutter) -- node[right, font=\footnotesize] {HTTPS + JWT} (api);
+    \draw[arr] (webadmin) -- node[above, font=\footnotesize] {HTTPS + JWT} (api);
+    \draw[arr] (api) -- (pg);
+    \draw[arr] (api) -- (media);
+    \draw[arr, dashed] (api) -- (smtp);
+    \draw[arr, dashed] (flutter) -- (maps);
+    \draw[arr, dashed] (api) -- (stripe);
+  \end{tikzpicture}
+  \caption{Vue d'ensemble des flux d'information MarGem}
+  \label{fig:flux-overview}
+\end{figure}
+
+\section{Architectures de déploiement}
+
+\subsection{Déploiement cloud Microsoft Azure}
+
+La figure~\ref{fig:arch-azure} présente l'architecture cible de production sur Azure. Elle s'inscrit dans une \emph{zone d'atterrissage} (\textit{landing zone}) structurée autour d'un abonnement dédié (\texttt{rg-margem-prod}), d'un réseau virtuel isolé et de points de terminaison privés pour les données sensibles.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{figures/architecture-azure-prod.png}{%
+    \includegraphics[width=\textwidth]{architecture-azure-prod.png}%
+  }{%
+    \fcolorbox{mabridblue!40}{mabridblue!5}{\parbox{0.9\textwidth}{\centering\vspace{2cm}\textbf{Figure Azure}\\\texttt{figures/architecture-azure-prod.png}\vspace{2cm}}}%
+  }
+  \caption{Architecture de déploiement MarGem sur Microsoft Azure (production)}
+  \label{fig:arch-azure}
+\end{figure}
+
+Les éléments structurants sont les suivants :
+\begin{itemize}
+  \item \textbf{Réseau} --- \texttt{margem-vnet}, groupes de sécurité réseau (NSG), points de terminaison privés vers PostgreSQL, Key Vault et Blob Storage.
+  \item \textbf{Calcul} --- Azure Container Apps (\texttt{margem-api}, FastAPI, port~8000) avec identité managée et montée en charge automatique.
+  \item \textbf{Données} --- PostgreSQL Flexible Server v16 (\texttt{margem}) et conteneur Blob \texttt{margem-media} (redondance locale LRS).
+  \item \textbf{Identité} --- Azure AD, \gls{rbac}, journaux d'audit ; accès moindre privilège via identité utilisateur assignée.
+  \item \textbf{Observabilité} --- Application Insights et Log Analytics pour métriques, exceptions et alertes.
+  \item \textbf{Intégrations} --- Stripe (abonnements), fournisseur SMTP (courriels transactionnels), Google Maps (géolocalisation optionnelle).
+\end{itemize}
+
+Le client mobile et le tableau de bord admin (optionnel) communiquent avec l'API via \textbf{HTTPS REST} ; les secrets d'exécution sont injectés depuis Azure Key Vault (\texttt{database-url}, \texttt{jwt-secret}, \texttt{storage-conn}, etc.).
+
+\subsection{Déploiement on-premise (Ubuntu)}
+
+Pour les phases pilotes, les démonstrations académiques ou les déploiements à coût maîtrisé, MarGem peut être hébergé sur un \textbf{serveur Ubuntu local} (réseau domestique ou centre de données interne). La figure~\ref{fig:arch-onprem} illustre cette variante.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{figures/architecture-onprem-ubuntu.png}{%
+    \includegraphics[width=\textwidth]{architecture-onprem-ubuntu.png}%
+  }{%
+    \fcolorbox{mabridblue!40}{mabridblue!5}{\parbox{0.9\textwidth}{\centering\vspace{2cm}\textbf{Figure On-Prem}\\\texttt{figures/architecture-onprem-ubuntu.png}\vspace{2cm}}}%
+  }
+  \caption{Architecture de déploiement MarGem sur serveur Ubuntu (on-premise)}
+  \label{fig:arch-onprem}
+\end{figure}
+
+Comparée au cloud Azure, cette architecture repose sur :
+\begin{itemize}
+  \item \textbf{Périmètre réseau local} --- pare-feu UFW/iptables, proxy inverse Nginx ou Traefik, certificats Let's Encrypt, Fail2Ban.
+  \item \textbf{Orchestration} --- Docker Compose (développement et serveur domestique) ou Kubernetes on-premise à l'échelle.
+  \item \textbf{Secrets} --- coffre HashiCorp Vault ou variables chiffrées (\texttt{.env.home} hors dépôt).
+  \item \textbf{Stockage} --- MinIO (compatible S3) ou système de fichiers local (\texttt{/data/media}).
+  \item \textbf{Observabilité} --- pile Prometheus, Grafana, ELK/Loki en lieu et place d'Application Insights.
+\end{itemize}
+
+Le choix entre Azure et on-premise n'est pas exclusif : la feuille de route prévoit un \textbf{serveur domestique} pour le prototypage (API sur le port~7226, admin sur~8080) et une migration progressive vers Azure pour la montée en charge nationale.
+
+\section{Flux d'authentification et de gestion de session}
+
+\subsection{Séquence d'inscription et de connexion}
+
+L'authentification repose sur des jetons \gls{jwt} (accès court + rafraîchissement rotatif). La figure~\ref{fig:flux-auth} décrit les échanges principaux entre l'application mobile et l'API.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    x=0.42cm, y=0.65cm,
+    actor/.style={rectangle, draw=mabridblue, minimum width=2cm, minimum height=0.7cm, font=\footnotesize},
+    msg/.style={font=\scriptsize},
+    lifeline/.style={dashed, mabridblue!50}
+  ]
+    \node[actor] (app) at (0,0) {App Flutter};
+    \node[actor] (api) at (14,0) {API FastAPI};
+    \node[actor] (db) at (28,0) {PostgreSQL};
+    \draw[lifeline] (0,-0.5) -- (0,-16);
+    \draw[lifeline] (14,-0.5) -- (14,-16);
+    \draw[lifeline] (28,-0.5) -- (28,-16);
+
+    \draw[-{Stealth}] (0,-1.5) -- node[msg, above, sloped] {POST /auth/register} (14,-1.5);
+    \draw[-{Stealth}] (14,-2.5) -- node[msg, above, sloped] {INSERT user (rôle=acheteur)} (28,-2.5);
+    \draw[-{Stealth}] (28,-3.5) -- (14,-3.5);
+    \draw[-{Stealth}] (14,-4.5) -- node[msg, above, sloped] {access + refresh JWT} (0,-4.5);
+
+    \draw[-{Stealth}] (0,-6.5) -- node[msg, above, sloped] {POST /auth/login} (14,-6.5);
+    \draw[-{Stealth}] (14,-7.5) -- node[msg, above, sloped] {Vérifier mot de passe} (28,-7.5);
+    \draw[-{Stealth}] (28,-8.5) -- (14,-8.5);
+    \draw[-{Stealth}] (14,-9.5) -- node[msg, above, sloped] {JWT} (0,-9.5);
+
+    \draw[-{Stealth}] (0,-11.5) -- node[msg, above, sloped] {Requêtes API (Bearer)} (14,-11.5);
+    \draw[-{Stealth}] (14,-12.5) -- node[msg, above, sloped] {Lecture / écriture} (28,-12.5);
+    \draw[-{Stealth}] (28,-13.5) -- (14,-13.5);
+    \draw[-{Stealth}] (14,-14.5) -- node[msg, above, sloped] {JSON} (0,-14.5);
+  \end{tikzpicture}
+  \caption{Flux d'authentification : inscription, connexion et requêtes authentifiées}
+  \label{fig:flux-auth}
+\end{figure}
+
+\subsection{Contrôles de sécurité associés}
+
+Au-delà du schéma séquentiel, plusieurs mécanismes renforcent la session (détaillés au chapitre~\ref{ch:app-security}) :
+\begin{itemize}
+  \item hachage bcrypt, verrouillage après échecs répétés, détection de réutilisation de refresh token ;
+  \item \gls{mfa} obligatoire pour les comptes staff en production ;
+  \item révocation globale via version de jeton (\texttt{tv}) lors d'un changement de mot de passe.
+\end{itemize}
+
+\section{Flux fonctionnels de l'application mobile}
+
+\subsection{Parcours acheteur et vendeur}
+
+La figure~\ref{fig:flux-mobile} regroupe les principaux parcours côté client mobile. L'application ne propose \textbf{pas} d'interface d'administration : la modération et la configuration des places de marché sont réservées au tableau de bord web.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.55cm and 0.9cm,
+    screen/.style={rectangle, draw=mabridblue, fill=mabridblue!6, rounded corners=2pt,
+      minimum width=2.1cm, minimum height=0.65cm, font=\scriptsize, align=center},
+    api/.style={rectangle, draw=mabridaccent, fill=mabridaccent!8, minimum width=2.4cm,
+      minimum height=0.65cm, font=\scriptsize, align=center},
+    arr/.style={-{Stealth[length=1.8mm]}, mabridblue, thick}
+  ]
+    \node[screen] (home) {Accueil\\Découverte};
+    \node[screen, right=of home] (search) {Recherche\\Carte};
+    \node[screen, right=of search] (prod) {Fiche\\produit};
+    \node[screen, below=1.1cm of home] (msg) {Messagerie};
+    \node[screen, below=1.1cm of search] (sell) {Tableau de\\bord vendeur};
+    \node[screen, below=1.1cm of prod] (prof) {Profil};
+
+    \node[api, below=2.4cm of search] (disc) {/sellers, /search\\/favorites};
+    \node[api, left=0.6cm of disc] (chat) {/messages/*};
+    \node[api, right=0.6cm of disc] (seller) {/seller/*, /uploads};
+
+    \draw[arr] (home) -- (disc);
+    \draw[arr] (search) -- (disc);
+    \draw[arr] (prod) -- (disc);
+    \draw[arr] (msg) -- (chat);
+    \draw[arr] (sell) -- (seller);
+    \draw[arr] (prof) -- (disc);
+  \end{tikzpicture}
+  \caption{Correspondance écrans mobiles $\rightarrow$ endpoints API}
+  \label{fig:flux-mobile}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \caption{Exemples d'actions utilisateur et persistance des données}
+  \label{tab:flux-actions}
+  \begin{tabularx}{\textwidth}{@{}lXX@{}}
+    \toprule
+    \textbf{Action} & \textbf{Endpoint API} & \textbf{Persistance} \\
+    \midrule
+    Parcourir les commerces & \texttt{GET /sellers}, \texttt{/sellers/map} & PostgreSQL \\
+    Rechercher & \texttt{GET /search} & PostgreSQL \\
+    Ajouter aux favoris & \texttt{POST /favorites} & PostgreSQL \\
+    Contacter un vendeur & \texttt{POST /messages/...} & PostgreSQL \\
+    Publier une annonce & \texttt{POST /seller/products} & PostgreSQL + médias \\
+    Téléverser une image & \texttt{POST /uploads} & Disque / Blob \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Tableau de bord administrateur web (séparé)}
+
+\subsection{Séparation des préoccupations}
+
+Conformément au principe de moindre privilège et à la réduction de surface d'attaque, l'administration staff n'est \textbf{pas intégrée} à l'application mobile Flutter. Un conteneur nginx dédié sert l'interface sur le port~\textbf{8080} (configurable), distinct de l'API (port~8000 ou~7226 en serveur domestique).
+
+\subsection{Flux et couches de sécurité}
+
+La figure~\ref{fig:flux-admin} et le tableau~\ref{tab:admin-security} décrivent le chemin d'accès depuis un navigateur mobile ou ordinateur portable sur le réseau local.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.7cm and 1.2cm,
+    box/.style={rectangle, draw=mabridblue, fill=mabridblue!7, rounded corners=2pt,
+      minimum width=2.5cm, minimum height=0.7cm, align=center, font=\small},
+    arr/.style={-{Stealth}, thick, mabridblue}
+  ]
+    \node[box] (browser) {Navigateur\\:8080};
+    \node[box, right=of browser] (nginx) {nginx\\Basic Auth};
+    \node[box, right=of nginx] (spa) {Admin SPA\\HTML/JS};
+    \node[box, below=1.4cm of nginx] (api) {API :7226\\/admin/*};
+    \node[box, below=1.4cm of api] (db) {PostgreSQL};
+
+    \draw[arr] (browser) -- node[above, font=\footnotesize] {HTTPS/LAN} (nginx);
+    \draw[arr] (nginx) -- (spa);
+    \draw[arr] (spa) -- node[right, font=\footnotesize] {JWT + Origin} (api);
+    \draw[arr] (api) -- (db);
+  \end{tikzpicture}
+  \caption{Flux du tableau de bord administrateur séparé}
+  \label{fig:flux-admin}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \caption{Couches de sécurité du tableau de bord web}
+  \label{tab:admin-security}
+  \begin{tabularx}{\textwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Couche} & \textbf{Contrôle} \\
+    \midrule
+    Réseau & Liste blanche IP privées (192.168/10/172.16) ; pas d'exposition publique \\
+    nginx & Authentification HTTP Basic (mot de passe de porte) \\
+    En-têtes & CSP stricte, \texttt{X-Frame-Options: DENY}, limitation de débit \\
+    API & Garde d'origine (\texttt{Origin}), rôles \texttt{admin}/\texttt{support}, \gls{mfa} \\
+    Session & Jeton en \texttt{sessionStorage} (effacé à la fermeture de l'onglet) \\
+    API embarquée & Désactivée sur serveur domestique (\texttt{/admin} non servi sur le port API) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Flux de téléversement des médias}
+
+Les images de produits et d'avatars suivent un flux en plusieurs étapes afin d'éviter l'upload direct non contrôlé vers le stockage (figure~\ref{fig:flux-upload}).
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.5cm,
+    box/.style={rectangle, draw=mabridblue, fill=mabridblue!8, minimum width=2.2cm,
+      minimum height=0.75cm, align=center, font=\small},
+    arr/.style={-{Stealth}, thick, mabridblue}
+  ]
+    \node[box] (app) {App\\vendeur};
+    \node[box, right=of app] (api) {API};
+    \node[box, right=of api] (store) {Stockage\\local/Blob};
+    \node[box, right=of store] (db) {PostgreSQL};
+
+    \draw[arr] (app) -- node[above, font=\footnotesize] {1. Token upload} (api);
+    \draw[arr] (app) to[bend left=15] node[above, font=\footnotesize] {3. POST /uploads} (api);
+    \draw[arr] (api) -- node[above, font=\footnotesize] {4. Écriture} (store);
+    \draw[arr] (api) -- node[above, font=\footnotesize] {6. URL média} (db);
+    \draw[arr] (api) to[bend left=20] node[below, font=\footnotesize] {5. URL publique} (app);
+  \end{tikzpicture}
+  \caption{Flux de téléversement et persistance des médias}
+  \label{fig:flux-upload}
+\end{figure}
+
+\section{Déploiement serveur domestique (cas d'étude)}
+
+Le déploiement sur ordinateur portable Linux (\texttt{docker-compose.home.yml}) illustre un scénario pédagogique et opérationnel fréquent au Maroc : API accessible sur le réseau Wi-Fi local, sans dépendance cloud obligatoire.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.2cm and 1.5cm,
+    device/.style={rectangle, draw=mabridblue, rounded corners=3pt, fill=white,
+      minimum width=2.4cm, minimum height=0.8cm, align=center, font=\small},
+    docker/.style={rectangle, draw=mabridaccent, thick, fill=mabridaccent!5,
+      minimum width=7cm, minimum height=3.2cm},
+    arr/.style={-{Stealth}, thick}
+  ]
+    \node[device] (phone) {Téléphone\\Wi-Fi};
+    \node[docker, below=1.5cm of phone, xshift=1.5cm] (dock) {};
+    \node[font=\small\bfseries, mabridblue] at ([yshift=1.1cm]dock.center) {Docker (piocco)};
+    \node[device] at ([xshift=-2cm, yshift=-0.2cm]dock.center) (api) {API\\:7226};
+    \node[device] at ([xshift=0cm, yshift=-0.2cm]dock.center) (adm) {Admin\\:8080};
+    \node[device] at ([xshift=2cm, yshift=-0.2cm]dock.center) (pg) {Postgres};
+
+    \draw[arr, mabridblue] (phone) -- node[left, font=\footnotesize] {App} (api);
+    \draw[arr, mabridblue] (phone) to[bend left=25] node[right, font=\footnotesize] {Admin web} (adm);
+    \draw[arr, mabridaccent] (adm) -- (api);
+    \draw[arr, mabridaccent] (api) -- (pg);
+  \end{tikzpicture}
+  \caption{Réseau domestique : application mobile et admin web vers le serveur local}
+  \label{fig:flux-home}
+\end{figure}
+
+\textbf{Recommandations opérationnelles} :
+\begin{itemize}
+  \item ne pas exposer le port~8080 via tunnel Cloudflare ; réserver le tunnel à l'API mobile si nécessaire ;
+  \item configurer \texttt{CORS\_ORIGINS} en liste séparée par virgules (sans crochets JSON) ;
+  \item promouvoir les comptes staff via SQL ou script dédié (\texttt{promote-admin}) ;
+  \item activer \texttt{ADMIN\_BASIC\_AUTH\_*} et \texttt{ADMIN\_REQUIRE\_STAFF\_MFA=true} dans \texttt{.env.home}.
+\end{itemize}
+
+\section{Comparatif des modèles de déploiement}
+
+\begin{table}[H]
+  \centering
+  \caption{Comparaison Azure production vs serveur domestique Ubuntu}
+  \label{tab:compare-deploy}
+  \begin{tabularx}{\textwidth}{@{}lXX@{}}
+    \toprule
+    \textbf{Critère} & \textbf{Azure (fig.~\ref{fig:arch-azure})} & \textbf{On-prem / domicile (fig.~\ref{fig:arch-onprem})} \\
+    \midrule
+    Mise à l'échelle & Auto-scaling Container Apps & Manuelle / verticale \\
+    Secrets & Key Vault + RBAC & Vault local ou \texttt{.env.home} \\
+    Stockage médias & Blob Storage LRS & Disque local ou MinIO \\
+    Observabilité & App Insights, Log Analytics & Prometheus, Grafana, ELK \\
+    Coût initial & Abonnement cloud & Matériel existant \\
+    Sécurité périmétrique & NSG, Private Endpoints & UFW, nginx, IP LAN \\
+    Cas d'usage & Production nationale & Prototype, démo, LAN \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Conclusion du chapitre}
+
+Ce chapitre a cartographié les flux d'information de MarGem de bout en bout : clients mobiles, API, persistance, stockage, intégrations tierces et tableau de bord administrateur séparé. Les figures~\ref{fig:arch-azure} et~\ref{fig:arch-onprem} ancrent ces flux dans deux réalités d'hébergement complémentaires --- cloud managé et serveur Ubuntu --- tandis que les schémas séquentiels et fonctionnels facilitent l'audit, l'onboarding des développeurs et la communication avec les encadrants académiques.
+
+La cohérence avec les chapitres de sécurité (ch.~\ref{ch:security},~\ref{ch:app-security}) et de gouvernance cloud (ch.~\ref{ch:cloud}) garantit que chaque flèche du diagramme correspond à un contrôle documenté : authentification forte, séparation admin/mobile, chiffrement des secrets et traçabilité des opérations sensibles.

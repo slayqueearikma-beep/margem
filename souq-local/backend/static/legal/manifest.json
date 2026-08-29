@@ -1,0 +1,162 @@
+{
+  "package_version": "2.1.0",
+  "effective_date": "2026-08-29",
+  "last_updated": "2026-08-29",
+  "languages": [
+    "en",
+    "fr",
+    "ar"
+  ],
+  "documents": [
+    {
+      "id": "privacy_policy",
+      "slug": "privacy",
+      "version": "2.0.0",
+      "effective_date": "2026-08-13",
+      "title": {
+        "en": "Privacy Policy",
+        "fr": "Politique de confidentialité",
+        "ar": "سياسة الخصوصية"
+      },
+      "summary": "How we collect, use, retain, and protect personal data.",
+      "consent_required": false,
+      "related": [
+        "cookies",
+        "account-deletion",
+        "legal-notice"
+      ]
+    },
+    {
+      "id": "terms_of_service",
+      "slug": "terms",
+      "version": "2.1.0",
+      "effective_date": "2026-08-29",
+      "title": {
+        "en": "Terms of Service",
+        "fr": "Conditions d'utilisation",
+        "ar": "شروط الاستخدام"
+      },
+      "summary": "Core agreement for all users, including buyer rules and platform use.",
+      "consent_required": true,
+      "related": [
+        "privacy",
+        "seller-terms",
+        "community-guidelines"
+      ]
+    },
+    {
+      "id": "cookie_policy",
+      "slug": "cookies",
+      "version": "2.0.0",
+      "effective_date": "2026-08-13",
+      "title": {
+        "en": "Cookie Policy",
+        "fr": "Politique des cookies",
+        "ar": "سياسة ملفات تعريف الارتباط"
+      },
+      "summary": "Cookies on the website and local storage in mobile apps.",
+      "consent_required": "conditional",
+      "related": [
+        "privacy"
+      ]
+    },
+    {
+      "id": "seller_terms",
+      "slug": "seller-terms",
+      "version": "2.1.0",
+      "effective_date": "2026-08-29",
+      "title": {
+        "en": "Seller Terms",
+        "fr": "Conditions vendeur",
+        "ar": "شروط البائع"
+      },
+      "summary": "Additional terms for sellers, storefronts, and marketplace listings.",
+      "consent_required": true,
+      "related": [
+        "terms",
+        "community-guidelines"
+      ]
+    },
+    {
+      "id": "community_guidelines",
+      "slug": "community-guidelines",
+      "version": "2.1.0",
+      "effective_date": "2026-08-29",
+      "title": {
+        "en": "Community Guidelines",
+        "fr": "Règles de la communauté",
+        "ar": "إرشادات المجتمع"
+      },
+      "summary": "Conduct rules for messaging, reviews, and community features.",
+      "consent_required": false,
+      "related": [
+        "terms",
+        "seller-terms"
+      ]
+    },
+    {
+      "id": "account_deletion",
+      "slug": "account-deletion",
+      "version": "2.0.0",
+      "effective_date": "2026-08-13",
+      "title": {
+        "en": "Account Deletion & Data Rights",
+        "fr": "Suppression de compte et droits sur les données",
+        "ar": "حذف الحساب وحقوق البيانات"
+      },
+      "summary": "How to delete your account, export data, and what we retain.",
+      "consent_required": false,
+      "related": [
+        "privacy"
+      ]
+    },
+    {
+      "id": "subscription_terms",
+      "slug": "subscription-terms",
+      "version": "2.0.0",
+      "effective_date": "2026-08-13",
+      "title": {
+        "en": "Subscription & Billing Terms",
+        "fr": "Conditions d'abonnement et de facturation",
+        "ar": "شروط الاشتراك والفوترة"
+      },
+      "summary": "Premium memberships, billing methods, refunds, and cancellations.",
+      "consent_required": true,
+      "related": [
+        "terms",
+        "seller-terms"
+      ]
+    },
+    {
+      "id": "legal_notice",
+      "slug": "legal-notice",
+      "version": "2.0.0",
+      "effective_date": "2026-08-13",
+      "title": {
+        "en": "Legal Notice",
+        "fr": "Mentions légales",
+        "ar": "إشعار قانوني"
+      },
+      "summary": "Publisher identity, contact matrix, and amendment notices.",
+      "consent_required": false,
+      "related": [
+        "privacy",
+        "terms"
+      ]
+    },
+    {
+      "id": "open_source_licenses",
+      "slug": "open-source-licenses",
+      "version": "2.0.0",
+      "effective_date": "2026-08-13",
+      "title": {
+        "en": "Open Source Licenses",
+        "fr": "Licences open source",
+        "ar": "تراخيص المصدر المفتوح"
+      },
+      "summary": "Third-party open-source software used in the mobile app.",
+      "consent_required": false,
+      "related": []
+    }
+  ]
+}

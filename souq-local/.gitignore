@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+scripts/.venv/
 .env
 *.egg-info/
 .pytest_cache/
@@ -42,3 +43,6 @@ backups/
 **/firebase_options.dart
 *.pem
 *.key
+.env.production
+.env.prod
+.env.staging

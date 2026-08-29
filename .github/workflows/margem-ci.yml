@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - "souq-local/**"
+      - "legal/**"
   pull_request:
     paths:
       - "souq-local/**"
+      - "legal/**"
 
 jobs:
   backend:
@@ -34,14 +36,25 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
+      - name: Validate legal HTML generation
+        working-directory: ${{ github.workspace }}
+        run: python souq-local/backend/scripts/generate_legal_html.py
       - name: Audit Python dependencies
         run: |
-          pip install pip-audit
+          pip install pip-audit bandit
           pip-audit --strict -r requirements.txt
-      - name: Apply migrations
-        run: alembic upgrade head
+          bandit -r app -ll -q
+      - name: Scan for secrets
+        working-directory: ${{ github.workspace }}/souq-local
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.24.2/gitleaks_8.24.2_linux_x64.tar.gz | tar xz gitleaks
+          ./gitleaks detect --source . --no-git --redact --no-banner
+      - name: Fresh database migration validation
+        run: |
+          PGPASSWORD=souq_local_dev psql -h localhost -U souq -d postgres -c "DROP DATABASE IF EXISTS margem_migration_ci;"
+          PGPASSWORD=souq_local_dev psql -h localhost -U souq -d postgres -c "CREATE DATABASE margem_migration_ci;"
+          DATABASE_URL=postgresql+asyncpg://souq:souq_local_dev@localhost:5432/margem_migration_ci alembic upgrade head
         env:
-          DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local
           JWT_SECRET_KEY: test-jwt-secret-key-minimum-32-characters-long
       - name: Validate Compose configs
         working-directory: ${{ github.workspace }}/souq-local
@@ -49,11 +62,14 @@ jobs:
           docker compose -f docker-compose.yml config >/dev/null
           docker compose -f docker-compose.home.yml config >/dev/null
           docker compose -f docker-compose.budget.yml config >/dev/null
+          docker compose -f infra/onprem/docker-compose.prod.yml --env-file infra/onprem/env.prod.example config >/dev/null
       - run: pytest -q
         env:
           PYTHONPATH: .
           DATABASE_URL: postgresql+asyncpg://souq:souq_local_dev@localhost:5432/souq_local
           JWT_SECRET_KEY: test-jwt-secret-key-minimum-32-characters-long
+          UPLOAD_TOKEN_SECRET: test-upload-token-secret-key-32chars-min
+          ALLOW_MANUAL_BILLING: "true"
       - name: Production settings smoke
         run: |
           python - <<'PY'
@@ -64,14 +80,28 @@ jobs:
               app_env="production",
               debug=False,
               auth_dev_bypass=False,
+              admin_require_staff_mfa=True,
               jwt_secret_key="ci-production-secret-key-32chars-minxx",
               upload_token_secret="ci-upload-token-secret-key-32chars-min",
-              cors_origins=["https://margem.ma"],
-              allowed_hosts=["api.margem.ma"],
-              azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
-              smtp_host="smtp.example.com",
-              public_app_url="https://margem.ma",
-              public_api_url="https://api.margem.ma",
+              mfa_encryption_key="ci-mfa-encryption-key-32chars-minimum",
+              rewarded_ad_signing_secret="ci-rewarded-ad-signing-secret-32chars",
+              cors_origins=["https://dribex.ma"],
+              allowed_hosts=["api.dribex.ma"],
+              storage_provider="selfhosted",
+              minio_endpoint="http://minio:9000",
+              minio_access_key="minio-access",
+              minio_secret_key="minio-secret-key-32chars-minimum",
+              brevo_api_key="ci-brevo-api-key-32chars-minimumxx",
+              brevo_sender_email="noreply@dribex.ma",
+              brevo_sender_name="Dribex",
+              public_app_url="https://dribex.ma",
+              public_api_url="https://api.dribex.ma",
+              admin_ip_allowlist=["203.0.113.0/24"],
+              payments_enabled=False,
+              subscriptions_enabled=False,
+              ads_enabled=True,
+              rewarded_ads_enabled=True,
+              payment_provider="none",
           )
           try:
               Settings(
@@ -79,22 +109,53 @@ jobs:
                   app_env="production",
                   debug=False,
                   auth_dev_bypass=False,
+                  admin_require_staff_mfa=True,
                   jwt_secret_key="ci-production-secret-key-32chars-minxx",
                   upload_token_secret="ci-upload-token-secret-key-32chars-min",
+                  mfa_encryption_key="ci-mfa-encryption-key-32chars-minimum",
                   cors_origins=["https://margem.ma"],
                   allowed_hosts=["api.margem.ma"],
+                  storage_provider="azure",
                   azure_storage_connection_string="DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net",
-                  smtp_host="",
+                  brevo_api_key="",
+                  brevo_sender_email="noreply@dribex.ma",
                   public_app_url="https://margem.ma",
                   public_api_url="https://api.margem.ma",
+                  admin_ip_allowlist=["203.0.113.0/24"],
+                  payment_provider="naps",
+                  naps_merchant_id="ci-merchant",
+                  naps_secret_key="ci-naps-secret-key-32chars-minimum",
+                  naps_epay_payment_init_url="https://naps.example.com/init",
+                  naps_webhook_secret="ci-naps-webhook-secret-32chars-min",
               )
-              raise SystemExit("expected SMTP validation failure")
+              raise SystemExit("expected Brevo validation failure")
           except ValidationError:
               pass
           print("production settings smoke ok")
           PY
         env:
           PYTHONPATH: .
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: souq-local/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: souq-local/web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.dribex.ma
+          NEXT_PUBLIC_SITE_URL: https://dribex.ma
+          NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
+      - run: npm run test:security
 
   api-image:
     runs-on: ubuntu-latest
@@ -106,7 +167,7 @@ jobs:
       - name: Build API Docker image
         run: docker build -t margem-api:ci ./backend
       - name: Scan API image for known vulnerabilities
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: margem-api:ci
           format: table
@@ -146,15 +207,15 @@ jobs:
       - run: flutter test
       - name: Create ephemeral CI release signing key
         run: |
-          keytool -genkeypair -keystore ci-release.keystore -storepass ci-release-password \
+          keytool -genkeypair -keystore android/ci-release.keystore -storepass ci-release-password \
             -keypass ci-release-password -alias margem-ci -keyalg RSA -keysize 2048 \
             -validity 1 -dname "CN=MarGem CI,OU=CI,O=MarGem,L=Casablanca,C=MA"
-          cat > android/key.properties <<'EOF'
-          storePassword=ci-release-password
-          keyPassword=ci-release-password
-          keyAlias=margem-ci
-          storeFile=../ci-release.keystore
-          EOF
+          printf '%s\n' \
+            'storePassword=ci-release-password' \
+            'keyPassword=ci-release-password' \
+            'keyAlias=margem-ci' \
+            'storeFile=../ci-release.keystore' \
+            > android/key.properties
       - name: Assemble signed release APK
         run: flutter build apk --release --dart-define=API_BASE_URL=https://api.margem.ma --dart-define=PRODUCTION=true
         continue-on-error: false
