@@ -125,8 +125,12 @@ class BuyerHomeShell extends ConsumerWidget {
                   ref.watch(conversationsUnreadCountProvider).valueOrNull ?? 0;
               return BuyerBottomNavBar(
                 selectedIndex: index,
-                onSelected: (i) =>
-                    ref.read(buyerTabIndexProvider.notifier).state = i,
+                onSelected: (i) {
+                  ref.read(buyerTabIndexProvider.notifier).state = i;
+                  if (i == 2) {
+                    ref.invalidate(conversationsProvider);
+                  }
+                },
                 badges: {2: unread},
                 items: [
                   BuyerNavItem(

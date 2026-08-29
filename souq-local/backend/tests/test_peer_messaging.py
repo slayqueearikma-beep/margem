@@ -217,3 +217,59 @@ async def test_conversation_idor_denies_non_participant(client: AsyncClient):
     )
     assert unauth_write.status_code == 401
 
+
+@pytest.mark.asyncio
+async def test_private_chat_recipient_fetch_sees_incoming_message(client: AsyncClient):
+    """Simulates mobile polling: sender posts, recipient GETs the thread."""
+    buyer_a = await _register(client, "buyer", "Buyer A")
+    buyer_b = await _register(client, "buyer", "Buyer B")
+
+    started = await client.post(
+        f"/messages/users/{buyer_b['user_id']}",
+        headers=buyer_a["headers"],
+        json={"body": "Incoming poll test"},
+    )
+    assert started.status_code == 201, started.text
+    conv_id = started.json()["conversation_id"]
+
+    thread = await client.get(
+        f"/messages/conversations/{conv_id}",
+        headers=buyer_b["headers"],
+    )
+    assert thread.status_code == 200, thread.text
+    messages = thread.json()
+    assert len(messages) == 1
+    assert messages[0]["body"] == "Incoming poll test"
+    assert messages[0]["created_at"]
+
+
+@pytest.mark.asyncio
+async def test_inbox_reflects_unread_count_and_preview(client: AsyncClient):
+    buyer_a = await _register(client, "buyer", "Buyer A")
+    buyer_b = await _register(client, "buyer", "Buyer B")
+
+    started = await client.post(
+        f"/messages/users/{buyer_b['user_id']}",
+        headers=buyer_a["headers"],
+        json={"body": "Unread preview test"},
+    )
+    assert started.status_code == 201, started.text
+    conv_id = started.json()["conversation_id"]
+
+    inbox = await client.get("/messages/conversations", headers=buyer_b["headers"])
+    assert inbox.status_code == 200, inbox.text
+    row = next(item for item in inbox.json() if item["id"] == conv_id)
+    assert row["unread_count"] == 1
+    assert "Unread preview test" in row["last_message_preview"]
+
+    read = await client.get(
+        f"/messages/conversations/{conv_id}",
+        headers=buyer_b["headers"],
+    )
+    assert read.status_code == 200, read.text
+
+    inbox_after = await client.get("/messages/conversations", headers=buyer_b["headers"])
+    assert inbox_after.status_code == 200, inbox_after.text
+    row_after = next(item for item in inbox_after.json() if item["id"] == conv_id)
+    assert row_after["unread_count"] == 0
+

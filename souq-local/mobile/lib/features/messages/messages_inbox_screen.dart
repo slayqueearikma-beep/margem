@@ -40,12 +40,32 @@ class MessagesInboxScreen extends ConsumerStatefulWidget {
       _MessagesInboxScreenState();
 }
 
-class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
+class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen>
+    with WidgetsBindingObserver {
   final _searchController = TextEditingController();
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshInbox());
+  }
+
+  void _refreshInbox() {
+    ref.invalidate(conversationsProvider);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshInbox();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
   }
@@ -128,10 +148,13 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
                             final conversation = filtered[index];
                             return _ConversationTile(
                               conversation: conversation,
-                              onTap: () => context.push(
-                                '/messages/${conversation.id}',
-                                extra: conversation,
-                              ),
+                              onTap: () async {
+                                await context.push(
+                                  '/messages/${conversation.id}',
+                                  extra: conversation,
+                                );
+                                if (mounted) _refreshInbox();
+                              },
                             );
                           },
                         ),
@@ -340,6 +363,7 @@ class _ConversationThreadScreenState
   bool _loading = true;
   Object? _loadError;
   bool _sending = false;
+  bool _pollInFlight = false;
   Timer? _pollTimer;
   static const _pollInterval = Duration(seconds: 3);
 
@@ -361,6 +385,12 @@ class _ConversationThreadScreenState
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _loadMessages();
+      _startPolling();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _pollTimer?.cancel();
+      _pollTimer = null;
     }
   }
 
@@ -370,6 +400,8 @@ class _ConversationThreadScreenState
   }
 
   Future<void> _loadMessages({bool silent = false}) async {
+    if (_pollInFlight) return;
+    _pollInFlight = true;
     if (!silent && mounted) {
       setState(() {
         _loading = _messages.isEmpty;
@@ -393,11 +425,14 @@ class _ConversationThreadScreenState
           _loadError = error;
         });
       }
+    } finally {
+      _pollInFlight = false;
     }
   }
 
   @override
   void dispose() {
+    ref.invalidate(conversationsProvider);
     WidgetsBinding.instance.removeObserver(this);
     _pollTimer?.cancel();
     if (_inputFocusNode.hasFocus) {

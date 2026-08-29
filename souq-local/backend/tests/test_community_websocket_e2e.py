@@ -230,3 +230,57 @@ async def test_suspended_user_cannot_connect_with_existing_ws_ticket(client: Asy
                 f"/community/ws?channel_id={channel_id}&ticket={ticket}&city_slug={city_slug}"
             ) as ws:
                 ws.receive_text()
+
+
+@pytest.mark.asyncio
+async def test_community_websocket_reconnect_receives_messages(client: AsyncClient):
+    listener = await register_test_user(
+        client,
+        email=f"ws-reconnect-{uuid4().hex[:8]}@example.com",
+        display_name="Reconnect Listener",
+    )
+    poster = await register_test_user(
+        client,
+        email=f"ws-reconnect-poster-{uuid4().hex[:8]}@example.com",
+        display_name="Reconnect Poster",
+    )
+    listener_headers = {"Authorization": f"Bearer {listener['access_token']}"}
+    poster_headers = {"Authorization": f"Bearer {poster['access_token']}"}
+
+    city_slug, channel_id = await _join_casablanca(client, listener_headers)
+    await _join_casablanca(client, poster_headers)
+
+    ticket_res = await client.post(
+        f"/community/channels/{channel_id}/ws-ticket",
+        headers=listener_headers,
+    )
+    assert ticket_res.status_code == 200, ticket_res.text
+    ticket = ticket_res.json()["ticket"]
+
+    with TestClient(app) as tc:
+        with tc.websocket_connect(
+            f"/community/ws?channel_id={channel_id}&ticket={ticket}&city_slug={city_slug}"
+        ):
+            pass
+
+        ticket_res_2 = await client.post(
+            f"/community/channels/{channel_id}/ws-ticket",
+            headers=listener_headers,
+        )
+        assert ticket_res_2.status_code == 200, ticket_res_2.text
+        ticket_2 = ticket_res_2.json()["ticket"]
+
+        with tc.websocket_connect(
+            f"/community/ws?channel_id={channel_id}&ticket={ticket_2}&city_slug={city_slug}"
+        ) as ws:
+            post = await client.post(
+                f"/community/channels/{channel_id}/messages",
+                headers=poster_headers,
+                json={"body": "after reconnect"},
+            )
+            assert post.status_code == 201, post.text
+
+            received = ws.receive_text()
+            event = json.loads(received)
+            assert event["type"] == "message.new"
+            assert event["payload"]["body"] == "after reconnect"

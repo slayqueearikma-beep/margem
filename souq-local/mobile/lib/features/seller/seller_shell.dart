@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/navigation/app_back_handler.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
+import '../messages/messages_inbox_screen.dart';
 import 'seller_messages_tab.dart';
 import 'seller_catalog_tab.dart';
 import 'seller_dashboard_tab.dart';
@@ -55,6 +56,9 @@ class SellerShell extends ConsumerWidget {
 
   void _selectTab(WidgetRef ref, int tabIndex) {
     ref.read(sellerTabIndexProvider.notifier).state = tabIndex;
+    if (tabIndex == 2) {
+      ref.invalidate(conversationsProvider);
+    }
   }
 
   @override
