@@ -93,7 +93,7 @@ async def test_acceptance_records_current_manifest_versions(client: AsyncClient)
     assert accept.status_code == 200
     payload = accept.json()
     versions = {item["policy_id"]: item["policy_version"] for item in payload["accepted"]}
-    assert versions["terms_of_service"] == "2.0.0"
+    assert versions["terms_of_service"] == "2.1.0"
     assert versions["privacy_policy"] == "2.0.0"
 
     async with database.SessionLocal() as session:

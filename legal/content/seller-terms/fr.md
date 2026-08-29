@@ -21,7 +21,7 @@ Si nous proposons une vérification, les badges ou labels reflètent notre contr
 
 ## 3. Annonces et vitrine
 
-Vous êtes seul responsable de vos annonces, tarifs, disponibilité, images, descriptions, catégories et options de paiement ou de livraison affichées. Vous ne devez pas publier d'articles interdits ou trompeurs. Nous pouvons modifier, rétrograder ou supprimer les annonces qui enfreignent la loi ou nos politiques.
+Vous êtes seul responsable de vos annonces, tarifs, disponibilité, images, descriptions, catégories, options de paiement ou de livraison affichées, et de la **légalité** de ce que vous référencez et proposez. Vous devez vous assurer que vos annonces respectent les lois applicables et les règles de la plateforme. {{platform_name}} n'autorise pas de ventes ou services illégaux, et le fait que votre annonce soit découverte ou affichée ne signifie pas que nous l'approuvons ou la recommandons. Vous ne devez pas publier d'articles interdits ou trompeurs. Nous pouvons modifier, rétrograder, restreindre la visibilité ou supprimer les annonces qui enfreignent la loi ou nos politiques.
 
 ## 4. Transactions et taxes
 
@@ -47,7 +47,7 @@ Vous confirmez disposer des droits sur les photos, logos et textes que vous tél
 
 ## 8. Application
 
-Nous pouvons avertir, restreindre ou suspendre les comptes vendeur en cas de violation des politiques, signalements de fraude, plaintes répétées d'acheteurs ou demandes légales. Les violations graves ou répétées peuvent entraîner une suppression définitive.
+Nous pouvons avertir, restreindre la visibilité des annonces, suspendre, bannir ou supprimer définitivement les comptes vendeur en cas de violation des politiques, d'annonces illégales, de signalements de fraude, de plaintes répétées d'acheteurs ou de notifications légales valides ou demandes des autorités compétentes, comme décrit dans nos Conditions générales d'utilisation. Les violations graves ou répétées peuvent entraîner une suppression définitive.
 
 ## 9. Modifications
 
