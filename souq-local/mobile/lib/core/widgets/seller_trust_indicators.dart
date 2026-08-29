@@ -37,10 +37,6 @@ class SellerTrustIndicators extends StatelessWidget {
       ),
       if (seller.phoneVerified)
         _TrustChip(label: l10n.verificationPhoneVerified, icon: Icons.phone_android),
-      if (seller.isSellerPro)
-        _TrustChip(label: l10n.sellerProBadge, icon: Icons.workspace_premium_outlined),
-      if (seller.isBuyerPlus)
-        _TrustChip(label: l10n.buyerPlusBadge, icon: Icons.star_outline),
     ];
 
     if (compact) {
@@ -56,61 +52,6 @@ class SellerTrustIndicators extends StatelessWidget {
       spacing: 6,
       runSpacing: 6,
       children: chips,
-    );
-  }
-}
-
-class ListingPremiumBadges extends StatelessWidget {
-  const ListingPremiumBadges({
-    super.key,
-    required this.sellerPremium,
-    this.sellerBuyerPlus = false,
-  });
-
-  final bool sellerPremium;
-  final bool sellerBuyerPlus;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!sellerPremium && !sellerBuyerPlus) return const SizedBox.shrink();
-    final l10n = context.l10n;
-    return Wrap(
-      spacing: 4,
-      children: [
-        if (sellerPremium)
-          _MiniBadge(label: l10n.sellerProBadge, emphasized: true),
-        if (sellerBuyerPlus) _MiniBadge(label: l10n.buyerPlusBadge),
-      ],
-    );
-  }
-}
-
-class _MiniBadge extends StatelessWidget {
-  const _MiniBadge({required this.label, this.emphasized = false});
-
-  final String label;
-  final bool emphasized;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: emphasized
-            ? context.colors.primaryMuted
-            : context.colors.surfaceVariant,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: emphasized
-              ? context.colors.primary
-              : context.colors.textSecondary,
-        ),
-      ),
     );
   }
 }
@@ -135,18 +76,21 @@ class _TrustChip extends StatelessWidget {
             ? context.colors.primaryMuted
             : context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: emphasized ? context.colors.primary : context.colors.border,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: context.colors.primary),
+          Icon(icon, size: 14, color: context.colors.textSecondary),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: context.colors.textPrimary,
+              color: context.colors.textSecondary,
             ),
           ),
         ],

@@ -46,7 +46,7 @@ export function ProductCard({ product }: { product: ProductSearchOut }) {
           <span>{formatRating(product.seller_rating)} ★</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <TrustBadges verified={product.seller_verified} premium={product.seller_premium} />
+          <TrustBadges verified={product.seller_verified} />
           <AvailabilityBadge available={product.is_available} />
         </div>
       </div>
@@ -82,7 +82,7 @@ export function ServiceCard({ service }: { service: ServiceSearchOut }) {
           <span>{service.seller_city}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <TrustBadges verified={service.seller_verified} premium={service.seller_premium} />
+          <TrustBadges verified={service.seller_verified} />
           <AvailabilityBadge available={service.is_available} />
         </div>
       </div>
@@ -115,7 +115,6 @@ export function SellerCard({ seller }: { seller: SellerSummary }) {
         </div>
         <TrustBadges
           verified={seller.verification_status === "verified"}
-          premium={seller.is_premium}
         />
       </div>
     </Link>

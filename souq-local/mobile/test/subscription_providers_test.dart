@@ -1,67 +1,36 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:souq_local/core/models/models.dart';
 import 'package:souq_local/core/providers/subscription_providers.dart';
-import 'package:souq_local/core/services/app_storage.dart';
 
 void main() {
-  group('filterPlansForSession', () {
-    final plans = <SubscriptionPlanModel>[
-      const SubscriptionPlanModel(
-        id: 'plan-buyer',
-        code: 'buyer_premium',
-        name: 'Dribex Plus',
-        description: 'Buyer premium',
-        priceMad: 49,
-        billingPeriodDays: 30,
-        features: ['priority_support'],
-        isActive: true,
-      ),
-      const SubscriptionPlanModel(
-        id: 'plan-seller',
-        code: 'seller_pro',
-        name: 'Dribex Pro',
-        description: 'Seller premium',
-        priceMad: 149,
-        billingPeriodDays: 30,
-        features: ['unlimited_videos'],
-        isActive: true,
-      ),
-    ];
-
-    test('plan display names are user-facing', () {
-      expect(plans.first.displayName, 'Dribex Plus+');
-      expect(plans.last.displayName, 'DriverPro');
+  group('shouldShowPromotionalAds', () {
+    test('shows ads when entitlements are null', () {
+      expect(shouldShowPromotionalAds(null), isTrue);
     });
 
-    test('buyer sees buyer plan only', () {
-      const session = UserSession(
-        name: 'Buyer',
-        email: 'buyer@example.com',
-        accountType: AccountType.buyer,
+    test('shows ads when enabled and not suppressed', () {
+      const enabled = EntitlementsBundleModel(
+        buyer: BuyerEntitlementsModel(),
+        adsEnabled: true,
       );
-      final filtered = filterPlansForSession(plans, session);
-      expect(filtered.map((p) => p.code), ['buyer_premium']);
+      expect(shouldShowPromotionalAds(enabled), isTrue);
     });
 
-    test('seller sees seller plan only', () {
-      const session = UserSession(
-        name: 'Seller',
-        email: 'seller@example.com',
-        accountType: AccountType.seller,
-        sellerId: 'seller-1',
+    test('hides ads when promotional ads are suppressed', () {
+      const suppressed = EntitlementsBundleModel(
+        buyer: BuyerEntitlementsModel(),
+        adsEnabled: true,
+        promotionalAdsSuppressed: true,
       );
-      final filtered = filterPlansForSession(plans, session);
-      expect(filtered.map((p) => p.code), ['seller_pro']);
+      expect(shouldShowPromotionalAds(suppressed), isFalse);
     });
 
-    test('guest sees all plans', () {
-      const session = UserSession(
-        name: 'Guest',
-        email: '',
-        accountType: AccountType.guest,
+    test('hides ads when ads are disabled', () {
+      const disabled = EntitlementsBundleModel(
+        buyer: BuyerEntitlementsModel(),
+        adsEnabled: false,
       );
-      final filtered = filterPlansForSession(plans, session);
-      expect(filtered.length, 2);
+      expect(shouldShowPromotionalAds(disabled), isFalse);
     });
   });
 }

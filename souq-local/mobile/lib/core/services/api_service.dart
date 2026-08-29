@@ -1307,58 +1307,9 @@ class ApiService {
     );
   }
 
-  Future<List<SubscriptionPlanModel>> fetchSubscriptionPlans({
-    String? audience,
-  }) async {
-    final query = audience == null ? null : <String, String>{'audience': audience};
-    final data = await getJsonList(
-      '/subscriptions/plans',
-      query: query,
-    );
-    return data
-        .map((item) =>
-            SubscriptionPlanModel.fromJson(item as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<SubscriptionModel?> fetchMySubscription() async {
-    final response = await _request(
-      () => _get(_uri('/subscriptions/me'), headers: _authHeaders),
-      auth: true,
-    );
-    _ensureSuccess(response);
-    if (response.body.isEmpty || response.body == 'null') return null;
-    return SubscriptionModel.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
-  }
-
-  Future<SubscriptionModel> subscribe(String planCode) async {
-    final data =
-        await postEmpty('/subscriptions/subscribe/$planCode', auth: true);
-    return SubscriptionModel.fromJson(data);
-  }
-
-  Future<BillingStatusModel> fetchBillingStatus() async {
-    final data = await getJson('/subscriptions/billing/status', auth: false);
-    return BillingStatusModel.fromJson(data);
-  }
-
-  Future<BillingCheckoutResult> checkoutSubscription(
-    String planCode, {
-    required bool subscriptionTermsAccepted,
-    String acceptanceLanguage = 'fr',
-  }) async {
-    final data = await postJson(
-      '/subscriptions/checkout/$planCode',
-      {
-        'success_url': 'margem://premium/success',
-        'cancel_url': 'margem://premium/cancel',
-        'subscription_terms_accepted': subscriptionTermsAccepted,
-        'acceptance_language': acceptanceLanguage,
-      },
-      auth: true,
-    );
-    return BillingCheckoutResult.fromJson(data);
+  Future<MonetizationStatusModel> fetchMonetizationStatus() async {
+    final data = await getJson('/platform/monetization', auth: false);
+    return MonetizationStatusModel.fromJson(data);
   }
 
   Future<List<AdvertisingPackageModel>> fetchAdvertisingPackages() async {
@@ -1382,10 +1333,6 @@ class ApiService {
     return BillingCheckoutResult.fromJson(data);
   }
 
-  Future<void> cancelSubscription() async {
-    await postVoid('/billing/subscriptions/me/cancel', const {}, auth: true);
-  }
-
   Future<Map<String, dynamic>> updateMyProfile({
     String? displayName,
     String? phone,
@@ -1394,14 +1341,6 @@ class ApiService {
     if (displayName != null) body['display_name'] = displayName;
     if (phone != null) body['phone'] = phone;
     return patchJson('/auth/me', body, auth: true);
-  }
-
-  Future<List<PlatformPaymentModel>> fetchMyPlatformPayments() async {
-    final data = await getJsonList('/billing/payments/me', auth: true);
-    return data
-        .whereType<Map<String, dynamic>>()
-        .map(PlatformPaymentModel.fromJson)
-        .toList();
   }
 
   Future<PlatformPaymentModel> fetchPlatformPayment(String paymentId) async {

@@ -159,11 +159,6 @@ class BuyerDrawer extends ConsumerWidget {
                       ref.read(buyerTabIndexProvider.notifier).state = 2;
                     }),
                   ),
-                  _DrawerTile(
-                    icon: Icons.workspace_premium_outlined,
-                    label: l10n.premium,
-                    onTap: () => closeAnd(() => context.push('/premium')),
-                  ),
                 ],
               ),
             ),

@@ -30,7 +30,6 @@ import 'features/onboarding/become_seller_screen.dart';
 import 'features/onboarding/buyer_registration_screen.dart';
 import 'features/onboarding/onboarding_welcome_screen.dart';
 import 'features/onboarding/seller_registration_screen.dart';
-import 'features/premium/premium_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/seller/product_detail_screen.dart';
 import 'features/seller/seller_catalog_screen.dart';
@@ -40,11 +39,11 @@ import 'features/seller/seller_detail_screen.dart';
 import 'features/seller/seller_products_screen.dart';
 import 'features/seller/seller_services_screen.dart';
 import 'features/seller/seller_profile_screen.dart';
+import 'features/seller/seller_boost_screen.dart';
 import 'features/seller/seller_reviews_screen.dart';
 import 'features/seller/seller_settings_screen.dart';
 import 'features/wishlist/wishlist_screen.dart';
 import 'features/settings/language_selection_screen.dart';
-import 'features/settings/billing_settings_screen.dart';
 import 'features/settings/mfa_settings_screen.dart';
 import 'features/settings/mfa_setup_screen.dart';
 import 'features/legal/legal_acceptance_screen.dart';
@@ -146,10 +145,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const YourDataScreen(),
       ),
       GoRoute(
-        path: '/settings/billing',
-        builder: (_, __) => const BillingSettingsScreen(),
-      ),
-      GoRoute(
         path: '/legal/:doc',
         builder: (_, state) => LegalDocumentScreen(
           docSlug: state.pathParameters['doc']!,
@@ -248,20 +243,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
-      GoRoute(
-        path: '/premium',
-        builder: (_, state) => PremiumScreen(
-          checkoutNotice: state.uri.queryParameters['checkout'],
-        ),
-      ),
-      GoRoute(
-        path: '/premium/success',
-        redirect: (_, __) => '/premium?checkout=success',
-      ),
-      GoRoute(
-        path: '/premium/cancel',
-        redirect: (_, __) => '/premium?checkout=cancelled',
-      ),
       GoRoute(path: '/profile', builder: (_, __) => const BuyerProfileScreen()),
       GoRoute(
           path: '/messages',
@@ -320,13 +301,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           builder: (_, __) => const SellerSettingsScreen()),
       GoRoute(
         path: '/seller/boost',
-        redirect: (_, state) {
-          final checkout = state.uri.queryParameters['checkout'];
-          if (checkout != null && checkout.isNotEmpty) {
-            return '/premium?checkout=$checkout';
-          }
-          return '/premium';
-        },
+        builder: (_, state) => SellerBoostScreen(
+          checkoutNotice: state.uri.queryParameters['checkout'],
+        ),
       ),
       GoRoute(
         path: '/seller/:id',

@@ -74,6 +74,7 @@ test("seller proxy rejects traversal and sensitive namespaces", () => {
   assert.equal(isAllowedSellerProxyPath("auth/refresh"), false);
   assert.equal(isAllowedSellerProxyPath("sellers/me"), true);
   assert.equal(isAllowedSellerProxyPath("uploads/presign"), true);
-  assert.equal(isAllowedSellerProxyPath("subscriptions/entitlements"), true);
-  assert.equal(isAllowedSellerProxyPath("billing/checkout/subscription/seller_pro"), true);
+  assert.equal(isAllowedSellerProxyPath("billing/checkout/advertising"), true);
+  assert.equal(isAllowedSellerProxyPath("subscriptions/entitlements"), false);
+  assert.equal(isAllowedSellerProxyPath("billing/checkout/subscription/seller_pro"), false);
 });

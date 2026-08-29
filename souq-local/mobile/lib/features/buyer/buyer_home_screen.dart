@@ -28,7 +28,6 @@ import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
-import '../../core/providers/subscription_providers.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
 
@@ -172,8 +171,6 @@ class BuyerHomeScreen extends ConsumerWidget {
     final searchOrigin = ref.watch(buyerSearchLocationProvider).valueOrNull ??
         CityCoordinates.centerFor(city);
     final isGuest = session == null || session.isGuest;
-    final hasPremium = ref.watch(authSessionProvider)?.user.showPlusBadge ??
-        hasPlusPlusEntitlement(ref.watch(myEntitlementsProvider).valueOrNull);
 
     final firstName = session?.name.split(' ').first ?? l10n.guestMode;
 
@@ -205,7 +202,6 @@ class BuyerHomeScreen extends ConsumerWidget {
                     ref.read(buyerTabIndexProvider.notifier).state = 2;
                   },
                   onProfile: () => context.push('/profile'),
-                  showPremiumBadge: hasPremium,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Padding(
@@ -974,12 +970,6 @@ class BuyerProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             BuyerMenuTile(
-              icon: Icons.workspace_premium_outlined,
-              title: l10n.premium,
-              onTap: () => context.push('/premium'),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            BuyerMenuTile(
               icon: Icons.chat_bubble_outline_rounded,
               title: l10n.navMessages,
               onTap: () {
@@ -1089,7 +1079,7 @@ class BuyerProfileScreen extends ConsumerWidget {
                       await ref.read(sharedPreferencesProvider.future);
                   await ref.read(authServiceProvider).logout(prefs);
                   await ref.read(appStorageProvider)?.logout();
-                  invalidateSubscriptionProviders(ref);
+                  invalidateEntitlementProviders(ref);
                   ref.read(userSessionProvider.notifier).state = null;
                   ref.read(authSessionProvider.notifier).state = null;
                   if (context.mounted) context.go('/login');

@@ -199,8 +199,7 @@ export const PROXY_SAFE_RESPONSE_HEADERS = [
 const SELLER_PROXY_ALLOWED_PREFIXES = [
   "sellers/",
   "uploads/",
-  "subscriptions/",
-  "billing/checkout/subscription/",
+  "billing/checkout/advertising",
   "rewards/",
 ];
 

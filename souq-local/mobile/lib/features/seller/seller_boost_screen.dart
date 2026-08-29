@@ -52,8 +52,8 @@ class _SellerBoostScreenState extends ConsumerState<SellerBoostScreen> {
 
   Future<void> _purchase(AdvertisingPackageModel package) async {
     final l10n = context.l10n;
-    final billing = ref.read(billingStatusProvider).valueOrNull;
-    if (billing != null && !billing.selfServeEnabled) {
+    final monetization = ref.read(monetizationStatusProvider).valueOrNull;
+    if (monetization != null && !monetization.billingSelfServeEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.premiumBillingUnavailable)),
       );

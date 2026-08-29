@@ -109,7 +109,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
           {product.category_slug ? <span>Category: {product.category_slug}</span> : null}
           <span>{product.is_available ? "Available" : "Unavailable"}</span>
         </div>
-        <TrustBadges verified={seller.verified} premium={seller.premium} />
+        <TrustBadges verified={seller.verified} />
         <p className="text-[var(--muted)]">{product.description}</p>
         <div className="rounded-2xl border border-[var(--border)] bg-white p-5">
           <p className="text-sm font-semibold">Sold by</p>

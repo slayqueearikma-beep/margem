@@ -99,7 +99,7 @@ export default async function ServiceDetailPage({ params }: ServiceDetailProps) 
             {formatPrice(service.price_mad, service.price_negotiable)}
           </p>
         </div>
-        <TrustBadges verified={seller.verified} premium={seller.premium} />
+        <TrustBadges verified={seller.verified} />
         <p className="text-[var(--muted)]">{service.description}</p>
         {service.coverage_areas && service.coverage_areas.length > 0 ? (
           <p className="text-sm text-[var(--muted)]">
