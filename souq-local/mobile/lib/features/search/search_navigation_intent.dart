@@ -1,6 +1,19 @@
 import 'search_category_resolver.dart';
 import 'search_filters.dart';
 
+/// Atomic search navigation from home/marketplace screens.
+class SearchNavigationIntent {
+  const SearchNavigationIntent({
+    required this.mode,
+    this.categorySlug,
+    this.marketplaceSlug,
+  });
+
+  final String mode;
+  final String? categorySlug;
+  final String? marketplaceSlug;
+}
+
 class SearchIntentApplication {
   const SearchIntentApplication({
     required this.mode,

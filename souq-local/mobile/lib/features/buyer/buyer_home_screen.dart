@@ -26,7 +26,6 @@ import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
-import '../../features/search/search_filters.dart';
 import '../../features/search/search_navigation_intent.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
