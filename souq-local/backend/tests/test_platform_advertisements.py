@@ -455,3 +455,82 @@ async def test_admin_rejects_invalid_marketplace_target():
             json={**SAMPLE_AD, "target_marketplace_slug": "missing-market"},
         )
         assert res.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_end_to_end_admin_create_mobile_consume_impression_click():
+    """Simulates acceptance steps 1-23 via API (admin → mobile feed → impression → click)."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test", follow_redirects=False) as client:
+        headers = await _admin_headers(client)
+        marketplace, category = await _create_marketplace_with_category(client, headers)
+
+        created = await _create_ad(
+            client,
+            headers,
+            placement="marketplace_page",
+            target_marketplace_slug=marketplace["slug"],
+            target_category_slug=category["slug"],
+            campaign_name="E2E promo",
+            status="active",
+            payment_status="paid",
+        )
+
+        wrong = await client.get(
+            "/ads/active",
+            params={
+                "placement": "marketplace_page",
+                "marketplace_slug": "other-market",
+                "category_slug": category["slug"],
+                "platform": "mobile",
+            },
+        )
+        assert wrong.json() == []
+
+        matched = await client.get(
+            "/ads/active",
+            params={
+                "placement": "marketplace_page",
+                "marketplace_slug": marketplace["slug"],
+                "category_slug": category["slug"],
+                "platform": "mobile",
+            },
+            headers={"X-Ad-Viewer": "mobile-viewer-e2e"},
+        )
+        assert matched.status_code == 200
+        assert len(matched.json()) == 1
+        assert matched.json()[0]["id"] == created["id"]
+
+        view_key = f"e2e-view-{uuid4().hex}"
+        impression = await client.post(
+            "/ads/impressions",
+            json={
+                "campaign_id": created["id"],
+                "placement": "marketplace_page",
+                "view_key": view_key,
+                "marketplace_slug": marketplace["slug"],
+                "category_slug": category["slug"],
+            },
+            headers={"X-Ad-Viewer": "mobile-viewer-e2e"},
+            params={"platform": "mobile"},
+        )
+        assert impression.status_code == 200
+        assert impression.json()["recorded"] is True
+
+        click = await client.get(
+            f"/ads/click/{created['id']}",
+            params={
+                "placement": "marketplace_page",
+                "click_key": f"e2e-click-{uuid4().hex}",
+                "marketplace_slug": marketplace["slug"],
+                "category_slug": category["slug"],
+                "platform": "mobile",
+            },
+            headers={"X-Ad-Viewer": "mobile-viewer-e2e"},
+        )
+        assert click.status_code == 302
+        assert click.headers["location"] == "https://example.com/promo"
+
+        detail = await client.get(f"/admin/advertisements/{created['id']}", headers=headers)
+        assert detail.json()["impression_count"] >= 1
+        assert detail.json()["click_count"] >= 1

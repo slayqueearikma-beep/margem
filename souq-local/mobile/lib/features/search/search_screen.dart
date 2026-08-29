@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/models/models.dart';
+import '../../core/models/platform_ad_models.dart';
 import '../../core/providers/city_providers.dart';
 import '../../core/providers/subscription_providers.dart';
 import '../../core/services/api_service.dart';
@@ -17,6 +18,7 @@ import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
+import '../../core/widgets/platform_ad_slot.dart';
 import '../../core/widgets/seller_trust_indicators.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
@@ -750,6 +752,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   },
                 ),
                 const SizedBox(height: AppSpacing.sm),
+                PlatformAdSlot(
+                  placement: 'search_results',
+                  adContext: PlatformAdContext(
+                    marketplaceSlug: validatedMarketplaceSlug(
+                      ref.watch(buyerMarketplaceSlugProvider),
+                      ref.watch(buyerMarketplacesProvider).valueOrNull ?? const [],
+                    ),
+                    city: ref.watch(buyerCityProvider),
+                    categorySlug: _activeCategory(),
+                  ),
+                ),
                 Row(
                   children: [
                     Expanded(
