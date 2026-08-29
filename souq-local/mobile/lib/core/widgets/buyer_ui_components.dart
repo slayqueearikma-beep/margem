@@ -16,13 +16,11 @@ class BuyerShellHeader extends StatelessWidget {
     required this.onMenu,
     required this.onNotifications,
     required this.onProfile,
-    this.showPremiumBadge = false,
   });
 
   final VoidCallback onMenu;
   final VoidCallback onNotifications;
   final VoidCallback onProfile;
-  final bool showPremiumBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -75,23 +73,6 @@ class BuyerShellHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (showPremiumBadge)
-                        PositionedDirectional(
-                          end: -2,
-                          bottom: -2,
-                          child: Container(
-                            padding: EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.workspace_premium_rounded,
-                              color: context.colors.primary,
-                              size: 12,
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                 ],

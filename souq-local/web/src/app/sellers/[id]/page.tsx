@@ -118,7 +118,6 @@ export default async function SellerDetailPage({ params }: SellerDetailProps) {
           </div>
           <TrustBadges
             verified={seller.verification_status === "verified"}
-            premium={seller.is_premium}
           />
           {verification ? (
             <p className="text-sm font-medium text-green-700">{verification}</p>

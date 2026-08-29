@@ -3,7 +3,6 @@ bool isAuthProtectedLocation(String path) {
   final isSellerManagement = path == '/seller/dashboard' ||
       path.startsWith('/seller/products') ||
       path.startsWith('/seller/services') ||
-      path.startsWith('/seller/videos') ||
       path.startsWith('/seller/analytics') ||
       path.startsWith('/seller/profile') ||
       path.startsWith('/seller/reviews') ||
@@ -14,8 +13,6 @@ bool isAuthProtectedLocation(String path) {
   final isMarketplaceCommunity =
       RegExp(r'^/marketplace/[^/]+/community').hasMatch(path);
   return isSellerManagement ||
-      path == '/premium' ||
-      path == '/settings/billing' ||
       path.startsWith('/messages') ||
       path.startsWith('/community/channels') ||
       isMarketplaceCommunity;

@@ -16,7 +16,7 @@ Nous pouvons mettre à jour ces Conditions lorsque les fonctionnalités, tarifs,
 |-------|---------------|
 | Plateforme | Applications, site web et services connexes de {{platform_name}} |
 | Utilisateur | Toute personne qui accède à la Plateforme ou l'utilise |
-| Acheteur | Un utilisateur qui consulte, met en favori, envoie des messages ou achète |
+| Acheteur | Un utilisateur qui consulte, met en favori, envoie des messages ou contacte des vendeurs au sujet d'annonces |
 | Vendeur | Un utilisateur proposant des produits, services ou une fiche entreprise |
 | Contenu | Annonces, avis, messages, images et autres éléments que vous soumettez |
 | Fonctionnalités premium | Fonctionnalités payantes ou par abonnement que nous pouvons proposer maintenant ou à l'avenir |
@@ -29,7 +29,13 @@ Nous pouvons refuser, suspendre ou résilier les comptes qui enfreignent ces Con
 
 ## 4. Rôle de la plateforme
 
-{{platform_name}} aide les utilisateurs à découvrir des entreprises, produits et services locaux au Maroc. Nous sommes une plateforme intermédiaire. Sauf indication contraire explicite pour une transaction donnée, nous ne possédons pas les stocks des vendeurs, n'employons pas les vendeurs, ne garantissons pas les relations hors plateforme et ne sommes pas partie aux contrats conclus entre utilisateurs.
+{{platform_name}} est une **plateforme de découverte uniquement**. Nous aidons les utilisateurs à découvrir des entreprises, produits et services locaux au Maroc en hébergeant des annonces et des informations publiées par les utilisateurs et les vendeurs.
+
+La Plateforme permet aux utilisateurs de découvrir des produits et services et affiche des annonces fournies par les utilisateurs ou vendeurs. Nous ne vendons pas, n'achetons pas, ne fabriquons pas, ne fournissons pas, ne livrons pas et ne réalisons pas nous-mêmes les produits ou services référencés sur la Plateforme. Sauf indication contraire explicite pour une offre donnée, nous ne sommes pas partie aux transactions entre utilisateurs ou vendeurs, nous ne possédons pas les stocks des vendeurs et nous n'employons pas les vendeurs. L'affichage d'une annonce ne crée pas de relation commerciale entre {{platform_name}} et le produit ou service référencé.
+
+Nous ne garantissons pas la légalité, la qualité, la sécurité, l'authenticité, la disponibilité, la propriété ou la conformité des produits ou services référencés par les utilisateurs ou vendeurs.
+
+Rien dans ces Conditions n'exclut ou ne limite les responsabilités qui nous incombent en vertu de la loi applicable (par exemple, répondre à des notifications légales valides, coopérer avec les autorités compétentes lorsque requis, ou respecter des obligations qui ne peuvent légalement être exclues).
 
 ## 5. Règles pour les acheteurs et utilisateurs
 
@@ -53,16 +59,18 @@ Vous conservez la propriété du Contenu que vous soumettez. Vous accordez à {{
 
 ## 8. Activités interdites
 
+Vous êtes responsable de vous assurer que vos annonces, messages et autres Contenus respectent les lois applicables, les présentes Conditions et nos Règles de la communauté et Conditions vendeur (le cas échéant). Le fait de découvrir, d'indexer ou d'afficher une annonce ne signifie pas que {{platform_name}} approuve, recommande ou autorise le produit ou service. Nous n'autorisons pas d'activité illégale sur la Plateforme.
+
 Vous ne devez pas :
 
 - Publier un contenu illégal, frauduleux, trompeur, haineux, harcelant ou contrefaisant
+- Référencer, proposer ou promouvoir des biens ou services interdits ou illégaux au regard de la loi marocaine ou de nos politiques
 - Usurper l'identité d'autrui ou fausser votre affiliation avec {{platform_name}}
 - Extraire des données, procéder à l'ingénierie inverse ou contourner la sécurité ou les limites de débit sans autorisation
 - Envoyer du spam, manipuler les avis ou compromettre l'intégrité de la plateforme
-- Utiliser la Plateforme pour des biens ou services interdits par la loi marocaine ou nos politiques
 - Collecter les données d'autres utilisateurs sans autorisation
 
-Nous pouvons supprimer du contenu, restreindre des fonctionnalités ou suspendre des comptes pour faire respecter ces règles.
+Nous pouvons supprimer ou restreindre des annonces, limiter la visibilité, suspendre des comptes, bannir des comptes ou résilier l'accès dans la mesure permise par ces Conditions et la loi applicable. Nous pouvons répondre de manière appropriée à des notifications légales valides ou à des demandes des autorités compétentes. Rien dans ces Conditions ne vise à exclure une responsabilité qui ne peut légalement être exclue.
 
 ## 9. Propriété intellectuelle
 
@@ -96,7 +104,7 @@ Vous acceptez d'indemniser et de dégager {{platform_name}} de toute responsabil
 
 ## 16. Suspension et résiliation
 
-Vous pouvez cesser d'utiliser la Plateforme à tout moment et supprimer votre compte comme décrit dans notre document Suppression de compte et droits relatifs aux données. Nous pouvons suspendre ou résilier l'accès en cas de violation, de risque, d'inactivité ou d'exigences légales. Les dispositions qui, par nature, doivent survivre à la résiliation continueront de s'appliquer.
+Vous pouvez cesser d'utiliser la Plateforme à tout moment et supprimer votre compte comme décrit dans notre document Suppression de compte et droits relatifs aux données. Nous pouvons suspendre, bannir ou résilier l'accès, et restreindre la visibilité des annonces, en cas de violation, de risque, d'inactivité ou d'exigences légales, y compris lorsque nous devons coopérer avec les autorités compétentes. Les dispositions qui, par nature, doivent survivre à la résiliation continueront de s'appliquer.
 
 ## 17. Droit applicable et litiges
 

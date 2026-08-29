@@ -31,11 +31,11 @@ title: Règles de la communauté
 
 ## 5. Contenu interdit
 
-Ne publiez pas de contenu illégal au regard de la loi marocaine ou de nos politiques, y compris les contrefaçons, les objets volés, les allégations médicales sans licence ou le contenu exploitant des mineurs.
+Ne publiez pas de contenu illégal au regard de la loi marocaine ou de nos politiques, y compris les contrefaçons, les objets volés, les allégations médicales sans licence ou le contenu exploitant des mineurs. Vous êtes responsable de la légalité de ce que vous publiez. L'affichage ou la découverte d'un contenu sur {{platform_name}} ne signifie pas que nous l'approuvons ou le recommandons.
 
 ## 6. Modération
 
-Nous pouvons supprimer du contenu, limiter la visibilité ou suspendre l'accès au moyen de systèmes automatisés et d'un examen humain. Les décisions d'application peuvent ne pas toujours inclure d'explications détaillées lorsque la sécurité ou les obligations légales exigent la confidentialité.
+Nous pouvons supprimer du contenu, limiter la visibilité, suspendre ou bannir des comptes, ou coopérer avec les autorités compétentes lorsque la loi l'exige, au moyen de systèmes automatisés et d'un examen humain. Les décisions d'application peuvent ne pas toujours inclure d'explications détaillées lorsque la sécurité ou les obligations légales exigent la confidentialité.
 
 ## 7. Recours
 

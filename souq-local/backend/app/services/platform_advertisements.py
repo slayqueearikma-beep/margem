@@ -38,6 +38,7 @@ AD_PLACEMENTS: tuple[str, ...] = (
     "search_results",
     "category_page",
     "city_page",
+    "full_page",
 )
 
 AD_PLACEMENT_LABELS: dict[str, str] = {
@@ -52,6 +53,7 @@ AD_PLACEMENT_LABELS: dict[str, str] = {
     "search_results": "Search results",
     "category_page": "Category page",
     "city_page": "City page",
+    "full_page": "Full page — mobile interstitial",
 }
 
 AD_TARGET_PLATFORMS: tuple[str, ...] = ("all", "web", "mobile")

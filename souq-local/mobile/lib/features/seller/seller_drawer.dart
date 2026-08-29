@@ -154,7 +154,7 @@ class SellerDrawer extends ConsumerWidget {
     await ref.read(authServiceProvider).logout(prefs);
     await ref.read(appStorageProvider)?.logout();
     ref.invalidate(sellerAccountProvider);
-    invalidateSubscriptionProviders(ref);
+    invalidateEntitlementProviders(ref);
     ref.read(userSessionProvider.notifier).state = null;
     ref.read(authSessionProvider.notifier).state = null;
     if (context.mounted) context.go('/login');

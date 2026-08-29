@@ -429,7 +429,6 @@ class ProductModel {
     this.acceptedPaymentMethods = const [],
     this.deliveryOptions = const [],
     this.mediaUrls = const [],
-    this.videoUrl = '',
     this.categorySlug = '',
     this.deliveryAvailable = false,
     this.pickupOnly = true,
@@ -450,7 +449,6 @@ class ProductModel {
   final List<String> acceptedPaymentMethods;
   final List<String> deliveryOptions;
   final List<String> mediaUrls;
-  final String videoUrl;
   final String categorySlug;
   final bool deliveryAvailable;
   final bool pickupOnly;
@@ -481,7 +479,6 @@ class ProductModel {
       mediaUrls: (json['media_urls'] as List<dynamic>? ?? [])
           .map((item) => item.toString())
           .toList(),
-      videoUrl: json['video_url'] as String? ?? '',
       categorySlug: json['category_slug'] as String? ?? '',
       deliveryAvailable: json['delivery_available'] as bool? ?? false,
       pickupOnly: json['pickup_only'] as bool? ?? true,
@@ -1011,129 +1008,18 @@ class AppNotificationModel {
   }
 }
 
-class SubscriptionPlanModel {
-  const SubscriptionPlanModel({
-    required this.id,
-    required this.code,
-    required this.name,
-    required this.description,
-    required this.priceMad,
-    required this.billingPeriodDays,
-    required this.features,
-    required this.isActive,
-  });
-
-  final String id;
-  final String code;
-  final String name;
-  final String description;
-  final double priceMad;
-  final int billingPeriodDays;
-  final List<String> features;
-  final bool isActive;
-
-  /// User-facing plan label (legacy API rows may still use older names).
-  String get displayName {
-    if (code == 'buyer_premium') return 'Dribex Plus+';
-    if (code == 'seller_pro') return 'DriverPro';
-    return name;
-  }
-
-  /// Marketing bullets for checkout UI — authoritative per plan code.
-  List<String> marketingFeatureLines(AppStrings l10n) {
-    switch (code) {
-      case 'seller_pro':
-        return l10n.driverProPlanFeatures;
-      case 'buyer_premium':
-        return l10n.buyerPlusPlanFeatures;
-      default:
-        return features.isNotEmpty ? features : [description];
-    }
-  }
-
-  factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
-    return SubscriptionPlanModel(
-      id: json['id'] as String,
-      code: json['code'] as String,
-      name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      priceMad: (json['price_mad'] as num?)?.toDouble() ?? 0,
-      billingPeriodDays: json['billing_period_days'] as int? ?? 30,
-      features: (json['features'] as List<dynamic>? ?? [])
-          .map((item) => item.toString())
-          .toList(),
-      isActive: json['is_active'] as bool? ?? true,
-    );
-  }
-}
-
-class SubscriptionModel {
-  const SubscriptionModel({
-    required this.id,
-    required this.plan,
-    required this.status,
-    required this.currentPeriodStart,
-    required this.currentPeriodEnd,
-    required this.provider,
-    this.cancelledAt,
-    this.cancelAtPeriodEnd = false,
-  });
-
-  final String id;
-  final SubscriptionPlanModel plan;
-  final String status;
-  final String currentPeriodStart;
-  final String currentPeriodEnd;
-  final String provider;
-  final String? cancelledAt;
-  final bool cancelAtPeriodEnd;
-
-  factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
-    return SubscriptionModel(
-      id: json['id'] as String,
-      plan:
-          SubscriptionPlanModel.fromJson(json['plan'] as Map<String, dynamic>),
-      status: json['status'] as String? ?? '',
-      currentPeriodStart: json['current_period_start'] as String? ?? '',
-      currentPeriodEnd: json['current_period_end'] as String? ?? '',
-      provider: json['provider'] as String? ?? '',
-      cancelledAt: json['cancelled_at'] as String?,
-      cancelAtPeriodEnd: json['cancel_at_period_end'] as bool? ?? false,
-    );
-  }
-}
-
-class BillingStatusModel {
-  const BillingStatusModel({
-    required this.selfServeEnabled,
-    this.provider,
-  });
-
-  final bool selfServeEnabled;
-  final String? provider;
-
-  factory BillingStatusModel.fromJson(Map<String, dynamic> json) {
-    return BillingStatusModel(
-      selfServeEnabled: json['self_serve_enabled'] as bool? ?? false,
-      provider: json['provider'] as String?,
-    );
-  }
-}
-
 class BillingCheckoutResult {
   const BillingCheckoutResult({
     this.checkoutUrl,
     this.activated = false,
     this.paymentId,
     this.provider,
-    this.subscription,
   });
 
   final String? checkoutUrl;
   final bool activated;
   final String? paymentId;
   final String? provider;
-  final SubscriptionModel? subscription;
 
   factory BillingCheckoutResult.fromJson(Map<String, dynamic> json) {
     return BillingCheckoutResult(
@@ -1141,11 +1027,33 @@ class BillingCheckoutResult {
       activated: json['activated'] as bool? ?? false,
       paymentId: json['payment_id'] as String?,
       provider: json['provider'] as String?,
-      subscription: json['subscription'] is Map<String, dynamic>
-          ? SubscriptionModel.fromJson(
-              json['subscription'] as Map<String, dynamic>,
-            )
-          : null,
+    );
+  }
+}
+
+class MonetizationStatusModel {
+  const MonetizationStatusModel({
+    required this.paymentsEnabled,
+    required this.subscriptionsEnabled,
+    required this.adsEnabled,
+    required this.rewardedAdsEnabled,
+    required this.billingSelfServeEnabled,
+  });
+
+  final bool paymentsEnabled;
+  final bool subscriptionsEnabled;
+  final bool adsEnabled;
+  final bool rewardedAdsEnabled;
+  final bool billingSelfServeEnabled;
+
+  factory MonetizationStatusModel.fromJson(Map<String, dynamic> json) {
+    return MonetizationStatusModel(
+      paymentsEnabled: json['payments_enabled'] as bool? ?? false,
+      subscriptionsEnabled: json['subscriptions_enabled'] as bool? ?? false,
+      adsEnabled: json['ads_enabled'] as bool? ?? true,
+      rewardedAdsEnabled: json['rewarded_ads_enabled'] as bool? ?? false,
+      billingSelfServeEnabled:
+          json['billing_self_serve_enabled'] as bool? ?? false,
     );
   }
 }
@@ -1220,35 +1128,6 @@ class PlatformPaymentModel {
   }
 }
 
-class SellerVideoQuotaModel {
-  const SellerVideoQuotaModel({
-    required this.isPremium,
-    required this.activeVideos,
-    this.limit,
-    this.remaining,
-    this.videoUploadsEnabled = false,
-  });
-
-  final bool isPremium;
-  final int activeVideos;
-  final int? limit;
-  final int? remaining;
-  final bool videoUploadsEnabled;
-
-  bool get isAtLimit =>
-      !videoUploadsEnabled && remaining != null && remaining! <= 0;
-
-  factory SellerVideoQuotaModel.fromJson(Map<String, dynamic> json) {
-    return SellerVideoQuotaModel(
-      isPremium: json['is_premium'] as bool? ?? false,
-      activeVideos: json['active_videos'] as int? ?? 0,
-      limit: json['limit'] as int?,
-      remaining: json['remaining'] as int?,
-      videoUploadsEnabled: json['video_uploads_enabled'] as bool? ?? false,
-    );
-  }
-}
-
 class BuyerEntitlementsModel {
   const BuyerEntitlementsModel({
     this.planCode,
@@ -1290,7 +1169,6 @@ class SellerEntitlementsModel {
     this.combinedListingCount = 0,
     this.combinedListingLimit = 5,
     this.combinedListingRemaining = 5,
-    this.videoUploadsEnabled = false,
     this.promotionalAdsSuppressed = false,
     this.adsEnabled = true,
     this.startedAt,
@@ -1303,7 +1181,6 @@ class SellerEntitlementsModel {
   final int combinedListingCount;
   final int combinedListingLimit;
   final int combinedListingRemaining;
-  final bool videoUploadsEnabled;
   final bool promotionalAdsSuppressed;
   final bool adsEnabled;
   final String? startedAt;
@@ -1318,7 +1195,6 @@ class SellerEntitlementsModel {
       combinedListingLimit: json['combined_listing_limit'] as int? ?? 5,
       combinedListingRemaining:
           json['combined_listing_remaining'] as int? ?? 5,
-      videoUploadsEnabled: json['video_uploads_enabled'] as bool? ?? false,
       promotionalAdsSuppressed:
           json['promotional_ads_suppressed'] as bool? ?? false,
       adsEnabled: json['ads_enabled'] as bool? ?? true,
@@ -1354,6 +1230,41 @@ class EntitlementsBundleModel {
       promotionalAdsSuppressed:
           json['promotional_ads_suppressed'] as bool? ?? false,
       adsEnabled: json['ads_enabled'] as bool? ?? true,
+    );
+  }
+}
+
+class PlatformAdvertisementModel {
+  const PlatformAdvertisementModel({
+    required this.id,
+    required this.title,
+    this.description,
+    required this.imageUrl,
+    this.videoUrl,
+    required this.targetUrl,
+    required this.placement,
+    required this.clickUrl,
+  });
+
+  final String id;
+  final String title;
+  final String? description;
+  final String imageUrl;
+  final String? videoUrl;
+  final String targetUrl;
+  final String placement;
+  final String clickUrl;
+
+  factory PlatformAdvertisementModel.fromJson(Map<String, dynamic> json) {
+    return PlatformAdvertisementModel(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String?,
+      imageUrl: json['image_url'] as String? ?? '',
+      videoUrl: json['video_url'] as String?,
+      targetUrl: json['target_url'] as String? ?? '',
+      placement: json['placement'] as String? ?? '',
+      clickUrl: json['click_url'] as String? ?? '',
     );
   }
 }

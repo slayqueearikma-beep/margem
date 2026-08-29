@@ -157,8 +157,6 @@ class SellerEntitlementsResponse(BaseModel):
     combined_listing_count: int = 0
     combined_listing_limit: int = 5
     combined_listing_remaining: int = 5
-    video_uploads_enabled: bool = False
-    video_reward_active: bool = False
     promotional_ads_suppressed: bool = False
     ads_enabled: bool = True
     started_at: datetime | None = None

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   isAllowedPublicProxyPath,
+  isAllowedPublicProxyPostPath,
   isAllowedSellerProxyPath,
   normalizeProxyPath,
   safeExternalHref,
@@ -46,6 +47,13 @@ test("proxy allowlist blocks sensitive API namespaces", () => {
   assert.equal(isAllowedPublicProxyPath("sellers/me"), false);
 });
 
+test("proxy POST allowlist permits advertisement impressions only", () => {
+  assert.equal(isAllowedPublicProxyPostPath("ads/impressions"), true);
+  assert.equal(isAllowedPublicProxyPostPath("ads/active"), false);
+  assert.equal(isAllowedPublicProxyPostPath("admin/advertisements"), false);
+  assert.equal(isAllowedPublicProxyPostPath("uploads/presign"), false);
+});
+
 test("safeExternalHref blocks dangerous schemes", () => {
   assert.equal(safeExternalHref("javascript:alert(1)"), null);
   assert.equal(safeExternalHref("data:text/html,hi"), null);
@@ -66,6 +74,7 @@ test("seller proxy rejects traversal and sensitive namespaces", () => {
   assert.equal(isAllowedSellerProxyPath("auth/refresh"), false);
   assert.equal(isAllowedSellerProxyPath("sellers/me"), true);
   assert.equal(isAllowedSellerProxyPath("uploads/presign"), true);
-  assert.equal(isAllowedSellerProxyPath("subscriptions/entitlements"), true);
-  assert.equal(isAllowedSellerProxyPath("billing/checkout/subscription/seller_pro"), true);
+  assert.equal(isAllowedSellerProxyPath("billing/checkout/advertising"), true);
+  assert.equal(isAllowedSellerProxyPath("subscriptions/entitlements"), false);
+  assert.equal(isAllowedSellerProxyPath("billing/checkout/subscription/seller_pro"), false);
 });

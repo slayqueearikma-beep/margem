@@ -48,7 +48,7 @@ async def test_legal_manifest(client: AsyncClient):
     res = await client.get("/legal/manifest")
     assert res.status_code == 200
     body = res.json()
-    assert body["package_version"] == "2.0.0"
+    assert body["package_version"] == "2.1.0"
     slugs = {doc["slug"] for doc in body["documents"]}
     assert "privacy" in slugs
     assert "subscription-terms" in slugs

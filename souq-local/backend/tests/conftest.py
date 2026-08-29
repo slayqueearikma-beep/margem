@@ -199,7 +199,6 @@ async def prepare_database():
             "reviews",
             "products",
             "services",
-            "seller_videos",
             "seller_categories",
             "seller_profiles",
             "warning_zones",

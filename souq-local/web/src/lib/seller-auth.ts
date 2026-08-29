@@ -1,10 +1,6 @@
-export const SELLER_TOKEN_COOKIE = "dribex_seller_token";
-
 export type SellerEntitlements = {
   seller: {
     driver_pro_active: boolean;
-    video_uploads_enabled: boolean;
-    video_reward_active?: boolean;
     combined_listing_count: number;
     combined_listing_limit: number;
     combined_listing_remaining: number;
@@ -21,7 +17,6 @@ export type SellerProfile = {
     description?: string;
     price_mad?: number | null;
     image_url?: string;
-    video_url?: string;
     is_available?: boolean;
   }>;
   services: Array<{
@@ -30,7 +25,8 @@ export type SellerProfile = {
     description?: string;
     price_mad?: number | null;
     image_url?: string;
-    video_url?: string;
     is_available?: boolean;
   }>;
 };
+
+export const SELLER_TOKEN_COOKIE = "dribex_seller_token";

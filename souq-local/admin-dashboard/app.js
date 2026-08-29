@@ -23,6 +23,8 @@ const state = {
   advertisingOverview: null,
   editingAdvertisementId: null,
   pendingMfaToken: "",
+  adMarketplaces: [],
+  launchCities: [],
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -385,6 +387,7 @@ async function uploadImage(file, targetInput) {
   });
   if (!uploadRes.ok) throw new Error("Image upload failed");
   targetInput.value = presign.public_url;
+  updateAdImagePreview(presign.public_url);
   toast("Image uploaded");
 }
 
@@ -759,6 +762,110 @@ function populatePlacementSelect(selected) {
   });
 }
 
+async function ensureAdMarketplacesLoaded() {
+  if (state.adMarketplaces.length) return;
+  const data = await api("/admin/marketplaces?page_size=100&status_filter=all&sort=name");
+  state.adMarketplaces = data.items || [];
+}
+
+async function ensureLaunchCitiesLoaded() {
+  if (state.launchCities.length) return;
+  try {
+    const data = await api("/geography/cities?country=MA");
+    state.launchCities = (data.items || []).map((city) => ({
+      slug: (city.slug || city.name_en || "").toLowerCase(),
+      name: city.name_en || city.slug,
+    }));
+  } catch {
+    state.launchCities = [{ slug: "casablanca", name: "Casablanca" }];
+  }
+}
+
+function normalizeCityValue(value) {
+  return (value || "").trim().toLowerCase();
+}
+
+function populateAdMarketplaceSelect(selectedSlug = "") {
+  const select = $("#ad-marketplace-select");
+  if (!select) return;
+  select.innerHTML = '<option value="">All marketplaces</option>';
+  state.adMarketplaces.forEach((marketplace) => {
+    const el = document.createElement("option");
+    el.value = marketplace.slug;
+    el.textContent = marketplace.name;
+    if (marketplace.slug === selectedSlug) el.selected = true;
+    select.appendChild(el);
+  });
+}
+
+function populateAdCitySelect(selectedCity = "") {
+  const select = $("#ad-city-select");
+  if (!select) return;
+  const normalized = normalizeCityValue(selectedCity);
+  select.innerHTML = '<option value="">All cities</option>';
+  state.launchCities.forEach((city) => {
+    const el = document.createElement("option");
+    el.value = city.slug;
+    el.textContent = city.name;
+    if (city.slug === normalized) el.selected = true;
+    select.appendChild(el);
+  });
+}
+
+async function populateAdCategorySelect(marketplaceSlug = "", selectedSlug = "") {
+  const select = $("#ad-category-select");
+  if (!select) return;
+  select.innerHTML = '<option value="">All categories</option>';
+  if (!marketplaceSlug) {
+    try {
+      const categories = await api("/categories");
+      categories.forEach((category) => {
+        const el = document.createElement("option");
+        el.value = category.slug;
+        el.textContent = category.name_en || category.slug;
+        if (category.slug === selectedSlug) el.selected = true;
+        select.appendChild(el);
+      });
+    } catch {
+      // Global categories are optional when no marketplace is selected.
+    }
+    return;
+  }
+  const marketplace = state.adMarketplaces.find((item) => item.slug === marketplaceSlug);
+  if (!marketplace) return;
+  const categories = await api(
+    `/admin/marketplaces/${marketplace.id}/categories?include_hidden=false`,
+  );
+  categories.forEach((category) => {
+    const el = document.createElement("option");
+    el.value = category.slug;
+    el.textContent = category.name;
+    if (category.slug === selectedSlug) el.selected = true;
+    select.appendChild(el);
+  });
+}
+
+function inferMarketplaceSlugForAd(ad) {
+  if (!ad?.target_city) return "";
+  const city = normalizeCityValue(ad.target_city);
+  const matches = state.adMarketplaces.filter((item) => normalizeCityValue(item.city) === city);
+  if (matches.length === 1) return matches[0].slug;
+  return "";
+}
+
+function updateAdImagePreview(url) {
+  const preview = $("#ad-image-preview");
+  if (!preview) return;
+  const cleaned = (url || "").trim();
+  if (!cleaned) {
+    preview.innerHTML = "";
+    preview.classList.add("hidden");
+    return;
+  }
+  preview.classList.remove("hidden");
+  preview.innerHTML = `<img src="${escapeHtml(cleaned)}" alt="Advertisement preview" class="preview-image" />`;
+}
+
 function toDatetimeLocalValue(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -816,6 +923,15 @@ function formatImpressions(ad) {
   return String(ad.impression_count || 0);
 }
 
+function formatAdTargeting(ad) {
+  const parts = [];
+  if (ad.target_city) parts.push(ad.target_city);
+  if (ad.target_category_slug) parts.push(ad.target_category_slug);
+  if (ad.target_listing_type) parts.push(ad.target_listing_type);
+  if (ad.target_platform && ad.target_platform !== "all") parts.push(ad.target_platform);
+  return parts.length ? parts.join(" · ") : "All";
+}
+
 function renderAdvertisements() {
   const tbody = $("#advertisements-tbody");
   const empty = $("#advertisements-empty");
@@ -837,6 +953,7 @@ function renderAdvertisements() {
       </td>
       <td>${escapeHtml(ad.advertiser_name || "—")}</td>
       <td>${escapeHtml(placementLabels[ad.placement] || ad.placement || "—")}</td>
+      <td class="muted">${escapeHtml(formatAdTargeting(ad))}</td>
       <td><span class="pill ${ad.status === "active" ? "active" : "hidden-stat"}">${escapeHtml(ad.status || "—")}</span></td>
       <td>${escapeHtml(ad.payment_status || "—")}</td>
       <td>${escapeHtml(formatDate(ad.starts_at))}</td>
@@ -861,6 +978,14 @@ function openAdvertisementDialog(ad = null) {
   state.editingAdvertisementId = ad?.id || null;
   $("#advertisement-dialog-title").textContent = ad ? "Edit campaign" : "New campaign";
   populatePlacementSelect(ad?.placement || "homepage_top");
+  void Promise.all([ensureAdMarketplacesLoaded(), ensureLaunchCitiesLoaded()])
+    .then(async () => {
+      const marketplaceSlug = inferMarketplaceSlugForAd(ad);
+      populateAdMarketplaceSelect(marketplaceSlug);
+      populateAdCitySelect(ad?.target_city || "");
+      await populateAdCategorySelect(marketplaceSlug, ad?.target_category_slug || "");
+    })
+    .catch((err) => toast(err.message, true));
   form.elements.advertiser_name.value = ad?.advertiser_name || "";
   form.elements.campaign_name.value = ad?.campaign_name || "";
   form.elements.title.value = ad?.title || "";
@@ -878,12 +1003,17 @@ function openAdvertisementDialog(ad = null) {
   form.elements.max_impressions.value = ad?.max_impressions ?? "";
   form.elements.max_impressions_per_user_per_day.value = ad?.max_impressions_per_user_per_day ?? "";
   form.elements.min_interval_minutes.value = ad?.min_interval_minutes ?? "";
-  form.elements.target_city.value = ad?.target_city || "";
-  form.elements.target_category_slug.value = ad?.target_category_slug || "";
+  if (form.elements.target_city) {
+    form.elements.target_city.value = normalizeCityValue(ad?.target_city || "");
+  }
+  if (form.elements.target_category_slug) {
+    form.elements.target_category_slug.value = ad?.target_category_slug || "";
+  }
   form.elements.target_listing_type.value = ad?.target_listing_type || "";
   form.elements.target_platform.value = ad?.target_platform || "all";
   form.elements.payment_override.checked = Boolean(ad?.payment_override);
   form.elements.internal_notes.value = ad?.internal_notes || "";
+  updateAdImagePreview(ad?.image_url || "");
   bindUploadInputs(dialog);
   dialog.showModal();
 }
@@ -1074,6 +1204,20 @@ function bindEvents() {
   $("#marketplace-form").onsubmit = saveMarketplace;
   $("#create-advertisement-btn").onclick = () => openAdvertisementDialog();
   $("#advertisement-form").onsubmit = saveAdvertisement;
+  $("#ad-marketplace-select")?.addEventListener("change", async (event) => {
+    const slug = event.target.value;
+    const marketplace = state.adMarketplaces.find((item) => item.slug === slug);
+    if (marketplace) {
+      const citySelect = $("#ad-city-select");
+      if (citySelect) {
+        citySelect.value = normalizeCityValue(marketplace.city);
+      }
+    }
+    await populateAdCategorySelect(slug, "");
+  });
+  $("#advertisement-form [name='image_url']")?.addEventListener("input", (event) => {
+    updateAdImagePreview(event.target.value);
+  });
   $("#advertisements-tbody").onclick = async (event) => {
     const btn = event.target.closest("button[data-ad-action]");
     if (!btn) return;

@@ -91,6 +91,9 @@ services:
       ADMIN_BASIC_AUTH_PASSWORD: ${ADMIN_BASIC_AUTH_PASSWORD:-}
       ADMIN_ALLOW_PUBLIC: ${ADMIN_ALLOW_PUBLIC:-false}
       ADMIN_EXTRA_ALLOWED_CIDRS: ${ADMIN_EXTRA_ALLOWED_CIDRS:-}
+      ADMIN_SOURCE_DIR: /admin-source
+    volumes:
+      - ./admin-dashboard:/admin-source:ro
     depends_on:
       api:
         condition: service_healthy

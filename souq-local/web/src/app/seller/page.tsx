@@ -15,7 +15,7 @@ export default async function SellerHubPage() {
         <p className="text-sm font-semibold uppercase tracking-wide text-[var(--primary)]">Seller hub</p>
         <h1 className="mt-2 text-3xl font-bold">{profile.business_name}</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Manage listings and optional DriverPro videos from the web.
+          Manage your products and services from the web.
         </p>
       </div>
 

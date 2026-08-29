@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { MediaImage } from "@/components/media-image";
-import { ListingVideo } from "@/components/listing-video";
 import { TrustBadges } from "@/components/trust-badges";
 import { EmptyState } from "@/components/states";
 import { ApiError } from "@/lib/api";
@@ -95,9 +94,6 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
             className="aspect-square w-full object-cover"
           />
         </div>
-        {product.video_url ? (
-          <ListingVideo src={product.video_url} title={`${product.name} video`} />
-        ) : null}
       </div>
       <div className="space-y-6">
         <div>
@@ -113,7 +109,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
           {product.category_slug ? <span>Category: {product.category_slug}</span> : null}
           <span>{product.is_available ? "Available" : "Unavailable"}</span>
         </div>
-        <TrustBadges verified={seller.verified} premium={seller.premium} />
+        <TrustBadges verified={seller.verified} />
         <p className="text-[var(--muted)]">{product.description}</p>
         <div className="rounded-2xl border border-[var(--border)] bg-white p-5">
           <p className="text-sm font-semibold">Sold by</p>

@@ -40,7 +40,7 @@ for arg in "$@"; do
 done
 
 get_lan_ip() {
-  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.' | grep -v '^172\.17\.' | head -n1
+  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.|^100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.' | grep -v '^172\.17\.' | head -n1
 }
 
 has_phone_device() {
@@ -117,6 +117,11 @@ check_api_health() {
   return 1
 }
 
+check_admin_health() {
+  local port="$1"
+  curl -fsS -o /dev/null "http://127.0.0.1:${port}/" >/dev/null 2>&1
+}
+
 echo "[1/3] Starting Postgres + API (Docker)..."
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d $DOCKER_BUILD
 
@@ -142,11 +147,28 @@ else
   exit 1
 fi
 
+admin_ready=false
+for _ in $(seq 1 15); do
+  if check_admin_health "$ADMIN_PORT"; then
+    admin_ready=true
+    break
+  fi
+  sleep 2
+done
+
+if [[ "$admin_ready" != true ]]; then
+  echo ""
+  echo "WARNING: Admin dashboard is not responding on port ${ADMIN_PORT}."
+  echo "  docker compose -f docker-compose.home.yml --env-file .env.home ps"
+  echo "  docker compose -f docker-compose.home.yml --env-file .env.home logs admin"
+  echo "  docker compose -f docker-compose.home.yml --env-file .env.home up -d --build admin"
+fi
+
 echo ""
 echo "  Same Wi-Fi:   $API_URL"
 echo "  This machine: http://localhost:${API_PORT}"
 echo "  Health:       http://localhost:${API_PORT}/health"
-echo "  Admin UI:     $ADMIN_URL  (separate web dashboard, not in the mobile app)"
+echo "  Admin UI:     $ADMIN_URL  (must include :${ADMIN_PORT} — not port 80)"
 echo "  Ready:        http://localhost:${API_PORT}/ready"
 STORAGE_BACKEND="$(grep -E '^STORAGE_BACKEND=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
 STORAGE_BACKEND="${STORAGE_BACKEND:-local}"

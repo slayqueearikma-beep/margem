@@ -21,7 +21,7 @@ If we offer verification, badges or labels reflect our review at a point in time
 
 ## 3. Listings and storefront
 
-You are solely responsible for your listings, pricing, availability, images, descriptions, categories, and displayed payment or delivery options. You must not list prohibited or misleading items. We may edit, demote, or remove listings that violate law or our policies.
+You are solely responsible for your listings, pricing, availability, images, descriptions, categories, displayed payment or delivery options, and the **legality** of what you list and offer. You must ensure your listings comply with applicable laws and platform rules. {{platform_name}} does not authorize illegal sales or services, and discovery or display of your listing does not mean we approve or endorse it. You must not list prohibited or misleading items. We may edit, demote, restrict visibility of, or remove listings that violate law or our policies.
 
 ## 4. Transactions and taxes
 
@@ -47,7 +47,7 @@ You confirm you have rights to photos, logos, and text you upload. Do not infrin
 
 ## 8. Enforcement
 
-We may warn, restrict, or suspend seller accounts for policy violations, fraud reports, repeated buyer complaints, or legal requests. Serious or repeated violations may lead to permanent removal.
+We may warn, restrict listing visibility, suspend, ban, or permanently remove seller accounts for policy violations, illegal listings, fraud reports, repeated buyer complaints, or valid legal notices or requests from competent authorities, as described in our Terms of Service. Serious or repeated violations may lead to permanent removal.
 
 ## 9. Changes
 

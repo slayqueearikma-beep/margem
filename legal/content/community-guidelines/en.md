@@ -31,11 +31,11 @@ title: Community Guidelines
 
 ## 5. Prohibited content
 
-Do not post content that is illegal under Moroccan law or our policies, including counterfeit goods, stolen items, unlicensed medical claims, or content that exploits minors.
+Do not post content that is illegal under Moroccan law or our policies, including counterfeit goods, stolen items, unlicensed medical claims, or content that exploits minors. You are responsible for the legality of what you post. Display or discovery of content on {{platform_name}} does not mean we approve or endorse it.
 
 ## 6. Moderation
 
-We may remove content, limit visibility, or suspend access using automated systems and human review. Enforcement decisions may not always include detailed explanations where safety or legal obligations require confidentiality.
+We may remove content, limit visibility, suspend or ban accounts, or cooperate with competent authorities where legally required, using automated systems and human review. Enforcement decisions may not always include detailed explanations where safety or legal obligations require confidentiality.
 
 ## 7. Appeals
 

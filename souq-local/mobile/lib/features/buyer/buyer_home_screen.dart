@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../core/ads/full_page_ad_gate.dart';
 import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/models.dart';
@@ -27,7 +28,6 @@ import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
-import '../../core/providers/subscription_providers.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
 
@@ -108,44 +108,46 @@ class BuyerHomeShell extends ConsumerWidget {
     final index = ref.watch(buyerTabIndexProvider).clamp(0, 2);
 
     return RootBackScope(
-      child: BuyerScreenScaffold(
-        drawer: const BuyerDrawer(),
-        body: IndexedStack(
-          index: index,
-          children: [
-            const BuyerHomeScreen(),
-            SearchScreen(autofocusSearch: index == 1),
-            const MessagesInboxScreen(),
-          ],
-        ),
-        bottomNavigationBar: Consumer(
-          builder: (context, ref, _) {
-            final unread =
-                ref.watch(conversationsUnreadCountProvider).valueOrNull ?? 0;
-            return BuyerBottomNavBar(
-              selectedIndex: index,
-              onSelected: (i) =>
-                  ref.read(buyerTabIndexProvider.notifier).state = i,
-              badges: {2: unread},
-              items: [
-                BuyerNavItem(
-                  icon: Icons.home_outlined,
-                  selectedIcon: Icons.home_rounded,
-                  label: l10n.navHome,
-                ),
-                BuyerNavItem(
-                  icon: Icons.explore_outlined,
-                  selectedIcon: Icons.explore_rounded,
-                  label: l10n.navSearch,
-                ),
-                BuyerNavItem(
-                  icon: Icons.chat_bubble_outline_rounded,
-                  selectedIcon: Icons.chat_bubble_rounded,
-                  label: l10n.navMessages,
-                ),
-              ],
-            );
-          },
+      child: FullPageAdGate(
+        child: BuyerScreenScaffold(
+          drawer: const BuyerDrawer(),
+          body: IndexedStack(
+            index: index,
+            children: [
+              const BuyerHomeScreen(),
+              SearchScreen(autofocusSearch: index == 1),
+              const MessagesInboxScreen(),
+            ],
+          ),
+          bottomNavigationBar: Consumer(
+            builder: (context, ref, _) {
+              final unread =
+                  ref.watch(conversationsUnreadCountProvider).valueOrNull ?? 0;
+              return BuyerBottomNavBar(
+                selectedIndex: index,
+                onSelected: (i) =>
+                    ref.read(buyerTabIndexProvider.notifier).state = i,
+                badges: {2: unread},
+                items: [
+                  BuyerNavItem(
+                    icon: Icons.home_outlined,
+                    selectedIcon: Icons.home_rounded,
+                    label: l10n.navHome,
+                  ),
+                  BuyerNavItem(
+                    icon: Icons.explore_outlined,
+                    selectedIcon: Icons.explore_rounded,
+                    label: l10n.navSearch,
+                  ),
+                  BuyerNavItem(
+                    icon: Icons.chat_bubble_outline_rounded,
+                    selectedIcon: Icons.chat_bubble_rounded,
+                    label: l10n.navMessages,
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -169,8 +171,6 @@ class BuyerHomeScreen extends ConsumerWidget {
     final searchOrigin = ref.watch(buyerSearchLocationProvider).valueOrNull ??
         CityCoordinates.centerFor(city);
     final isGuest = session == null || session.isGuest;
-    final hasPremium = ref.watch(authSessionProvider)?.user.showPlusBadge ??
-        hasPlusPlusEntitlement(ref.watch(myEntitlementsProvider).valueOrNull);
 
     final firstName = session?.name.split(' ').first ?? l10n.guestMode;
 
@@ -202,7 +202,6 @@ class BuyerHomeScreen extends ConsumerWidget {
                     ref.read(buyerTabIndexProvider.notifier).state = 2;
                   },
                   onProfile: () => context.push('/profile'),
-                  showPremiumBadge: hasPremium,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Padding(
@@ -971,12 +970,6 @@ class BuyerProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             BuyerMenuTile(
-              icon: Icons.workspace_premium_outlined,
-              title: l10n.premium,
-              onTap: () => context.push('/premium'),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            BuyerMenuTile(
               icon: Icons.chat_bubble_outline_rounded,
               title: l10n.navMessages,
               onTap: () {
@@ -1086,7 +1079,7 @@ class BuyerProfileScreen extends ConsumerWidget {
                       await ref.read(sharedPreferencesProvider.future);
                   await ref.read(authServiceProvider).logout(prefs);
                   await ref.read(appStorageProvider)?.logout();
-                  invalidateSubscriptionProviders(ref);
+                  invalidateEntitlementProviders(ref);
                   ref.read(userSessionProvider.notifier).state = null;
                   ref.read(authSessionProvider.notifier).state = null;
                   if (context.mounted) context.go('/login');

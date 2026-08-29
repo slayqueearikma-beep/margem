@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 PROFILE="${MARGEM_PROFILE:-dev}"
+ENV_FILE="$ROOT/.env.home"
 if [[ "$PROFILE" == "home" ]]; then
   COMPOSE=(docker compose -f docker-compose.home.yml --env-file .env.home)
   DB_USER="margemadmin"
@@ -16,6 +17,29 @@ else
   DB_NAME="souq_local"
 fi
 
+read_env_port() {
+  local key="$1"
+  local fallback="$2"
+  local file="${3:-}"
+  if [[ -n "$file" && -f "$file" ]]; then
+    local value
+    value="$(grep -E "^${key}=" "$file" | tail -n1 | cut -d= -f2- || true)"
+    if [[ -n "$value" ]]; then
+      echo "$value"
+      return
+    fi
+  fi
+  echo "$fallback"
+}
+
+default_admin_port() {
+  if [[ "$PROFILE" == "home" ]]; then
+    read_env_port ADMIN_PORT 8080 "$ENV_FILE"
+  else
+    read_env_port ADMIN_PORT 8080 "$ROOT/.env"
+  fi
+}
+
 usage() {
   cat <<'EOF'
 Dribex Docker admin helpers
@@ -24,7 +48,7 @@ Usage:
   ./scripts/docker-admin.sh up              Start API + Postgres (build if needed)
   ./scripts/docker-admin.sh down            Stop containers
   ./scripts/docker-admin.sh logs            Follow API logs
-  ./scripts/docker-admin.sh check-admin     Verify admin dashboard on :8080
+  ./scripts/docker-admin.sh check-admin     Verify admin dashboard (uses ADMIN_PORT from .env)
   ./scripts/docker-admin.sh diagnose        Troubleshoot API startup / healthcheck
   ./scripts/reset_home_db_password.sh       Sync DB password with .env.home
   ./scripts/docker-admin.sh psql            Open Postgres shell
@@ -49,10 +73,11 @@ shift || true
 
 case "$cmd" in
   up)
+    admin_port="$(default_admin_port)"
     "${COMPOSE[@]}" up -d --build
     echo ""
     echo "Dribex is running."
-    echo "  Admin dashboard: http://localhost:8080"
+    echo "  Admin dashboard: http://localhost:${admin_port}"
     echo "  API docs:        http://localhost:8000/docs"
     echo ""
     echo "Register in the app, then promote your account:"
@@ -68,8 +93,9 @@ case "$cmd" in
   exec "$ROOT/scripts/diagnose_home_api.sh"
     ;;
   check-admin)
+    admin_port="$(default_admin_port)"
     api_url="${MARGEM_API_URL:-http://127.0.0.1:8000}"
-    admin_url="${MARGEM_ADMIN_URL:-http://127.0.0.1:8080}"
+    admin_url="${MARGEM_ADMIN_URL:-http://127.0.0.1:${admin_port}}"
     ready="$(curl -fsS "${api_url}/ready" 2>/dev/null || true)"
     if [[ -z "$ready" ]]; then
       echo "API not reachable at ${api_url}" >&2
@@ -86,7 +112,7 @@ case "$cmd" in
       echo "Admin config.js missing MARGEM_API_URL" >&2
       exit 1
     fi
-    echo "Admin dashboard OK (separate service on port 8080)"
+    echo "Admin dashboard OK (port ${admin_port})"
     ;;
   psql)
     "${COMPOSE[@]}" exec postgres psql -U "$DB_USER" -d "$DB_NAME"

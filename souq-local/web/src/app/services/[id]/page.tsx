@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { MediaImage } from "@/components/media-image";
-import { ListingVideo } from "@/components/listing-video";
 import { TrustBadges } from "@/components/trust-badges";
 import { EmptyState } from "@/components/states";
 import { ApiError } from "@/lib/api";
@@ -89,9 +88,6 @@ export default async function ServiceDetailPage({ params }: ServiceDetailProps) 
             className="aspect-square w-full object-cover"
           />
         </div>
-        {service.video_url ? (
-          <ListingVideo src={service.video_url} title={`${service.name} video`} />
-        ) : null}
       </div>
       <div className="space-y-6">
         <div>
@@ -103,7 +99,7 @@ export default async function ServiceDetailPage({ params }: ServiceDetailProps) 
             {formatPrice(service.price_mad, service.price_negotiable)}
           </p>
         </div>
-        <TrustBadges verified={seller.verified} premium={seller.premium} />
+        <TrustBadges verified={seller.verified} />
         <p className="text-[var(--muted)]">{service.description}</p>
         {service.coverage_areas && service.coverage_areas.length > 0 ? (
           <p className="text-sm text-[var(--muted)]">

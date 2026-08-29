@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
+import '../ads/platform_ad_constants.dart';
 import '../models/auth_models.dart';
 import '../models/city_model.dart';
 import '../models/community_models.dart';
@@ -418,27 +419,6 @@ class ApiService {
 
   Future<void> deleteService(String sellerId, String serviceId) async {
     await deletePath('/sellers/$sellerId/services/$serviceId', auth: true);
-  }
-
-  Future<Map<String, dynamic>> addSellerVideo(
-    String sellerId, {
-    required String videoUrl,
-    required double durationSeconds,
-    required String contentType,
-    String title = '',
-    String caption = '',
-  }) async {
-    return postJson(
-      '/sellers/$sellerId/videos',
-      {
-        'video_url': videoUrl,
-        'duration_seconds': durationSeconds,
-        'content_type': contentType,
-        if (title.isNotEmpty) 'title': title,
-        if (caption.isNotEmpty) 'caption': caption,
-      },
-      auth: true,
-    );
   }
 
   Future<void> changePassword({
@@ -1327,58 +1307,9 @@ class ApiService {
     );
   }
 
-  Future<List<SubscriptionPlanModel>> fetchSubscriptionPlans({
-    String? audience,
-  }) async {
-    final query = audience == null ? null : <String, String>{'audience': audience};
-    final data = await getJsonList(
-      '/subscriptions/plans',
-      query: query,
-    );
-    return data
-        .map((item) =>
-            SubscriptionPlanModel.fromJson(item as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<SubscriptionModel?> fetchMySubscription() async {
-    final response = await _request(
-      () => _get(_uri('/subscriptions/me'), headers: _authHeaders),
-      auth: true,
-    );
-    _ensureSuccess(response);
-    if (response.body.isEmpty || response.body == 'null') return null;
-    return SubscriptionModel.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
-  }
-
-  Future<SubscriptionModel> subscribe(String planCode) async {
-    final data =
-        await postEmpty('/subscriptions/subscribe/$planCode', auth: true);
-    return SubscriptionModel.fromJson(data);
-  }
-
-  Future<BillingStatusModel> fetchBillingStatus() async {
-    final data = await getJson('/subscriptions/billing/status', auth: false);
-    return BillingStatusModel.fromJson(data);
-  }
-
-  Future<BillingCheckoutResult> checkoutSubscription(
-    String planCode, {
-    required bool subscriptionTermsAccepted,
-    String acceptanceLanguage = 'fr',
-  }) async {
-    final data = await postJson(
-      '/subscriptions/checkout/$planCode',
-      {
-        'success_url': 'margem://premium/success',
-        'cancel_url': 'margem://premium/cancel',
-        'subscription_terms_accepted': subscriptionTermsAccepted,
-        'acceptance_language': acceptanceLanguage,
-      },
-      auth: true,
-    );
-    return BillingCheckoutResult.fromJson(data);
+  Future<MonetizationStatusModel> fetchMonetizationStatus() async {
+    final data = await getJson('/platform/monetization', auth: false);
+    return MonetizationStatusModel.fromJson(data);
   }
 
   Future<List<AdvertisingPackageModel>> fetchAdvertisingPackages() async {
@@ -1402,10 +1333,6 @@ class ApiService {
     return BillingCheckoutResult.fromJson(data);
   }
 
-  Future<void> cancelSubscription() async {
-    await postVoid('/billing/subscriptions/me/cancel', const {}, auth: true);
-  }
-
   Future<Map<String, dynamic>> updateMyProfile({
     String? displayName,
     String? phone,
@@ -1416,14 +1343,6 @@ class ApiService {
     return patchJson('/auth/me', body, auth: true);
   }
 
-  Future<List<PlatformPaymentModel>> fetchMyPlatformPayments() async {
-    final data = await getJsonList('/billing/payments/me', auth: true);
-    return data
-        .whereType<Map<String, dynamic>>()
-        .map(PlatformPaymentModel.fromJson)
-        .toList();
-  }
-
   Future<PlatformPaymentModel> fetchPlatformPayment(String paymentId) async {
     final data = await getJson('/billing/payments/$paymentId', auth: true);
     return PlatformPaymentModel.fromJson(data);
@@ -1432,11 +1351,6 @@ class ApiService {
   Future<EntitlementsBundleModel> fetchEntitlements() async {
     final data = await getJson('/subscriptions/entitlements', auth: true);
     return EntitlementsBundleModel.fromJson(data);
-  }
-
-  Future<SellerVideoQuotaModel> fetchSellerVideoQuota(String sellerId) async {
-    final data = await getJson('/sellers/$sellerId/videos/quota', auth: true);
-    return SellerVideoQuotaModel.fromJson(data);
   }
 
   Future<String> requestPasswordReset(String email) async {
@@ -1524,6 +1438,98 @@ class ApiService {
       // Fall through.
     }
     return 'Request failed (${response.statusCode})';
+  }
+
+  Future<List<PlatformAdvertisementModel>> fetchActiveAds({
+    required String placement,
+    required String adViewerId,
+    String platform = PlatformAdPlacements.mobilePlatform,
+    String? city,
+    String? categorySlug,
+    String? listingType,
+    bool auth = false,
+    int limit = 1,
+  }) async {
+    final query = <String, String>{
+      'placement': placement,
+      'platform': platform,
+      'limit': '$limit',
+    };
+    if (city != null && city.trim().isNotEmpty) {
+      query['city'] = city.trim();
+    }
+    if (categorySlug != null && categorySlug.trim().isNotEmpty) {
+      query['category_slug'] = categorySlug.trim();
+    }
+    if (listingType != null && listingType.trim().isNotEmpty) {
+      query['listing_type'] = listingType.trim();
+    }
+
+    final headers = <String, String>{
+      'X-Ad-Viewer': adViewerId,
+      if (auth) ..._authHeaders,
+    };
+    final response = await _request(
+      () => _get(_uri('/ads/active', query), headers: headers),
+      auth: auth,
+    );
+    _ensureSuccess(response);
+    final decoded = jsonDecode(response.body);
+    if (decoded is! List) return const [];
+    return decoded
+        .whereType<Map<String, dynamic>>()
+        .map(PlatformAdvertisementModel.fromJson)
+        .toList();
+  }
+
+  Future<bool> recordAdImpression({
+    required String campaignId,
+    required String placement,
+    required String viewKey,
+    required String adViewerId,
+    String platform = PlatformAdPlacements.mobilePlatform,
+  }) async {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'X-Ad-Viewer': adViewerId,
+    };
+    final response = await _request(
+      () => _post(
+        _uri('/ads/impressions', {'platform': platform}),
+        headers: headers,
+        body: jsonEncode({
+          'campaign_id': campaignId,
+          'placement': placement,
+          'view_key': viewKey,
+        }),
+      ),
+      auth: false,
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return false;
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return body['recorded'] as bool? ?? false;
+  }
+
+  String buildAdClickUrl({
+    required PlatformAdvertisementModel ad,
+    required String clickKey,
+    String platform = PlatformAdPlacements.mobilePlatform,
+  }) {
+    final base = ad.clickUrl.startsWith('http')
+        ? ad.clickUrl
+        : '${AppConfig.apiBaseUrl}${ad.clickUrl}';
+    final uri = Uri.parse(base);
+    return uri
+        .replace(
+          queryParameters: {
+            ...uri.queryParameters,
+            'platform': platform,
+            'click_key': clickKey,
+          },
+        )
+        .toString();
   }
 }
 

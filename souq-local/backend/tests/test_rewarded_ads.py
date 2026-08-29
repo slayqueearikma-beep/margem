@@ -65,44 +65,20 @@ async def test_backend_starts_without_naps_credentials():
 
 
 @pytest.mark.asyncio
-async def test_reward_session_and_complete_unlocks_video(client: AsyncClient, launch_monetization):
+async def test_reward_video_upload_feature_removed(client: AsyncClient, launch_monetization):
     user = await register_verified_user(client, account_type="provider")
     headers = user["headers"]
 
     from tests.seller_helpers import create_test_seller, seller_create_payload
 
-    seller = await create_test_seller(client, headers, **seller_create_payload())
-    assert seller["id"]
-
-    entitlements = await client.get("/subscriptions/entitlements", headers=headers)
-    assert entitlements.status_code == 200
-    body = entitlements.json()
-    assert body["seller"]["video_uploads_enabled"] is False
-    assert body["payments_enabled"] is False
-    assert body["subscriptions_enabled"] is False
-    assert body["rewarded_ads_enabled"] is True
+    await create_test_seller(client, headers, **seller_create_payload())
 
     session_res = await client.post(
         "/rewards/sessions",
         headers=headers,
         json={"feature_code": "video_upload"},
     )
-    assert session_res.status_code == 201, session_res.text
-    session_body = session_res.json()
-
-    complete_res = await client.post(
-        "/rewards/complete",
-        headers=headers,
-        json={
-            "session_id": session_body["session_id"],
-            "session_token": session_body["session_token"],
-            "provider": "internal",
-        },
-    )
-    assert complete_res.status_code == 200, complete_res.text
-
-    entitlements_after = await client.get("/subscriptions/entitlements", headers=headers)
-    assert entitlements_after.json()["seller"]["video_uploads_enabled"] is True
+    assert session_res.status_code == 400
 
 
 @pytest.mark.asyncio

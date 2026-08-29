@@ -2,15 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
-import { ListingVideoField } from "@/components/seller/listing-video-field";
-import type { AppLocale } from "@/lib/i18n/video-messages";
-import type { SellerEntitlements } from "@/lib/seller-auth";
+import { FormEvent, useState } from "react";
 
 type ListingKind = "product" | "service";
 
 type ListingEditorFormProps = {
-  locale: AppLocale;
   kind: ListingKind;
   sellerId: string;
   listingId?: string;
@@ -19,13 +15,11 @@ type ListingEditorFormProps = {
     description?: string;
     priceMad?: string;
     imageUrl?: string;
-    videoUrl?: string;
     isAvailable?: boolean;
   };
 };
 
 export function ListingEditorForm({
-  locale,
   kind,
   sellerId,
   listingId,
@@ -38,25 +32,9 @@ export function ListingEditorForm({
   const [description, setDescription] = useState(initial?.description || "");
   const [priceMad, setPriceMad] = useState(initial?.priceMad || "");
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl || "");
-  const [videoUrl, setVideoUrl] = useState(initial?.videoUrl || "");
   const [isAvailable, setIsAvailable] = useState(initial?.isAvailable ?? true);
-  const [entitlements, setEntitlements] = useState<SellerEntitlements | null>(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    void refreshEntitlements();
-  }, []);
-
-  async function refreshEntitlements() {
-    const response = await fetch("/api/seller/subscriptions/entitlements");
-    if (response.ok) {
-      setEntitlements((await response.json()) as SellerEntitlements);
-    }
-  }
-
-  const videoUploadsEnabled = entitlements?.seller?.video_uploads_enabled ?? false;
-  const rewardedAdsEnabled = entitlements?.rewarded_ads_enabled ?? true;
 
   async function saveListing(event: FormEvent) {
     event.preventDefault();
@@ -67,7 +45,6 @@ export function ListingEditorForm({
       name: name.trim(),
       description: description.trim(),
       image_url: imageUrl.trim(),
-      video_url: videoUrl.trim(),
     };
 
     if (kind === "product") {
@@ -168,17 +145,6 @@ export function ListingEditorForm({
           className="w-full rounded-xl border border-[var(--border)] px-3 py-2"
         />
       </label>
-
-      <ListingVideoField
-        locale={locale}
-        videoUploadsEnabled={videoUploadsEnabled}
-        rewardedAdsEnabled={rewardedAdsEnabled}
-        initialVideoUrl={initial?.videoUrl || ""}
-        value={videoUrl}
-        onChange={setVideoUrl}
-        onError={(message) => setError(message)}
-        onUnlock={refreshEntitlements}
-      />
 
       {isEditing ? (
         <label className="flex items-center gap-2 text-sm">

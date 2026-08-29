@@ -17,7 +17,6 @@ from app.models import User
 from app.services.rewarded_ads import (
     ALLOWED_REWARD_FEATURES,
     FEATURE_SAVED_SEARCH,
-    FEATURE_VIDEO_UPLOAD,
     complete_reward_session,
     create_reward_session,
     list_active_rewards,
@@ -149,5 +148,4 @@ async def complete_reward(
 
 
 # Re-export feature constants for other modules.
-VIDEO_UPLOAD_FEATURE = FEATURE_VIDEO_UPLOAD
 SAVED_SEARCH_FEATURE = FEATURE_SAVED_SEARCH

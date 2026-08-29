@@ -63,6 +63,9 @@ services:
       - "${ADMIN_PORT:-8080}:80"
     environment:
       MARGEM_API_URL: ${WEB_PUBLIC_API_URL:-http://localhost:8000}
+      ADMIN_SOURCE_DIR: /admin-source
+    volumes:
+      - ./admin-dashboard:/admin-source:ro
     depends_on:
       api:
         condition: service_healthy

@@ -16,7 +16,7 @@ We may update these Terms when features, pricing, legal requirements, or busines
 |------|---------|
 | Platform | {{platform_name}} apps, website, and related services |
 | User | Anyone who accesses or uses the Platform |
-| Buyer | A user browsing, favoriting, messaging, or purchasing |
+| Buyer | A user browsing, favoriting, messaging, or contacting sellers about listings |
 | Seller | A user offering products, services, or a business listing |
 | Content | Listings, reviews, messages, images, and other material you submit |
 | Premium features | Paid or subscription-based features we may offer now or in the future |
@@ -29,7 +29,13 @@ We may refuse, suspend, or terminate accounts that violate these Terms, create r
 
 ## 4. The platform role
 
-{{platform_name}} helps users discover local businesses, products, and services in Morocco. We are an intermediary platform. Unless we explicitly state otherwise for a specific transaction, we do not own seller inventory, employ sellers, guarantee off-platform dealings, or act as a party to contracts between users.
+{{platform_name}} is a **discovery platform only**. We help users discover local businesses, products, and services in Morocco by hosting listings and information published by users and sellers.
+
+The Platform allows users to discover products and services and displays listings supplied by users or sellers. We do not ourselves sell, purchase, manufacture, supply, deliver, or provide the products or services listed on the Platform. Unless we explicitly state otherwise for a specific offering, we are not a party to transactions between users or sellers, we do not own seller inventory, and we do not employ sellers. Displaying a listing does not create a commercial relationship between {{platform_name}} and the listed product or service.
+
+We do not guarantee the legality, quality, safety, authenticity, availability, ownership, or conformity of products or services listed by users or sellers.
+
+Nothing in these Terms excludes or limits responsibilities we have under applicable law (for example, responding to valid legal notices, cooperating with competent authorities where required, or obligations that cannot lawfully be excluded).
 
 ## 5. Buyer and user rules
 
@@ -53,16 +59,18 @@ You retain ownership of Content you submit. You grant {{platform_name}} a non-ex
 
 ## 8. Prohibited activities
 
+You are responsible for ensuring your listings, messages, and other Content comply with applicable laws, these Terms, and our Community Guidelines and Seller Terms (where applicable). Discovering, indexing, or displaying a listing does not mean {{platform_name}} approves, endorses, or authorizes the product or service. We do not authorize illegal activity on the Platform.
+
 You must not:
 
 - Post illegal, fraudulent, deceptive, hateful, harassing, or infringing content
+- List, offer, or promote prohibited or illegal goods or services under Moroccan law or our policies
 - Impersonate others or misrepresent affiliation with {{platform_name}}
 - Scrape, reverse engineer, or bypass security or rate limits without permission
 - Send spam, manipulate reviews, or interfere with platform integrity
-- Use the Platform for prohibited goods or services under Moroccan law or our policies
 - Collect other users' data without authorization
 
-We may remove content, restrict features, or suspend accounts to enforce these rules.
+We may remove or restrict listings, limit visibility, suspend accounts, ban accounts, or terminate access where permitted by these Terms and applicable law. We may respond appropriately to valid legal notices or requests from competent authorities. Nothing in these Terms attempts to exclude liability that cannot legally be excluded.
 
 ## 9. Intellectual property
 
@@ -96,7 +104,7 @@ You agree to indemnify and hold harmless {{platform_name}} from claims arising f
 
 ## 16. Suspension and termination
 
-You may stop using the Platform at any time and may delete your account as described in our Account Deletion & Data Rights document. We may suspend or terminate access for violations, risk, inactivity, or legal requirements. Provisions that by nature should survive termination will survive.
+You may stop using the Platform at any time and may delete your account as described in our Account Deletion & Data Rights document. We may suspend, ban, or terminate access, and restrict listing visibility, for violations, risk, inactivity, or legal requirements, including where we must cooperate with competent authorities. Provisions that by nature should survive termination will survive.
 
 ## 17. Governing law and disputes
 

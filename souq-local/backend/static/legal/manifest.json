@@ -1,7 +1,7 @@
 {
-  "package_version": "2.0.0",
-  "effective_date": "2026-08-13",
-  "last_updated": "2026-08-13",
+  "package_version": "2.1.0",
+  "effective_date": "2026-08-29",
+  "last_updated": "2026-08-29",
   "languages": [
     "en",
     "fr",
@@ -29,8 +29,8 @@
     {
       "id": "terms_of_service",
       "slug": "terms",
-      "version": "2.0.0",
-      "effective_date": "2026-08-13",
+      "version": "2.1.0",
+      "effective_date": "2026-08-29",
       "title": {
         "en": "Terms of Service",
         "fr": "Conditions d'utilisation",
@@ -63,8 +63,8 @@
     {
       "id": "seller_terms",
       "slug": "seller-terms",
-      "version": "2.0.0",
-      "effective_date": "2026-08-13",
+      "version": "2.1.0",
+      "effective_date": "2026-08-29",
       "title": {
         "en": "Seller Terms",
         "fr": "Conditions vendeur",
@@ -80,8 +80,8 @@
     {
       "id": "community_guidelines",
       "slug": "community-guidelines",
-      "version": "2.0.0",
-      "effective_date": "2026-08-13",
+      "version": "2.1.0",
+      "effective_date": "2026-08-29",
       "title": {
         "en": "Community Guidelines",
         "fr": "Règles de la communauté",

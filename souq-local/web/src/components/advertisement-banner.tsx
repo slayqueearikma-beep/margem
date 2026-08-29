@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import { apiFetch } from "@/lib/api";
 import { getPublicApiBaseUrl } from "@/lib/config";
-import { safeExternalHref, sanitizeMediaSource } from "@/lib/security";
+import { resolveMediaUrl } from "@/lib/media";
+import { safeExternalHref } from "@/lib/security";
 import type { PlatformAdvertisement } from "@/lib/types";
 
 type AdvertisementBannerProps = {
@@ -26,8 +27,8 @@ function viewerStorageKey(): string {
 }
 
 export function AdvertisementBanner({ ad, placement, className = "" }: AdvertisementBannerProps) {
-  const imageUrl = sanitizeMediaSource(ad.image_url);
-  const videoUrl = ad.video_url ? sanitizeMediaSource(ad.video_url) : null;
+  const imageUrl = resolveMediaUrl(ad.image_url);
+  const videoUrl = ad.video_url ? resolveMediaUrl(ad.video_url) : null;
   const clickHref = ad.click_url || safeExternalHref(ad.target_url);
   const recordedRef = useRef(false);
   const viewKey = useMemo(

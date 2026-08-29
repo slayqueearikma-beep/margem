@@ -149,6 +149,13 @@ export function isAllowedPublicProxyPath(path) {
   return false;
 }
 
+const ALLOWED_PUBLIC_PROXY_POST_PATHS = new Set(["ads/impressions"]);
+
+export function isAllowedPublicProxyPostPath(path) {
+  const normalized = path.replace(/^\/+/, "").replace(/\/+$/, "");
+  return ALLOWED_PUBLIC_PROXY_POST_PATHS.has(normalized);
+}
+
 export function safeExternalHref(url) {
   const value = (url || "").trim();
   if (!value || DANGEROUS_URL_SCHEMES.test(value)) return null;
@@ -192,8 +199,7 @@ export const PROXY_SAFE_RESPONSE_HEADERS = [
 const SELLER_PROXY_ALLOWED_PREFIXES = [
   "sellers/",
   "uploads/",
-  "subscriptions/",
-  "billing/checkout/subscription/",
+  "billing/checkout/advertising",
   "rewards/",
 ];
 

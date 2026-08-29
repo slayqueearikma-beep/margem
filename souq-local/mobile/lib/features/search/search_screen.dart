@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/models.dart';
 import '../../core/providers/city_providers.dart';
-import '../../core/providers/subscription_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/theme/app_colors.dart';
@@ -265,16 +264,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       return;
     }
 
-    final subscription = ref.read(mySubscriptionProvider).valueOrNull;
-    if (!hasBuyerPremiumSubscription(subscription)) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.savedSearchPremiumRequired)),
-      );
-      context.push('/premium');
-      return;
-    }
-
     try {
       await apiServiceProvider.createSavedSearch(
         query: _debounced,
@@ -299,16 +288,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (session == null || session.isGuest) {
       if (!mounted) return;
       context.push('/login');
-      return;
-    }
-
-    final subscription = ref.read(mySubscriptionProvider).valueOrNull;
-    if (!hasBuyerPremiumSubscription(subscription)) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.savedSearchPremiumRequired)),
-      );
-      context.push('/premium');
       return;
     }
 
@@ -547,14 +526,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             title: Text(service.name,
                 style: const TextStyle(fontWeight: FontWeight.w700)),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${service.sellerName} · ${service.sellerCity}'),
-                const SizedBox(height: 4),
-                ListingPremiumBadges(sellerPremium: service.sellerPremium),
-              ],
-            ),
+            subtitle: Text('${service.sellerName} · ${service.sellerCity}'),
             trailing: Text(
               _priceLabel(
                 l10n,
@@ -620,14 +592,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
           title: Text(product.name,
               style: const TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${product.sellerName} · ${product.sellerCity}'),
-              const SizedBox(height: 4),
-              ListingPremiumBadges(sellerPremium: product.sellerPremium),
-            ],
-          ),
+          subtitle: Text('${product.sellerName} · ${product.sellerCity}'),
           trailing: Text(
             _priceLabel(
               l10n,

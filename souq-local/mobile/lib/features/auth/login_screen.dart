@@ -203,7 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
     ref.read(userSessionProvider.notifier).state = userSession;
     ref.read(authSessionProvider.notifier).state = session;
-    invalidateSubscriptionProviders(ref);
+    invalidateEntitlementProviders(ref);
     syncLegalAcceptanceFromAuthUser(ref, session.user);
 
     if (!mounted) return;
