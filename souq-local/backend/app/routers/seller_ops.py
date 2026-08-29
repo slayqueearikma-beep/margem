@@ -157,8 +157,6 @@ class SellerEntitlementsResponse(BaseModel):
     combined_listing_count: int = 0
     combined_listing_limit: int = 5
     combined_listing_remaining: int = 5
-    video_uploads_enabled: bool = False
-    video_reward_active: bool = False
     promotional_ads_suppressed: bool = False
     ads_enabled: bool = True
     started_at: datetime | None = None
@@ -173,7 +171,6 @@ class EntitlementsResponse(BaseModel):
     payments_enabled: bool = False
     subscriptions_enabled: bool = False
     rewarded_ads_enabled: bool = False
-    listing_video_uploads_enabled: bool = False
 
 
 class CheckoutRequest(BaseModel):
@@ -620,7 +617,6 @@ async def my_entitlements(
         payments_enabled=bundle.payments_enabled,
         subscriptions_enabled=bundle.subscriptions_enabled,
         rewarded_ads_enabled=bundle.rewarded_ads_enabled,
-        listing_video_uploads_enabled=bundle.listing_video_uploads_enabled,
     )
 
 

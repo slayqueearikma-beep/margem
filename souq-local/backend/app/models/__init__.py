@@ -280,7 +280,6 @@ class SellerProfile(Base):
     )
     products: Mapped[list["Product"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
     services: Mapped[list["Service"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
-    videos: Mapped[list["SellerVideo"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
     reviews: Mapped[list["Review"]] = relationship(back_populates="seller", cascade="all, delete-orphan")
 
 
@@ -302,7 +301,6 @@ class Product(Base):
     pickup_only: Mapped[bool] = mapped_column(Boolean, default=True)
     image_url: Mapped[str] = mapped_column(String(512), default="")
     media_urls: Mapped[list] = mapped_column(JSONB, default=list)
-    video_url: Mapped[str] = mapped_column(String(512), default="")
     category_slug: Mapped[str] = mapped_column(String(80), default="")
     stock_quantity: Mapped[int] = mapped_column(Integer, default=1)  # availability hint, not warehouse stock
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -330,27 +328,11 @@ class Service(Base):
     category_slug: Mapped[str] = mapped_column(String(80), default="")
     coverage_areas: Mapped[list] = mapped_column(JSONB, default=list)
     image_url: Mapped[str] = mapped_column(String(512), default="")
-    video_url: Mapped[str] = mapped_column(String(512), default="")
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     seller: Mapped[SellerProfile] = relationship(back_populates="services")
-
-
-class SellerVideo(Base):
-    __tablename__ = "seller_videos"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    seller_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("seller_profiles.id"), index=True)
-    video_url: Mapped[str] = mapped_column(String(512), default="")
-    duration_seconds: Mapped[float] = mapped_column(Numeric(8, 3, asdecimal=False))
-    title: Mapped[str] = mapped_column(String(160), default="")
-    caption: Mapped[str] = mapped_column(Text, default="")
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-    seller: Mapped[SellerProfile] = relationship(back_populates="videos")
 
 
 class ShareLink(Base):

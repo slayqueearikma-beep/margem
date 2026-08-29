@@ -184,11 +184,6 @@ class Settings(BaseSettings):
     qr_public_base_url: str = "https://qr.dribex.ma"
     sentry_dsn: str = ""
 
-    # Seller listing video uploads (products/services). Disabled for initial production launch.
-    listing_video_uploads_enabled: bool = False
-
-    # Seller video quotas (free tier)
-    free_seller_video_limit: int = 5
     free_seller_combined_listing_limit: int = 5
     driver_pro_combined_listing_limit: int = 20
     buyer_plus_plan_code: str = "buyer_premium"

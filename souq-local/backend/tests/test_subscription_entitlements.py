@@ -93,7 +93,6 @@ async def test_plus_does_not_grant_driver_pro(monkeypatch):
         ent = await client.get("/subscriptions/entitlements", headers=headers)
         assert ent.json()["buyer"]["plus_plus_active"] is True
         assert ent.json()["seller"]["driver_pro_active"] is False
-        assert ent.json()["seller"]["video_uploads_enabled"] is False
         assert ent.json()["seller"]["promotional_ads_suppressed"] is False
         assert ent.json()["seller"]["ads_enabled"] is True
 
@@ -169,24 +168,6 @@ async def test_free_seller_combined_listing_limit(monkeypatch):
         assert blocked.status_code == 403
         assert "DriverPro" in blocked.json()["detail"]
 
-
-@pytest.mark.asyncio
-async def test_free_seller_cannot_upload_videos(monkeypatch):
-    monkeypatch.setattr(settings, "payment_provider", "manual")
-    monkeypatch.setattr(settings, "allow_manual_billing", True)
-    monkeypatch.setattr(settings, "rewarded_ads_enabled", False)
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        user = await register_test_user(client, email=f"video-free-{uuid4().hex[:8]}@example.com", account_type="seller")
-        headers = {"Authorization": f"Bearer {user['access_token']}"}
-        shop = await create_test_seller(client, headers, **seller_create_payload())
-        blocked = await client.post(
-            f"/sellers/{shop['id']}/videos",
-            headers=headers,
-            json={"video_url": "https://example.com/video.mp4", "duration_seconds": 10},
-        )
-        assert blocked.status_code == 403
-        assert "DriverPro" in blocked.json()["detail"]
 
 
 @pytest.mark.asyncio

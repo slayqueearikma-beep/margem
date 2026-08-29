@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdvertisementBanner } from "@/components/advertisement-banner";
 import { MediaImage } from "@/components/media-image";
-import { ListingVideo } from "@/components/listing-video";
 import { TrustBadges } from "@/components/trust-badges";
 import { EmptyState } from "@/components/states";
 import { ApiError } from "@/lib/api";
@@ -95,9 +94,6 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
             className="aspect-square w-full object-cover"
           />
         </div>
-        {product.video_url ? (
-          <ListingVideo src={product.video_url} title={`${product.name} video`} />
-        ) : null}
       </div>
       <div className="space-y-6">
         <div>

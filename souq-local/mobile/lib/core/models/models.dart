@@ -429,7 +429,6 @@ class ProductModel {
     this.acceptedPaymentMethods = const [],
     this.deliveryOptions = const [],
     this.mediaUrls = const [],
-    this.videoUrl = '',
     this.categorySlug = '',
     this.deliveryAvailable = false,
     this.pickupOnly = true,
@@ -450,7 +449,6 @@ class ProductModel {
   final List<String> acceptedPaymentMethods;
   final List<String> deliveryOptions;
   final List<String> mediaUrls;
-  final String videoUrl;
   final String categorySlug;
   final bool deliveryAvailable;
   final bool pickupOnly;
@@ -481,7 +479,6 @@ class ProductModel {
       mediaUrls: (json['media_urls'] as List<dynamic>? ?? [])
           .map((item) => item.toString())
           .toList(),
-      videoUrl: json['video_url'] as String? ?? '',
       categorySlug: json['category_slug'] as String? ?? '',
       deliveryAvailable: json['delivery_available'] as bool? ?? false,
       pickupOnly: json['pickup_only'] as bool? ?? true,
@@ -1220,35 +1217,6 @@ class PlatformPaymentModel {
   }
 }
 
-class SellerVideoQuotaModel {
-  const SellerVideoQuotaModel({
-    required this.isPremium,
-    required this.activeVideos,
-    this.limit,
-    this.remaining,
-    this.videoUploadsEnabled = false,
-  });
-
-  final bool isPremium;
-  final int activeVideos;
-  final int? limit;
-  final int? remaining;
-  final bool videoUploadsEnabled;
-
-  bool get isAtLimit =>
-      !videoUploadsEnabled && remaining != null && remaining! <= 0;
-
-  factory SellerVideoQuotaModel.fromJson(Map<String, dynamic> json) {
-    return SellerVideoQuotaModel(
-      isPremium: json['is_premium'] as bool? ?? false,
-      activeVideos: json['active_videos'] as int? ?? 0,
-      limit: json['limit'] as int?,
-      remaining: json['remaining'] as int?,
-      videoUploadsEnabled: json['video_uploads_enabled'] as bool? ?? false,
-    );
-  }
-}
-
 class BuyerEntitlementsModel {
   const BuyerEntitlementsModel({
     this.planCode,
@@ -1290,7 +1258,6 @@ class SellerEntitlementsModel {
     this.combinedListingCount = 0,
     this.combinedListingLimit = 5,
     this.combinedListingRemaining = 5,
-    this.videoUploadsEnabled = false,
     this.promotionalAdsSuppressed = false,
     this.adsEnabled = true,
     this.startedAt,
@@ -1303,7 +1270,6 @@ class SellerEntitlementsModel {
   final int combinedListingCount;
   final int combinedListingLimit;
   final int combinedListingRemaining;
-  final bool videoUploadsEnabled;
   final bool promotionalAdsSuppressed;
   final bool adsEnabled;
   final String? startedAt;
@@ -1318,7 +1284,6 @@ class SellerEntitlementsModel {
       combinedListingLimit: json['combined_listing_limit'] as int? ?? 5,
       combinedListingRemaining:
           json['combined_listing_remaining'] as int? ?? 5,
-      videoUploadsEnabled: json['video_uploads_enabled'] as bool? ?? false,
       promotionalAdsSuppressed:
           json['promotional_ads_suppressed'] as bool? ?? false,
       adsEnabled: json['ads_enabled'] as bool? ?? true,

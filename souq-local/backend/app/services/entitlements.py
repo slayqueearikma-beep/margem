@@ -15,7 +15,6 @@ from app.config import settings
 from app.models import Product, SellerProfile, Service, Subscription, SubscriptionPlan, SubscriptionStatus, User
 from app.services.rewarded_ads import (
     FEATURE_SAVED_SEARCH,
-    FEATURE_VIDEO_UPLOAD,
     has_active_reward,
     rewarded_ads_operational,
 )
@@ -104,27 +103,6 @@ async def has_driver_pro(
     return subscription_grants_benefits(sub, now=now)
 
 
-def listing_video_uploads_operational() -> bool:
-    """Master switch for seller listing/product/service video uploads."""
-    return settings.listing_video_uploads_enabled
-
-
-async def has_video_upload_access(
-    session: AsyncSession,
-    user: User,
-    seller: SellerProfile,
-    *,
-    now: datetime | None = None,
-) -> bool:
-    if not listing_video_uploads_operational():
-        return False
-    if await has_driver_pro(session, user, seller, now=now):
-        return True
-    if rewarded_ads_operational():
-        return await has_active_reward(session, user.id, FEATURE_VIDEO_UPLOAD, now=now)
-    return not settings.subscriptions_enabled and not settings.rewarded_ads_enabled
-
-
 async def has_saved_search_access(
     session: AsyncSession,
     user: User,
@@ -190,37 +168,6 @@ async def enforce_combined_listing_limit(
                 f"You have reached the listing limit of {limit} combined products and services."
             )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
-
-
-async def require_video_upload_access(
-    session: AsyncSession,
-    user: User,
-    seller: SellerProfile,
-) -> None:
-    if not listing_video_uploads_operational():
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Listing video uploads are disabled.",
-        )
-    if await has_video_upload_access(session, user, seller):
-        return
-    if rewarded_ads_operational():
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Watch a rewarded advertisement to unlock video uploads.",
-        )
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="DriverPro subscription is required to upload videos.",
-    )
-
-
-async def require_driver_pro_for_video(
-    session: AsyncSession,
-    user: User,
-    seller: SellerProfile,
-) -> None:
-    await require_video_upload_access(session, user, seller)
 
 
 async def sync_entitlement_flags(session: AsyncSession, user: User) -> None:
@@ -294,8 +241,6 @@ class SellerEntitlementsOut:
     combined_listing_count: int
     combined_listing_limit: int
     combined_listing_remaining: int
-    video_uploads_enabled: bool
-    video_reward_active: bool
     promotional_ads_suppressed: bool
     ads_enabled: bool
     started_at: datetime | None
@@ -311,7 +256,6 @@ class EntitlementsBundle:
     payments_enabled: bool = False
     subscriptions_enabled: bool = False
     rewarded_ads_enabled: bool = False
-    listing_video_uploads_enabled: bool = False
 
 
 def combine_promotional_ad_flags(bundle: EntitlementsBundle) -> tuple[bool, bool]:
@@ -349,16 +293,6 @@ async def build_entitlements(
         driver_active = (
             subscription_grants_benefits(seller_sub, now=now) if settings.subscriptions_enabled else False
         )
-        video_reward_active = (
-            await has_active_reward(session, user.id, FEATURE_VIDEO_UPLOAD, now=now)
-            if rewarded_ads_operational()
-            else False
-        )
-        video_enabled = listing_video_uploads_operational() and (
-            driver_active
-            or video_reward_active
-            or (not settings.subscriptions_enabled and not rewarded_ads_operational())
-        )
         count = await count_combined_listings(session, profile.id)
         limit = await combined_listing_limit(session, user, profile, now=now)
         suppress_ads = driver_active and settings.subscriptions_enabled
@@ -369,8 +303,6 @@ async def build_entitlements(
             combined_listing_count=count,
             combined_listing_limit=limit,
             combined_listing_remaining=max(0, limit - count),
-            video_uploads_enabled=video_enabled,
-            video_reward_active=video_reward_active,
             promotional_ads_suppressed=suppress_ads,
             ads_enabled=settings.ads_enabled and not suppress_ads,
             started_at=seller_sub.current_period_start if seller_sub else None,
@@ -389,5 +321,4 @@ async def build_entitlements(
         payments_enabled=settings.payments_enabled,
         subscriptions_enabled=settings.subscriptions_enabled,
         rewarded_ads_enabled=settings.rewarded_ads_enabled,
-        listing_video_uploads_enabled=listing_video_uploads_operational(),
     )

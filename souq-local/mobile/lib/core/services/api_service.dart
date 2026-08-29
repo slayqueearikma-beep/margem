@@ -420,27 +420,6 @@ class ApiService {
     await deletePath('/sellers/$sellerId/services/$serviceId', auth: true);
   }
 
-  Future<Map<String, dynamic>> addSellerVideo(
-    String sellerId, {
-    required String videoUrl,
-    required double durationSeconds,
-    required String contentType,
-    String title = '',
-    String caption = '',
-  }) async {
-    return postJson(
-      '/sellers/$sellerId/videos',
-      {
-        'video_url': videoUrl,
-        'duration_seconds': durationSeconds,
-        'content_type': contentType,
-        if (title.isNotEmpty) 'title': title,
-        if (caption.isNotEmpty) 'caption': caption,
-      },
-      auth: true,
-    );
-  }
-
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -1432,11 +1411,6 @@ class ApiService {
   Future<EntitlementsBundleModel> fetchEntitlements() async {
     final data = await getJson('/subscriptions/entitlements', auth: true);
     return EntitlementsBundleModel.fromJson(data);
-  }
-
-  Future<SellerVideoQuotaModel> fetchSellerVideoQuota(String sellerId) async {
-    final data = await getJson('/sellers/$sellerId/videos/quota', auth: true);
-    return SellerVideoQuotaModel.fromJson(data);
   }
 
   Future<String> requestPasswordReset(String email) async {

@@ -46,15 +46,6 @@ class SellerShell extends ConsumerWidget {
                   context.push('/seller/products/new');
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.videocam_outlined),
-                title: Text(l10n.addVideo),
-                subtitle: Text(l10n.addVideoSub),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  context.push('/seller/videos/new');
-                },
-              ),
             ],
           ),
         ),

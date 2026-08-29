@@ -17,7 +17,6 @@ from app.models import User
 from app.services.rewarded_ads import (
     ALLOWED_REWARD_FEATURES,
     FEATURE_SAVED_SEARCH,
-    FEATURE_VIDEO_UPLOAD,
     complete_reward_session,
     create_reward_session,
     list_active_rewards,
@@ -110,11 +109,6 @@ async def start_reward_session(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ) -> RewardSessionOut:
-    if payload.feature_code == FEATURE_VIDEO_UPLOAD and not settings.listing_video_uploads_enabled:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Listing video uploads are disabled.",
-        )
     if payload.feature_code not in ALLOWED_REWARD_FEATURES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported reward feature.")
     reward_session, token = await create_reward_session(
@@ -154,5 +148,4 @@ async def complete_reward(
 
 
 # Re-export feature constants for other modules.
-VIDEO_UPLOAD_FEATURE = FEATURE_VIDEO_UPLOAD
 SAVED_SEARCH_FEATURE = FEATURE_SAVED_SEARCH

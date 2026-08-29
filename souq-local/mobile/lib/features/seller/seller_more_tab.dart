@@ -60,9 +60,6 @@ class SellerMoreTab extends ConsumerWidget {
                     '${seller.combinedListingCount}/${seller.combinedListingLimit} combined products & services. '
                     'Free sellers can create up to 5 combined items; DriverPro raises the limit to 20.',
                   ),
-                  trailing: seller.videoUploadsEnabled
-                      ? const Icon(Icons.videocam_rounded)
-                      : const Icon(Icons.videocam_off_outlined),
                 ),
               ),
             );
