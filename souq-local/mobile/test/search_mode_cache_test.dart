@@ -18,14 +18,85 @@ SearchProductModel _product(String id) => SearchProductModel(
     );
 
 void main() {
+  group('SearchModeCache.scopeKey', () {
+    test('changes when filters or query change', () {
+      final base = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'relevance',
+        query: 'tagine',
+      );
+      final otherQuery = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'relevance',
+        query: 'bowl',
+      );
+      final otherSort = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'distance',
+        query: 'tagine',
+      );
+      final otherMode = SearchModeCache.scopeKey(
+        mode: 'services',
+        sort: 'relevance',
+        query: 'tagine',
+      );
+      final withCategory = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'relevance',
+        query: 'tagine',
+        category: 'food',
+      );
+      final withDelivery = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'relevance',
+        query: 'tagine',
+        deliveryAvailable: true,
+      );
+
+      expect(otherQuery, isNot(base));
+      expect(otherSort, isNot(base));
+      expect(otherMode, isNot(base));
+      expect(withCategory, isNot(base));
+      expect(withDelivery, isNot(base));
+    });
+
+    test('keeps product-only delivery flags out of services scope', () {
+      final servicesBase = SearchModeCache.scopeKey(
+        mode: 'services',
+        sort: 'relevance',
+        query: '',
+        deliveryAvailable: true,
+        pickupOnly: true,
+      );
+      final servicesPlain = SearchModeCache.scopeKey(
+        mode: 'services',
+        sort: 'relevance',
+        query: '',
+      );
+      expect(servicesBase, servicesPlain);
+    });
+  });
+
   group('SearchModeCache', () {
-    test('tracks pagination independently per mode and sort', () {
+    test('tracks independent scopes for products and services', () {
       final cache = SearchModeCache();
+      final productsKey = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'relevance',
+        query: '',
+        category: 'food',
+      );
+      final servicesKey = SearchModeCache.scopeKey(
+        mode: 'services',
+        sort: 'relevance',
+        query: '',
+        category: 'repair',
+      );
 
       cache.save(
-        'products',
-        'relevance',
-        SearchResultsSnapshot(
+        productsKey,
+        SearchResultsSnapshot.forMode(
+          mode: 'products',
           products: [_product('1')],
           services: const [],
           sellers: const [],
@@ -34,10 +105,10 @@ void main() {
         ),
       );
       cache.save(
-        'products',
-        'distance',
-        SearchResultsSnapshot(
-          products: [_product('2'), _product('3')],
+        servicesKey,
+        SearchResultsSnapshot.forMode(
+          mode: 'services',
+          products: const [],
           services: const [],
           sellers: const [],
           offset: 2,
@@ -45,88 +116,24 @@ void main() {
         ),
       );
 
-      expect(cache.isLoaded('products', 'relevance'), isTrue);
-      expect(cache.isLoaded('products', 'distance'), isTrue);
-      expect(cache.offsetFor('products', 'relevance'), 1);
-      expect(cache.offsetFor('products', 'distance'), 2);
-      expect(cache.hasMoreFor('products', 'relevance'), isTrue);
-      expect(cache.hasMoreFor('products', 'distance'), isFalse);
-      expect(cache.snapshot('products', 'relevance')!.products.first.id, '1');
-      expect(cache.snapshot('products', 'distance')!.products.length, 2);
+      expect(cache.isLoaded(productsKey), isTrue);
+      expect(cache.isLoaded(servicesKey), isTrue);
+      expect(cache.snapshot(productsKey)!.products.length, 1);
+      expect(cache.snapshot(servicesKey)!.products, isEmpty);
     });
 
-    test('keeps relevance and distance snapshots isolated', () {
-      final cache = SearchModeCache()
-        ..save(
-          'services',
-          'relevance',
-          const SearchResultsSnapshot(
-            products: [],
-            services: [],
-            sellers: [],
-            offset: 5,
-            hasMore: true,
-          ),
-        )
-        ..save(
-          'services',
-          'distance',
-          const SearchResultsSnapshot(
-            products: [],
-            services: [],
-            sellers: [],
-            offset: 3,
-            hasMore: false,
-          ),
-        );
-
-      expect(cache.offsetFor('services', 'relevance'), 5);
-      expect(cache.offsetFor('services', 'distance'), 3);
-      expect(cache.hasMoreFor('services', 'relevance'), isTrue);
-      expect(cache.hasMoreFor('services', 'distance'), isFalse);
-    });
-
-    test('invalidateAll clears every mode and sort snapshot', () {
-      final cache = SearchModeCache()
-        ..save(
-          'products',
-          'relevance',
-          SearchResultsSnapshot(
-            products: [_product('1')],
-            services: const [],
-            sellers: const [],
-            offset: 1,
-            hasMore: false,
-          ),
-        )
-        ..save(
-          'services',
-          'distance',
-          const SearchResultsSnapshot(
-            products: [],
-            services: [],
-            sellers: [],
-            offset: 2,
-            hasMore: false,
-          ),
-        );
-
-      cache.invalidateAll();
-
-      expect(cache.isLoaded('products', 'relevance'), isFalse);
-      expect(cache.isLoaded('services', 'distance'), isFalse);
-      expect(cache.snapshot('products', 'relevance'), isNull);
-      expect(cache.offsetFor('products', 'relevance'), 0);
-    });
-
-    test('snapshot copy prevents shared list mutation', () {
+    test('invalidateAll clears scoped snapshots', () {
       final cache = SearchModeCache();
-      final products = [_product('1')];
+      final key = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'distance',
+        query: 'test',
+      );
       cache.save(
-        'products',
-        'relevance',
-        SearchResultsSnapshot(
-          products: products,
+        key,
+        SearchResultsSnapshot.forMode(
+          mode: 'products',
+          products: [_product('1')],
           services: const [],
           sellers: const [],
           offset: 1,
@@ -134,9 +141,26 @@ void main() {
         ),
       );
 
-      products.clear();
+      cache.invalidateAll();
 
-      expect(cache.snapshot('products', 'relevance')!.products, isNotEmpty);
+      expect(cache.isLoaded(key), isFalse);
+      expect(cache.offsetFor(key), 0);
+    });
+
+    test('mode-specific snapshot stores only relevant list', () {
+      final snapshot = SearchResultsSnapshot.forMode(
+        mode: 'products',
+        products: [_product('1')],
+        services: const [],
+        sellers: const [],
+        offset: 3,
+        hasMore: true,
+      );
+
+      expect(snapshot.products, isNotEmpty);
+      expect(snapshot.services, isEmpty);
+      expect(snapshot.sellers, isEmpty);
+      expect(snapshot.copy().products, isNotEmpty);
     });
   });
 }

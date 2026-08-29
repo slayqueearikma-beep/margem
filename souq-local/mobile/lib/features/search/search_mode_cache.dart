@@ -1,8 +1,9 @@
 import '../../core/models/models.dart';
 
-/// Cached search results for one mode/sort combination.
+/// Cached search results for one scoped query (mode + sort + filters + query).
 class SearchResultsSnapshot {
   const SearchResultsSnapshot({
+    required this.mode,
     required this.products,
     required this.services,
     required this.sellers,
@@ -10,6 +11,7 @@ class SearchResultsSnapshot {
     required this.hasMore,
   });
 
+  final String mode;
   final List<SearchProductModel> products;
   final List<SearchServiceModel> services;
   final List<SellerModel> sellers;
@@ -18,6 +20,7 @@ class SearchResultsSnapshot {
 
   SearchResultsSnapshot copy() {
     return SearchResultsSnapshot(
+      mode: mode,
       products: List<SearchProductModel>.from(products),
       services: List<SearchServiceModel>.from(services),
       sellers: List<SellerModel>.from(sellers),
@@ -25,29 +28,85 @@ class SearchResultsSnapshot {
       hasMore: hasMore,
     );
   }
+
+  factory SearchResultsSnapshot.forMode({
+    required String mode,
+    required List<SearchProductModel> products,
+    required List<SearchServiceModel> services,
+    required List<SellerModel> sellers,
+    required int offset,
+    required bool hasMore,
+  }) {
+    return switch (mode) {
+      'services' => SearchResultsSnapshot(
+          mode: mode,
+          products: const [],
+          services: List<SearchServiceModel>.from(services),
+          sellers: const [],
+          offset: offset,
+          hasMore: hasMore,
+        ),
+      'providers' => SearchResultsSnapshot(
+          mode: mode,
+          products: const [],
+          services: const [],
+          sellers: List<SellerModel>.from(sellers),
+          offset: offset,
+          hasMore: hasMore,
+        ),
+      _ => SearchResultsSnapshot(
+          mode: mode,
+          products: List<SearchProductModel>.from(products),
+          services: const [],
+          sellers: const [],
+          offset: offset,
+          hasMore: hasMore,
+        ),
+    };
+  }
 }
 
-/// Per-tab and per-sort pagination/cache metadata for marketplace search.
+/// Scope-aware cache for marketplace search results.
 class SearchModeCache {
   final Map<String, SearchResultsSnapshot> _snapshots = {};
 
-  static String cacheKey(String mode, String sort) => '$mode|$sort';
+  static String scopeKey({
+    required String mode,
+    required String sort,
+    required String query,
+    String? marketplace,
+    String? category,
+    double? minPrice,
+    double? maxPrice,
+    double? minRating,
+    bool deliveryAvailable = false,
+    bool pickupOnly = false,
+  }) {
+    return [
+      mode,
+      sort,
+      query,
+      marketplace ?? '',
+      category ?? '',
+      minPrice?.toString() ?? '',
+      maxPrice?.toString() ?? '',
+      minRating?.toString() ?? '',
+      if (mode == 'products') deliveryAvailable,
+      if (mode == 'products') pickupOnly,
+    ].join('\u0001');
+  }
 
   void invalidateAll() => _snapshots.clear();
 
-  bool isLoaded(String mode, String sort) =>
-      _snapshots.containsKey(cacheKey(mode, sort));
+  bool isLoaded(String scopeKey) => _snapshots.containsKey(scopeKey);
 
-  SearchResultsSnapshot? snapshot(String mode, String sort) =>
-      _snapshots[cacheKey(mode, sort)];
+  SearchResultsSnapshot? snapshot(String scopeKey) => _snapshots[scopeKey];
 
-  void save(String mode, String sort, SearchResultsSnapshot snapshot) {
-    _snapshots[cacheKey(mode, sort)] = snapshot.copy();
+  void save(String scopeKey, SearchResultsSnapshot snapshot) {
+    _snapshots[scopeKey] = snapshot.copy();
   }
 
-  int offsetFor(String mode, String sort) =>
-      snapshot(mode, sort)?.offset ?? 0;
+  int offsetFor(String scopeKey) => snapshot(scopeKey)?.offset ?? 0;
 
-  bool hasMoreFor(String mode, String sort) =>
-      snapshot(mode, sort)?.hasMore ?? false;
+  bool hasMoreFor(String scopeKey) => snapshot(scopeKey)?.hasMore ?? false;
 }
