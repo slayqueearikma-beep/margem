@@ -19,6 +19,7 @@ import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/seller_trust_indicators.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
+import 'search_category_resolver.dart';
 import 'search_mode_cache.dart';
 
 class SearchFilters {
@@ -82,6 +83,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   var _searchFocused = false;
   var _mode = 'products';
   var _sort = 'relevance';
+  var _suppressCategoryListener = false;
+  final _queryByMode = <String, String>{
+    'products': '',
+    'services': '',
+    'providers': '',
+  };
   final _filtersByMode = <String, SearchFilters>{
     'products': const SearchFilters(),
     'services': const SearchFilters(),
@@ -116,7 +123,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (homeCategory == null || homeCategory.isEmpty) return;
     final current = _filtersFor(_mode);
     if (current.category != null && current.category!.isNotEmpty) return;
-    _filtersByMode[_mode] = current.copyWith(category: homeCategory);
+    _filtersByMode[_mode] = current.copyWith(
+      category: resolveSearchCategorySlug(homeCategory),
+    );
+  }
+
+  String _queryFor(String mode) => _queryByMode[mode] ?? '';
+
+  String _debouncedFor(String mode) => _queryFor(mode).trim();
+
+  void _syncCategoryProvider(String? category) {
+    if (ref.read(buyerCategorySlugProvider) == category) return;
+    _suppressCategoryListener = true;
+    ref.read(buyerCategorySlugProvider.notifier).state = category;
+    _suppressCategoryListener = false;
+  }
+
+  void _persistModeQuery() {
+    _queryByMode[_mode] = _queryController.text;
+    _debounced = _debouncedFor(_mode);
+  }
+
+  void _restoreModeQuery(String mode) {
+    final query = _queryFor(mode);
+    if (_queryController.text != query) {
+      _queryController.text = query;
+    }
+    _debounced = _debouncedFor(mode);
   }
 
   @override
@@ -179,14 +212,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
+  String? _resolvedCategoryFor(String mode) =>
+      resolveSearchCategorySlug(_activeCategoryFor(mode));
+
   String _scopeKeyFor(String mode, String sort) {
     final filters = _filtersFor(mode);
     return SearchModeCache.scopeKey(
       mode: mode,
       sort: sort,
-      query: _debounced,
+      query: _debouncedFor(mode),
+      city: ref.read(buyerCityProvider),
       marketplace: _activeMarketplace(),
-      category: _activeCategoryFor(mode),
+      category: _resolvedCategoryFor(mode),
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
       minRating: filters.minRating,
@@ -211,10 +248,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       lng = origin.longitude;
     }
     return apiServiceProvider.searchMarketplace(
-      query: _debounced,
+      query: _debouncedFor(mode),
       mode: mode,
-      category: _activeCategoryFor(mode),
+      category: _resolvedCategoryFor(mode),
       marketplace: _activeMarketplace(),
+      city: ref.read(buyerCityProvider),
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
       minRating: filters.minRating,
@@ -371,11 +409,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Future<void> _reload() async {
     _fetchGeneration++;
+    _persistModeQuery();
     setState(() {
-      _modeCache.invalidateAll();
-      _products.clear();
-      _services.clear();
-      _sellers.clear();
+      _modeCache.invalidateMode(_mode);
+      switch (_mode) {
+        case 'services':
+          _services.clear();
+        case 'providers':
+          _sellers.clear();
+        default:
+          _products.clear();
+      }
       _error = null;
       _loading = true;
       _loadingMore = false;
@@ -412,8 +456,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _switchMode(String value) {
     if (_mode == value) return;
+    _persistModeQuery();
     _persistCurrentSnapshot();
     setState(() => _mode = value);
+    _restoreModeQuery(value);
+    _syncCategoryProvider(_activeCategoryFor(value));
     _restoreOrFetch(mode: value, sort: _sort);
   }
 
@@ -444,6 +491,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     _timer?.cancel();
     _timer = Timer(const Duration(milliseconds: 350), () {
       if (!mounted) return;
+      _queryByMode[_mode] = value;
       _debounced = value.trim();
       _reload();
     });
@@ -571,11 +619,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           onTap: () {
                             _queryController.text = item.query;
                             _debounced = item.query.trim();
-                            final category =
-                                item.category.isEmpty ? null : item.category;
+                            _queryByMode[_mode] = item.query;
+                            _queryController.text = item.query;
+                            final category = item.category.isEmpty
+                                ? null
+                                : resolveSearchCategorySlug(item.category);
                             _filtersByMode[_mode] = SearchFilters(category: category);
-                            ref.read(buyerCategorySlugProvider.notifier).state =
-                                category;
+                            _syncCategoryProvider(category);
                             ref.read(buyerMarketplaceSlugProvider.notifier).state =
                                 item.marketplaceSlug.isEmpty
                                     ? null
@@ -611,7 +661,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Future<void> _openFilters(AppStrings l10n) async {
-    final categories = await ref.read(buyerCategoriesProvider.future);
+    final categories = await apiServiceProvider.fetchCategories();
     if (!mounted) return;
 
     final result = await showModalBottomSheet<SearchFilters>(
@@ -630,13 +680,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _applyFilters(SearchFilters result) {
-    setState(() => _filtersByMode[_mode] = result);
-    final newCategory = result.category;
-    if (ref.read(buyerCategorySlugProvider) != newCategory) {
-      ref.read(buyerCategorySlugProvider.notifier).state = newCategory;
-    } else {
-      _reload();
-    }
+    final normalized = SearchFilters(
+      category: resolveSearchCategorySlug(result.category),
+      minPrice: result.minPrice,
+      maxPrice: result.maxPrice,
+      minRating: result.minRating,
+      deliveryAvailable: result.deliveryAvailable,
+      pickupOnly: result.pickupOnly,
+    );
+    setState(() => _filtersByMode[_mode] = normalized);
+    _syncCategoryProvider(normalized.category);
+    _reload();
   }
 
   int get _itemCount => switch (_mode) {
@@ -816,18 +870,22 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     ref.listen(buyerCategorySlugProvider, (previous, next) {
-      if (previous == next) return;
+      if (_suppressCategoryListener || previous == next) return;
+      final resolved = resolveSearchCategorySlug(next);
       final current = _filtersFor(_mode);
-      if (current.category == next) return;
+      if (current.category == resolved) return;
       setState(() {
         _filtersByMode[_mode] = current.copyWith(
-          category: next,
-          clearCategory: next == null,
+          category: resolved,
+          clearCategory: resolved == null,
         );
       });
       _reload();
     });
     ref.listen(buyerMarketplaceSlugProvider, (previous, next) {
+      if (previous != next) _reload();
+    });
+    ref.listen(buyerCityProvider, (previous, next) {
       if (previous != next) _reload();
     });
 

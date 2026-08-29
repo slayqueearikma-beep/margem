@@ -74,6 +74,7 @@ class SearchModeCache {
     required String mode,
     required String sort,
     required String query,
+    String? city,
     String? marketplace,
     String? category,
     double? minPrice,
@@ -86,6 +87,7 @@ class SearchModeCache {
       mode,
       sort,
       query,
+      city ?? '',
       marketplace ?? '',
       category ?? '',
       minPrice?.toString() ?? '',
@@ -97,6 +99,11 @@ class SearchModeCache {
   }
 
   void invalidateAll() => _snapshots.clear();
+
+  void invalidateMode(String mode) {
+    final prefix = '$mode\u0001';
+    _snapshots.removeWhere((key, _) => key.startsWith(prefix));
+  }
 
   bool isLoaded(String scopeKey) => _snapshots.containsKey(scopeKey);
 

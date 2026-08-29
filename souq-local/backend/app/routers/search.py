@@ -83,6 +83,11 @@ class SearchPage(BaseModel):
     has_more: bool
 
 
+def _city_filter(city: str | None) -> str:
+    cleaned = (city or LAUNCH_CITY).strip()
+    return cleaned or LAUNCH_CITY
+
+
 def _provider_filters(
     stmt,
     *,
@@ -90,8 +95,12 @@ def _provider_filters(
     category: str | None,
     min_rating: float | None,
     marketplace_id=None,
+    city: str | None = None,
 ):
-    stmt = stmt.where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
+    stmt = stmt.where(
+        SellerProfile.is_active.is_(True),
+        SellerProfile.city.ilike(_escaped(_city_filter(city))),
+    )
     if marketplace_id is not None:
         stmt = stmt.where(SellerProfile.marketplace_id == marketplace_id)
     if q:
@@ -129,6 +138,7 @@ async def search(
     mode: str = Query(default="all", pattern="^(all|products|services|providers|sellers)$"),
     category: str | None = Query(default=None, max_length=80),
     marketplace: str | None = Query(default=None, max_length=80),
+    city: str | None = Query(default=None, max_length=80),
     min_price: float | None = Query(default=None, ge=0),
     max_price: float | None = Query(default=None, ge=0),
     min_rating: float | None = Query(default=None, ge=0, le=5),
@@ -158,6 +168,7 @@ async def search(
 
     has_origin = lat is not None and lng is not None
     marketplace_id = await resolve_marketplace_id(session, marketplace)
+    city_name = _city_filter(city)
 
     if mode == "sellers":
         mode = "providers"
@@ -177,6 +188,7 @@ async def search(
             category=category,
             min_rating=min_rating,
             marketplace_id=marketplace_id,
+            city=city_name,
         )
         distance_expr = None
         if has_origin:
@@ -221,7 +233,7 @@ async def search(
             selectinload(SellerProfile.user),
         ).where(
             SellerProfile.is_active.is_(True),
-            SellerProfile.city.ilike(LAUNCH_CITY),
+            SellerProfile.city.ilike(_escaped(city_name)),
             Product.is_hidden.is_(False),
         )
         if marketplace_id is not None:
@@ -262,6 +274,14 @@ async def search(
         total_products = int(
             await session.scalar(select(func.count()).select_from(product_stmt.subquery())) or 0
         )
+        product_distance_expr = None
+        if has_origin:
+            product_distance_expr = haversine_km_sql(
+                SellerProfile.latitude,
+                SellerProfile.longitude,
+                lat,
+                lng,
+            ).label("distance_km")
         if sort == "newest":
             product_order = [Product.created_at.desc()]
         elif sort == "popular":
@@ -272,6 +292,8 @@ async def search(
             product_order = [Product.price_mad.asc().nullslast()]
         elif sort == "price_high":
             product_order = [Product.price_mad.desc().nullslast()]
+        elif sort == "distance" and product_distance_expr is not None:
+            product_order = [product_distance_expr.asc(), Product.created_at.desc()]
         else:
             product_order = [
                 prefix_rank.desc() if q else Product.is_featured.desc(),
@@ -279,38 +301,65 @@ async def search(
                 SellerProfile.average_rating.desc(),
                 Product.created_at.desc(),
             ]
-        rows = (
-            await session.execute(product_stmt.order_by(*product_order).limit(limit).offset(offset))
-        ).all()
-        products = [
-            ProductSearchOut(
-                id=p.id,
-                seller_id=s.id,
-                seller_name=s.business_name,
-                seller_city=s.city,
-                seller_verified=s.verification_status == VerificationStatus.VERIFIED,
-                seller_premium=seller_pro_active(s),
-                seller_rating=s.average_rating,
-                name=p.name,
-                description=p.description,
-                pricing_type=p.pricing_type.value,
-                price_mad=float(p.price_mad) if p.price_mad is not None else None,
-                image_url=p.image_url,
-                category_slug=p.category_slug,
-                delivery_available=p.delivery_available,
-                pickup_only=p.pickup_only,
-                is_available=p.is_available and not p.is_paused,
-                created_at=p.created_at,
-            )
-            for p, s in rows
-        ]
+        product_query = product_stmt.order_by(*product_order).limit(limit).offset(offset)
+        if product_distance_expr is not None:
+            product_query = product_stmt.add_columns(product_distance_expr).order_by(
+                *product_order
+            ).limit(limit).offset(offset)
+            rows = (await session.execute(product_query)).all()
+            products = [
+                ProductSearchOut(
+                    id=p.id,
+                    seller_id=s.id,
+                    seller_name=s.business_name,
+                    seller_city=s.city,
+                    seller_verified=s.verification_status == VerificationStatus.VERIFIED,
+                    seller_premium=seller_pro_active(s),
+                    seller_rating=s.average_rating,
+                    name=p.name,
+                    description=p.description,
+                    pricing_type=p.pricing_type.value,
+                    price_mad=float(p.price_mad) if p.price_mad is not None else None,
+                    image_url=p.image_url,
+                    category_slug=p.category_slug,
+                    delivery_available=p.delivery_available,
+                    pickup_only=p.pickup_only,
+                    is_available=p.is_available and not p.is_paused,
+                    created_at=p.created_at,
+                )
+                for p, s, _distance in rows
+            ]
+        else:
+            rows = (await session.execute(product_query)).all()
+            products = [
+                ProductSearchOut(
+                    id=p.id,
+                    seller_id=s.id,
+                    seller_name=s.business_name,
+                    seller_city=s.city,
+                    seller_verified=s.verification_status == VerificationStatus.VERIFIED,
+                    seller_premium=seller_pro_active(s),
+                    seller_rating=s.average_rating,
+                    name=p.name,
+                    description=p.description,
+                    pricing_type=p.pricing_type.value,
+                    price_mad=float(p.price_mad) if p.price_mad is not None else None,
+                    image_url=p.image_url,
+                    category_slug=p.category_slug,
+                    delivery_available=p.delivery_available,
+                    pickup_only=p.pickup_only,
+                    is_available=p.is_available and not p.is_paused,
+                    created_at=p.created_at,
+                )
+                for p, s in rows
+            ]
 
     if mode in {"all", "services"}:
         service_stmt = select(Service, SellerProfile).join(
             SellerProfile, Service.seller_id == SellerProfile.id
         ).options(
             selectinload(SellerProfile.user),
-        ).where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
+        ).where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(_escaped(city_name)))
         if marketplace_id is not None:
             service_stmt = service_stmt.where(SellerProfile.marketplace_id == marketplace_id)
         if available_only:
@@ -341,41 +390,76 @@ async def search(
         total_services = int(
             await session.scalar(select(func.count()).select_from(service_stmt.subquery())) or 0
         )
+        service_distance_expr = None
+        if has_origin:
+            service_distance_expr = haversine_km_sql(
+                SellerProfile.latitude,
+                SellerProfile.longitude,
+                lat,
+                lng,
+            ).label("distance_km")
         if sort == "price_low":
             service_order = [Service.price_mad.asc().nullslast()]
         elif sort == "price_high":
             service_order = [Service.price_mad.desc().nullslast()]
         elif sort == "newest":
             service_order = [Service.created_at.desc()]
+        elif sort == "distance" and service_distance_expr is not None:
+            service_order = [service_distance_expr.asc(), Service.created_at.desc()]
         else:
             service_order = [
                 SellerProfile.is_premium.desc(),
                 SellerProfile.average_rating.desc(),
                 Service.created_at.desc(),
             ]
-        rows = (
-            await session.execute(service_stmt.order_by(*service_order).limit(limit).offset(offset))
-        ).all()
-        services = [
-            ServiceSearchOut(
-                id=srv.id,
-                seller_id=s.id,
-                seller_name=s.business_name,
-                seller_city=s.city,
-                seller_verified=s.verification_status == VerificationStatus.VERIFIED,
-                seller_premium=seller_pro_active(s),
-                seller_rating=s.average_rating,
-                name=srv.name,
-                description=srv.description,
-                pricing_type=srv.pricing_type.value,
-                price_mad=float(srv.price_mad) if srv.price_mad is not None else None,
-                image_url=srv.image_url,
-                category_slug=srv.category_slug,
-                is_available=srv.is_available,
-                created_at=srv.created_at,
-            )
-            for srv, s in rows
-        ]
+        service_query = service_stmt.order_by(*service_order).limit(limit).offset(offset)
+        if service_distance_expr is not None:
+            service_query = service_stmt.add_columns(service_distance_expr).order_by(
+                *service_order
+            ).limit(limit).offset(offset)
+            rows = (await session.execute(service_query)).all()
+            services = [
+                ServiceSearchOut(
+                    id=srv.id,
+                    seller_id=s.id,
+                    seller_name=s.business_name,
+                    seller_city=s.city,
+                    seller_verified=s.verification_status == VerificationStatus.VERIFIED,
+                    seller_premium=seller_pro_active(s),
+                    seller_rating=s.average_rating,
+                    name=srv.name,
+                    description=srv.description,
+                    pricing_type=srv.pricing_type.value,
+                    price_mad=float(srv.price_mad) if srv.price_mad is not None else None,
+                    image_url=srv.image_url,
+                    category_slug=srv.category_slug,
+                    is_available=srv.is_available,
+                    created_at=srv.created_at,
+                )
+                for srv, s, _distance in rows
+            ]
+        else:
+            rows = (await session.execute(service_query)).all()
+            services = [
+                ServiceSearchOut(
+                    id=srv.id,
+                    seller_id=s.id,
+                    seller_name=s.business_name,
+                    seller_city=s.city,
+                    seller_verified=s.verification_status == VerificationStatus.VERIFIED,
+                    seller_premium=seller_pro_active(s),
+                    seller_rating=s.average_rating,
+                    name=srv.name,
+                    description=srv.description,
+                    pricing_type=srv.pricing_type.value,
+                    price_mad=float(srv.price_mad) if srv.price_mad is not None else None,
+                    image_url=srv.image_url,
+                    category_slug=srv.category_slug,
+                    is_available=srv.is_available,
+                    created_at=srv.created_at,
+                )
+                for srv, s in rows
+            ]
 
     if mode == "products":
         current_total = total_products

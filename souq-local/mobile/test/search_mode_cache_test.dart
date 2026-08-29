@@ -24,6 +24,13 @@ void main() {
         mode: 'products',
         sort: 'relevance',
         query: 'tagine',
+        city: 'Casablanca',
+      );
+      final otherCity = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'relevance',
+        query: 'tagine',
+        city: 'Rabat',
       );
       final otherQuery = SearchModeCache.scopeKey(
         mode: 'products',
@@ -54,6 +61,7 @@ void main() {
       );
 
       expect(otherQuery, isNot(base));
+      expect(otherCity, isNot(base));
       expect(otherSort, isNot(base));
       expect(otherMode, isNot(base));
       expect(withCategory, isNot(base));
@@ -161,6 +169,47 @@ void main() {
       expect(snapshot.services, isEmpty);
       expect(snapshot.sellers, isEmpty);
       expect(snapshot.copy().products, isNotEmpty);
+    });
+
+    test('invalidateMode clears only one mode prefix', () {
+      final cache = SearchModeCache();
+      final productsKey = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'relevance',
+        query: '',
+      );
+      final servicesKey = SearchModeCache.scopeKey(
+        mode: 'services',
+        sort: 'relevance',
+        query: '',
+      );
+      cache.save(
+        productsKey,
+        SearchResultsSnapshot.forMode(
+          mode: 'products',
+          products: [_product('1')],
+          services: const [],
+          sellers: const [],
+          offset: 1,
+          hasMore: false,
+        ),
+      );
+      cache.save(
+        servicesKey,
+        SearchResultsSnapshot.forMode(
+          mode: 'services',
+          products: const [],
+          services: const [],
+          sellers: const [],
+          offset: 1,
+          hasMore: false,
+        ),
+      );
+
+      cache.invalidateMode('products');
+
+      expect(cache.isLoaded(productsKey), isFalse);
+      expect(cache.isLoaded(servicesKey), isTrue);
     });
   });
 }
