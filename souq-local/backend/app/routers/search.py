@@ -21,6 +21,7 @@ from app.services.geo import haversine_km_sql
 from app.services.marketplace_scope import resolve_marketplace_id
 from app.services.premium import attach_premium_flags, seller_pro_active
 from app.services.search_categories import listing_category_filter, resolve_listing_category_slugs
+from app.services.search_price_filter import product_price_filter, service_price_filter
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -245,14 +246,9 @@ async def search(
         category_filter = listing_category_filter(Product.category_slug, category)
         if category_filter is not None:
             product_stmt = product_stmt.where(category_filter)
-        if min_price is not None:
-            product_stmt = product_stmt.where(
-                Product.pricing_type == PricingType.FIXED, Product.price_mad >= min_price
-            )
-        if max_price is not None:
-            product_stmt = product_stmt.where(
-                Product.pricing_type == PricingType.FIXED, Product.price_mad <= max_price
-            )
+        price_filter = product_price_filter(min_price, max_price)
+        if price_filter is not None:
+            product_stmt = product_stmt.where(price_filter)
         if min_rating is not None:
             product_stmt = product_stmt.where(SellerProfile.average_rating >= min_rating)
         if delivery_available is True:
@@ -367,14 +363,9 @@ async def search(
         category_filter = listing_category_filter(Service.category_slug, category)
         if category_filter is not None:
             service_stmt = service_stmt.where(category_filter)
-        if min_price is not None:
-            service_stmt = service_stmt.where(
-                Service.pricing_type == PricingType.FIXED, Service.price_mad >= min_price
-            )
-        if max_price is not None:
-            service_stmt = service_stmt.where(
-                Service.pricing_type == PricingType.FIXED, Service.price_mad <= max_price
-            )
+        price_filter = service_price_filter(min_price, max_price)
+        if price_filter is not None:
+            service_stmt = service_stmt.where(price_filter)
         if min_rating is not None:
             service_stmt = service_stmt.where(SellerProfile.average_rating >= min_rating)
         if q:

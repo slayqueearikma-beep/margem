@@ -23,6 +23,7 @@ import 'search_category_resolver.dart';
 import 'search_filters.dart';
 import 'search_mode_cache.dart';
 import 'search_navigation_intent.dart';
+import 'search_price_input.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key, this.autofocusSearch = false});
@@ -1133,10 +1134,10 @@ class _SearchFiltersSheetState extends State<_SearchFiltersSheet> {
     super.initState();
     final initial = widget.initialFilters;
     _minPriceController = TextEditingController(
-      text: initial.minPrice?.toStringAsFixed(0) ?? '',
+      text: formatSearchPriceInput(initial.minPrice),
     );
     _maxPriceController = TextEditingController(
-      text: initial.maxPrice?.toStringAsFixed(0) ?? '',
+      text: formatSearchPriceInput(initial.maxPrice),
     );
     _minRatingController = TextEditingController(
       text: initial.minRating?.toStringAsFixed(1) ?? '',
@@ -1157,12 +1158,23 @@ class _SearchFiltersSheetState extends State<_SearchFiltersSheet> {
   SearchFilters _filtersFromInputs() {
     return SearchFilters(
       category: _category,
-      minPrice: double.tryParse(_minPriceController.text.trim()),
-      maxPrice: double.tryParse(_maxPriceController.text.trim()),
+      minPrice: parseSearchPriceInput(_minPriceController.text),
+      maxPrice: parseSearchPriceInput(_maxPriceController.text),
       minRating: double.tryParse(_minRatingController.text.trim()),
       deliveryAvailable: _deliveryAvailable,
       pickupOnly: _pickupOnly,
     );
+  }
+
+  void _applyPriceFilters() {
+    final filters = _filtersFromInputs();
+    if (!isSearchPriceRangeValid(filters.minPrice, filters.maxPrice)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(widget.l10n.minPriceExceedsMax)),
+      );
+      return;
+    }
+    Navigator.pop(context, filters);
   }
 
   @override
@@ -1259,8 +1271,7 @@ class _SearchFiltersSheetState extends State<_SearchFiltersSheet> {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: FilledButton(
-                    onPressed: () =>
-                        Navigator.pop(context, _filtersFromInputs()),
+                    onPressed: _applyPriceFilters,
                     child: Text(l10n.applyFilters),
                   ),
                 ),
