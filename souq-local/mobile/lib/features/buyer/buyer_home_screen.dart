@@ -219,17 +219,10 @@ class BuyerHomeScreen extends ConsumerWidget {
                     if (marketplaces.isEmpty) {
                       return const SizedBox.shrink();
                     }
-                    final activeSlug = selectedMarketplace != null &&
-                            marketplaces.any((m) => m.slug == selectedMarketplace)
-                        ? selectedMarketplace
-                        : marketplaces.first.slug;
-                    if (activeSlug != selectedMarketplace) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        ref.read(buyerMarketplaceSlugProvider.notifier).state =
-                            activeSlug;
-                        ref.read(appStorageProvider)?.setMarketplaceSlug(activeSlug);
-                      });
-                    }
+                    final activeSlug = validatedMarketplaceSlug(
+                      selectedMarketplace,
+                      marketplaces,
+                    );
                     return Padding(
                       padding: const EdgeInsets.only(
                         top: AppSpacing.md,
@@ -239,11 +232,29 @@ class BuyerHomeScreen extends ConsumerWidget {
                         height: 42,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
-                          itemCount: marketplaces.length,
+                          itemCount: marketplaces.length + 1,
                           separatorBuilder: (_, __) =>
                               const SizedBox(width: AppSpacing.sm),
                           itemBuilder: (_, index) {
-                            final venue = marketplaces[index];
+                            if (index == 0) {
+                              final isSelected = activeSlug == null;
+                              return ChoiceChip(
+                                label: Text(l10n.allMarketsLabel),
+                                selected: isSelected,
+                                onSelected: (_) {
+                                  ref
+                                      .read(
+                                          buyerMarketplaceSlugProvider.notifier)
+                                      .state = null;
+                                  ref
+                                      .read(appStorageProvider)
+                                      ?.clearMarketplaceSlug();
+                                  ref.invalidate(buyerCategoriesProvider);
+                                  ref.invalidate(buyerSellersProvider);
+                                },
+                              );
+                            }
+                            final venue = marketplaces[index - 1];
                             final isSelected = venue.slug == activeSlug;
                             return ChoiceChip(
                               label: Text(venue.displayName),

@@ -1765,6 +1765,9 @@ class AppStringsAr extends AppStringsEn {
   String get marketShopsTitle => 'محلات في هذا السوق';
 
   @override
+  String get allMarketsLabel => 'كل الأسواق';
+
+  @override
   String get noSellersInMarket => 'لا توجد محلات بعد';
 
   @override

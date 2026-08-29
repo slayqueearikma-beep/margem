@@ -726,6 +726,7 @@ abstract class AppStrings {
   String get featuredSellersTitle;
   String get sponsoredLabel;
   String get marketShopsTitle;
+  String get allMarketsLabel;
   String get noSellersInMarket;
   String get noSellersInMarketSubtitle;
   String get verificationUnverified;

@@ -1765,6 +1765,9 @@ class AppStringsEn extends AppStrings {
   String get marketShopsTitle => 'Shops in this market';
 
   @override
+  String get allMarketsLabel => 'All markets';
+
+  @override
   String get noSellersInMarket => 'No shops listed yet';
 
   @override

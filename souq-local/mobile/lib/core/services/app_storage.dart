@@ -155,6 +155,8 @@ class AppStorage {
   Future<bool> setMarketplaceSlug(String slug) =>
       _prefs.setString(_marketplaceSlugKey, slug);
 
+  Future<bool> clearMarketplaceSlug() => _prefs.remove(_marketplaceSlugKey);
+
   bool get isOnboardingComplete =>
       _prefs.getBool(_onboardingCompleteKey) ?? false;
   bool get isLoggedIn => _prefs.getBool(_loggedInKey) ?? false;
