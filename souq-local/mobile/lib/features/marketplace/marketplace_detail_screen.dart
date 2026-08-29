@@ -14,6 +14,7 @@ import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/seller_trust_indicators.dart';
 import '../../features/buyer/buyer_home_screen.dart';
+import '../../features/search/search_navigation_intent.dart';
 import '../../l10n/app_localizations.dart';
 
 final marketplaceDetailProvider =
@@ -42,11 +43,11 @@ class MarketplaceDetailScreen extends ConsumerWidget {
   final String slug;
 
   void _searchInMarket(BuildContext context, WidgetRef ref, {String? category}) {
-    ref.read(buyerMarketplaceSlugProvider.notifier).state = slug;
-    ref.read(appStorageProvider)?.setMarketplaceSlug(slug);
-    if (category != null) {
-      ref.read(buyerCategorySlugProvider.notifier).state = category;
-    }
+    ref.read(buyerSearchIntentProvider.notifier).state = SearchNavigationIntent(
+      mode: 'products',
+      categorySlug: category,
+      marketplaceSlug: slug,
+    );
     ref.read(buyerTabIndexProvider.notifier).state = 1;
     context.go('/buyer/home');
   }

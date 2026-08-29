@@ -20,47 +20,9 @@ import '../../core/widgets/seller_trust_indicators.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 import 'search_category_resolver.dart';
+import 'search_filters.dart';
 import 'search_mode_cache.dart';
-
-class SearchFilters {
-  const SearchFilters({
-    this.category,
-    this.minPrice,
-    this.maxPrice,
-    this.minRating,
-    this.deliveryAvailable = false,
-    this.pickupOnly = false,
-  });
-
-  final String? category;
-  final double? minPrice;
-  final double? maxPrice;
-  final double? minRating;
-  final bool deliveryAvailable;
-  final bool pickupOnly;
-
-  SearchFilters copyWith({
-    String? category,
-    double? minPrice,
-    double? maxPrice,
-    double? minRating,
-    bool? deliveryAvailable,
-    bool? pickupOnly,
-    bool clearCategory = false,
-    bool clearMinPrice = false,
-    bool clearMaxPrice = false,
-    bool clearMinRating = false,
-  }) {
-    return SearchFilters(
-      category: clearCategory ? null : (category ?? this.category),
-      minPrice: clearMinPrice ? null : (minPrice ?? this.minPrice),
-      maxPrice: clearMaxPrice ? null : (maxPrice ?? this.maxPrice),
-      minRating: clearMinRating ? null : (minRating ?? this.minRating),
-      deliveryAvailable: deliveryAvailable ?? this.deliveryAvailable,
-      pickupOnly: pickupOnly ?? this.pickupOnly,
-    );
-  }
-}
+import 'search_navigation_intent.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key, this.autofocusSearch = false});
@@ -131,6 +93,32 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   String _queryFor(String mode) => _queryByMode[mode] ?? '';
 
   String _debouncedFor(String mode) => _queryFor(mode).trim();
+
+  void _applySearchIntent(SearchNavigationIntent intent) {
+    final application = applySearchNavigationIntent(
+      intent: intent,
+      currentMode: _mode,
+      filtersByMode: _filtersByMode,
+    );
+    if (intent.marketplaceSlug != null) {
+      ref.read(buyerMarketplaceSlugProvider.notifier).state =
+          intent.marketplaceSlug;
+      ref.read(appStorageProvider)?.setMarketplaceSlug(intent.marketplaceSlug!);
+    }
+    if (_mode != application.mode) {
+      _persistModeQuery();
+      _persistCurrentSnapshot();
+    }
+    setState(() {
+      for (final entry in application.filtersByMode.entries) {
+        _filtersByMode[entry.key] = entry.value;
+      }
+      _mode = application.mode;
+    });
+    _restoreModeQuery(application.mode);
+    _syncCategoryProvider(application.resolvedCategory);
+    _reload();
+  }
 
   void _syncCategoryProvider(String? category) {
     if (ref.read(buyerCategorySlugProvider) == category) return;
@@ -869,6 +857,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    ref.listen(buyerSearchIntentProvider, (previous, next) {
+      if (next == null) return;
+      _applySearchIntent(next);
+      ref.read(buyerSearchIntentProvider.notifier).state = null;
+    });
     ref.listen(buyerCategorySlugProvider, (previous, next) {
       if (_suppressCategoryListener || previous == next) return;
       final resolved = resolveSearchCategorySlug(next);

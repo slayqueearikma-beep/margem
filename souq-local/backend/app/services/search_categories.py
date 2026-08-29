@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.sql import ColumnElement
 
 from app.data.marketplace_categories import (
@@ -54,6 +54,9 @@ def listing_category_filter(
     )
 
     return or_(
-        category_column.in_(slugs),
-        and_(category_column == "", seller_category_exists),
+        func.lower(category_column).in_(slugs),
+        and_(
+            or_(category_column == "", category_column.is_(None)),
+            seller_category_exists,
+        ),
     )

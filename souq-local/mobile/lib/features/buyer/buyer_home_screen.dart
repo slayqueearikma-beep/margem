@@ -26,6 +26,8 @@ import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/error_dialog.dart';
+import '../../features/search/search_filters.dart';
+import '../../features/search/search_navigation_intent.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
 import '../search/search_screen.dart';
@@ -48,6 +50,10 @@ String? validatedMarketplaceSlug(
 }
 
 final buyerCategorySlugProvider = StateProvider<String?>((ref) => null);
+
+/// Home/marketplace navigation into search with explicit mode + filters.
+final buyerSearchIntentProvider =
+    StateProvider<SearchNavigationIntent?>((ref) => null);
 
 final buyerTabIndexProvider = StateProvider<int>((ref) => 0);
 
@@ -481,9 +487,11 @@ class BuyerHomeScreen extends ConsumerWidget {
                                 ? context.colors.surfaceVariant
                                 : context.colors.surface,
                             onTap: () {
-                              ref
-                                  .read(buyerCategorySlugProvider.notifier)
-                                  .state = cat.slug;
+                              ref.read(buyerSearchIntentProvider.notifier).state =
+                                  SearchNavigationIntent(
+                                mode: 'products',
+                                categorySlug: cat.slug,
+                              );
                               ref.read(buyerTabIndexProvider.notifier).state = 1;
                             },
                           );
@@ -602,8 +610,11 @@ class BuyerHomeScreen extends ConsumerWidget {
                                   : context.colors.surface,
                               onTap: () {
                                 ref
-                                    .read(buyerCategorySlugProvider.notifier)
-                                    .state = cat.slug;
+                                    .read(buyerSearchIntentProvider.notifier)
+                                    .state = SearchNavigationIntent(
+                                  mode: 'products',
+                                  categorySlug: cat.slug,
+                                );
                                 ref.read(buyerTabIndexProvider.notifier).state =
                                     1;
                               },

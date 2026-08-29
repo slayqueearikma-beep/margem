@@ -275,6 +275,75 @@ async def test_search_without_category_returns_all_active_listings(client: Async
 
 
 @pytest.mark.asyncio
+async def test_search_category_slug_match_is_case_insensitive(client: AsyncClient):
+    await _seed_catalog_data()
+    seller = await _register_seller(client)
+    electronics_id = await _electronics_category_id(client)
+    profile = await create_test_seller(
+        client,
+        seller["headers"],
+        **seller_create_payload(category_ids=[electronics_id]),
+    )
+
+    import app.database as database
+
+    product = await client.post(
+        f"/sellers/{profile['id']}/products",
+        headers=seller["headers"],
+        json={"name": "Legacy Case Product", "price_mad": 99, "category_slug": "electronics"},
+    )
+    assert product.status_code == 201, product.text
+    product_id = product.json()["id"]
+
+    async with database.SessionLocal() as session:
+        from app.models import Product
+
+        row = await session.get(Product, product_id)
+        row.category_slug = "Electronics"
+        await session.commit()
+
+    filtered = await client.get(
+        "/search",
+        params={"mode": "products", "category": "electronics", "limit": 20},
+    )
+    assert filtered.status_code == 200, filtered.text
+    ids = {item["id"] for item in filtered.json()["products"]}
+    assert product_id in ids
+
+
+@pytest.mark.asyncio
+async def test_products_mode_required_for_home_style_product_category_filter(client: AsyncClient):
+    """Document: services mode + electronics category excludes products (the pre-fix UI bug)."""
+    await _seed_catalog_data()
+    seller = await _register_seller(client)
+    electronics_id = await _electronics_category_id(client)
+    profile = await create_test_seller(
+        client,
+        seller["headers"],
+        **seller_create_payload(category_ids=[electronics_id]),
+    )
+    product = await client.post(
+        f"/sellers/{profile['id']}/products",
+        headers=seller["headers"],
+        json={"name": "Visible Phone", "price_mad": 100, "category_slug": "electronics"},
+    )
+    assert product.status_code == 201, product.text
+    product_id = product.json()["id"]
+
+    wrong_mode = await client.get(
+        "/search",
+        params={"mode": "services", "category": "phones", "limit": 20},
+    )
+    assert product_id not in {p["id"] for p in wrong_mode.json().get("products", [])}
+
+    correct_mode = await client.get(
+        "/search",
+        params={"mode": "products", "category": "phones", "limit": 20},
+    )
+    assert product_id in {p["id"] for p in correct_mode.json()["products"]}
+
+
+@pytest.mark.asyncio
 async def test_search_category_filter_with_query_and_pagination(client: AsyncClient):
     await _seed_catalog_data()
     seller = await _register_seller(client)
