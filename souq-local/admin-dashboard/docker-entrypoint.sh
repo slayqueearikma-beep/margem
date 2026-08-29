@@ -46,6 +46,7 @@ allow 127.0.0.0/8;
 allow 10.0.0.0/8;
 allow 172.16.0.0/12;
 allow 192.168.0.0/16;
+allow 100.64.0.0/10;
 EOF
   if [ -n "${ADMIN_EXTRA_ALLOWED_CIDRS:-}" ]; then
     echo "$ADMIN_EXTRA_ALLOWED_CIDRS" | tr ',' '\n' | while IFS= read -r cidr; do
