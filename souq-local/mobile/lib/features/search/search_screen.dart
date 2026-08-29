@@ -19,6 +19,7 @@ import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/seller_trust_indicators.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
+import 'search_mode_cache.dart';
 
 class SearchFilters {
   const SearchFilters({
@@ -84,10 +85,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   var _filters = const SearchFilters();
   var _loading = true;
   var _loadingMore = false;
-  var _hasMore = false;
-  var _offset = 0;
   Object? _error;
 
+  final _modeCache = SearchModeCache();
   final _products = <SearchProductModel>[];
   final _services = <SearchServiceModel>[];
   final _sellers = <SellerModel>[];
@@ -114,7 +114,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _onScroll() {
-    if (!_hasMore || _loading || _loadingMore) return;
+    if (!_modeCache.hasMoreFor(_mode) || _loading || _loadingMore) return;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 240) {
       _loadMore();
@@ -159,12 +159,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Future<MarketplaceSearchPage> _fetchPage({required int offset}) {
+  Future<MarketplaceSearchPage> _fetchPage({
+    required int offset,
+    required String mode,
+  }) {
     final origin = ref.read(buyerSearchLocationProvider).valueOrNull;
     final sort = _sort == 'distance' ? 'distance' : 'relevance';
     return apiServiceProvider.searchMarketplace(
       query: _debounced,
-      mode: _mode,
+      mode: mode,
       category: _activeCategory(),
       marketplace: _activeMarketplace(),
       minPrice: _filters.minPrice,
@@ -180,59 +183,113 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Future<void> _reload() async {
-    setState(() {
-      _loading = true;
-      _loadingMore = false;
-      _error = null;
-      _offset = 0;
-      _hasMore = false;
-      _products.clear();
-      _services.clear();
-      _sellers.clear();
-    });
+  void _applyPage({
+    required String mode,
+    required MarketplaceSearchPage page,
+    required bool append,
+  }) {
+    switch (mode) {
+      case 'services':
+        if (!append) _services.clear();
+        _services.addAll(page.services);
+        _modeCache.recordPage(
+          mode: mode,
+          itemCount: page.services.length,
+          pageHasMore: page.hasMore,
+          append: append,
+        );
+      case 'providers':
+        if (!append) _sellers.clear();
+        _sellers.addAll(page.sellers);
+        _modeCache.recordPage(
+          mode: mode,
+          itemCount: page.sellers.length,
+          pageHasMore: page.hasMore,
+          append: append,
+        );
+      default:
+        if (!append) _products.clear();
+        _products.addAll(page.products);
+        _modeCache.recordPage(
+          mode: mode,
+          itemCount: page.products.length,
+          pageHasMore: page.hasMore,
+          append: append,
+        );
+    }
+  }
+
+  Future<void> _fetchMode(
+    String mode, {
+    required int offset,
+    required bool append,
+    bool showLoading = true,
+  }) async {
+    if (showLoading && !append) {
+      setState(() {
+        _loading = true;
+        _loadingMore = false;
+        _error = null;
+      });
+    } else if (append) {
+      setState(() => _loadingMore = true);
+    }
 
     try {
-      final page = await _fetchPage(offset: 0);
+      final page = await _fetchPage(offset: offset, mode: mode);
       if (!mounted) return;
       setState(() {
-        _products.addAll(page.products);
-        _services.addAll(page.services);
-        _sellers.addAll(page.sellers);
-        _offset = page.products.length + page.services.length + page.sellers.length;
-        _hasMore = page.hasMore;
+        _applyPage(mode: mode, page: page, append: append);
         _loading = false;
+        _loadingMore = false;
       });
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = error;
+        if (mode == _mode) {
+          _error = error;
+        }
         _loading = false;
+        _loadingMore = false;
       });
     }
   }
 
-  Future<void> _loadMore() async {
-    if (_loadingMore || !_hasMore) return;
-    setState(() => _loadingMore = true);
-    try {
-      final page = await _fetchPage(offset: _offset);
-      if (!mounted) return;
-      setState(() {
-        _products.addAll(page.products);
-        _services.addAll(page.services);
-        _sellers.addAll(page.sellers);
-        _offset += page.products.length + page.services.length + page.sellers.length;
-        _hasMore = page.hasMore;
-        _loadingMore = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _error = error;
-        _loadingMore = false;
-      });
+  Future<void> _reload() async {
+    setState(() {
+      _modeCache.invalidateAll();
+      _products.clear();
+      _services.clear();
+      _sellers.clear();
+      _error = null;
+      _loading = true;
+      _loadingMore = false;
+    });
+    await _fetchMode(_mode, offset: 0, append: false, showLoading: false);
+  }
+
+  void _switchMode(String value) {
+    if (_mode == value) return;
+    final needsFetch = !_modeCache.isLoaded(value);
+    setState(() {
+      _mode = value;
+      _error = null;
+      _loading = needsFetch;
+      _loadingMore = false;
+    });
+    if (needsFetch) {
+      _fetchMode(value, offset: 0, append: false, showLoading: false);
     }
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_modeCache.hasMoreFor(_mode) || _loading) return;
+    await _fetchMode(
+      _mode,
+      offset: _modeCache.offsetFor(_mode),
+      append: true,
+      showLoading: false,
+    );
   }
 
   void _onQueryChanged(String value) {
@@ -490,7 +547,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return ListView.separated(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
-      itemCount: _itemCount + (_hasMore ? 1 : 0),
+      itemCount: _itemCount + (_modeCache.hasMoreFor(_mode) ? 1 : 0),
       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (_, index) {
         if (index >= _itemCount) {
@@ -709,10 +766,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 _SearchModeSelector(
                   mode: _mode,
-                  onChanged: (value) {
-                    setState(() => _mode = value);
-                    _reload();
-                  },
+                  onChanged: _switchMode,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Row(
