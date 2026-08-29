@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   isAllowedPublicProxyPath,
+  isAllowedPublicProxyPostPath,
   isAllowedSellerProxyPath,
   normalizeProxyPath,
   safeExternalHref,
@@ -44,6 +45,13 @@ test("proxy allowlist blocks sensitive API namespaces", () => {
   assert.equal(isAllowedPublicProxyPath("metrics"), false);
   assert.equal(isAllowedPublicProxyPath("privacy/consents"), false);
   assert.equal(isAllowedPublicProxyPath("sellers/me"), false);
+});
+
+test("proxy POST allowlist permits advertisement impressions only", () => {
+  assert.equal(isAllowedPublicProxyPostPath("ads/impressions"), true);
+  assert.equal(isAllowedPublicProxyPostPath("ads/active"), false);
+  assert.equal(isAllowedPublicProxyPostPath("admin/advertisements"), false);
+  assert.equal(isAllowedPublicProxyPostPath("uploads/presign"), false);
 });
 
 test("safeExternalHref blocks dangerous schemes", () => {

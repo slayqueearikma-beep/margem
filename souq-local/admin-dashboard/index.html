@@ -250,6 +250,7 @@
                 <th>Campaign</th>
                 <th>Advertiser</th>
                 <th>Placement</th>
+                <th>Targeting</th>
                 <th>Status</th>
                 <th>Payment</th>
                 <th>Start</th>
@@ -359,6 +360,7 @@
           Image upload
           <input type="file" accept="image/*" data-upload-target="image_url" />
         </label>
+        <div id="ad-image-preview" class="span-2 hidden"></div>
         <label class="span-2">Video URL (optional) <input name="video_url" placeholder="https://..." /></label>
         <label class="span-2">Destination URL <input name="target_url" required placeholder="https://example.com" /></label>
         <label>Contact info <input name="contact_info" maxlength="500" /></label>
@@ -387,8 +389,21 @@
         <label>Max impressions <input name="max_impressions" type="number" min="1" placeholder="Unlimited" /></label>
         <label>Max impressions / user / day <input name="max_impressions_per_user_per_day" type="number" min="1" /></label>
         <label>Min interval (minutes) <input name="min_interval_minutes" type="number" min="1" /></label>
-        <label>Target city <input name="target_city" placeholder="casablanca" /></label>
-        <label>Target category slug <input name="target_category_slug" placeholder="food" /></label>
+        <label>Marketplace context
+          <select id="ad-marketplace-select">
+            <option value="">All marketplaces</option>
+          </select>
+        </label>
+        <label>Target category
+          <select name="target_category_slug" id="ad-category-select">
+            <option value="">All categories</option>
+          </select>
+        </label>
+        <label>Target city
+          <select name="target_city" id="ad-city-select">
+            <option value="">All cities</option>
+          </select>
+        </label>
         <label>Target listing type
           <select name="target_listing_type">
             <option value="">All</option>

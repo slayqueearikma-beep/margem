@@ -1,6 +1,7 @@
 import { getServerApiBaseUrl } from "@/lib/config";
 import {
   isAllowedPublicProxyPath,
+  isAllowedPublicProxyPostPath,
   normalizeProxyPath,
   PROXY_SAFE_RESPONSE_HEADERS,
 } from "@/lib/security";
@@ -8,6 +9,8 @@ import {
 type RouteContext = {
   params: Promise<{ path: string[] }>;
 };
+
+const IMPRESSION_BODY_LIMIT_BYTES = 4096;
 
 function rejectProxy(message: string, status = 403): Response {
   return Response.json({ detail: message }, { status });
@@ -18,11 +21,17 @@ async function proxyToApi(request: Request, pathSegments: string[]): Promise<Res
   if (!normalizedPath) {
     return rejectProxy("Invalid proxy path.");
   }
-  if (!isAllowedPublicProxyPath(normalizedPath)) {
-    return rejectProxy("Path not allowed through the public web proxy.");
-  }
 
-  if (request.method !== "GET" && request.method !== "HEAD") {
+  const method = request.method.toUpperCase();
+  if (method === "GET" || method === "HEAD") {
+    if (!isAllowedPublicProxyPath(normalizedPath)) {
+      return rejectProxy("Path not allowed through the public web proxy.");
+    }
+  } else if (method === "POST") {
+    if (!isAllowedPublicProxyPostPath(normalizedPath)) {
+      return rejectProxy("Method not allowed.", 405);
+    }
+  } else {
     return rejectProxy("Method not allowed.", 405);
   }
 
@@ -34,11 +43,43 @@ async function proxyToApi(request: Request, pathSegments: string[]): Promise<Res
   const accept = request.headers.get("accept");
   if (accept) headers.set("Accept", accept);
 
+  const contentType = request.headers.get("content-type");
+  if (contentType) headers.set("Content-Type", contentType);
+
+  const adViewer = request.headers.get("x-ad-viewer");
+  if (adViewer) headers.set("X-Ad-Viewer", adViewer);
+
+  let body: string | undefined;
+  if (method === "POST") {
+    const raw = await request.text();
+    if (raw.length > IMPRESSION_BODY_LIMIT_BYTES) {
+      return rejectProxy("Request body too large.", 413);
+    }
+    try {
+      const parsed = JSON.parse(raw) as {
+        campaign_id?: unknown;
+        placement?: unknown;
+        view_key?: unknown;
+      };
+      if (
+        typeof parsed.campaign_id !== "string" ||
+        typeof parsed.placement !== "string" ||
+        typeof parsed.view_key !== "string"
+      ) {
+        return rejectProxy("Invalid impression payload.", 400);
+      }
+    } catch {
+      return rejectProxy("Invalid JSON body.", 400);
+    }
+    body = raw;
+  }
+
   let upstream: Response;
   try {
     upstream = await fetch(target, {
-      method: request.method,
+      method,
       headers,
+      body,
       cache: "no-store",
     });
   } catch (error) {
@@ -69,6 +110,11 @@ export async function GET(request: Request, context: RouteContext) {
 }
 
 export async function HEAD(request: Request, context: RouteContext) {
+  const { path } = await context.params;
+  return proxyToApi(request, path);
+}
+
+export async function POST(request: Request, context: RouteContext) {
   const { path } = await context.params;
   return proxyToApi(request, path);
 }

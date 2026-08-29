@@ -3,19 +3,33 @@ set -eu
 
 API_URL="${MARGEM_API_URL:-http://localhost:8000}"
 API_URL="${API_URL%/}"
+BUILD_ID="$(date -u +%Y%m%d%H%M%S)"
+SOURCE_DIR="${ADMIN_SOURCE_DIR:-/usr/share/nginx/html}"
+SERVE_DIR=/var/cache/admin-html
 
-cat > /usr/share/nginx/html/config.js <<EOF
+mkdir -p "$SERVE_DIR"
+rm -rf "${SERVE_DIR:?}/"*
+cp -a "${SOURCE_DIR}/." "$SERVE_DIR/"
+
+cat > "${SERVE_DIR}/config.js" <<EOF
 // Generated at container start — points the admin UI at the Dribex API.
 window.MARGEM_API_URL = "${API_URL}";
+window.MARGEM_ADMIN_BUILD = "${BUILD_ID}";
 EOF
 
-ADMIN_CSP="default-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ${API_URL}; font-src 'self'"
+for asset in app.js styles.css; do
+  if [ -f "${SERVE_DIR}/${asset}" ]; then
+    sed -i "s|${asset}\"|${asset}?v=${BUILD_ID}\"|g" "${SERVE_DIR}/index.html"
+    sed -i "s|${asset}?v=[0-9]*\"|${asset}?v=${BUILD_ID}\"|g" "${SERVE_DIR}/index.html"
+  fi
+done
+
+ADMIN_CSP="default-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: ${API_URL}; connect-src 'self' ${API_URL}; font-src 'self'"
 
 USE_BASIC_AUTH=false
 if [ -n "${ADMIN_BASIC_AUTH_USER:-}" ] && [ -n "${ADMIN_BASIC_AUTH_PASSWORD:-}" ]; then
   HASH="$(openssl passwd -apr1 "${ADMIN_BASIC_AUTH_PASSWORD}")"
   printf '%s:%s\n' "${ADMIN_BASIC_AUTH_USER}" "${HASH}" > /etc/nginx/.htpasswd
-  # Worker processes run as nginx; root-only mode 600 causes auth_basic to 500.
   chown nginx:nginx /etc/nginx/.htpasswd
   chmod 640 /etc/nginx/.htpasswd
   USE_BASIC_AUTH=true
@@ -49,7 +63,7 @@ fi
   echo 'server {'
   echo '    listen 80;'
   echo '    server_name _;'
-  echo '    root /usr/share/nginx/html;'
+  echo "    root ${SERVE_DIR};"
   echo '    index index.html;'
   echo ''
   echo '    add_header X-Frame-Options "DENY" always;'
