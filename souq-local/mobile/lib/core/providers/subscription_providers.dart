@@ -90,3 +90,8 @@ bool hasPromotionalAdsSuppressed(EntitlementsBundleModel? entitlements) {
 bool hasDriverProEntitlement(EntitlementsBundleModel? entitlements) {
   return entitlements?.seller?.driverProActive ?? false;
 }
+
+bool shouldShowPromotionalAds(EntitlementsBundleModel? entitlements) {
+  if (entitlements == null) return true;
+  return entitlements.adsEnabled && !entitlements.promotionalAdsSuppressed;
+}

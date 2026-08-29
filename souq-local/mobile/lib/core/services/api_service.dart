@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
+import '../ads/platform_ad_constants.dart';
 import '../models/auth_models.dart';
 import '../models/city_model.dart';
 import '../models/community_models.dart';
@@ -1498,6 +1499,98 @@ class ApiService {
       // Fall through.
     }
     return 'Request failed (${response.statusCode})';
+  }
+
+  Future<List<PlatformAdvertisementModel>> fetchActiveAds({
+    required String placement,
+    required String adViewerId,
+    String platform = PlatformAdPlacements.mobilePlatform,
+    String? city,
+    String? categorySlug,
+    String? listingType,
+    bool auth = false,
+    int limit = 1,
+  }) async {
+    final query = <String, String>{
+      'placement': placement,
+      'platform': platform,
+      'limit': '$limit',
+    };
+    if (city != null && city.trim().isNotEmpty) {
+      query['city'] = city.trim();
+    }
+    if (categorySlug != null && categorySlug.trim().isNotEmpty) {
+      query['category_slug'] = categorySlug.trim();
+    }
+    if (listingType != null && listingType.trim().isNotEmpty) {
+      query['listing_type'] = listingType.trim();
+    }
+
+    final headers = <String, String>{
+      'X-Ad-Viewer': adViewerId,
+      if (auth) ..._authHeaders,
+    };
+    final response = await _request(
+      () => _get(_uri('/ads/active', query), headers: headers),
+      auth: auth,
+    );
+    _ensureSuccess(response);
+    final decoded = jsonDecode(response.body);
+    if (decoded is! List) return const [];
+    return decoded
+        .whereType<Map<String, dynamic>>()
+        .map(PlatformAdvertisementModel.fromJson)
+        .toList();
+  }
+
+  Future<bool> recordAdImpression({
+    required String campaignId,
+    required String placement,
+    required String viewKey,
+    required String adViewerId,
+    String platform = PlatformAdPlacements.mobilePlatform,
+  }) async {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'X-Ad-Viewer': adViewerId,
+    };
+    final response = await _request(
+      () => _post(
+        _uri('/ads/impressions', {'platform': platform}),
+        headers: headers,
+        body: jsonEncode({
+          'campaign_id': campaignId,
+          'placement': placement,
+          'view_key': viewKey,
+        }),
+      ),
+      auth: false,
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return false;
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return body['recorded'] as bool? ?? false;
+  }
+
+  String buildAdClickUrl({
+    required PlatformAdvertisementModel ad,
+    required String clickKey,
+    String platform = PlatformAdPlacements.mobilePlatform,
+  }) {
+    final base = ad.clickUrl.startsWith('http')
+        ? ad.clickUrl
+        : '${AppConfig.apiBaseUrl}${ad.clickUrl}';
+    final uri = Uri.parse(base);
+    return uri
+        .replace(
+          queryParameters: {
+            ...uri.queryParameters,
+            'platform': platform,
+            'click_key': clickKey,
+          },
+        )
+        .toString();
   }
 }
 

@@ -1323,6 +1323,41 @@ class EntitlementsBundleModel {
   }
 }
 
+class PlatformAdvertisementModel {
+  const PlatformAdvertisementModel({
+    required this.id,
+    required this.title,
+    this.description,
+    required this.imageUrl,
+    this.videoUrl,
+    required this.targetUrl,
+    required this.placement,
+    required this.clickUrl,
+  });
+
+  final String id;
+  final String title;
+  final String? description;
+  final String imageUrl;
+  final String? videoUrl;
+  final String targetUrl;
+  final String placement;
+  final String clickUrl;
+
+  factory PlatformAdvertisementModel.fromJson(Map<String, dynamic> json) {
+    return PlatformAdvertisementModel(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String?,
+      imageUrl: json['image_url'] as String? ?? '',
+      videoUrl: json['video_url'] as String?,
+      targetUrl: json['target_url'] as String? ?? '',
+      placement: json['placement'] as String? ?? '',
+      clickUrl: json['click_url'] as String? ?? '',
+    );
+  }
+}
+
 class ConversationModel {
   const ConversationModel({
     required this.id,

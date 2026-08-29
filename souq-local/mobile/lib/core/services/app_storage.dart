@@ -138,6 +138,16 @@ class AppStorage {
   static const _legacyGuestCartKey = 'guest_cart_items';
   static const _marketplaceSlugKey = 'buyer_marketplace_slug';
   static const _legalAcceptanceCompleteKey = 'legal_acceptance_complete';
+  static const _adViewerIdKey = 'ad_viewer_id';
+
+  String ensureAdViewerId() {
+    final existing = _prefs.getString(_adViewerIdKey);
+    if (existing != null && existing.isNotEmpty) return existing;
+    final created =
+        '${DateTime.now().millisecondsSinceEpoch}-${DateTime.now().microsecondsSinceEpoch}';
+    _prefs.setString(_adViewerIdKey, created);
+    return created;
+  }
 
   String? getMarketplaceSlug() => _prefs.getString(_marketplaceSlugKey);
 

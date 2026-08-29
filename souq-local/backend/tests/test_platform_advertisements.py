@@ -253,6 +253,7 @@ async def test_admin_overview_and_meta():
         overview = await client.get("/admin/advertisements/overview", headers=headers)
         assert meta.status_code == 200
         assert "homepage_top" in {item["value"] for item in meta.json()["placements"]}
+        assert "full_page" in {item["value"] for item in meta.json()["placements"]}
         assert overview.status_code == 200
         assert overview.json()["active_campaigns"] >= 1
 
@@ -308,3 +309,96 @@ async def test_invalid_placement_rejected():
             json={**SAMPLE_AD, "placement": "nonexistent_slot"},
         )
         assert res.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_full_page_mobile_placement_feed():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = await _admin_headers(client)
+        mobile_ad = await _create_ad(
+            client,
+            headers,
+            placement="full_page",
+            campaign_name="Mobile interstitial",
+            target_platform="mobile",
+        )
+        await _create_ad(client, headers, placement="homepage_top", campaign_name="Web homepage")
+
+        mobile_feed = await client.get(
+            "/ads/active",
+            params={"placement": "full_page", "platform": "mobile"},
+            headers={"X-Ad-Viewer": "mobile-viewer-1"},
+        )
+        assert mobile_feed.status_code == 200
+        ids = {row["id"] for row in mobile_feed.json()}
+        assert mobile_ad["id"] in ids
+
+        web_feed = await client.get(
+            "/ads/active",
+            params={"placement": "full_page", "platform": "web"},
+            headers={"X-Ad-Viewer": "web-viewer-1"},
+        )
+        assert web_feed.status_code == 200
+        assert all(row["id"] != mobile_ad["id"] for row in web_feed.json())
+
+
+@pytest.mark.asyncio
+async def test_full_page_impression_and_click_tracking():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        headers = await _admin_headers(client)
+        created = await _create_ad(
+            client,
+            headers,
+            placement="full_page",
+            target_platform="mobile",
+        )
+        view_key = f"view-{uuid4().hex}"
+        impression = await client.post(
+            "/ads/impressions",
+            params={"platform": "mobile"},
+            json={
+                "campaign_id": created["id"],
+                "placement": "full_page",
+                "view_key": view_key,
+            },
+            headers={"X-Ad-Viewer": "mobile-viewer-2"},
+        )
+        assert impression.status_code == 200
+        assert impression.json()["recorded"] is True
+
+        click = await client.get(
+            f"/ads/click/{created['id']}",
+            params={
+                "placement": "full_page",
+                "platform": "mobile",
+                "click_key": f"click-{uuid4().hex}",
+            },
+            headers={"X-Ad-Viewer": "mobile-viewer-2"},
+        )
+        assert click.status_code == 302
+        assert click.headers["location"] == SAMPLE_AD["target_url"]
+
+
+@pytest.mark.asyncio
+async def test_homepage_top_placement_regression_after_full_page_added():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = await _admin_headers(client)
+        homepage = await _create_ad(client, headers, placement="homepage_top")
+        await _create_ad(
+            client,
+            headers,
+            placement="full_page",
+            campaign_name="Mobile only",
+            target_platform="mobile",
+        )
+        public = await client.get("/ads/active", params={"placement": "homepage_top"})
+        assert public.status_code == 200
+        ids = {row["id"] for row in public.json()}
+        assert homepage["id"] in ids
