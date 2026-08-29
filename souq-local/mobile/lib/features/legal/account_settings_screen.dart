@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/services/app_storage.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/services/theme_mode_provider.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/buyer_ui_components.dart';
@@ -20,6 +21,7 @@ class AccountSettingsScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.watch(userSessionProvider);
     final isGuest = session == null || session.isGuest;
+    final hasSellerProfile = ref.watch(hasSellerProfileProvider);
 
     return BuyerScreenScaffold(
       appBar: BuyerAppBar(title: l10n.settingsTitle),
@@ -41,6 +43,16 @@ class AccountSettingsScreen extends ConsumerWidget {
                   icon: Icons.mark_email_unread_outlined,
                   title: l10n.verifyEmailTitle,
                   onTap: () => context.push('/verify-email'),
+                ),
+              if (!isGuest && hasSellerProfile)
+                BuyerMenuTile(
+                  icon: Icons.storefront_outlined,
+                  title: l10n.switchToSellerMode,
+                  subtitle: l10n.switchToSellerModeSub,
+                  onTap: () async {
+                    await switchToSellerMode(ref);
+                    if (context.mounted) context.go('/seller/dashboard');
+                  },
                 ),
             ],
           ),

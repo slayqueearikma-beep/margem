@@ -946,7 +946,7 @@ class BuyerProfileScreen extends ConsumerWidget {
     final session = ref.watch(userSessionProvider);
     final authSession = ref.watch(authSessionProvider);
     final isGuest = session == null || session.isGuest;
-    final hasSellerProfile = session?.hasSellerProfile ?? false;
+    final hasSellerProfile = ref.watch(hasSellerProfileProvider);
     final displayName = (session?.name.trim().isNotEmpty ?? false)
         ? session!.name.trim()
         : l10n.buyerLabel;
@@ -1021,8 +1021,7 @@ class BuyerProfileScreen extends ConsumerWidget {
                 title: l10n.switchToSellerMode,
                 subtitle: l10n.switchToSellerModeSub,
                 onTap: () async {
-                  final storage = ref.read(appStorageProvider);
-                  await storage?.saveAppMode(AppMode.seller);
+                  await switchToSellerMode(ref);
                   if (context.mounted) context.go('/seller/dashboard');
                 },
               ),

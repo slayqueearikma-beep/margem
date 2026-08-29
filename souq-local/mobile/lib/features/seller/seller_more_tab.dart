@@ -63,8 +63,7 @@ class SellerMoreTab extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
         OutlinedButton(
           onPressed: () async {
-            final storage = ref.read(appStorageProvider);
-            await storage?.saveAppMode(AppMode.buyer);
+            await switchToBuyerMode(ref);
             if (context.mounted) context.go('/buyer/home');
           },
           child: Text(l10n.switchToBuyerMode),
