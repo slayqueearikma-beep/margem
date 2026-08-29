@@ -382,34 +382,49 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
               child: Text(l10n.signupOtpChange),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(6, (index) {
-                return Padding(
-                  padding: EdgeInsets.only(right: index == 5 ? 0 : 8),
-                  child: SizedBox(
-                    width: 42,
-                    child: TextField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      enabled: !_loading,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(
-                        counterText: '',
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const digitCount = 6;
+                const gap = 6.0;
+                final totalGap = gap * (digitCount - 1);
+                final boxWidth =
+                    ((constraints.maxWidth - totalGap) / digitCount).clamp(32.0, 44.0);
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(digitCount, (index) {
+                    return Padding(
+                      padding: EdgeInsetsDirectional.only(
+                        end: index == digitCount - 1 ? 0 : gap,
+                      ),
+                      child: SizedBox(
+                        width: boxWidth,
+                        child: TextField(
+                          controller: _controllers[index],
+                          focusNode: _focusNodes[index],
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          maxLength: 6,
+                          enabled: !_loading,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          decoration: InputDecoration(
+                            counterText: '',
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onChanged: (value) => _onDigitChanged(index, value),
+                          onSubmitted: (_) => _verify(),
                         ),
                       ),
-                      onChanged: (value) => _onDigitChanged(index, value),
-                      onSubmitted: (_) => _verify(),
-                    ),
-                  ),
+                    );
+                  }),
                 );
-              }),
+              },
             ),
             if (_error != null) ...[
               SizedBox(height: AppSpacing.sm),
