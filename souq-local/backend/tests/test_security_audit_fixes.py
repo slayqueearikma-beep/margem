@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from starlette.testclient import TestClient
 
 from app.config import settings
 from app.main import app
@@ -81,11 +82,11 @@ async def test_community_websocket_requires_membership(client: AsyncClient):
     )
     assert ticket_res.status_code == 200, ticket_res.text
     ticket = ticket_res.json()["ticket"]
-    with pytest.raises(Exception):
-        async with client.websocket_connect(
-            f"/community/ws?channel_id={ctx['channel_id']}&ticket={ticket}"
-        ) as ws:
-            await ws.receive_text()
+    with TestClient(app) as tc:
+        with tc.websocket_connect(
+            f"/community/ws?channel_id={ctx['channel_id']}&ticket={ticket}&city_slug=casablanca"
+        ):
+            pass
     denied_ticket = await client.post(
         f"/community/channels/{ctx['channel_id']}/ws-ticket",
         headers=ctx["outsider_headers"],

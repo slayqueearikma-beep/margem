@@ -53,6 +53,7 @@ class _CommunityChannelScreenState extends ConsumerState<CommunityChannelScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _connectWs();
+      ref.invalidate(communityMessagesProvider(widget.channelId));
     }
   }
 

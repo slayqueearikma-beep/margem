@@ -3,20 +3,21 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import get_current_user, get_current_user_optional, require_admin, require_verified_email, _enforce_staff_mfa
+from app.auth import get_current_user, get_current_user_optional, require_admin, require_staff, require_verified_email, _enforce_staff_mfa
 from app.database import get_db
 from app.limiter import limiter
-from app.models import User
+from app.models import User, UserStatus
 from app.models.community import (
     City,
     CommunityChannel,
+    CommunityCityBan,
     CommunityMembership,
     CommunityMessage,
     CommunityMessageStatus,
@@ -438,6 +439,46 @@ async def mute_user(
     return {"status": "muted"}
 
 
+@router.post("/cities/{slug}/ban", status_code=status.HTTP_204_NO_CONTENT)
+async def ban_from_city_community(
+    slug: str,
+    payload: CommunityBanCreate,
+    user: User = Depends(require_staff),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    city = await get_city_by_slug(session, slug)
+    existing = await session.scalar(
+        select(CommunityCityBan).where(
+            CommunityCityBan.city_id == city.id,
+            CommunityCityBan.user_id == payload.user_id,
+        )
+    )
+    if existing is None:
+        session.add(
+            CommunityCityBan(
+                id=uuid4(),
+                city_id=city.id,
+                user_id=payload.user_id,
+                banned_by_id=user.id,
+                reason=payload.reason,
+                expires_at=payload.expires_at,
+            )
+        )
+    else:
+        existing.reason = payload.reason
+        existing.expires_at = payload.expires_at
+        existing.banned_by_id = user.id
+    await log_moderation(
+        session,
+        actor_id=user.id,
+        action="ban_user",
+        target_type="user",
+        target_id=str(payload.user_id),
+        metadata={"city_slug": slug},
+    )
+    await session.commit()
+
+
 @router.post("/messages/{message_id}/pin", response_model=CommunityMessageOut)
 async def pin_message(
     message_id: UUID,
@@ -539,6 +580,9 @@ async def community_websocket(
             return
         if user is None:
             await websocket.close(code=4401)
+            return
+        if getattr(user, "status", None) == UserStatus.SUSPENDED:
+            await websocket.close(code=4403)
             return
         channel = await get_channel(session, channel_id)
         if channel is None:

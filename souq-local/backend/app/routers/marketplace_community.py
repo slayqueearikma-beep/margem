@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import get_current_user, get_current_user_optional, require_staff, require_verified_email, resolve_user_from_access_token, _enforce_staff_mfa
 from app.database import get_db
 from app.limiter import limiter
-from app.models import User
+from app.models import User, UserStatus
 from app.models.marketplace_community import (
     MarketplaceCommunityBan,
     MarketplaceCommunityChannel,
@@ -407,6 +407,9 @@ async def marketplace_community_websocket(
             return
         if user is None:
             await websocket.close(code=4401)
+            return
+        if getattr(user, "status", None) == UserStatus.SUSPENDED:
+            await websocket.close(code=4403)
             return
         channel = await get_channel(session, channel_id)
         await ensure_not_banned(session, marketplace_id=channel.marketplace_id, user_id=user.id)

@@ -26,16 +26,23 @@ class CommunityWebSocketService {
   Stream<CommunityWsConnectionState> get connectionState => _stateController.stream;
   CommunityWsConnectionState _state = CommunityWsConnectionState.disconnected;
 
+  String _wsPath = '/community/ws';
+  Map<String, String> _extraQueryParams = const {};
+
   Future<void> connect({
     required String channelId,
     required Future<String> Function() fetchTicket,
     required String citySlug,
     required CommunityWsHandler onEvent,
     void Function(Object error)? onError,
+    String wsPath = '/community/ws',
+    Map<String, String> extraQueryParams = const {},
   }) async {
     disconnect(notify: false);
     _channelId = channelId;
     _citySlug = citySlug;
+    _wsPath = wsPath;
+    _extraQueryParams = extraQueryParams;
     _onEvent = onEvent;
     _onError = onError;
     _setState(CommunityWsConnectionState.connecting);
@@ -44,11 +51,12 @@ class CommunityWebSocketService {
       final base = AppConfig.apiBaseUrl
           .replaceFirst('https://', 'wss://')
           .replaceFirst('http://', 'ws://');
-      final uri = Uri.parse('$base/community/ws').replace(
+      final uri = Uri.parse('$base$_wsPath').replace(
         queryParameters: {
           'channel_id': channelId,
           'ticket': ticket,
           if (citySlug.isNotEmpty) 'city_slug': citySlug,
+          ..._extraQueryParams,
         },
       );
       _channel = WebSocketChannel.connect(uri);
@@ -109,6 +117,8 @@ class CommunityWebSocketService {
         citySlug: _citySlug!,
         onEvent: _onEvent!,
         onError: _onError,
+        wsPath: _wsPath,
+        extraQueryParams: _extraQueryParams,
       );
     });
   }

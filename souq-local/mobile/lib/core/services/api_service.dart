@@ -1277,6 +1277,15 @@ class ApiService {
         .toList();
   }
 
+  Future<String> fetchMarketplaceCommunityWsTicket(String channelId) async {
+    final data = await postJson(
+      '/marketplaces/community/channels/$channelId/ws-ticket',
+      {},
+      auth: true,
+    );
+    return data['ticket'] as String;
+  }
+
   Future<MarketplaceCommunityMessageModel> postMarketplaceCommunityMessage({
     required String channelId,
     required String body,

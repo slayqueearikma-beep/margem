@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -330,16 +332,23 @@ class ConversationThreadScreen extends ConsumerStatefulWidget {
 }
 
 class _ConversationThreadScreenState
-    extends ConsumerState<ConversationThreadScreen> {
+    extends ConsumerState<ConversationThreadScreen> with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _inputFocusNode = FocusNode();
-  late Future<List<ChatMessageModel>> _future;
+  final _scrollController = ScrollController();
+  List<ChatMessageModel> _messages = [];
+  bool _loading = true;
+  Object? _loadError;
   bool _sending = false;
+  Timer? _pollTimer;
+  static const _pollInterval = Duration(seconds: 3);
 
   @override
   void initState() {
     super.initState();
-    _future = apiServiceProvider.fetchConversationMessages(widget.conversationId);
+    WidgetsBinding.instance.addObserver(this);
+    _loadMessages();
+    _startPolling();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (_inputFocusNode.canRequestFocus) {
@@ -349,12 +358,54 @@ class _ConversationThreadScreenState
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadMessages();
+    }
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _loadMessages(silent: true));
+  }
+
+  Future<void> _loadMessages({bool silent = false}) async {
+    if (!silent && mounted) {
+      setState(() {
+        _loading = _messages.isEmpty;
+        _loadError = null;
+      });
+    }
+    try {
+      final fetched = await apiServiceProvider
+          .fetchConversationMessages(widget.conversationId);
+      if (!mounted) return;
+      setState(() {
+        _messages = fetched;
+        _loading = false;
+        _loadError = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      if (!silent || _messages.isEmpty) {
+        setState(() {
+          _loading = false;
+          _loadError = error;
+        });
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _pollTimer?.cancel();
     if (_inputFocusNode.hasFocus) {
       _inputFocusNode.unfocus();
     }
     _inputFocusNode.dispose();
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -365,10 +416,7 @@ class _ConversationThreadScreenState
     try {
       await apiServiceProvider.replyToConversation(widget.conversationId, body);
       _controller.clear();
-      setState(() {
-        _future =
-            apiServiceProvider.fetchConversationMessages(widget.conversationId);
-      });
+      await _loadMessages(silent: true);
       ref.invalidate(conversationsProvider);
     } on ApiException catch (error) {
       if (mounted) {
@@ -385,6 +433,15 @@ class _ConversationThreadScreenState
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  String _formatMessageTime(String raw) {
+    if (raw.isEmpty) return '';
+    final parsed = DateTime.tryParse(raw)?.toLocal();
+    if (parsed == null) return '';
+    final hour = parsed.hour.toString().padLeft(2, '0');
+    final minute = parsed.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 
   @override
@@ -434,64 +491,79 @@ class _ConversationThreadScreenState
               ),
             ),
           Expanded(
-            child: FutureBuilder<List<ChatMessageModel>>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return AsyncErrorView.fromError(
-                    snapshot.error!,
-                    onRetry: () => setState(() {
-                      _future = apiServiceProvider
-                          .fetchConversationMessages(widget.conversationId);
-                    }),
-                  );
-                }
-                final messages = snapshot.data ?? const [];
-                if (messages.isEmpty) {
-                  return Center(child: Text(l10n.noMessagesYet));
-                }
-                final myId = ref.watch(authSessionProvider)?.user.id;
-                return ListView.builder(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: messages.length,
-                  itemBuilder: (_, index) {
-                    final message = messages[index];
-                    final mine =
-                        myId != null && message.senderId.isNotEmpty && message.senderId == myId;
-                    return Align(
-                      alignment: mine
-                          ? AlignmentDirectional.centerEnd
-                          : AlignmentDirectional.centerStart,
-                      child: Container(
-                        margin: EdgeInsets.only(bottom: 8),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.sizeOf(context).width * 0.78,
-                        ),
-                        decoration: BoxDecoration(
-                          color: mine
-                              ? context.colors.primary.withValues(alpha: 0.12)
-                              : context.colors.surfaceVariant,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          message.body,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _loadError != null
+                    ? AsyncErrorView.fromError(
+                        _loadError!,
+                        onRetry: () => _loadMessages(),
+                      )
+                    : _messages.isEmpty
+                        ? Center(child: Text(l10n.noMessagesYet))
+                        : RefreshIndicator(
+                            color: context.colors.primary,
+                            onRefresh: () => _loadMessages(),
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              itemCount: _messages.length,
+                              itemBuilder: (_, index) {
+                                final message = _messages[index];
+                                final mine = myUserId.isNotEmpty &&
+                                    message.senderId.isNotEmpty &&
+                                    message.senderId == myUserId;
+                                return Align(
+                                  alignment: mine
+                                      ? AlignmentDirectional.centerEnd
+                                      : AlignmentDirectional.centerStart,
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          MediaQuery.sizeOf(context).width * 0.78,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: mine
+                                          ? context.colors.primary
+                                              .withValues(alpha: 0.12)
+                                          : context.colors.surfaceVariant,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: mine
+                                          ? CrossAxisAlignment.end
+                                          : CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          message.body,
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                          ),
+                                        ),
+                                        if (message.createdAt.isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _formatMessageTime(message.createdAt),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: context.colors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
           ),
           SafeArea(
             top: false,
