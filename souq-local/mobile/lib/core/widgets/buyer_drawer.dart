@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/buyer/buyer_home_screen.dart';
 import '../../features/messages/messages_inbox_screen.dart';
+import '../../core/services/app_storage.dart';
+import '../../core/services/auth_service.dart';
 import '../../l10n/app_localizations.dart';
-import '../services/app_storage.dart';
 import '../config/app_config.dart';
 import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
@@ -164,6 +165,22 @@ class BuyerDrawer extends ConsumerWidget {
                 ],
               ),
             ),
+            if (!isGuest && ref.watch(hasSellerProfileProvider))
+              Padding(
+                padding: EdgeInsets.all(AppSpacing.md),
+                child: FilledButton.tonal(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: context.colors.surface,
+                    foregroundColor: context.colors.primary,
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  onPressed: () => closeAnd(() async {
+                    await switchToSellerMode(ref);
+                    if (context.mounted) context.go('/seller/dashboard');
+                  }),
+                  child: Text(l10n.switchToSellerMode),
+                ),
+              ),
             if (isGuest)
               Padding(
                 padding: EdgeInsets.all(AppSpacing.md),

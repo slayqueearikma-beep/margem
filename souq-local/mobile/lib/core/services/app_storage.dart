@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/app_config.dart';
+import 'auth_service.dart';
 
 enum AccountType { buyer, seller, guest }
 
@@ -396,6 +397,23 @@ final appStorageProvider = Provider<AppStorage?>((ref) {
 final userSessionProvider = StateProvider<UserSession?>((ref) {
   return ref.watch(appStorageProvider)?.getSession();
 });
+
+/// True when the signed-in user has a seller storefront (local session or live auth).
+final hasSellerProfileProvider = Provider<bool>((ref) {
+  final session = ref.watch(userSessionProvider);
+  final auth = ref.watch(authSessionProvider);
+  if (session?.hasSellerProfile == true) return true;
+  final user = auth?.user;
+  return user?.hasSellerProfile == true || user?.canSell == true;
+});
+
+Future<void> switchToSellerMode(WidgetRef ref) async {
+  await ref.read(appStorageProvider)?.saveAppMode(AppMode.seller);
+}
+
+Future<void> switchToBuyerMode(WidgetRef ref) async {
+  await ref.read(appStorageProvider)?.saveAppMode(AppMode.buyer);
+}
 
 List<Map<String, dynamic>> guestFavoritesMigrationPayload(AppStorage storage) {
   return storage.getGuestFavoriteItems().map((item) {
