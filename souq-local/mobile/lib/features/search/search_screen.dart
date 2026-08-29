@@ -16,6 +16,7 @@ import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
+import '../../core/widgets/seller_trust_indicators.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
 
