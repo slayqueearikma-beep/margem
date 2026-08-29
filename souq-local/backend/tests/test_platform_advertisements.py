@@ -308,3 +308,43 @@ async def test_invalid_placement_rejected():
             json={**SAMPLE_AD, "placement": "nonexistent_slot"},
         )
         assert res.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_ad_media_proxy_requires_active_campaign():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = await _admin_headers(client)
+        created = await _create_ad(client, headers)
+        missing = await client.get(f"/ads/media/{uuid4()}/image")
+        assert missing.status_code == 404
+
+        paused = await client.post(f"/admin/advertisements/{created['id']}/pause", headers=headers)
+        assert paused.status_code == 200
+        blocked = await client.get(f"/ads/media/{created['id']}/image")
+        assert blocked.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_ad_media_proxy_serves_external_image(monkeypatch):
+    import httpx
+
+    async def _fake_get(self, url, *args, **kwargs):
+        request = httpx.Request("GET", url)
+        return httpx.Response(
+            200,
+            headers={"content-type": "image/jpeg"},
+            content=b"fake-image-bytes",
+            request=request,
+        )
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", _fake_get)
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = await _admin_headers(client)
+        created = await _create_ad(client, headers)
+        served = await client.get(f"/ads/media/{created['id']}/image")
+        assert served.status_code == 200
+        assert served.headers["content-type"].startswith("image/")
+        assert served.content == b"fake-image-bytes"

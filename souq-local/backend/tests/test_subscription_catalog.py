@@ -35,5 +35,5 @@ async def test_list_plans_returns_authoritative_driver_pro_catalog(prepare_datab
         assert plan["code"] == "seller_pro"
         assert plan["name"] == "DriverPro"
         assert float(plan["price_mad"]) == 149.0
-        assert "video_uploads" in plan["features"]
+        assert "featured_placement" in plan["features"]
         assert "Advanced analytics" not in plan["features"]

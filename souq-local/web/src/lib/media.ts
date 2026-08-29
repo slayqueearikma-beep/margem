@@ -1,5 +1,6 @@
 import { getSiteUrl } from "./config";
 import { sanitizeMediaSource } from "./security";
+import type { PlatformAdvertisement } from "./types";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
 
@@ -47,6 +48,28 @@ export function resolveMediaUrl(url: string | null | undefined): string {
 
   const path = value.startsWith("/") ? value : `/${value}`;
   return `/api-proxy${path}`;
+}
+
+function needsAdAssetProxy(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith("/media/") || url.includes("/media/")) return false;
+  if (url.startsWith("/")) return false;
+  return url.startsWith("http://") || url.startsWith("https://");
+}
+
+/** Resolve ad creatives through the same-origin media proxy for CSP compliance. */
+export function resolveAdAssetUrl(
+  ad: Pick<PlatformAdvertisement, "id" | "image_url" | "video_url">,
+  kind: "image" | "video",
+): string {
+  const raw = kind === "image" ? ad.image_url : ad.video_url;
+  if (!raw) return "";
+  const proxied = resolveMediaUrl(raw);
+  if (!proxied) return "";
+  if (needsAdAssetProxy(raw)) {
+    return `/api-proxy/ads/media/${ad.id}/${kind}`;
+  }
+  return proxied;
 }
 
 export function brandLogoUrl(): string {

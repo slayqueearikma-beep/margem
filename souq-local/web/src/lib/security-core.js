@@ -100,6 +100,16 @@ function matchesSellerPath(segments) {
   return false;
 }
 
+function matchesAdMediaPath(segments) {
+  return (
+    segments.length === 4 &&
+    segments[0] === "ads" &&
+    segments[1] === "media" &&
+    UUID_PATTERN.test(segments[2]) &&
+    (segments[3] === "image" || segments[3] === "video")
+  );
+}
+
 export function isAllowedPublicProxyPath(path) {
   const normalized = path.replace(/^\/+/, "").replace(/\/+$/, "");
   if (!normalized) return false;
@@ -125,12 +135,10 @@ export function isAllowedPublicProxyPath(path) {
   if (segments[0] === "products" && segments.length === 2 && UUID_PATTERN.test(segments[1])) {
     return true;
   }
-  if (
-    segments[0] === "ads" &&
-    segments[1] === "click" &&
-    segments.length === 3 &&
-    UUID_PATTERN.test(segments[2])
-  ) {
+  if (segments[0] === "ads" && segments[1] === "click" && segments.length === 3 && UUID_PATTERN.test(segments[2])) {
+    return true;
+  }
+  if (matchesAdMediaPath(segments)) {
     return true;
   }
   if (segments[0] === "services" && segments.length === 2 && UUID_PATTERN.test(segments[1])) {
@@ -147,6 +155,12 @@ export function isAllowedPublicProxyPath(path) {
   }
 
   return false;
+}
+
+/** Only POST /ads/impressions is permitted on the public storefront proxy. */
+export function isAllowedPublicProxyPostPath(path) {
+  const normalized = (path || "").replace(/^\/+/, "").replace(/\/+$/, "");
+  return normalized === "ads/impressions";
 }
 
 export function safeExternalHref(url) {

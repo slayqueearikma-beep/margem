@@ -18,15 +18,9 @@ from app.models import RewardedAdGrant, RewardedAdSession, RewardedAdSessionStat
 
 logger = logging.getLogger("margem.rewarded_ads")
 
-FEATURE_VIDEO_UPLOAD = "video_upload"
 FEATURE_SAVED_SEARCH = "saved_search"
 
 REWARD_FEATURE_CONFIG: dict[str, dict[str, int]] = {
-    FEATURE_VIDEO_UPLOAD: {
-        "grant_hours": 24,
-        "session_minutes": 15,
-        "daily_limit": 3,
-    },
     FEATURE_SAVED_SEARCH: {
         "grant_hours": 24 * 7,
         "session_minutes": 15,

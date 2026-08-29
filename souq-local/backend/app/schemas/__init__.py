@@ -249,7 +249,6 @@ class ProductCreate(BaseModel):
     pickup_only: bool = True
     image_url: str = ""
     media_urls: list[str] = Field(default_factory=list)
-    video_url: str = Field(default="", max_length=512)
     category_slug: str = Field(default="", max_length=80)
     stock_quantity: int = Field(default=1, ge=0, le=1_000_000)
     is_featured: bool = False
@@ -283,7 +282,7 @@ class ProductCreate(BaseModel):
             raise ValueError("Unknown category")
         return cleaned
 
-    @field_validator("image_url", "video_url")
+    @field_validator("image_url")
     @classmethod
     def validate_optional_urls(cls, value: str) -> str:
         return _validate_http_url(value)
@@ -305,7 +304,6 @@ class ProductUpdate(BaseModel):
     pickup_only: bool | None = None
     image_url: str | None = None
     media_urls: list[str] | None = None
-    video_url: str | None = Field(default=None, max_length=512)
     category_slug: str | None = Field(default=None, max_length=80)
     is_available: bool | None = None
     stock_quantity: int | None = Field(default=None, ge=0, le=1_000_000)
@@ -313,7 +311,7 @@ class ProductUpdate(BaseModel):
     is_featured: bool | None = None
     is_paused: bool | None = None
 
-    @field_validator("image_url", "video_url")
+    @field_validator("image_url")
     @classmethod
     def validate_optional_urls(cls, value: str | None) -> str | None:
         if value is None:
@@ -341,7 +339,6 @@ class ProductOut(BaseModel):
     pickup_only: bool = True
     image_url: str
     media_urls: list = Field(default_factory=list)
-    video_url: str = ""
     category_slug: str = ""
     is_available: bool
     stock_quantity: int = 1
@@ -363,7 +360,6 @@ class ServiceCreate(BaseModel):
     category_slug: str = Field(default="", max_length=80)
     coverage_areas: list[str] = Field(default_factory=list)
     image_url: str = ""
-    video_url: str = Field(default="", max_length=512)
     is_featured: bool = False
 
     @field_validator("pricing_type", mode="before")
@@ -385,7 +381,7 @@ class ServiceCreate(BaseModel):
             raise ValueError("Unknown category")
         return cleaned
 
-    @field_validator("image_url", "video_url")
+    @field_validator("image_url")
     @classmethod
     def validate_media_urls(cls, value: str) -> str:
         return _validate_http_url(value)
@@ -416,11 +412,10 @@ class ServiceUpdate(BaseModel):
     category_slug: str | None = Field(default=None, max_length=80)
     coverage_areas: list[str] | None = None
     image_url: str | None = None
-    video_url: str | None = Field(default=None, max_length=512)
     is_available: bool | None = None
     is_featured: bool | None = None
 
-    @field_validator("image_url", "video_url")
+    @field_validator("image_url")
     @classmethod
     def validate_media_urls(cls, value: str | None) -> str | None:
         if value is None:
@@ -441,7 +436,6 @@ class ServiceOut(BaseModel):
     category_slug: str = ""
     coverage_areas: list = Field(default_factory=list)
     image_url: str
-    video_url: str = ""
     is_available: bool
     is_featured: bool = False
 
@@ -753,27 +747,6 @@ class PresignRequest(BaseModel):
     filename: str
     content_type: str = "image/jpeg"
     purpose: str = "general"
-
-
-class VideoCreate(BaseModel):
-    video_url: str = Field(min_length=1, max_length=512)
-    duration_seconds: float = Field(ge=0, lt=60)
-    title: str = Field(default="", max_length=160)
-    caption: str = Field(default="", max_length=2000)
-    content_type: str = Field(default="video/mp4", max_length=64)
-
-
-class VideoOut(BaseModel):
-    id: UUID
-    seller_id: UUID
-    video_url: str
-    duration_seconds: float
-    title: str
-    caption: str
-    is_active: bool
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
 
 
 class PresignResponse(BaseModel):

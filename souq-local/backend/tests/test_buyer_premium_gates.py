@@ -88,55 +88,6 @@ async def test_seller_pro_does_not_unlock_saved_searches(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_buyer_premium_does_not_unlock_seller_video_quota(monkeypatch):
-    monkeypatch.setattr(settings, "payment_provider", "manual")
-    monkeypatch.setattr(settings, "allow_manual_billing", True)
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        email = f"buyer-video-{uuid4().hex[:8]}@example.com"
-        body = await register_test_user(client, email=email, account_type="buyer")
-        headers = {"Authorization": f"Bearer {body['access_token']}"}
-
-        created = await client.post(
-            "/sellers",
-            headers=headers,
-            json={
-                "business_name": "Dual Buyer Store",
-                "description": "Opened later",
-                "address": "12 Rue Example",
-                "city": "Casablanca",
-                "latitude": 33.5,
-                "longitude": -7.6,
-                "phone": "+212600000088",
-                "whatsapp_number": "+212600000088",
-                "payment_methods": ["cash"],
-                "delivery_methods": ["in_store"],
-                "marketplace_slug": "other-casablanca-markets",
-                "seller_terms_acknowledged": True,
-                "acceptance_language": "en",
-                "custom_marketplace_name": "Test Market",
-            },
-        )
-        assert created.status_code == 201, created.text
-        seller_id = created.json()["id"]
-
-        checkout = await client.post(
-            "/billing/checkout/subscription/buyer_premium",
-            headers=headers,
-            json={},
-        )
-        assert checkout.status_code == 201, checkout.text
-
-        quota = await client.get(f"/sellers/{seller_id}/videos/quota", headers=headers)
-        assert quota.status_code == 200, quota.text
-        body = quota.json()
-        assert body["is_premium"] is False
-        assert body["video_uploads_enabled"] is False
-        assert body["limit"] == 0
-
-
-@pytest.mark.asyncio
 async def test_subscription_maintenance_revokes_expired_subscriptions():
     import app.database as database
 

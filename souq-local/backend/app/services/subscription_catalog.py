@@ -28,12 +28,11 @@ DRIVER_PRO_CATALOG: dict[str, Any] = {
     "price_mad": 149,
     "billing_period_days": 30,
     "description": (
-        "Seller subscription — ad-free access, up to 20 combined products/services, and video uploads."
+        "Seller subscription — ad-free access, up to 20 combined products/services, and featured placement."
     ),
     "features": [
         "promotional_ads_suppressed",
         "combined_listing_limit_20",
-        "video_uploads",
         "featured_placement",
         "premium_badge",
     ],

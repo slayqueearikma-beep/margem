@@ -8,7 +8,6 @@ from app.database import get_db
 from app.limiter import limiter
 from app.models import User
 from app.schemas import PresignRequest, PresignResponse
-from app.services.entitlements import get_seller_profile, require_driver_pro_for_video
 from app.services.local_storage import (
     public_media_url,
     verify_minio_upload_token,
@@ -16,19 +15,15 @@ from app.services.local_storage import (
     write_local_blob,
 )
 from app.services.storage_provider import (
-    StoragePurpose,
     get_storage_provider,
     purpose_from_string,
 )
 from app.services.upload_security import (
-    is_video_content_type,
     sanitize_upload_filename,
     validate_image_bytes,
     validate_presign_upload_url,
     validate_upload_content_type,
-    validate_video_bytes,
 )
-from app.services.video_validation import assert_video_duration_from_url, validate_video_duration_seconds
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
@@ -63,15 +58,6 @@ async def presign_upload(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     purpose = purpose_from_string(payload.purpose)
-    if purpose == StoragePurpose.VIDEO or is_video_content_type(payload.content_type):
-        seller = await get_seller_profile(session, user.id)
-        if seller is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Seller profile is required to upload videos.",
-            )
-        await require_driver_pro_for_video(session, user, seller)
-
     provider = get_storage_provider()
 
     try:
@@ -134,48 +120,8 @@ async def put_local_upload(
     if not body:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty upload body")
 
-    max_bytes = settings.max_video_upload_bytes if is_video_content_type(content_type) else settings.max_upload_bytes
-    if len(body) > max_bytes:
-        detail = "Video too large" if is_video_content_type(content_type) else "Image too large"
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail)
-
-    if is_video_content_type(content_type):
-        try:
-            validate_video_bytes(body, content_type)
-            from app.services.video_validation import video_duration_seconds
-
-            duration = video_duration_seconds(body, content_type=content_type)
-            if duration is None:
-                raise ValueError("Could not determine video duration")
-            validate_video_duration_seconds(duration)
-        except ValueError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-        try:
-            write_local_blob(meta["blob_name"], body)
-        except ValueError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-        from app.services.media_lifecycle import log_media_event
-        from app.services.media_registry import register_media_object
-
-        public_url = public_media_url(meta["blob_name"])
-        await register_media_object(
-            session,
-            user_id=user.id,
-            public_url=public_url,
-            purpose="video_upload",
-            content_type=content_type,
-            bytes_size=len(body),
-        )
-        await session.commit()
-        log_media_event(
-            "video_uploaded",
-            user_id=user.id,
-            purpose="video",
-            detail=f"bytes={len(body)}",
-        )
-        return Response(status_code=status.HTTP_201_CREATED)
+    if len(body) > settings.max_upload_bytes:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Image too large")
 
     try:
         validate_image_bytes(body, content_type)
@@ -246,56 +192,8 @@ async def put_storage_upload(
     if not body:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty upload body")
 
-    if len(body) > settings.max_upload_bytes and not is_video_content_type(content_type):
+    if len(body) > settings.max_upload_bytes:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Image too large")
-
-    max_bytes = settings.max_video_upload_bytes if is_video_content_type(content_type) else settings.max_upload_bytes
-    if len(body) > max_bytes:
-        detail = "Video too large" if is_video_content_type(content_type) else "Image too large"
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail)
-
-    if is_video_content_type(content_type):
-        try:
-            validate_video_bytes(body, content_type)
-            from app.services.video_validation import video_duration_seconds
-
-            duration = video_duration_seconds(body, content_type=content_type)
-            if duration is None:
-                raise ValueError("Could not determine video duration")
-            validate_video_duration_seconds(duration)
-        except ValueError as exc:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-        from app.services.media_lifecycle import log_media_event
-        from app.services.media_registry import register_media_object
-        from app.services.minio_storage import all_buckets, api_media_url, put_object_bytes
-
-        bucket = meta["bucket"]
-        if bucket not in all_buckets():
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid upload bucket")
-        put_object_bytes(
-            bucket=bucket,
-            object_key=meta["object_key"],
-            data=body,
-            content_type=content_type,
-        )
-        public_url = api_media_url(bucket=bucket, object_key=meta["object_key"])
-        await register_media_object(
-            session,
-            user_id=user.id,
-            public_url=public_url,
-            purpose="video_upload",
-            content_type=content_type,
-            bytes_size=len(body),
-        )
-        await session.commit()
-        log_media_event(
-            "video_uploaded",
-            user_id=user.id,
-            purpose="video",
-            detail=f"bytes={len(body)}",
-        )
-        return Response(status_code=status.HTTP_201_CREATED)
 
     try:
         validate_image_bytes(body, content_type)
@@ -343,61 +241,6 @@ async def put_storage_upload(
 class ValidateUploadRequest(BaseModel):
     public_url: str = Field(max_length=2048)
     content_type: str = Field(max_length=64)
-
-
-class ValidateVideoUploadRequest(BaseModel):
-    public_url: str = Field(max_length=2048)
-    content_type: str = Field(max_length=64)
-    duration_seconds: float = Field(ge=0, lt=60)
-
-
-@router.post("/validate-video")
-@limiter.limit("30/minute")
-async def validate_uploaded_video(
-    request: Request,
-    payload: ValidateVideoUploadRequest,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_db),
-) -> dict:
-    """Server-side video duration validation after direct-to-storage upload."""
-    seller = await get_seller_profile(session, user.id)
-    if seller is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Seller profile is required to upload videos.",
-        )
-    await require_driver_pro_for_video(session, user, seller)
-
-    try:
-        validate_upload_content_type(payload.content_type)
-        if not is_video_content_type(payload.content_type):
-            raise ValueError("Unsupported video content type")
-        validate_video_duration_seconds(payload.duration_seconds)
-        measured = await assert_video_duration_from_url(
-            public_url=payload.public_url,
-            owner_user_id=user.id,
-            content_type=payload.content_type,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    from app.services.storage_provider import get_storage_provider
-
-    provider = get_storage_provider()
-    provider.log_event("storage_upload_success", user_id=user.id, detail="video_validated")
-
-    from app.services.media_registry import register_media_object
-
-    await register_media_object(
-        session,
-        user_id=user.id,
-        public_url=payload.public_url,
-        purpose="video_upload",
-        content_type=payload.content_type,
-        bytes_size=0,
-    )
-    await session.commit()
-    return {"status": "valid", "duration_seconds": measured}
 
 
 @router.post("/validate")

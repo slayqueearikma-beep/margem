@@ -36,7 +36,7 @@ export function SellerLoginForm() {
     <form onSubmit={onSubmit} className="mx-auto max-w-md space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
       <h1 className="text-2xl font-bold">Seller sign in</h1>
       <p className="text-sm text-[var(--muted)]">
-        Sign in to manage products, services, and DriverPro listing videos on the web.
+        Sign in to manage products and services on the web.
       </p>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <label className="block space-y-1">

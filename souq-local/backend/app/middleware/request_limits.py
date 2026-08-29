@@ -29,10 +29,7 @@ class RequestSizeLimitMiddleware:
         if isinstance(path, bytes):
             path = path.decode("latin-1", errors="ignore")
         if path.startswith("/uploads/local") or path.startswith("/uploads/storage"):
-            max_bytes = max(
-                max_bytes,
-                int(getattr(settings, "max_video_upload_bytes", 52_428_800)),
-            )
+            max_bytes = max(max_bytes, settings.max_upload_bytes)
 
         headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
         content_length = headers.get("content-length")

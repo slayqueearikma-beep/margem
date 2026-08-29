@@ -543,3 +543,71 @@ async def get_admin_overview(session: AsyncSession) -> dict[str, int]:
         if key in totals:
             totals[key] += 1
     return totals
+
+
+_AD_MEDIA_MAX_BYTES = 12 * 1024 * 1024
+
+
+def _campaign_allows_public_media(campaign: PlatformAdvertisement, *, now: datetime | None = None) -> bool:
+    if campaign.deleted_at is not None:
+        return False
+    sync_campaign_status(campaign, now=now)
+    if campaign.status != PlatformAdCampaignStatus.ACTIVE:
+        return False
+    return _payment_allows_display(campaign)
+
+
+async def load_campaign_media_bytes(
+    session: AsyncSession,
+    *,
+    campaign_id: UUID,
+    asset_kind: str,
+) -> tuple[bytes, str]:
+    """Serve ad image/video bytes for CSP-safe same-origin delivery on the public web."""
+    if asset_kind not in {"image", "video"}:
+        raise ValueError("Invalid ad media asset kind")
+
+    campaign = await get_advertisement(session, campaign_id)
+    if campaign is None or not _campaign_allows_public_media(campaign):
+        raise LookupError("Advertisement not found")
+
+    source_url = campaign.image_url if asset_kind == "image" else campaign.video_url
+    if not source_url:
+        raise LookupError("Advertisement asset not found")
+
+    from app.services.media_urls import parse_media_url
+
+    normalized = source_url.strip()
+    if normalized.startswith("/media/"):
+        normalized = f"{settings.public_api_url.rstrip('/')}{normalized}"
+
+    parsed = parse_media_url(normalized)
+    if parsed is not None:
+        from app.services.minio_storage import get_object_bytes
+
+        bucket, object_key = parsed
+        data, content_type = get_object_bytes(bucket=bucket, object_key=object_key)
+        if len(data) > _AD_MEDIA_MAX_BYTES:
+            raise ValueError("Advertisement asset too large")
+        return data, content_type
+
+    reject_private_or_internal_url(normalized, field_name="asset_url")
+    import httpx
+
+    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+        response = await client.get(normalized)
+    if response.status_code != 200:
+        raise LookupError("Advertisement asset not found")
+
+    data = response.content
+    if len(data) > _AD_MEDIA_MAX_BYTES:
+        raise ValueError("Advertisement asset too large")
+
+    content_type = (response.headers.get("content-type") or "").split(";", 1)[0].strip().lower()
+    if asset_kind == "image" and not content_type.startswith("image/"):
+        raise ValueError("Advertisement image has an invalid content type")
+    if asset_kind == "video" and not content_type.startswith("video/"):
+        raise ValueError("Advertisement video has an invalid content type")
+    if not content_type:
+        content_type = "image/jpeg" if asset_kind == "image" else "video/mp4"
+    return data, content_type

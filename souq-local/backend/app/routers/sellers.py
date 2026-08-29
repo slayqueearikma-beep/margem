@@ -12,7 +12,7 @@ from app.config import settings
 from app.data.marketplace_constants import LAUNCH_CITY
 from app.database import get_db
 from app.limiter import limiter
-from app.models import Category, Product, Review, SellerFollow, SellerProfile, SellerVideo, Service, User, UserMediaObject
+from app.models import Category, Product, Review, SellerFollow, SellerProfile, Service, User
 from app.schemas import (
     MapPin,
     ProductCreate,
@@ -29,13 +29,10 @@ from app.schemas import (
     ServiceCreate,
     ServiceOut,
     ServiceUpdate,
-    VideoCreate,
-    VideoOut,
 )
 from app.services.entitlements import (
     enforce_combined_listing_limit,
     has_driver_pro,
-    require_driver_pro_for_video,
 )
 from app.services.premium import apply_seller_premium_expiry, is_premium_active
 from app.services.seller_marketplace import apply_marketplace_selection
@@ -147,49 +144,6 @@ async def _validate_owner_media_list_registered(
         if u and str(u).strip():
             result.append(await _validate_owner_media_registered(session, u, user_id))
     return result
-
-
-async def _validate_listing_video_url(
-    session: AsyncSession,
-    *,
-    url: str,
-    user: User,
-    seller: SellerProfile,
-) -> str:
-    """Validate optional listing video: DriverPro gate, ownership, registration, duration."""
-    cleaned = (url or "").strip()
-    if not cleaned:
-        return ""
-    await require_driver_pro_for_video(session, user, seller)
-    validated = await _validate_owner_media_registered(session, cleaned, user.id)
-    if not validated:
-        return ""
-
-    from app.services.media_registry import blob_key_from_media_url
-    from app.services.video_validation import assert_video_duration_from_url
-
-    blob_key = blob_key_from_media_url(validated)
-    content_type = "video/mp4"
-    if blob_key:
-        row = await session.scalar(
-            select(UserMediaObject).where(
-                UserMediaObject.user_id == user.id,
-                UserMediaObject.blob_key == blob_key,
-                UserMediaObject.status == "active",
-            )
-        )
-        if row and row.content_type:
-            content_type = row.content_type
-
-    try:
-        await assert_video_duration_from_url(
-            public_url=validated,
-            owner_user_id=user.id,
-            content_type=content_type,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    return validated
 
 
 def _validate_morocco_coordinates(latitude: float, longitude: float) -> None:
@@ -575,12 +529,6 @@ async def add_product(
     product_data["media_urls"] = await _validate_owner_media_list_registered(
         session, list(payload.media_urls or []), user.id
     )
-    product_data["video_url"] = await _validate_listing_video_url(
-        session,
-        url=payload.video_url or "",
-        user=user,
-        seller=seller,
-    )
     if payload.is_featured and not await _has_driver_pro_entitlement(session, user, seller):
         product_data["is_featured"] = False
     product = Product(seller_id=seller_id, **product_data)
@@ -620,12 +568,6 @@ async def add_service(
         exclude={"pricing_type", "price_mad", "price_min_mad", "price_max_mad", "pricing_model", "price_negotiable"}
     )
     service_data["image_url"] = image_url
-    service_data["video_url"] = await _validate_listing_video_url(
-        session,
-        url=payload.video_url or "",
-        user=user,
-        seller=seller,
-    )
     service_data.update(pricing)
     service = Service(seller_id=seller_id, **service_data)
     from app.services.marketplace_pricing import apply_pricing_to_service, normalize_pricing_fields
@@ -640,74 +582,6 @@ async def add_service(
     await session.commit()
     await session.refresh(service)
     return service
-
-
-@router.post("/{seller_id}/videos", response_model=VideoOut, status_code=status.HTTP_201_CREATED)
-async def add_video(
-    seller_id: UUID,
-    payload: VideoCreate,
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> SellerVideo:
-    seller = await _owned_seller(seller_id, user, session)
-    await require_driver_pro_for_video(session, user, seller)
-
-    from app.services.video_validation import (
-        assert_video_duration_from_url,
-        validate_video_duration_seconds,
-    )
-
-    try:
-        validate_video_duration_seconds(payload.duration_seconds)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-    video_url = await _validate_owner_media_registered(session, payload.video_url, user.id)
-    try:
-        measured = await assert_video_duration_from_url(
-            public_url=video_url,
-            owner_user_id=user.id,
-            content_type=payload.content_type,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-    video = SellerVideo(
-        seller_id=seller_id,
-        video_url=video_url,
-        duration_seconds=measured,
-        title=(payload.title or "").strip(),
-        caption=(payload.caption or "").strip(),
-    )
-    session.add(video)
-    await session.commit()
-    await session.refresh(video)
-    return video
-
-
-@router.get("/{seller_id}/videos/quota")
-async def seller_video_quota(
-    seller_id: UUID,
-    user: User = Depends(require_seller),
-    session: AsyncSession = Depends(get_db),
-) -> dict:
-    seller = await _owned_seller(seller_id, user, session)
-    driver_pro = await _has_driver_pro_entitlement(session, user, seller)
-    active_count = await session.scalar(
-        select(func.count(SellerVideo.id)).where(
-            SellerVideo.seller_id == seller.id,
-            SellerVideo.is_active.is_(True),
-        )
-    )
-    used = int(active_count or 0)
-    return {
-        "is_premium": driver_pro,
-        "driver_pro_active": driver_pro,
-        "video_uploads_enabled": driver_pro,
-        "active_videos": used,
-        "limit": None if driver_pro else 0,
-        "remaining": None if driver_pro else 0,
-    }
 
 
 @router.post("/{seller_id}/share-link")
@@ -762,13 +636,6 @@ async def update_product(
         data["media_urls"] = await _validate_owner_media_list_registered(
             session, list(data["media_urls"] or []), user.id
         )
-    if "video_url" in data:
-        data["video_url"] = await _validate_listing_video_url(
-            session,
-            url=data["video_url"] or "",
-            user=user,
-            seller=seller,
-        )
     if data.get("is_featured") is True and not await _has_driver_pro_entitlement(session, user, seller):
         data["is_featured"] = False
 
@@ -822,7 +689,6 @@ async def duplicate_product(
         pickup_only=product.pickup_only,
         image_url=product.image_url,
         media_urls=list(product.media_urls or []),
-        video_url=product.video_url,
         category_slug=product.category_slug,
         stock_quantity=product.stock_quantity,
         is_available=False,
@@ -852,13 +718,6 @@ async def update_service(
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
         data["image_url"] = await _validate_owner_media_registered(session, data["image_url"] or "", user.id)
-    if "video_url" in data:
-        data["video_url"] = await _validate_listing_video_url(
-            session,
-            url=data["video_url"] or "",
-            user=user,
-            seller=seller,
-        )
 
     pricing_keys = {"pricing_model", "price_mad", "price_min_mad", "price_max_mad", "price_negotiable"}
     if pricing_keys.intersection(data):

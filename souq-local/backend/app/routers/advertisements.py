@@ -5,7 +5,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_user_optional
@@ -15,6 +15,7 @@ from app.models import User
 from app.schemas.advertisements import AdvertisementPublicOut, ImpressionCreate, ImpressionOut
 from app.services.platform_advertisements import (
     list_active_advertisements,
+    load_campaign_media_bytes,
     record_click,
     record_impression,
 )
@@ -66,6 +67,35 @@ async def active_advertisements(
         limit=limit,
     )
     return [_to_public_out(ad, placement=placement) for ad in ads]
+
+
+@router.get("/media/{campaign_id}/{asset_kind}", include_in_schema=False)
+async def serve_ad_media(
+    campaign_id: UUID,
+    asset_kind: str,
+    session: AsyncSession = Depends(get_db),
+) -> Response:
+    """Proxy active campaign creatives through the API for CSP-safe public web delivery."""
+    if not settings.ads_enabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    try:
+        data, content_type = await load_campaign_media_bytes(
+            session,
+            campaign_id=campaign_id,
+            asset_kind=asset_kind,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=3600",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @router.post("/impressions", response_model=ImpressionOut)

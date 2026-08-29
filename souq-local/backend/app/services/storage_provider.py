@@ -19,7 +19,6 @@ class StoragePurpose(str, Enum):
     PROFILE = "profile"
     PRODUCT = "product"
     LISTING = "listing"
-    VIDEO = "video"
     PRIVATE = "private"
     GENERAL = "general"
 
@@ -87,7 +86,6 @@ def purpose_prefix(purpose: StoragePurpose) -> str:
         StoragePurpose.PROFILE: "profiles",
         StoragePurpose.PRODUCT: "products",
         StoragePurpose.LISTING: "listings",
-        StoragePurpose.VIDEO: "videos",
         StoragePurpose.PRIVATE: "private",
         StoragePurpose.GENERAL: "uploads",
     }[purpose]
@@ -140,7 +138,6 @@ class MinioStorageProvider(StorageProvider):
             StoragePurpose.PROFILE: settings.minio_bucket_profiles,
             StoragePurpose.PRODUCT: settings.minio_bucket_products,
             StoragePurpose.LISTING: settings.minio_bucket_listings,
-            StoragePurpose.VIDEO: settings.minio_bucket_products,
             StoragePurpose.PRIVATE: settings.minio_bucket_private,
             StoragePurpose.GENERAL: settings.minio_bucket_private,
         }

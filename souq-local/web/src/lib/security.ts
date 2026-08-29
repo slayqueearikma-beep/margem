@@ -1,5 +1,6 @@
 export {
   isAllowedPublicProxyPath,
+  isAllowedPublicProxyPostPath,
   normalizeProxyPath,
   PROXY_SAFE_RESPONSE_HEADERS,
   safeExternalHref,
