@@ -10,7 +10,9 @@ import '../models/auth_models.dart';
 import '../models/city_model.dart';
 import '../models/community_models.dart';
 import '../models/marketplace_community_models.dart';
+import '../models/models.dart';
 import '../models/platform_ad_models.dart';
+import 'secure_http_client.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -1440,13 +1442,13 @@ class ApiService {
     required String placement,
     required String viewKey,
     required String viewerKey,
-    PlatformAdContext context = const PlatformAdContext(),
+    PlatformAdContext adContext = const PlatformAdContext(),
   }) async {
     final body = <String, dynamic>{
       'campaign_id': campaignId,
       'placement': placement,
       'view_key': viewKey,
-      ...context.toImpressionBody()..removeWhere((_, value) => value == null),
+      ...adContext.toImpressionBody()..removeWhere((_, value) => value == null),
     };
     final response = await postJson(
       '/ads/impressions?platform=mobile',
