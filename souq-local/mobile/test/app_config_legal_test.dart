@@ -11,6 +11,10 @@ void main() {
     expect(AppConfig.legalContentLanguageCode, 'fr');
   });
 
+  test('map UI is disabled by default', () {
+    expect(AppConfig.mapUiEnabled, isFalse);
+  });
+
   test('default language code is Arabic', () {
     expect(AppStorage.defaultLanguageCode, 'ar');
   });

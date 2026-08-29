@@ -80,6 +80,14 @@ class AppConfig {
     defaultValue: true,
   );
 
+  /// When false, map screens, pickers, and navigation entries are hidden.
+  /// Map APIs, models, and routes remain in the codebase for a future re-launch.
+  /// Set `ENABLE_MAP_UI=true` at build time to show map UI again.
+  static const bool mapUiEnabled = bool.fromEnvironment(
+    'ENABLE_MAP_UI',
+    defaultValue: false,
+  );
+
   static const bool isProduction = bool.fromEnvironment(
     'PRODUCTION',
     defaultValue: false,

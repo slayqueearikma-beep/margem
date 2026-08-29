@@ -6,6 +6,7 @@ import '../../features/buyer/buyer_home_screen.dart';
 import '../../features/messages/messages_inbox_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../services/app_storage.dart';
+import '../config/app_config.dart';
 import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
 import 'app_brand_logo.dart';
@@ -136,11 +137,12 @@ class BuyerDrawer extends ConsumerWidget {
                     label: l10n.favorites,
                     onTap: () => closeAnd(() => context.push('/favorites')),
                   ),
-                  _DrawerTile(
-                    icon: Icons.map_outlined,
-                    label: l10n.exploreOnMap,
-                    onTap: () => closeAnd(() => context.push('/map')),
-                  ),
+                  if (AppConfig.mapUiEnabled)
+                    _DrawerTile(
+                      icon: Icons.map_outlined,
+                      label: l10n.exploreOnMap,
+                      onTap: () => closeAnd(() => context.push('/map')),
+                    ),
                   _DrawerTile(
                     icon: Icons.forum_outlined,
                     label: l10n.marketplaceCommunityTitle,

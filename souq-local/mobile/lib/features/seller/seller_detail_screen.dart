@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -408,27 +409,36 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                       ),
                     ],
                     const SizedBox(height: AppSpacing.lg),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MarketPrimaryButton(
-                            label: l10n.directions,
-                            icon: Icons.directions_rounded,
-                            onPressed: () => _openDirections(seller),
+                    if (AppConfig.mapUiEnabled)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: MarketPrimaryButton(
+                              label: l10n.directions,
+                              icon: Icons.directions_rounded,
+                              onPressed: () => _openDirections(seller),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: MarketPrimaryButton(
-                            label: l10n.callSeller,
-                            icon: Icons.call_rounded,
-                            onPressed: seller.phone.trim().isEmpty
-                                ? null
-                                : () => _callSeller(seller),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: MarketPrimaryButton(
+                              label: l10n.callSeller,
+                              icon: Icons.call_rounded,
+                              onPressed: seller.phone.trim().isEmpty
+                                  ? null
+                                  : () => _callSeller(seller),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      )
+                    else
+                      MarketPrimaryButton(
+                        label: l10n.callSeller,
+                        icon: Icons.call_rounded,
+                        onPressed: seller.phone.trim().isEmpty
+                            ? null
+                            : () => _callSeller(seller),
+                      ),
                     if (!isOwnStore) ...[
                       const SizedBox(height: 10),
                       MarketPrimaryButton(

@@ -219,7 +219,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      GoRoute(path: '/map', builder: (_, __) => const MapScreen()),
+      GoRoute(
+        path: '/map',
+        redirect: (_, __) => AppConfig.mapUiEnabled ? null : '/buyer/home',
+        builder: (_, __) => const MapScreen(),
+      ),
       GoRoute(
         path: '/community/channels/:channelId',
         builder: (_, state) {

@@ -519,12 +519,13 @@ class _SellerRegistrationScreenState
             hint: l10n.phoneHint,
             keyboardType: TextInputType.phone),
         const SizedBox(height: AppSpacing.md),
-        StoreLocationPickerTile(
-          label: l10n.storeLocation,
-          hint: l10n.tapMapToSetPin,
-          location: _location,
-          onLocationChanged: (pos) => setState(() => _location = pos),
-        ),
+        if (AppConfig.mapUiEnabled)
+          StoreLocationPickerTile(
+            label: l10n.storeLocation,
+            hint: l10n.tapMapToSetPin,
+            location: _location,
+            onLocationChanged: (pos) => setState(() => _location = pos),
+          ),
       ],
     );
   }

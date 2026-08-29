@@ -10,6 +10,10 @@ import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
 import '../utils/directional_ui.dart';
 
+/// Map UI widgets (picker, embedded map, placeholders).
+/// Hidden from the app when [AppConfig.mapUiEnabled] is false; implementations
+/// are kept so maps can be re-enabled via `ENABLE_MAP_UI=true`.
+
 /// Full-screen map picker — never embed inside a [ScrollView].
 class MapLocationPickerPage extends StatefulWidget {
   const MapLocationPickerPage({
