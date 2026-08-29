@@ -393,13 +393,14 @@ class _SellerProfileScreenState extends ConsumerState<SellerProfileScreen> {
                 decoration: InputDecoration(labelText: l10n.phoneNumber),
               ),
               const SizedBox(height: AppSpacing.lg),
-              StoreLocationPickerTile(
-                location: _location,
-                onLocationChanged: (latLng) => setState(() => _location = latLng),
-                label: l10n.storeLocation,
-                hint: l10n.tapMapToSetPin,
-              ),
-              const SizedBox(height: AppSpacing.lg),
+              if (AppConfig.mapUiEnabled)
+                StoreLocationPickerTile(
+                  location: _location,
+                  onLocationChanged: (latLng) => setState(() => _location = latLng),
+                  label: l10n.storeLocation,
+                  hint: l10n.tapMapToSetPin,
+                ),
+              if (AppConfig.mapUiEnabled) const SizedBox(height: AppSpacing.lg),
               Text(l10n.openingHours, style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: AppSpacing.sm),
               Wrap(

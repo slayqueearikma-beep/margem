@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -127,15 +128,17 @@ class MarketplaceDetailScreen extends ConsumerWidget {
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.sm,
                   children: [
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        ref.read(buyerMarketplaceSlugProvider.notifier).state = slug;
-                        ref.read(appStorageProvider)?.setMarketplaceSlug(slug);
-                        context.push('/map');
-                      },
-                      icon: const Icon(Icons.map_outlined),
-                      label: Text(l10n.openMarketMap),
-                    ),
+                    if (AppConfig.mapUiEnabled)
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          ref.read(buyerMarketplaceSlugProvider.notifier).state =
+                              slug;
+                          ref.read(appStorageProvider)?.setMarketplaceSlug(slug);
+                          context.push('/map');
+                        },
+                        icon: const Icon(Icons.map_outlined),
+                        label: Text(l10n.openMarketMap),
+                      ),
                     OutlinedButton.icon(
                       onPressed: () => context.push('/marketplace/$slug/community'),
                       icon: const Icon(Icons.forum_outlined),
