@@ -16,11 +16,13 @@ from app.config import settings
 from app.models import (
     AdClick,
     AdImpression,
+    Category,
     PlatformAdCampaignStatus,
     PlatformAdPaymentStatus,
     PlatformAdvertisement,
     User,
 )
+from app.models.marketplace import Marketplace, MarketplaceCategory
 from app.services.entitlements import build_entitlements
 from app.services.url_security import reject_private_or_internal_url
 
@@ -38,6 +40,7 @@ AD_PLACEMENTS: tuple[str, ...] = (
     "search_results",
     "category_page",
     "city_page",
+    "marketplace_page",
 )
 
 AD_PLACEMENT_LABELS: dict[str, str] = {
@@ -52,6 +55,7 @@ AD_PLACEMENT_LABELS: dict[str, str] = {
     "search_results": "Search results",
     "category_page": "Category page",
     "city_page": "City page",
+    "marketplace_page": "Marketplace page",
 }
 
 AD_TARGET_PLATFORMS: tuple[str, ...] = ("all", "web", "mobile")
@@ -200,11 +204,18 @@ def assert_status_transition(
 def _matches_targeting(
     campaign: PlatformAdvertisement,
     *,
+    marketplace_slug: str | None,
     city: str | None,
     category_slug: str | None,
     listing_type: str | None,
     platform: str,
 ) -> bool:
+    if campaign.target_marketplace_slug:
+        if (
+            not marketplace_slug
+            or campaign.target_marketplace_slug.lower() != marketplace_slug.strip().lower()
+        ):
+            return False
     if campaign.target_city:
         if not city or campaign.target_city.lower() != city.strip().lower():
             return False
@@ -220,10 +231,45 @@ def _matches_targeting(
     return True
 
 
+async def validate_ad_targeting(
+    session: AsyncSession,
+    *,
+    target_marketplace_slug: str | None,
+    target_category_slug: str | None,
+) -> None:
+    marketplace_slug = normalize_optional_slug(target_marketplace_slug)
+    category_slug = normalize_optional_slug(target_category_slug)
+    marketplace = None
+
+    if marketplace_slug:
+        marketplace = await session.scalar(
+            select(Marketplace).where(Marketplace.slug == marketplace_slug, Marketplace.is_active.is_(True))
+        )
+        if marketplace is None:
+            raise ValueError("Target marketplace does not exist or is inactive")
+
+    if category_slug:
+        if marketplace is not None:
+            category = await session.scalar(
+                select(MarketplaceCategory).where(
+                    MarketplaceCategory.slug == category_slug,
+                    MarketplaceCategory.marketplace_id == marketplace.id,
+                    MarketplaceCategory.is_active.is_(True),
+                )
+            )
+            if category is None:
+                raise ValueError("Target category does not exist in the selected marketplace")
+        else:
+            category = await session.scalar(select(Category).where(Category.slug == category_slug))
+            if category is None:
+                raise ValueError("Target category does not exist")
+
+
 def _is_eligible_for_display(
     campaign: PlatformAdvertisement,
     *,
     placement: str,
+    marketplace_slug: str | None,
     city: str | None,
     category_slug: str | None,
     listing_type: str | None,
@@ -247,6 +293,7 @@ def _is_eligible_for_display(
         return False
     if not _matches_targeting(
         campaign,
+        marketplace_slug=marketplace_slug,
         city=city,
         category_slug=category_slug,
         listing_type=listing_type,
@@ -337,6 +384,7 @@ async def list_active_advertisements(
     *,
     user: User | None = None,
     placement: str = "homepage_top",
+    marketplace_slug: str | None = None,
     city: str | None = None,
     category_slug: str | None = None,
     listing_type: str | None = None,
@@ -372,6 +420,7 @@ async def list_active_advertisements(
         if _is_eligible_for_display(
             row,
             placement=validated_placement,
+            marketplace_slug=marketplace_slug,
             city=city,
             category_slug=category_slug,
             listing_type=listing_type,
@@ -415,6 +464,10 @@ async def record_impression(
     view_key: str,
     viewer_key: str | None,
     platform: str = "web",
+    marketplace_slug: str | None = None,
+    city: str | None = None,
+    category_slug: str | None = None,
+    listing_type: str | None = None,
 ) -> bool:
     """Record one impression. Returns True when a new impression was stored."""
     if not settings.ads_enabled:
@@ -429,9 +482,10 @@ async def record_impression(
     if not _is_eligible_for_display(
         campaign,
         placement=validated_placement,
-        city=None,
-        category_slug=None,
-        listing_type=None,
+        marketplace_slug=marketplace_slug,
+        city=city,
+        category_slug=category_slug,
+        listing_type=listing_type,
         platform=platform,
         now=now,
     ):
@@ -474,6 +528,10 @@ async def record_click(
     click_key: str,
     viewer_key: str | None,
     platform: str = "web",
+    marketplace_slug: str | None = None,
+    city: str | None = None,
+    category_slug: str | None = None,
+    listing_type: str | None = None,
 ) -> PlatformAdvertisement | None:
     if not settings.ads_enabled:
         return None
@@ -487,9 +545,10 @@ async def record_click(
     if not _is_eligible_for_display(
         campaign,
         placement=validated_placement,
-        city=None,
-        category_slug=None,
-        listing_type=None,
+        marketplace_slug=marketplace_slug,
+        city=city,
+        category_slug=category_slug,
+        listing_type=listing_type,
         platform=platform,
         now=now,
     ):

@@ -63,6 +63,7 @@ class AdvertisementAdminOut(BaseModel):
     payment_override: bool
     internal_notes: str
     target_city: str | None = None
+    target_marketplace_slug: str | None = None
     target_category_slug: str | None = None
     target_listing_type: str | None = None
     target_platform: str
@@ -132,6 +133,7 @@ class AdvertisementCreate(BaseModel):
     payment_override: bool = False
     internal_notes: str = Field(default="", max_length=5000)
     target_city: str | None = Field(default=None, max_length=100)
+    target_marketplace_slug: str | None = Field(default=None, max_length=80)
     target_category_slug: str | None = Field(default=None, max_length=100)
     target_listing_type: str | None = None
     target_platform: str = "all"
@@ -201,6 +203,7 @@ class AdvertisementUpdate(BaseModel):
     payment_override: bool | None = None
     internal_notes: str | None = Field(default=None, max_length=5000)
     target_city: str | None = Field(default=None, max_length=100)
+    target_marketplace_slug: str | None = Field(default=None, max_length=80)
     target_category_slug: str | None = Field(default=None, max_length=100)
     target_listing_type: str | None = None
     target_platform: str | None = None
@@ -257,6 +260,10 @@ class ImpressionCreate(BaseModel):
     campaign_id: UUID
     placement: str
     view_key: str = Field(min_length=8, max_length=128)
+    marketplace_slug: str | None = Field(default=None, max_length=80)
+    city: str | None = Field(default=None, max_length=100)
+    category_slug: str | None = Field(default=None, max_length=100)
+    listing_type: str | None = Field(default=None, max_length=20)
 
     @field_validator("placement")
     @classmethod

@@ -112,6 +112,7 @@ export async function loadGeographyCities(): Promise<FetchOutcome<GeographyCityL
 export async function loadActiveAdvertisements(
   placement = "homepage_top",
   options: {
+    marketplaceSlug?: string;
     city?: string;
     categorySlug?: string;
     listingType?: string;
@@ -121,6 +122,7 @@ export async function loadActiveAdvertisements(
   const outcome = await safeApiFetch<PlatformAdvertisement[]>(
     `/ads/active${searchParams({
       placement,
+      marketplace_slug: options.marketplaceSlug,
       city: options.city,
       category_slug: options.categorySlug,
       listing_type: options.listingType,

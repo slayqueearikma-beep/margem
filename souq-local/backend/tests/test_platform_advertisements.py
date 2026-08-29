@@ -348,3 +348,110 @@ async def test_ad_media_proxy_serves_external_image(monkeypatch):
         assert served.status_code == 200
         assert served.headers["content-type"].startswith("image/")
         assert served.content == b"fake-image-bytes"
+
+
+async def _create_marketplace_with_category(client: AsyncClient, headers: dict[str, str]) -> tuple[dict, dict]:
+    marketplace_res = await client.post(
+        "/admin/marketplaces",
+        headers=headers,
+        json={
+            "name": "Derb Ghallef",
+            "slug": "derb-ghallef",
+            "description": "Electronics market",
+            "address": "Derb Ghallef",
+            "district": "Derb Ghallef",
+            "city": "Casablanca",
+            "latitude": 33.57,
+            "longitude": -7.61,
+            "display_order": 1,
+            "is_active": True,
+            "opening_hours": {"monday": {"open": "09:00", "close": "20:00", "closed": False}},
+        },
+    )
+    assert marketplace_res.status_code == 201, marketplace_res.text
+    marketplace = marketplace_res.json()
+    category_res = await client.post(
+        f"/admin/marketplaces/{marketplace['id']}/categories",
+        headers=headers,
+        json={
+            "name": "Restaurants",
+            "slug": "restaurants",
+            "description": "Food",
+            "icon": "restaurant",
+            "display_order": 0,
+            "is_active": True,
+        },
+    )
+    assert category_res.status_code == 201, category_res.text
+    return marketplace, category_res.json()
+
+
+@pytest.mark.asyncio
+async def test_marketplace_and_category_targeting():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = await _admin_headers(client)
+        await _create_marketplace_with_category(client, headers)
+        targeted = await _create_ad(
+            client,
+            headers,
+            placement="marketplace_page",
+            target_marketplace_slug="derb-ghallef",
+            target_category_slug="restaurants",
+            campaign_name="Market promo",
+        )
+        await _create_ad(
+            client,
+            headers,
+            placement="marketplace_page",
+            target_marketplace_slug="derb-ghallef",
+            target_category_slug="phones",
+            campaign_name="Wrong category",
+        )
+        matched = await client.get(
+            "/ads/active",
+            params={
+                "placement": "marketplace_page",
+                "marketplace_slug": "derb-ghallef",
+                "category_slug": "restaurants",
+                "platform": "mobile",
+            },
+        )
+        assert matched.status_code == 200
+        assert len(matched.json()) == 1
+        assert matched.json()[0]["id"] == targeted["id"]
+
+
+@pytest.mark.asyncio
+async def test_impression_records_with_targeting_context():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = await _admin_headers(client)
+        created = await _create_ad(client, headers, target_city="casablanca", placement="city_page")
+        payload = {
+            "campaign_id": created["id"],
+            "placement": "city_page",
+            "view_key": f"view-{uuid4().hex}",
+            "city": "casablanca",
+        }
+        first = await client.post(
+            "/ads/impressions",
+            json=payload,
+            headers={"X-Ad-Viewer": "viewer-targeted"},
+            params={"platform": "web"},
+        )
+        assert first.status_code == 200
+        assert first.json()["recorded"] is True
+
+
+@pytest.mark.asyncio
+async def test_admin_rejects_invalid_marketplace_target():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = await _admin_headers(client)
+        res = await client.post(
+            "/admin/advertisements",
+            headers=headers,
+            json={**SAMPLE_AD, "target_marketplace_slug": "missing-market"},
+        )
+        assert res.status_code == 400

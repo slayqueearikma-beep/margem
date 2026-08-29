@@ -387,8 +387,17 @@
         <label>Max impressions <input name="max_impressions" type="number" min="1" placeholder="Unlimited" /></label>
         <label>Max impressions / user / day <input name="max_impressions_per_user_per_day" type="number" min="1" /></label>
         <label>Min interval (minutes) <input name="min_interval_minutes" type="number" min="1" /></label>
+        <label>Target marketplace
+          <select name="target_marketplace_slug" id="ad-marketplace-select">
+            <option value="">All marketplaces</option>
+          </select>
+        </label>
+        <label>Target category
+          <select name="target_category_slug" id="ad-category-select">
+            <option value="">All categories</option>
+          </select>
+        </label>
         <label>Target city <input name="target_city" placeholder="casablanca" /></label>
-        <label>Target category slug <input name="target_category_slug" placeholder="food" /></label>
         <label>Target listing type
           <select name="target_listing_type">
             <option value="">All</option>

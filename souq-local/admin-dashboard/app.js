@@ -759,6 +759,58 @@ function populatePlacementSelect(selected) {
   });
 }
 
+async function ensureMarketplacesLoaded() {
+  if (state.marketplaces.length) return;
+  const data = await api("/admin/marketplaces?page_size=100&status_filter=all&sort=name");
+  state.marketplaces = data.items || [];
+}
+
+function populateAdMarketplaceSelect(selectedSlug = "") {
+  const select = $("#ad-marketplace-select");
+  if (!select) return;
+  select.innerHTML = '<option value="">All marketplaces</option>';
+  state.marketplaces.forEach((marketplace) => {
+    const el = document.createElement("option");
+    el.value = marketplace.slug;
+    el.textContent = marketplace.name;
+    if (marketplace.slug === selectedSlug) el.selected = true;
+    select.appendChild(el);
+  });
+}
+
+async function populateAdCategorySelect(marketplaceSlug = "", selectedSlug = "") {
+  const select = $("#ad-category-select");
+  if (!select) return;
+  select.innerHTML = '<option value="">All categories</option>';
+  if (!marketplaceSlug) {
+    try {
+      const categories = await api("/categories");
+      categories.forEach((category) => {
+        const el = document.createElement("option");
+        el.value = category.slug;
+        el.textContent = category.name_en || category.slug;
+        if (category.slug === selectedSlug) el.selected = true;
+        select.appendChild(el);
+      });
+    } catch {
+      // Global categories are optional when no marketplace is selected.
+    }
+    return;
+  }
+  const marketplace = state.marketplaces.find((item) => item.slug === marketplaceSlug);
+  if (!marketplace) return;
+  const categories = await api(
+    `/admin/marketplaces/${marketplace.id}/categories?include_hidden=false`,
+  );
+  categories.forEach((category) => {
+    const el = document.createElement("option");
+    el.value = category.slug;
+    el.textContent = category.name;
+    if (category.slug === selectedSlug) el.selected = true;
+    select.appendChild(el);
+  });
+}
+
 function toDatetimeLocalValue(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -861,6 +913,10 @@ function openAdvertisementDialog(ad = null) {
   state.editingAdvertisementId = ad?.id || null;
   $("#advertisement-dialog-title").textContent = ad ? "Edit campaign" : "New campaign";
   populatePlacementSelect(ad?.placement || "homepage_top");
+  void ensureMarketplacesLoaded().then(async () => {
+    populateAdMarketplaceSelect(ad?.target_marketplace_slug || "");
+    await populateAdCategorySelect(ad?.target_marketplace_slug || "", ad?.target_category_slug || "");
+  });
   form.elements.advertiser_name.value = ad?.advertiser_name || "";
   form.elements.campaign_name.value = ad?.campaign_name || "";
   form.elements.title.value = ad?.title || "";
@@ -879,6 +935,7 @@ function openAdvertisementDialog(ad = null) {
   form.elements.max_impressions_per_user_per_day.value = ad?.max_impressions_per_user_per_day ?? "";
   form.elements.min_interval_minutes.value = ad?.min_interval_minutes ?? "";
   form.elements.target_city.value = ad?.target_city || "";
+  form.elements.target_marketplace_slug.value = ad?.target_marketplace_slug || "";
   form.elements.target_category_slug.value = ad?.target_category_slug || "";
   form.elements.target_listing_type.value = ad?.target_listing_type || "";
   form.elements.target_platform.value = ad?.target_platform || "all";
@@ -912,6 +969,7 @@ function buildAdvertisementPayload(form) {
       ? Number(form.elements.min_interval_minutes.value)
       : null,
     target_city: form.elements.target_city.value.trim() || null,
+    target_marketplace_slug: form.elements.target_marketplace_slug.value.trim() || null,
     target_category_slug: form.elements.target_category_slug.value.trim() || null,
     target_listing_type: form.elements.target_listing_type.value || null,
     target_platform: form.elements.target_platform.value,
@@ -959,7 +1017,7 @@ async function previewAdvertisement(adId) {
       <p><strong>Destination:</strong> <a href="${escapeHtml(preview.target_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(preview.target_url)}</a></p>
       <p><strong>Status:</strong> ${escapeHtml(preview.status)} · <strong>Payment:</strong> ${escapeHtml(preview.payment_status)}</p>
       <p><strong>Schedule:</strong> ${escapeHtml(formatDate(preview.starts_at))} → ${escapeHtml(formatDate(preview.ends_at))}</p>
-      <p><strong>Targeting:</strong> city=${escapeHtml(preview.target_city || "any")}, category=${escapeHtml(preview.target_category_slug || "any")}, listing=${escapeHtml(preview.target_listing_type || "any")}, platform=${escapeHtml(preview.target_platform || "all")}</p>
+      <p><strong>Targeting:</strong> marketplace=${escapeHtml(preview.target_marketplace_slug || "any")}, city=${escapeHtml(preview.target_city || "any")}, category=${escapeHtml(preview.target_category_slug || "any")}, listing=${escapeHtml(preview.target_listing_type || "any")}, platform=${escapeHtml(preview.target_platform || "all")}</p>
       <p><strong>Frequency:</strong> max ${escapeHtml(String(preview.max_impressions || "∞"))} impressions, ${escapeHtml(String(preview.max_impressions_per_user_per_day || "∞"))}/user/day, ${escapeHtml(String(preview.min_interval_minutes || "—"))} min interval</p>
       <p class="muted">Preview does not record impressions.</p>
     </div>
@@ -1074,6 +1132,9 @@ function bindEvents() {
   $("#marketplace-form").onsubmit = saveMarketplace;
   $("#create-advertisement-btn").onclick = () => openAdvertisementDialog();
   $("#advertisement-form").onsubmit = saveAdvertisement;
+  $("#ad-marketplace-select")?.addEventListener("change", async (event) => {
+    await populateAdCategorySelect(event.target.value, "");
+  });
   $("#advertisements-tbody").onclick = async (event) => {
     const btn = event.target.closest("button[data-ad-action]");
     if (!btn) return;

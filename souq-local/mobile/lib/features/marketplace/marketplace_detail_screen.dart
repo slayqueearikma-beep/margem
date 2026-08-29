@@ -12,6 +12,8 @@ import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/seller_trust_indicators.dart';
+import '../../core/models/platform_ad_models.dart';
+import '../../core/widgets/platform_ad_slot.dart';
 import '../../features/buyer/buyer_home_screen.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -117,6 +119,13 @@ class MarketplaceDetailScreen extends ConsumerWidget {
                   ),
                 ],
                 const SizedBox(height: AppSpacing.md),
+                PlatformAdSlot(
+                  placement: 'marketplace_page',
+                  adContext: PlatformAdContext(
+                    marketplaceSlug: slug,
+                    city: venue.city,
+                  ),
+                ),
                 BuyerSearchBar(
                   hint: l10n.searchThisMarketHint(venue.displayName),
                   onTap: () => _searchInMarket(context, ref),

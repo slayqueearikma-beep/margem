@@ -12,6 +12,12 @@ type AdvertisementBannerProps = {
   ad: PlatformAdvertisement;
   placement: string;
   className?: string;
+  targeting?: {
+    marketplaceSlug?: string;
+    city?: string;
+    categorySlug?: string;
+    listingType?: string;
+  };
 };
 
 function viewerStorageKey(): string {
@@ -26,7 +32,12 @@ function viewerStorageKey(): string {
   return created;
 }
 
-export function AdvertisementBanner({ ad, placement, className = "" }: AdvertisementBannerProps) {
+export function AdvertisementBanner({
+  ad,
+  placement,
+  className = "",
+  targeting = {},
+}: AdvertisementBannerProps) {
   const imageUrl = resolveAdAssetUrl(ad, "image");
   const videoUrl = ad.video_url ? resolveAdAssetUrl(ad, "video") : null;
   const clickHref = ad.click_url || safeExternalHref(ad.target_url);
@@ -55,13 +66,17 @@ export function AdvertisementBanner({ ad, placement, className = "" }: Advertise
           campaign_id: ad.id,
           placement,
           view_key: viewKey,
+          marketplace_slug: targeting.marketplaceSlug,
+          city: targeting.city,
+          category_slug: targeting.categorySlug,
+          listing_type: targeting.listingType,
         }),
       },
       "client",
     ).catch(() => {
       // Ads must never break the page.
     });
-  }, [ad.id, placement, viewKey]);
+  }, [ad.id, placement, viewKey, targeting]);
 
   if (!imageUrl || !clickHref) return null;
 

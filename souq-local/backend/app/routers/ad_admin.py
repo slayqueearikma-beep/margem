@@ -32,6 +32,7 @@ from app.services.platform_advertisements import (
     get_admin_overview,
     get_advertisement,
     sync_campaign_status,
+    validate_ad_targeting,
 )
 
 router = APIRouter(prefix="/admin/advertisements", tags=["admin-advertisements"])
@@ -143,6 +144,14 @@ async def create_advertisement(
     admin: User = Depends(require_admin),
     session: AsyncSession = Depends(get_db),
 ) -> PlatformAdvertisement:
+    try:
+        await validate_ad_targeting(
+            session,
+            target_marketplace_slug=payload.target_marketplace_slug,
+            target_category_slug=payload.target_category_slug,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     ad = PlatformAdvertisement(
         id=uuid4(),
         advertiser_name=payload.advertiser_name.strip(),
@@ -165,6 +174,7 @@ async def create_advertisement(
         payment_override=payload.payment_override,
         internal_notes=payload.internal_notes.strip(),
         target_city=(payload.target_city or "").strip().lower() or None,
+        target_marketplace_slug=(payload.target_marketplace_slug or "").strip().lower() or None,
         target_category_slug=(payload.target_category_slug or "").strip().lower() or None,
         target_listing_type=payload.target_listing_type,
         target_platform=payload.target_platform,
@@ -197,6 +207,17 @@ async def update_advertisement(
     if not updates:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
 
+    merged_marketplace = updates.get("target_marketplace_slug", ad.target_marketplace_slug)
+    merged_category = updates.get("target_category_slug", ad.target_category_slug)
+    try:
+        await validate_ad_targeting(
+            session,
+            target_marketplace_slug=merged_marketplace,
+            target_category_slug=merged_category,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
     if "status" in updates:
         desired = updates["status"]
         try:
@@ -207,6 +228,8 @@ async def update_advertisement(
 
     for key, value in updates.items():
         if key == "target_city":
+            value = (value or "").strip().lower() or None
+        elif key == "target_marketplace_slug":
             value = (value or "").strip().lower() or None
         elif key == "target_category_slug":
             value = (value or "").strip().lower() or None

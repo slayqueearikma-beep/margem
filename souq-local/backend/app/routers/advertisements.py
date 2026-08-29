@@ -43,6 +43,7 @@ def _to_public_out(ad, *, placement: str) -> AdvertisementPublicOut:
 @router.get("/active", response_model=list[AdvertisementPublicOut])
 async def active_advertisements(
     placement: str = Query(default="homepage_top"),
+    marketplace_slug: str | None = Query(default=None, max_length=80),
     city: str | None = Query(default=None, max_length=100),
     category_slug: str | None = Query(default=None, max_length=100),
     listing_type: str | None = Query(default=None, max_length=20),
@@ -59,6 +60,7 @@ async def active_advertisements(
         session,
         user=user,
         placement=placement,
+        marketplace_slug=marketplace_slug,
         city=city,
         category_slug=category_slug,
         listing_type=listing_type,
@@ -115,6 +117,10 @@ async def register_impression(
             view_key=payload.view_key,
             viewer_key=viewer_key,
             platform=platform,
+            marketplace_slug=payload.marketplace_slug,
+            city=payload.city,
+            category_slug=payload.category_slug,
+            listing_type=payload.listing_type,
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
@@ -130,6 +136,10 @@ async def click_advertisement(
     placement: str = Query(default="homepage_top"),
     click_key: str | None = Query(default=None, max_length=128),
     platform: str = Query(default="web", max_length=20),
+    marketplace_slug: str | None = Query(default=None, max_length=80),
+    city: str | None = Query(default=None, max_length=100),
+    category_slug: str | None = Query(default=None, max_length=100),
+    listing_type: str | None = Query(default=None, max_length=20),
     viewer_key: str | None = Header(default=None, alias="X-Ad-Viewer"),
     session: AsyncSession = Depends(get_db),
 ) -> RedirectResponse:
@@ -143,6 +153,10 @@ async def click_advertisement(
         click_key=dedupe_key[:128],
         viewer_key=viewer_key,
         platform=platform,
+        marketplace_slug=marketplace_slug,
+        city=city,
+        category_slug=category_slug,
+        listing_type=listing_type,
     )
     await session.commit()
     if campaign is None:

@@ -10,8 +10,7 @@ import '../models/auth_models.dart';
 import '../models/city_model.dart';
 import '../models/community_models.dart';
 import '../models/marketplace_community_models.dart';
-import '../models/models.dart';
-import 'secure_http_client.dart';
+import '../models/platform_ad_models.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode});
@@ -116,11 +115,14 @@ class ApiService {
     String path,
     Map<String, dynamic> body, {
     bool auth = false,
+    Map<String, String>? extraHeaders,
   }) async {
+    final headers = _jsonHeaders(auth: auth);
+    if (extraHeaders != null) headers.addAll(extraHeaders);
     final response = await _request(
       () => _post(
         _uri(path),
-        headers: _jsonHeaders(auth: auth),
+        headers: headers,
         body: jsonEncode(body),
       ),
       auth: auth,
@@ -178,9 +180,13 @@ class ApiService {
     String path, {
     bool auth = false,
     Map<String, String>? query,
+    Map<String, String>? extraHeaders,
   }) async {
+    final headers = <String, String>{};
+    if (auth) headers.addAll(_authHeaders);
+    if (extraHeaders != null) headers.addAll(extraHeaders);
     final response = await _request(
-      () => _get(_uri(path, query), headers: auth ? _authHeaders : null),
+      () => _get(_uri(path, query), headers: headers.isEmpty ? null : headers),
       auth: auth,
     );
     _ensureSuccess(response);
@@ -1400,6 +1406,72 @@ class ApiService {
       auth: true,
     );
     return BillingCheckoutResult.fromJson(data);
+  }
+
+  Future<List<PlatformAdvertisementModel>> fetchActivePlatformAds({
+    required String placement,
+    PlatformAdContext context = const PlatformAdContext(),
+    int limit = 1,
+    String? viewerKey,
+  }) async {
+    final query = <String, String>{
+      'placement': placement,
+      'limit': '$limit',
+      ...context.toQueryParameters(),
+    };
+    final headers = <String, String>{};
+    if (viewerKey != null && viewerKey.isNotEmpty) {
+      headers['X-Ad-Viewer'] = viewerKey;
+    }
+    final data = await getJsonList(
+      '/ads/active',
+      auth: false,
+      query: query,
+      extraHeaders: headers,
+    );
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(PlatformAdvertisementModel.fromJson)
+        .toList();
+  }
+
+  Future<bool> recordPlatformAdImpression({
+    required String campaignId,
+    required String placement,
+    required String viewKey,
+    required String viewerKey,
+    PlatformAdContext context = const PlatformAdContext(),
+  }) async {
+    final body = <String, dynamic>{
+      'campaign_id': campaignId,
+      'placement': placement,
+      'view_key': viewKey,
+      ...context.toImpressionBody()..removeWhere((_, value) => value == null),
+    };
+    final response = await postJson(
+      '/ads/impressions?platform=mobile',
+      body,
+      auth: false,
+      extraHeaders: {'X-Ad-Viewer': viewerKey},
+    );
+    return response['recorded'] == true;
+  }
+
+  Uri buildPlatformAdClickUri({
+    required PlatformAdvertisementModel ad,
+    PlatformAdContext context = const PlatformAdContext(),
+    String? clickKey,
+  }) {
+    final base = ad.clickUrl.startsWith('http')
+        ? Uri.parse(ad.clickUrl)
+        : Uri.parse('${AppConfig.apiBaseUrl}${ad.clickUrl}');
+    final params = Map<String, String>.from(base.queryParameters);
+    params['platform'] = 'mobile';
+    if (clickKey != null && clickKey.isNotEmpty) params['click_key'] = clickKey;
+    final contextParams = context.toQueryParameters();
+    contextParams.remove('platform');
+    params.addAll(contextParams);
+    return base.replace(queryParameters: params);
   }
 
   Future<void> cancelSubscription() async {

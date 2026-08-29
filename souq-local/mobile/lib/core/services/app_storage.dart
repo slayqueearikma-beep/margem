@@ -137,7 +137,16 @@ class AppStorage {
   static const _guestFavoritesKey = 'guest_favorite_items';
   static const _legacyGuestCartKey = 'guest_cart_items';
   static const _marketplaceSlugKey = 'buyer_marketplace_slug';
+  static const _adViewerKey = 'dribex_ad_viewer';
   static const _legalAcceptanceCompleteKey = 'legal_acceptance_complete';
+
+  String getAdViewerKey() {
+    final existing = _prefs.getString(_adViewerKey);
+    if (existing != null && existing.isNotEmpty) return existing;
+    final created = DateTime.now().microsecondsSinceEpoch.toString();
+    _prefs.setString(_adViewerKey, created);
+    return created;
+  }
 
   String? getMarketplaceSlug() => _prefs.getString(_marketplaceSlugKey);
 

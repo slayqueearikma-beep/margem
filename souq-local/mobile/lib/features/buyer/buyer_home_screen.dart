@@ -20,6 +20,8 @@ import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/utils/directional_ui.dart';
+import '../../core/models/platform_ad_models.dart';
+import '../../core/widgets/platform_ad_slot.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_drawer.dart';
 import '../../core/widgets/buyer_ui_components.dart';
@@ -210,6 +212,22 @@ class BuyerHomeScreen extends ConsumerWidget {
                     horizontal: AppSpacing.screenHorizontal,
                   ),
                   child: BuyerLocationRow(city: city, onTap: null),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenHorizontal,
+                  ),
+                  child: PlatformAdSlot(
+                    placement: 'homepage_top',
+                    adContext: PlatformAdContext(
+                      marketplaceSlug: validatedMarketplaceSlug(
+                        selectedMarketplace,
+                        marketplacesAsync.valueOrNull ?? const [],
+                      ),
+                      city: city,
+                      categorySlug: ref.watch(buyerCategorySlugProvider),
+                    ),
+                  ),
                 ),
                 marketplacesAsync.when(
                   data: (marketplaces) {
