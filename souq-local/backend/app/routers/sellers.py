@@ -9,9 +9,10 @@ from sqlalchemy.orm import selectinload
 
 from app.auth import get_current_user, get_current_user_optional, require_seller, require_verified_email
 from app.config import settings
+from app.data.marketplace_constants import LAUNCH_CITY
 from app.database import get_db
 from app.limiter import limiter
-from app.models import Category, Product, Review, SellerFollow, SellerProfile, Service, User
+from app.models import Category, Product, Review, SellerFollow, SellerProfile, Service, User, UserMediaObject
 from app.schemas import (
     MapPin,
     ProductCreate,
@@ -29,14 +30,19 @@ from app.schemas import (
     ServiceOut,
     ServiceUpdate,
 )
+from app.services.entitlements import (
+    enforce_combined_listing_limit,
+    has_driver_pro,
+)
+from app.services.premium import apply_seller_premium_expiry, is_premium_active
+from app.services.seller_marketplace import apply_marketplace_selection
 from app.services.ratings import (
     overall_from_categories,
     refresh_seller_ratings,
     rounded_overall,
 )
 from app.services.reviews import get_review_eligibility
-from app.services.upload_security import validate_media_url
-
+from app.services.marketplace_scope import resolve_marketplace_id
 router = APIRouter(prefix="/sellers", tags=["sellers"])
 
 _MAX_PAGE_SIZE = 100
@@ -61,6 +67,7 @@ async def _load_seller_detail(session: AsyncSession, seller_id: UUID) -> SellerP
             selectinload(SellerProfile.products),
             selectinload(SellerProfile.services),
             selectinload(SellerProfile.user),
+            selectinload(SellerProfile.marketplace),
         )
         .where(SellerProfile.id == seller_id)
     )
@@ -79,6 +86,11 @@ async def _load_seller_detail(session: AsyncSession, seller_id: UUID) -> SellerP
     )
     # Attached for SellerDetail.from_attributes serialization (not an ORM column).
     setattr(seller, "follower_count", int(followers or 0))
+    from app.services.seller_marketplace import attach_marketplace_metadata, format_stall_location
+
+    attach_marketplace_metadata(seller)
+    setattr(seller, "stall_location_summary", format_stall_location(seller))
+    setattr(seller, "phone_verified", False)
     return seller
 
 
@@ -98,13 +110,47 @@ async def _seller_for_user(user: User, session: AsyncSession) -> SellerProfile:
 
 
 def _validate_owner_media(url: str, user_id: UUID) -> str:
+    from app.services.storage_provider import get_storage_provider
+
     try:
-        return validate_media_url(
-            url or "",
-            owner_user_id=user_id,
-            container=settings.azure_storage_container,
-            public_api_url=settings.public_api_url,
-        )
+        return get_storage_provider().validate_owner_url(url or "", owner_user_id=user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+async def _validate_owner_media_registered(
+    session: AsyncSession,
+    url: str,
+    user_id: UUID,
+) -> str:
+    from app.services.media_registry import require_registered_media
+
+    validated = _validate_owner_media(url, user_id)
+    if validated:
+        try:
+            await require_registered_media(session, user_id=user_id, public_url=validated)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return validated
+
+
+async def _validate_owner_media_list_registered(
+    session: AsyncSession,
+    urls: list[str],
+    user_id: UUID,
+) -> list[str]:
+    result: list[str] = []
+    for u in urls:
+        if u and str(u).strip():
+            result.append(await _validate_owner_media_registered(session, u, user_id))
+    return result
+
+
+def _validate_morocco_coordinates(latitude: float, longitude: float) -> None:
+    from app.services.geo import validate_morocco_coordinates
+
+    try:
+        validate_morocco_coordinates(latitude, longitude)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -122,6 +168,25 @@ def _validate_optional_http_url(url: str, *, field: str) -> str:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
+async def _has_driver_pro_entitlement(
+    session: AsyncSession,
+    user: User,
+    seller: SellerProfile,
+) -> bool:
+    return await has_driver_pro(session, user, seller)
+
+
+def _require_premium_seller(user: User, seller: SellerProfile) -> None:
+    if not is_premium_active(
+        is_premium=bool(seller.is_premium),
+        premium_until=user.premium_until if seller.is_premium else None,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="DriverPro subscription is required for this feature",
+        )
+
+
 def _public_product_visible(product: Product) -> bool:
     return (
         not bool(getattr(product, "is_hidden", False))
@@ -132,25 +197,25 @@ def _public_product_visible(product: Product) -> bool:
 
 @router.get("", response_model=list[SellerSummary])
 async def list_sellers(
-    city: str | None = None,
     category: str | None = None,
+    marketplace: str | None = Query(default=None, max_length=80),
     q: str | None = None,
     limit: int = Query(default=_DEFAULT_PAGE_SIZE, ge=1, le=_MAX_PAGE_SIZE),
     offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_db),
 ) -> list[SellerProfile]:
+    marketplace_id = await resolve_marketplace_id(session, marketplace)
     stmt = (
         select(SellerProfile)
         .options(
             selectinload(SellerProfile.categories),
             selectinload(SellerProfile.user),
+            selectinload(SellerProfile.marketplace),
         )
-        .where(SellerProfile.is_active.is_(True))
+        .where(SellerProfile.is_active.is_(True), SellerProfile.city.ilike(LAUNCH_CITY))
     )
-
-    if city:
-        safe_city = _escape_ilike(city[:80])
-        stmt = stmt.where(SellerProfile.city.ilike(safe_city))
+    if marketplace_id is not None:
+        stmt = stmt.where(SellerProfile.marketplace_id == marketplace_id)
     if q:
         safe_q = _escape_ilike(q[:120])
         pattern = f"%{safe_q}%"
@@ -179,6 +244,12 @@ async def list_sellers(
             dirty = True
     if dirty:
         await session.commit()
+    from app.services.seller_marketplace import attach_marketplace_metadata, format_stall_location
+
+    for seller in sellers:
+        attach_marketplace_metadata(seller)
+        setattr(seller, "stall_location_summary", format_stall_location(seller))
+        setattr(seller, "phone_verified", False)
     # Prefer still-premium first after expiry corrections.
     sellers.sort(key=lambda s: (not s.is_premium, -(s.average_rating or 0.0)))
     return sellers
@@ -186,12 +257,17 @@ async def list_sellers(
 
 @router.get("/map", response_model=list[MapPin])
 async def map_pins(
-    city: str | None = None,
     category: str | None = None,
+    marketplace: str | None = Query(default=None, max_length=80),
     session: AsyncSession = Depends(get_db),
 ) -> list[MapPin]:
     sellers = await list_sellers(
-        city=city, category=category, q=None, limit=_MAX_PAGE_SIZE, offset=0, session=session
+        category=category,
+        marketplace=marketplace,
+        q=None,
+        limit=_MAX_PAGE_SIZE,
+        offset=0,
+        session=session,
     )
     return [
         MapPin(
@@ -203,6 +279,13 @@ async def map_pins(
             golden_crowns=s.golden_crowns,
             average_rating=s.average_rating,
             category_slugs=[c.slug for c in s.categories],
+            marketplace_slug=getattr(s, "marketplace_slug", None),
+            market_zone=s.market_zone or "",
+            market_street=s.market_street or "",
+            market_gallery=s.market_gallery or "",
+            shop_number=s.shop_number or "",
+            stall_location_summary=getattr(s, "stall_location_summary", "") or "",
+            is_seller_pro=bool(getattr(s, "is_seller_pro", s.is_premium)),
         )
         for s in sellers
     ]
@@ -270,11 +353,14 @@ async def get_my_dashboard(
 @router.post("", response_model=SellerDetail, status_code=status.HTTP_201_CREATED)
 async def create_seller(
     payload: SellerCreate,
+    request: Request,
     user: User = Depends(require_verified_email),
     session: AsyncSession = Depends(get_db),
 ) -> SellerProfile:
     """Create a storefront on the current account (buyer can upgrade in place)."""
     from app.models import AccountType, UserRole
+    from app.services.client_ip import get_client_ip
+    from app.services.electronic_acceptance import record_seller_agreement_acceptance
 
     existing = await session.execute(select(SellerProfile).where(SellerProfile.user_id == user.id))
     if existing.scalar_one_or_none():
@@ -285,8 +371,9 @@ async def create_seller(
         result = await session.execute(select(Category).where(Category.id.in_(payload.category_ids)))
         categories = list(result.scalars().all())
 
-    cover = _validate_owner_media(payload.cover_image_url, user.id)
-    logo = _validate_owner_media(payload.logo_image_url, user.id)
+    cover = await _validate_owner_media_registered(session, payload.cover_image_url, user.id)
+    logo = await _validate_owner_media_registered(session, payload.logo_image_url, user.id)
+    _validate_morocco_coordinates(payload.latitude, payload.longitude)
 
     seller = SellerProfile(
         user_id=user.id,
@@ -308,12 +395,31 @@ async def create_seller(
         payment_methods=payload.payment_methods or ["cash"],
         delivery_methods=payload.delivery_methods or ["in_store"],
         service_areas=payload.service_areas or [],
+        market_zone=payload.market_zone.strip(),
+        market_street=payload.market_street.strip(),
+        market_gallery=payload.market_gallery.strip(),
+        shop_number=payload.shop_number.strip(),
+        market_floor=payload.market_floor.strip(),
+        nearby_landmark=payload.nearby_landmark.strip(),
         categories=categories,
+    )
+    await apply_marketplace_selection(
+        session,
+        seller,
+        payload.marketplace_slug,
+        payload.custom_marketplace_name,
     )
     session.add(seller)
     # Dual-mode: keep one identity; mark account as seller-capable.
-    user.account_type = AccountType.SELLER
-    user.role = UserRole.SELLER
+    user.account_type = AccountType.PROVIDER
+    user.role = UserRole.PROVIDER
+    await record_seller_agreement_acceptance(
+        session,
+        user_id=user.id,
+        language=payload.acceptance_language,
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("user-agent", ""),
+    )
     await session.commit()
     return await _load_seller_detail(session, seller.id)
 
@@ -359,11 +465,29 @@ async def update_seller(
     data = payload.model_dump(exclude_unset=True)
     category_ids = data.pop("category_ids", None)
     opening_hours = data.pop("opening_hours", None)
+    marketplace_slug = data.pop("marketplace_slug", None)
+    custom_marketplace_name = data.pop("custom_marketplace_name", None)
 
     if "cover_image_url" in data:
-        data["cover_image_url"] = _validate_owner_media(data["cover_image_url"] or "", user.id)
+        new_cover = await _validate_owner_media_registered(session, data["cover_image_url"] or "", user.id)
+        if new_cover != seller.cover_image_url:
+            from app.services.media_registry import supersede_media_url
+
+            await supersede_media_url(session, user_id=user.id, old_url=seller.cover_image_url)
+        data["cover_image_url"] = new_cover
     if "logo_image_url" in data:
-        data["logo_image_url"] = _validate_owner_media(data["logo_image_url"] or "", user.id)
+        new_logo = await _validate_owner_media_registered(session, data["logo_image_url"] or "", user.id)
+        if new_logo != seller.logo_image_url:
+            from app.services.media_registry import supersede_media_url
+
+            await supersede_media_url(session, user_id=user.id, old_url=seller.logo_image_url)
+        data["logo_image_url"] = new_logo
+    if "latitude" in data and "longitude" in data and data["latitude"] is not None and data["longitude"] is not None:
+        _validate_morocco_coordinates(float(data["latitude"]), float(data["longitude"]))
+    elif "latitude" in data and data["latitude"] is not None:
+        _validate_morocco_coordinates(float(data["latitude"]), float(seller.longitude))
+    elif "longitude" in data and data["longitude"] is not None:
+        _validate_morocco_coordinates(float(seller.latitude), float(data["longitude"]))
     for url_field in ("website_url", "instagram_url", "facebook_url", "tiktok_url"):
         if url_field in data and data[url_field] is not None:
             data[url_field] = _validate_optional_http_url(data[url_field] or "", field=url_field)
@@ -377,6 +501,14 @@ async def update_seller(
         result = await session.execute(select(Category).where(Category.id.in_(category_ids)))
         seller.categories = list(result.scalars().all())
 
+    if marketplace_slug is not None or custom_marketplace_name is not None:
+        await apply_marketplace_selection(
+            session,
+            seller,
+            marketplace_slug,
+            custom_marketplace_name,
+        )
+
     await session.commit()
     return await _load_seller_detail(session, seller_id)
 
@@ -388,17 +520,30 @@ async def add_product(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Product:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
+    await enforce_combined_listing_limit(session, seller_id=seller_id, user=user)
 
-    image_url = _validate_owner_media(payload.image_url, user.id)
-    product_data = payload.model_dump()
+    image_url = await _validate_owner_media_registered(session, payload.image_url, user.id)
+    product_data = payload.model_dump(exclude={"pricing_type", "price_mad"})
     product_data["image_url"] = image_url
-    product_data["media_urls"] = _validate_owner_media_list(list(payload.media_urls or []), user.id)
-    product_data["video_url"] = _validate_owner_media(payload.video_url or "", user.id)
-    if payload.is_featured and not user.is_premium:
-        # Featured placement is a premium visibility perk.
+    product_data["media_urls"] = await _validate_owner_media_list_registered(
+        session, list(payload.media_urls or []), user.id
+    )
+    if payload.is_featured and not await _has_driver_pro_entitlement(session, user, seller):
         product_data["is_featured"] = False
     product = Product(seller_id=seller_id, **product_data)
+    from app.models import PricingType
+    from app.services.marketplace_pricing import apply_pricing_to_product, normalize_pricing_fields
+
+    try:
+        pricing_type, price_mad, price_negotiable = normalize_pricing_fields(
+            pricing_type=payload.pricing_type,
+            price_mad=payload.price_mad,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    apply_pricing_to_product(product, pricing_type=pricing_type, price_mad=price_mad)
+    product.price_negotiable = price_negotiable
     session.add(product)
     await session.commit()
     await session.refresh(product)
@@ -412,16 +557,63 @@ async def add_service(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Service:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
+    await enforce_combined_listing_limit(session, seller_id=seller_id, user=user)
 
-    image_url = _validate_owner_media(payload.image_url, user.id)
-    service_data = payload.model_dump()
+    image_url = await _validate_owner_media_registered(session, payload.image_url, user.id)
+    from app.services.service_pricing import normalize_service_pricing
+
+    pricing = normalize_service_pricing(payload.model_dump())
+    service_data = payload.model_dump(
+        exclude={"pricing_type", "price_mad", "price_min_mad", "price_max_mad", "pricing_model", "price_negotiable"}
+    )
     service_data["image_url"] = image_url
+    service_data.update(pricing)
     service = Service(seller_id=seller_id, **service_data)
+    from app.services.marketplace_pricing import apply_pricing_to_service, normalize_pricing_fields
+
+    pricing_type, price_mad, price_negotiable = normalize_pricing_fields(
+        pricing_type=payload.pricing_type,
+        price_mad=service.price_mad,
+    )
+    apply_pricing_to_service(service, pricing_type=pricing_type, price_mad=price_mad)
+    service.price_negotiable = price_negotiable or service.price_negotiable
     session.add(service)
     await session.commit()
     await session.refresh(service)
     return service
+
+
+@router.post("/{seller_id}/share-link")
+async def create_seller_share_link(
+    seller_id: UUID,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    await _owned_seller(seller_id, user, session)
+    from app.services.share_links import get_or_create_share_link, public_qr_url
+
+    link = await get_or_create_share_link(session, resource_type="seller", resource_id=seller_id)
+    await session.commit()
+    return {"token": link.token, "public_url": public_qr_url(link.token)}
+
+
+@router.post("/{seller_id}/products/{product_id}/share-link")
+async def create_product_share_link(
+    seller_id: UUID,
+    product_id: UUID,
+    user: User = Depends(require_seller),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    await _owned_seller(seller_id, user, session)
+    product = await session.get(Product, product_id)
+    if product is None or product.seller_id != seller_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    from app.services.share_links import get_or_create_share_link, public_qr_url
+
+    link = await get_or_create_share_link(session, resource_type="product", resource_id=product_id)
+    await session.commit()
+    return {"token": link.token, "public_url": public_qr_url(link.token)}
 
 
 @router.patch("/{seller_id}/products/{product_id}", response_model=ProductOut)
@@ -432,19 +624,19 @@ async def update_product(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Product:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
     product = await session.get(Product, product_id)
     if product is None or product.seller_id != seller_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
-        data["image_url"] = _validate_owner_media(data["image_url"] or "", user.id)
+        data["image_url"] = await _validate_owner_media_registered(session, data["image_url"] or "", user.id)
     if "media_urls" in data and data["media_urls"] is not None:
-        data["media_urls"] = _validate_owner_media_list(list(data["media_urls"] or []), user.id)
-    if "video_url" in data:
-        data["video_url"] = _validate_owner_media(data["video_url"] or "", user.id)
-    if data.get("is_featured") is True and not user.is_premium:
+        data["media_urls"] = await _validate_owner_media_list_registered(
+            session, list(data["media_urls"] or []), user.id
+        )
+    if data.get("is_featured") is True and not await _has_driver_pro_entitlement(session, user, seller):
         data["is_featured"] = False
 
     for key, value in data.items():
@@ -480,7 +672,8 @@ async def duplicate_product(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Product:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
+    await enforce_combined_listing_limit(session, seller_id=seller_id, user=user)
     product = await session.get(Product, product_id)
     if product is None or product.seller_id != seller_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
@@ -488,14 +681,14 @@ async def duplicate_product(
         seller_id=seller_id,
         name=f"{product.name} (copy)",
         description=product.description,
+        pricing_type=product.pricing_type,
         price_mad=product.price_mad,
         price_negotiable=product.price_negotiable,
         availability_note=product.availability_note,
-        accepted_payment_methods=list(product.accepted_payment_methods or []),
-        delivery_options=list(product.delivery_options or []),
+        delivery_available=product.delivery_available,
+        pickup_only=product.pickup_only,
         image_url=product.image_url,
         media_urls=list(product.media_urls or []),
-        video_url=product.video_url,
         category_slug=product.category_slug,
         stock_quantity=product.stock_quantity,
         is_available=False,
@@ -517,14 +710,28 @@ async def update_service(
     user: User = Depends(require_seller),
     session: AsyncSession = Depends(get_db),
 ) -> Service:
-    await _owned_seller(seller_id, user, session)
+    seller = await _owned_seller(seller_id, user, session)
     service = await session.get(Service, service_id)
     if service is None or service.seller_id != seller_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
 
     data = payload.model_dump(exclude_unset=True)
     if "image_url" in data:
-        data["image_url"] = _validate_owner_media(data["image_url"] or "", user.id)
+        data["image_url"] = await _validate_owner_media_registered(session, data["image_url"] or "", user.id)
+
+    pricing_keys = {"pricing_model", "price_mad", "price_min_mad", "price_max_mad", "price_negotiable"}
+    if pricing_keys.intersection(data):
+        from app.services.service_pricing import normalize_service_pricing
+
+        merged = {
+            "pricing_model": service.pricing_model,
+            "price_mad": float(service.price_mad) if service.price_mad is not None else None,
+            "price_min_mad": float(service.price_min_mad) if service.price_min_mad is not None else None,
+            "price_max_mad": float(service.price_max_mad) if service.price_max_mad is not None else None,
+            "price_negotiable": service.price_negotiable,
+        }
+        merged.update({key: data[key] for key in pricing_keys if key in data})
+        data.update(normalize_service_pricing(merged))
 
     for key, value in data.items():
         setattr(service, key, value)

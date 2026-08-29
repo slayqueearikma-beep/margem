@@ -2,10 +2,13 @@ import 'app_strings_en.dart';
 
 class AppStringsAr extends AppStringsEn {
   @override
-  @override
-  String get appName => 'MarGem';
+  String get appName => 'Dribex';
   @override
   String get appTagline => 'اكتشف كنوز المغرب المخفية';
+  @override
+  String get splashTagline => 'اكتشف. تواصل. انمُ محلياً.';
+  @override
+  String get alreadyHaveAccount => 'لديك حساب بالفعل؟';
   @override
   String get selectLanguage => 'اختر لغتك';
   @override
@@ -53,25 +56,47 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get language => 'اللغة';
   @override
-  String get discoverTitle => 'اكتشف المحلات المحلية';
+  String get discoverTitle => 'اكتشف المحلات والخدمات المحلية';
   @override
   String get discoverSubtitle =>
-      'اعثر على متاجر ومنتجات وخدمات موثوقة في جميع أنحاء المغرب — في مكان واحد.';
+      'اعثر على بائعين موثوقين ومنتجات فريدة وخدمات رائعة من حولك.';
   @override
   String get exploreMapTitle => 'استكشف على الخريطة';
   @override
   String get exploreMapSubtitle =>
-      'تصفح المتاجر القريبة، وفلتر حسب الفئة، واحصل على الاتجاهات فوراً.';
+      'تصفّح المتاجر القريبة، وصفِّ حسب الفئة، واحصل على الاتجاهات فوراً.';
   @override
   String get trustedReviewsTitle => 'تقييمات موثوقة';
   @override
   String get trustedReviewsSubtitle =>
       'اقرأ تقييمات المشترين الحقيقيين واكتشف أكثر المحلات موثوقية في مدينتك.';
   @override
-  String get chooseAccountType => 'اختر نوع حسابك';
+  String get connectTitle => 'تواصل بثقة';
+  @override
+  String get connectSubtitle =>
+      'ملفات موثقة وتقييمات وتواصل آمن يمكنك الوثوق به.';
+  @override
+  String get growTitle => 'نمِّ نشاطك التجاري';
+  @override
+  String get growSubtitle =>
+      'أدرج منتجاتك أو خدماتك، واصل إلى المزيد من العملاء ونمِّ علامتك التجارية.';
+  @override
+  String get chooseAccountType => 'مرحباً بك في Dribex';
   @override
   String get chooseAccountTypeSubtitle =>
-      'حساب واحد للاثنين. ابدأ كمتسوّق أو أنشئ متجراً — يمكنك التبديل في أي وقت بنفس البريد وكلمة المرور.';
+      'انضم إلى مجتمعنا واكتشف جواهر المغرب المخفية.';
+  @override
+  String get accountTypeSectionLabel => 'اختر نوع حسابك';
+  @override
+  String get decideLater => 'سأقرر لاحقاً';
+  @override
+  String get secureSignupLine1 => 'بياناتك مشفرة وآمنة.';
+  @override
+  String get secureSignupLine2 => 'لن نشارك معلوماتك الشخصية أبداً.';
+  @override
+  String get continueAsBuyer => 'المتابعة كمشتري';
+  @override
+  String get continueAsSeller => 'المتابعة كبائع';
   @override
   String get buyer => 'مشتري';
   @override
@@ -79,7 +104,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get seller => 'بائع';
   @override
-  String get sellerSubtitle => 'أنشئ حضورك الرقمي واصل إلى المزيد من العملاء.';
+  String get sellerSubtitle => 'أنشئ حضورك الرقمي، واصل إلى المزيد من العملاء.';
   @override
   String get buyerBullet1 => 'اكتشف المتاجر القريبة';
   @override
@@ -124,7 +149,7 @@ class AppStringsAr extends AppStringsEn {
   String get city => 'المدينة';
   @override
   String get fillRequiredFields =>
-      'يرجى ملء جميع الحقول المطلوبة (كلمة المرور 6 أحرف على الأقل).';
+      'يرجى ملء جميع الحقول المطلوبة (كلمة المرور 8 أحرف على الأقل مع حرف كبير وصغير ورقم).';
   @override
   String get navHome => 'الرئيسية';
   @override
@@ -132,11 +157,80 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get navMap => 'الخريطة';
   @override
-  String get navProfile => 'الملف';
+  String get navProfile => 'الملف الشخصي';
   @override
   String get navMessages => 'الرسائل';
   @override
-  String get margemMember => 'عضو MarGem';
+  String get navDashboard => 'لوحة التحكم';
+  @override
+  String get navServices => 'الخدمات';
+  @override
+  String get navBookings => 'الاستفسارات';
+  @override
+  String get navMore => 'المزيد';
+  @override
+  String get earnings => 'الأرباح';
+  @override
+  String get gallery => 'المعرض';
+  @override
+  String get businessInfo => 'معلومات النشاط';
+  @override
+  String get comingSoon => 'قريبًا';
+  @override
+  String get upcomingBookings => 'الاستفسارات القادمة';
+  @override
+  String get viewAll => 'عرض الكل';
+  @override
+  String get highlightServices => 'خدمات مميزة';
+  @override
+  String get upcoming => 'قادم';
+  @override
+  String filterAll(int count) => 'الكل ($count)';
+  @override
+  String filterActive(int count) => 'نشط ($count)';
+  @override
+  String filterInactive(int count) => 'غير نشط ($count)';
+  @override
+  String bookingsUpcoming(int count) =>
+      count > 0 ? 'قادم ($count)' : 'قادم';
+  @override
+  String bookingsCompleted(int count) =>
+      count > 0 ? 'مكتمل ($count)' : 'مكتمل';
+  @override
+  String bookingsCancelled(int count) =>
+      count > 0 ? 'ملغى ($count)' : 'ملغى';
+  @override
+  String get noBookingsYet =>
+      'لا توجد استفسارات بعد. ستظهر طلبات العملاء هنا.';
+  @override
+  String get noBookingsInCategory => 'لا يوجد شيء في هذه الفئة بعد.';
+  @override
+  String get bookingsInquiryHint => 'افتح الرسائل للرد على العملاء.';
+  @override
+  String get viewMessages => 'عرض الرسائل';
+  @override
+  String get today => 'اليوم';
+  @override
+  String favoritesCount(int count) => '$count مفضلة في متجرك';
+  @override
+  String get stepBasicInfo => 'المعلومات الأساسية';
+  @override
+  String get stepPricing => 'التسعير';
+  @override
+  String get stepDetails => 'التفاصيل';
+  @override
+  String get customersWillSee => 'سيرى العملاء:';
+  @override
+  String get nextStep => 'متابعة';
+  @override
+  String get publishService => 'نشر الخدمة';
+  @override
+  String get serviceStatusLive => 'الخدمة متاحة';
+  @override
+  String get serviceDetailsHint =>
+      'يمكنك تحديث التوفر والأسعار في أي وقت من تبويب الخدمات.';
+  @override
+  String get margemMember => 'عضو Dribex';
   @override
   String get allCategories => 'الكل';
   @override
@@ -145,7 +239,7 @@ class AppStringsAr extends AppStringsEn {
   String get searchConversations => 'البحث في المحادثات';
   @override
   String get noConversationsYet =>
-      'لا توجد محادثات بعد. راسل أي نشاط تجاري — بما في ذلك البائعين الآخرين.';
+      'لا توجد محادثات بعد. راسل أي محل — بما في ذلك البائعين الآخرين.';
   @override
   String get signInToMessage => 'سجّل الدخول لمراسلة أي شخص';
   @override
@@ -158,6 +252,19 @@ class AppStringsAr extends AppStringsEn {
   @override
   String goodMorning(String name) =>
       name.isEmpty ? 'صباح الخير' : 'صباح الخير، $name';
+  @override
+  String buyerHello(String name) =>
+      name.isEmpty ? 'مرحباً 👋' : 'مرحباً، $name 👋';
+  @override
+  String get buyerHomeSubtitle => 'ماذا تبحث عنه اليوم؟';
+  @override
+  String get promoBannerTitle => 'اعثر على الأفضل من حولك';
+  @override
+  String get promoBannerSubtitle => 'بائعون موثوقون وعروض رائعة';
+  @override
+  String get exploreNow => 'استكشف الآن';
+  @override
+  String get popularCategories => 'الفئات الشائعة';
   @override
   String get searchHint => 'ابحث عن متاجر، منتجات، خدمات…';
   @override
@@ -184,6 +291,23 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get tryAgain => 'حاول مرة أخرى';
   @override
+  String get contentNotFound => 'تعذر العثور على المحتوى المطلوب.';
+  @override
+  String get requestCouldNotBeProcessed =>
+      'تعذر إتمام الطلب. يرجى المحاولة مرة أخرى.';
+  @override
+  String get tooManyRequests =>
+      'طلبات كثيرة جداً. انتظر قليلاً ثم حاول مرة أخرى.';
+  @override
+  String get searchEmptySubtitle =>
+      'جرّب كلمة أخرى أو فئة مختلفة أو أزل عوامل التصفية.';
+  @override
+  String get premiumCheckoutOpened =>
+      'أكمل الدفع في المتصفح ثم عد إلى Dribex.';
+  @override
+  String get premiumCheckoutFailed =>
+      'تعذر فتح صفحة الدفع. حاول مرة أخرى أو تواصل مع الدعم.';
+  @override
   String get verifyEmailToContinue => 'تحقق من بريدك الإلكتروني قبل المتابعة.';
   @override
   String get pressBackAgainToExit => 'اضغط مرة أخرى للخروج';
@@ -192,9 +316,59 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get businessKeyword => 'اسم المحل أو كلمة مفتاحية';
   @override
+  String get pricingOffer => 'عرض';
+  @override
+  String get deliveryAvailable => 'التوصيل متاح';
+  @override
+  String get pickupOnly => 'الاستلام من المتجر فقط';
+  @override
+  String get searchFilters => 'التصفية';
+  @override
+  String get minRating => 'أدنى تقييم';
+  @override
+  String get provider => 'البائعون';
+  @override
+  String get productCategory => 'الفئة';
+  @override
+  String get applyFilters => 'تطبيق';
+  @override
+  String get clearFilters => 'مسح';
+  @override
   String get noBusinessesFound => 'لم يتم العثور على محلات';
   @override
-  String warningZones(int count) => '$count منطقة تحذير';
+  String get searchSortedByNearest => 'عرض الأقرب أولاً';
+  @override
+  String get searchSortRelevance => 'الأكثر صلة';
+  @override
+  String get searchSortNearest => 'الأقرب';
+  @override
+  String get loadMoreResults => 'تحميل المزيد';
+  @override
+  String get savedSearchesTitle => 'عمليات البحث المحفوظة';
+  @override
+  String get saveCurrentSearch => 'حفظ هذا البحث';
+  @override
+  String get savedSearchApplied => 'تم تطبيق البحث المحفوظ';
+  @override
+  String get savedSearchDeleted => 'تم حذف البحث المحفوظ';
+  @override
+  String get savedSearchPremiumRequired =>
+      'عمليات البحث المحفوظة متاحة مع Dribex Plus.';
+  @override
+  String get sellerProBadge => 'Pro';
+  @override
+  String get buyerPlusBadge => 'Plus';
+  @override
+  String get sellerCategoriesTitle => 'فئات النشاط';
+  @override
+  String get mapZoneFilterAll => 'كل المناطق';
+  @override
+  String get mapZoneHierarchyTitle => 'المحلات حسب المنطقة';
+  @override
+  String get noShopsInZone => 'لا توجد محلات في هذه المنطقة بعد';
+  @override
+  String warningZones(int count) =>
+      count == 1 ? 'منطقة تحذير واحدة' : '$count مناطق تحذير';
   @override
   String get yourProfile => 'ملفك الشخصي';
   @override
@@ -229,7 +403,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get reviewsSub => 'عرض والرد على تقييمات العملاء';
   @override
-  String get profileManagement => 'إدارة الملف';
+  String get profileManagement => 'إدارة الملف الشخصي';
   @override
   String get profileManagementSub => 'تحديث معلومات المحل والساعات والصور';
   @override
@@ -255,7 +429,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get accountSecurity => 'الحساب والأمان';
   @override
-  String get accountSecuritySub => 'كلمة المرور والمظهر وحذف الحساب';
+  String get accountSecuritySub => 'كلمة المرور والمظهر';
   @override
   String get notifications => 'الإشعارات';
   @override
@@ -295,6 +469,59 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get productDeleted => 'تم حذف المنتج';
   @override
+  String get serviceManagement => 'إدارة الخدمات';
+  @override
+  String get serviceManagementSub => 'إضافة أو تعديل أو حذف الخدمات والأسعار';
+  @override
+  String get addService => 'إضافة خدمة';
+  @override
+  String get addVideo => 'إضافة فيديو';
+  @override
+  String get addVideoSub =>
+      'شارك فيديو قصيراً (أقل من دقيقة) لعرض نشاطك التجاري.';
+  @override
+  String get createVideo => 'إنشاء فيديو';
+  @override
+  String get createVideoSub => 'سجّل فيديو جديداً باستخدام الكاميرا';
+  @override
+  String get selectVideo => 'اختيار فيديو';
+  @override
+  String get selectVideoSub => 'اختر فيديو موجوداً من المعرض أو الملفات';
+  @override
+  String get videoTooLong =>
+      'يجب أن يكون الفيديو أقل من دقيقة واحدة. اختر أو سجّل مقطعاً أقصر.';
+  @override
+  String get videoLoadFailed => 'تعذّر تحميل هذا الفيديو. جرّب ملفاً آخر.';
+  @override
+  String get videoPublished => 'تم نشر الفيديو';
+  @override
+  String get premiumRequiredTitle => 'يتطلب DriverPro';
+  @override
+  String get premiumRequiredForVideo =>
+      'رفع الفيديو يتطلب اشتراك DriverPro نشطاً للبائع.';
+  @override
+  String get upgradeToPremium => 'الترقية إلى DriverPro';
+  @override
+  String get retakeVideo => 'إعادة التسجيل';
+  @override
+  String get chooseAnotherVideo => 'اختيار آخر';
+  @override
+  String get cameraPermissionDenied =>
+      'يلزم الوصول إلى الكاميرا لتسجيل فيديو.';
+  @override
+  String get editService => 'تعديل الخدمة';
+  @override
+  String get deleteService => 'حذف الخدمة';
+  @override
+  String get deleteServiceConfirm =>
+      'حذف هذه الخدمة؟ لن يراها المشترون في متجرك بعد الآن.';
+  @override
+  String get noServicesYet => 'لا توجد خدمات بعد. أضف خدمتك الأولى.';
+  @override
+  String get serviceSaved => 'تم حفظ الخدمة';
+  @override
+  String get serviceDeleted => 'تم حذف الخدمة';
+  @override
   String get profileSaved => 'تم تحديث الملف';
   @override
   String get storeVisible => 'المتجر ظاهر للمشترين';
@@ -310,12 +537,12 @@ class AppStringsAr extends AppStringsEn {
   String get passwordChanged =>
       'تم تحديث كلمة المرور. سجّل الدخول مجدداً على الأجهزة الأخرى.';
   @override
-  String get recentReviews => 'المراجعات الأخيرة';
+  String get recentReviews => 'أحدث التقييمات';
   @override
   String get noNotifications => 'لا توجد إشعارات جديدة';
   @override
   String get notificationsSubtitle =>
-      'تظهر هنا الاستفسارات والرسائل وتحديثات بريميوم والحساب.';
+      'تظهر هنا الاستفسارات والرسائل وتحديثات Dribex Plus والحساب.';
   @override
   String get appearance => 'المظهر';
   @override
@@ -376,6 +603,8 @@ class AppStringsAr extends AppStringsEn {
   String get description => 'الوصف';
   @override
   String get priceOptional => 'السعر (درهم، اختياري)';
+  @override
+  String get priceMad => 'السعر (درهم)';
   @override
   String get addAnotherItem => 'إضافة عنصر آخر';
   @override
@@ -450,7 +679,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get emailHint => 'you@example.com';
   @override
-  String get businessNameHint => 'مثال: Hana Chicken';
+  String get businessNameHint => 'مثال: مطعم الأصالة';
   @override
   String get ownerNameHint => 'اسمك الكامل';
   @override
@@ -466,11 +695,16 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get priceHint => 'مثال: 49.99';
   @override
-  String get returningUser => 'مستخدم';
+  String get returningUser => 'هل لديك حساب؟';
   @override
   String get sellerDefault => 'بائع';
   @override
-  String itemsCount(int count) => '$count عنصر';
+  String itemsCount(int count) {
+    if (count == 1) return 'عنصر واحد';
+    if (count == 2) return 'عنصران';
+    if (count >= 3 && count <= 10) return '$count عناصر';
+    return '$count عنصراً';
+  }
   @override
   String get guestContinue => 'المتابعة كضيف';
   @override
@@ -487,16 +721,16 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get favorites => 'المفضلة';
   @override
-  String get premium => 'بريميوم';
+  String get premium => 'Dribex Plus';
   @override
   String get guestCartSignInHint =>
-      'مفضلتك محفوظة على هذا الجهاز. سجّل الدخول لمزامنتها مع حسابك.';
+      'مفضلاتك محفوظة على هذا الجهاز. سجّل الدخول لمزامنتها مع حسابك.';
   @override
   String get signInToCheckout => 'سجّل الدخول للتواصل مع البائعين';
   @override
   String get subtotal => 'المجموع الفرعي';
   @override
-  String get emptyCart => 'لا توجد مفضلة بعد';
+  String get emptyCart => 'لا توجد مفضلات بعد';
   @override
   String get emptyCartSubtitle =>
       'احفظ المنتجات المحلية التي تعجبك وستظهر هنا.';
@@ -507,7 +741,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get addToWishlist => 'أضف إلى المفضلة';
   @override
-  String get addedToCart => 'تم تسجيل التواصل';
+  String get addedToCart => 'تم تسجيل اهتمامك';
   @override
   String get addedToWishlist => 'تمت الإضافة إلى المفضلة';
   @override
@@ -519,8 +753,79 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get priceNegotiable => 'السعر قابل للتفاوض';
   @override
-  String get acceptedPaymentMethods => 'طرق الدفع المقبولة';
+  String get pricingModel => 'نموذج التسعير';
   @override
+  String get pricingModelFixedPrice => 'سعر ثابت';
+  @override
+  String get pricingModelStartingFrom => 'يبدأ من';
+  @override
+  String get pricingModelPriceRange => 'نطاق سعري';
+  @override
+  String get pricingModelHourly => 'بالساعة';
+  @override
+  String get pricingModelDaily => 'يومي';
+  @override
+  String get pricingModelWeekly => 'أسبوعي';
+  @override
+  String get pricingModelMonthly => 'شهري';
+  @override
+  String get pricingModelPerPerson => 'للشخص';
+  @override
+  String get pricingModelPerUnit => 'للوحدة';
+  @override
+  String get pricingModelPerSqm => 'للمتر المربع';
+  @override
+  String get pricingModelPerKm => 'للكيلومتر';
+  @override
+  String get pricingModelRequestQuote => 'اطلب عرض سعر';
+  @override
+  String get pricingModelContactForPrice => 'تواصل للسعر';
+  @override
+  String get pricingModelNegotiable => 'قابل للتفاوض';
+  @override
+  String get pricingModelFree => 'مجاني';
+  @override
+  String get minPrice => 'الحد الأدنى للسعر (درهم)';
+  @override
+  String get maxPrice => 'الحد الأقصى للسعر (درهم)';
+  @override
+  String priceStartingFrom(String amount) => 'يبدأ من $amount';
+  @override
+  String priceRangeLabel(String min, String max) => '$min – $max';
+  @override
+  String pricePerHour(String amount) => '$amount / ساعة';
+  @override
+  String pricePerDay(String amount) => '$amount / يوم';
+  @override
+  String pricePerWeek(String amount) => '$amount / أسبوع';
+  @override
+  String pricePerMonth(String amount) => '$amount / شهر';
+  @override
+  String pricePerPerson(String amount) => '$amount / شخص';
+  @override
+  String pricePerUnit(String amount) => '$amount / وحدة';
+  @override
+  String pricePerSqm(String amount) => '$amount / م²';
+  @override
+  String pricePerKm(String amount) => '$amount / كم';
+  @override
+  String priceNegotiableWithAmount(String amount) => '$amount · قابل للتفاوض';
+  @override
+  String get enterValidPrice => 'أدخل سعرًا صالحًا';
+  @override
+  String get minPriceExceedsMax =>
+      'لا يمكن أن يتجاوز الحد الأدنى للسعر الحد الأقصى';
+  @override
+  String get acceptedPaymentMethods => 'يقبل البائع (خارج Dribex)';
+  @override
+  String get discoveryPlatformNotice =>
+      'Dribex يساعدك على اكتشاف البائعين المحليين. أي عملية شراء تتم مباشرة مع البائع — Dribex لا تعالج ولا تحتفظ ولا توزّع مدفوعات المنتجات.';
+  @override
+  String get offPlatformPaymentNotice =>
+      'طرق الدفع أدناه يقبلها البائع خارج Dribex. تدفع للبائع مباشرة وليس لـ Dribex.';
+  @override
+  String get dribexServicePaymentNotice =>
+      'رسوم Premium والإعلانات تُدفع لـ Dribex مقابل خدمات المنصة فقط — وليس مقابل منتجات البائعين.';
   @override
   String get contactSeller => 'تواصل مع البائع';
   @override
@@ -528,13 +833,13 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get cannotMessageOwnStore => 'لا يمكنك مراسلة متجرك الخاص.';
   @override
-  String get discoverBusinesses => 'اكتشف الأعمال';
+  String get discoverBusinesses => 'اكتشف المحلات';
   @override
   String get discoverBusinessesSub => 'تصفّح البائعين الآخرين وراسلهم مباشرة';
   @override
   String get findPeopleToMessage => 'ابحث عمّن تراسله';
   @override
-  String get becomeSeller => 'افتح واجهة متجر';
+  String get becomeSeller => 'افتح متجراً';
   @override
   String get becomeSellerSubtitle =>
       'احتفظ بنفس البريد وكلمة المرور. أضف عملك وبدّل إلى وضع البائع في أي وقت.';
@@ -547,7 +852,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get switchToBuyerMode => 'تصفّح كمشترٍ';
   @override
-  String get switchToBuyerModeSub => 'اكتشف الأعمال بنفس الحساب';
+  String get switchToBuyerModeSub => 'اكتشف المحلات بنفس الحساب';
   @override
   String get cannotReviewOwnStore => 'لا يمكنك تقييم متجرك الخاص.';
   @override
@@ -583,9 +888,9 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get sortNewest => 'الأحدث';
   @override
-  String get sortPriceLow => 'السعر ↑';
+  String get sortPriceLow => 'السعر: من الأقل';
   @override
-  String get sortPriceHigh => 'السعر ↓';
+  String get sortPriceHigh => 'السعر: من الأعلى';
   @override
   String get businessInformation => 'معلومات النشاط';
   @override
@@ -596,8 +901,6 @@ class AppStringsAr extends AppStringsEn {
   String get moreFromSeller => 'المزيد من هذا البائع';
   @override
   String get writeYourMessage => 'اكتب رسالتك...';
-  @override
-  String favoritesCount(int count) => '$count مفضلة';
   @override
   String followersCount(int count) =>
       count == 1 ? 'متابع واحد' : '$count متابع';
@@ -663,7 +966,7 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get total => 'الإجمالي';
   @override
-  String get paymentMethod => 'الدفع المقبول';
+  String get paymentMethod => 'طرق الدفع المقبولة';
   @override
   String get items => 'العناصر';
   @override
@@ -676,22 +979,22 @@ class AppStringsAr extends AppStringsEn {
   String get cancelOrderConfirm =>
       'هل تريد إلغاء هذا الاستفسار؟ سيتم إشعار البائع.';
   @override
-  String get emptyWishlist => 'المفضلة فارغة';
+  String get emptyWishlist => 'لا توجد مفضلات بعد';
   @override
   String get emptyWishlistSubtitle =>
       'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
   @override
-  String get emptyFavorites => 'المفضلة فارغة';
+  String get emptyFavorites => 'لا توجد مفضلات بعد';
   @override
   String get emptyFavoritesSubtitle =>
       'احفظ المنتجات التي تعجبك للعودة إليها لاحقاً.';
   @override
-  String get premiumActivated => 'تم تفعيل بريميوم';
+  String get premiumActivated => 'تم تفعيل Dribex Plus';
   @override
-  String get noPremiumPlans => 'لا توجد خطط بريميوم متاحة حالياً.';
+  String get noPremiumPlans => 'لا توجد خطط اشتراك متاحة حالياً.';
   @override
   String get premiumBillingUnavailable =>
-      'الاشتراك الذاتي غير مفعّل بعد. تواصل مع دعم MarGem أو اطلب من المسؤول منح البريميوم.';
+      'الاشتراك الذاتي غير مفعّل بعد. تواصل مع دعم Dribex أو اطلب من المسؤول تفعيل Dribex Plus.';
   @override
   String get premiumContactSupport => 'تواصل مع الدعم';
   @override
@@ -712,10 +1015,39 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get resendVerificationEmail => 'إعادة إرسال رسالة التحقق';
   @override
-  String get premiumTitle => 'نمّ عملك مع MarGem بريميوم';
+  String get signupOtpChannelTitle => 'أين نرسل رمز التحقق المكوّن من 6 أرقام؟';
+  @override
+  String get signupOtpChannelSubtitle =>
+      'اختر طريقة التحقق من هويتك للمتابعة.';
+  @override
+  String get signupOtpSendPhone => 'إرسال إلى الهاتف';
+  @override
+  String get signupOtpSendEmail => 'إرسال إلى البريد الإلكتروني';
+  @override
+  String get signupOtpPrivacyNote => 'لن نشارك رمزك مع أي شخص.';
+  @override
+  String get signupOtpCodeTitle => 'أدخل الرمز المكوّن من 6 أرقام';
+  @override
+  String signupOtpCodeSentTo(String destination) =>
+      'أرسلنا رمزًا مكوّنًا من 6 أرقام إلى $destination. ';
+  @override
+  String get signupOtpChange => 'تغيير';
+  @override
+  String get signupOtpCodeInvalid => 'أدخل الرمز المكوّن من 6 أرقام.';
+  @override
+  String get signupOtpDidntReceive => 'لم يصلك الرمز؟';
+  @override
+  String signupOtpResendCountdown(int seconds) =>
+      'إعادة الإرسال (00:${seconds.toString().padLeft(2, '0')})';
+  @override
+  String get signupOtpResend => 'إعادة إرسال الرمز';
+  @override
+  String get signupOtpVerify => 'تحقق';
+  @override
+  String get premiumTitle => 'نمِّ عملك مع Dribex Plus';
   @override
   String get premiumSubtitle =>
-      'افتح ظهوراً أقوى وأدوات اكتشاف وتحليلات للملف.';
+      'احصل على ظهور أقوى وأدوات اكتشاف وتحليلات لمتجرك.';
   @override
   String activePlan(String name) => 'الخطة النشطة: $name';
   @override
@@ -757,22 +1089,31 @@ class AppStringsAr extends AppStringsEn {
       'أدخل بريدك الإلكتروني وسنرسل رابطاً آمناً إذا كان الحساب موجوداً.';
   @override
   String get resetPasswordSubtitle =>
-      'الصق رمز إعادة التعيين من بريدك واختر كلمة مرور جديدة.';
+      'اختر كلمة مرور جديدة لحسابك.';
   @override
   String get emailRequired => 'البريد الإلكتروني مطلوب.';
   @override
   String get resetPasswordValidation =>
-      'أدخل الرمز وكلمة مرور لا تقل عن 8 أحرف.';
+      'أدخل كلمة مرور لا تقل عن 8 أحرف وتتضمن حرفاً كبيراً وصغيراً ورقماً.';
   @override
-  String get sendResetLink => 'إرسال رابط التعيين';
+  String get sendResetLink => 'إرسال رابط إعادة التعيين';
   @override
   String get resetLinkSent =>
-      'إذا كان الحساب موجوداً، فقد تم إرسال رابط إعادة التعيين.';
+      'إذا كان هناك حساب لهذا البريد الإلكتروني، فقد أرسلنا تعليمات إعادة تعيين كلمة المرور.';
   @override
   String get resetToken => 'رمز إعادة التعيين';
   @override
   String get passwordResetComplete =>
       'تمت إعادة تعيين كلمة المرور. يمكنك تسجيل الدخول الآن.';
+  @override
+  String get backToLogin => 'العودة إلى تسجيل الدخول';
+  @override
+  String get confirmPassword => 'تأكيد كلمة المرور الجديدة';
+  @override
+  String get passwordsDoNotMatch => 'كلمتا المرور غير متطابقتين.';
+  @override
+  String get resetTokenInvalidOrExpired =>
+      'رابط إعادة التعيين غير صالح أو منتهٍ. اطلب رابطاً جديداً للمتابعة.';
   @override
   String get revenue => 'نشاط الاكتشاف';
   @override
@@ -793,9 +1134,24 @@ class AppStringsAr extends AppStringsEn {
   String analyticsSummary(int profileViews, int contactClicks) =>
       '$profileViews مشاهدة · $contactClicks نقرة تواصل';
   @override
-  String get premiumActiveSub => 'خطة بريميوم نشطة';
+  String get premiumActiveSub => 'اشتراك Dribex Plus نشط';
   @override
-  String get premiumUpgradeSub => 'طوّر الظهور وأدوات الاكتشاف';
+  String get premiumUpgradeSub => 'طوّر ظهور متجرك وأدوات الاكتشاف';
+  @override
+  List<String> get driverProPlanFeatures => const [
+        'تجربة بائع بدون إعلانات',
+        'حتى 20 منتجاً وخدمة مجمّعة',
+        'رفع الفيديو',
+        'ظهور مميز',
+        'شارة DriverPro',
+      ];
+  @override
+  List<String> get buyerPlusPlanFeatures => const [
+        'بدون إعلانات ترويجية',
+        'شارة Plus+ في المجتمع',
+        'مزامنة عمليات البحث المحفوظة',
+        'دعم أولوية',
+      ];
   @override
   String get loading => 'جاري التحميل...';
   @override
@@ -814,6 +1170,194 @@ class AppStringsAr extends AppStringsEn {
   String get verification => 'التحقق';
   @override
   String get markAllRead => 'تعيين الكل كمقروء';
+  @override
+  String get ok => 'حسناً';
+  @override
+  String get done => 'تم';
+  @override
+  String get twoFactorAuthTitle => 'المصادقة الثنائية';
+  @override
+  String get twoFactorAuthCodeLabel => 'رمز المصادقة';
+  @override
+  String get conversationDefault => 'محادثة';
+  @override
+  String get tapToOpenConversation => 'اضغط لفتح المحادثة';
+  @override
+  String get demoLabel => 'تجريبي';
+  @override
+  String get demoBusinessesMapHint =>
+      'محلات تجريبية معروضة — شغّل واجهة الخادم للحصول على بيانات حية.';
+  @override
+  String get communityPinned => 'مثبّت';
+  @override
+  String get mapPreviewTitle => 'معاينة الخريطة';
+  @override
+  String get mapDemoModeTitle => 'وضع الخريطة التجريبي';
+  @override
+  String get mapApiKeyHint =>
+      'الخريطة غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.';
+  @override
+  String get mapUnavailable =>
+      'الخريطة غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.';
+  @override
+  String mapLocationsInArea(int count) => count == 1
+      ? 'موقع واحد في هذه المنطقة'
+      : '$count مواقع في هذه المنطقة';
+  @override
+  String distanceLabel(double km) {
+    if (km < 1) return '${(km * 1000).round()} م';
+    return '${km.toStringAsFixed(1)} كم';
+  }
+
+  @override
+  String get communityChatTitle => 'مجتمع المدينة';
+  @override
+  String get communitySearchHint => 'البحث في القنوات...';
+  @override
+  String get communityFilterAll => 'الكل';
+  @override
+  String get communityFilterVerified => 'موثّق';
+  @override
+  String get communityFilterTrusted => 'موثوق';
+  @override
+  String get communityNoChannels => 'لم يتم العثور على قنوات';
+  @override
+  String get communityNoChannelsSubtitle =>
+      'جرّب تصفية أو كلمة بحث أخرى.';
+  @override
+  String get communityNewMessage => 'رسالة جديدة';
+  @override
+  String get communityDiscoverTitle => 'اكتشف المجتمعات';
+  @override
+  String get communityMembers => 'أعضاء';
+  @override
+  String get communityOnline => 'متصل';
+  @override
+  String communityCitySubtitle(String city) =>
+      'تواصل مع السكان، اكتشف التوصيات، وانضم إلى النقاش في $city.';
+  @override
+  String get communityGuestHint =>
+      'سجّل الدخول للنشر والانضمام إلى مجتمع مدينتك.';
+  @override
+  String get communityEmptyChannel => 'ابدأ المحادثة';
+  @override
+  String get communityEmptyChannelSubtitle =>
+      'كن أول من يشارك شيئاً مع مدينتك.';
+  @override
+  String get communityReplyingTo => 'الرد على';
+  @override
+  String communityTyping(String name) => '$name يكتب...';
+  @override
+  String get communityReply => 'رد';
+  @override
+  String get communityCopy => 'نسخ الرسالة';
+  @override
+  String get communityReport => 'الإبلاغ عن الرسالة';
+  @override
+  String get communityReported => 'تم إرسال البلاغ. شكراً لك.';
+  @override
+  String get communityCopied => 'تم نسخ الرسالة';
+  @override
+  String get communityHomeCardTitle => 'مجتمع المدينة';
+  @override
+  String get communityHomeCardSubtitle =>
+      'تحدث مع السكان، احصل على توصيات، واكتشف ما يحدث بالقرب منك.';
+
+  @override
+  String get reportUser => 'الإبلاغ عن المستخدم';
+  @override
+  String reportUserSubtitle(String name) =>
+      'أخبرنا بما حدث مع $name. سيقوم فريقنا بمراجعة بلاغك.';
+  @override
+  String get blockUser => 'حظر المستخدم';
+  @override
+  String blockUserConfirm(String name) =>
+      'حظر $name؟ لن يتمكن من مراسلتك وسيتم إخفاء هذه المحادثة.';
+  @override
+  String get userReported => 'تم إرسال البلاغ. شكراً لك.';
+  @override
+  String get userBlocked => 'تم حظر المستخدم.';
+  @override
+  String get reportReasonLabel => 'السبب';
+  @override
+  String get reportReasonWrongLocation => 'موقع خاطئ';
+  @override
+  String get reportReasonClosedBusiness => 'محل مغلق';
+  @override
+  String get reportReasonWrongPhone => 'رقم هاتف خاطئ';
+  @override
+  String get reportReasonWrongCategory => 'فئة خاطئة';
+  @override
+  String get reportReasonDuplicateBusiness => 'محل مكرر';
+  @override
+  String get reportReasonIncorrectProduct => 'منتج غير صحيح';
+  @override
+  String get reportReasonSpam => 'رسائل مزعجة';
+  @override
+  String get reportReasonHarassment => 'تحرش';
+  @override
+  String get reportReasonScam => 'احتيال';
+  @override
+  String get reportReasonInappropriate => 'محتوى غير لائق';
+  @override
+  String get reportReasonOther => 'أخرى';
+  @override
+  String get reportDetailsOptional => 'تفاصيل إضافية (اختياري)';
+  @override
+  String get submitReport => 'إرسال البلاغ';
+  @override
+  String get mfaSettingsTitle => 'المصادقة الثنائية';
+  @override
+  String get mfaEnabled => 'المصادقة الثنائية مفعّلة';
+  @override
+  String get mfaDisabled => 'المصادقة الثنائية غير مفعّلة';
+  @override
+  String get mfaEnabledDescription =>
+      'حسابك محمي بتطبيق مصادقة.';
+  @override
+  String get mfaDisabledDescription =>
+      'أضف طبقة أمان إضافية باستخدام Google Authenticator أو Authy أو أي تطبيق TOTP متوافق.';
+  @override
+  String get enableMfa => 'تفعيل المصادقة الثنائية';
+  @override
+  String get disableMfa => 'إيقاف المصادقة الثنائية';
+  @override
+  String get disableMfaConfirm =>
+      'أدخل كلمة المرور ورمز المصادقة الحالي لإيقاف المصادقة الثنائية.';
+  @override
+  String get mfaSetupTitle => 'إعداد تطبيق المصادقة';
+  @override
+  String get mfaSetupInstructions =>
+      'امسح رمز QR باستخدام Google Authenticator أو Authy أو Microsoft Authenticator أو أي تطبيق متوافق. يمكنك أيضاً إدخال السر يدوياً.';
+  @override
+  String get mfaManualSecret => 'السر للإدخال اليدوي';
+  @override
+  String get mfaEnterCode => 'رمز التحقق المكوّن من 6 أرقام';
+  @override
+  String get mfaConfirmEnable => 'تأكيد وتفعيل';
+  @override
+  String get mfaInvalidCode =>
+      'أدخل رمزاً صالحاً مكوّناً من 6 أرقام من تطبيق المصادقة.';
+  @override
+  String get mfaSetupInvalidResponse =>
+      'تعذّر بدء إعداد المصادقة الثنائية. حاول مرة أخرى.';
+  @override
+  String get mfaEnableSuccess => 'تم تفعيل المصادقة الثنائية.';
+  @override
+  String get mfaEnableFailed =>
+      'نجح التحقق لكن المصادقة الثنائية غير نشطة بعد. حاول مرة أخرى.';
+  @override
+  String get mfaDisableSuccess => 'تم إيقاف المصادقة الثنائية.';
+  @override
+  String get mfaDisableFailed =>
+      'تعذّر إيقاف المصادقة الثنائية. تحقق من كلمة المرور والرمز.';
+  @override
+  String get mfaRecoveryCodesTitle => 'احفظ رموز الاسترداد';
+  @override
+  String get mfaRecoveryCodesBody =>
+      'احفظ هذه الرموز في مكان آمن. يمكن استخدام كل رمز مرة واحدة إذا فقدت الوصول إلى تطبيق المصادقة.';
+  @override
+  String get mfaRecoveryCodesSave => 'لقد حفظت هذه الرموز';
 
   @override
   String categoryLabel(String key) {
@@ -842,14 +1386,465 @@ class AppStringsAr extends AppStringsEn {
   @override
   String dayLabel(String key) {
     const days = {
-      'Mon': 'الإث',
-      'Tue': 'الثل',
-      'Wed': 'الأر',
-      'Thu': 'الخم',
-      'Fri': 'الجم',
-      'Sat': 'السب',
-      'Sun': 'الأح',
+      'Mon': 'اثن',
+      'Tue': 'ثلا',
+      'Wed': 'أرب',
+      'Thu': 'خمي',
+      'Fri': 'جم',
+      'Sat': 'سب',
+      'Sun': 'أحد',
     };
     return days[key] ?? key;
   }
+
+  @override
+  String paymentMethodLabel(String key) {
+    const labels = {
+      'cash': 'نقداً',
+      'bank_transfer': 'تحويل بنكي',
+      'card': 'بطاقة',
+      'mobile_money': 'محفظة إلكترونية',
+      'cod': 'الدفع عند الاستلام',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String deliveryMethodLabel(String key) {
+    const labels = {
+      'in_store': 'استلام من المتجر',
+      'local_delivery': 'توصيل محلي',
+      'pickup': 'استلام',
+      'delivery': 'توصيل',
+      'shipping': 'شحن',
+    };
+    return labels[key] ?? key.replaceAll('_', ' ');
+  }
+
+  @override
+  String get appStorageNotReady =>
+      'تخزين التطبيق غير جاهز. أعد تشغيل التطبيق.';
+
+  @override
+  String get communityYou => 'أنت';
+
+  @override
+  String get bundleBuilderTitle => 'منشئ الحزم';
+  @override
+  String get bundleBuilderSubtitle =>
+      'أنشئ حزمًا كاملة واعثر على أفضل مزيج عبر عدة بائعين.';
+  @override
+  String bundleBuilderMarketplace(String slug) => 'السوق: $slug';
+  @override
+  String get bundleBuilderChooseTemplate => 'اختر حزمة';
+  @override
+  String get bundleBuilderSummary => 'حزمتك';
+  @override
+  String get bundleBuilderTotalPrice => 'السعر الإجمالي';
+  @override
+  String get bundleBuilderSavings => 'التوفير المقدر';
+  @override
+  String get bundleBuilderAvailability => 'التوفر';
+  @override
+  String get bundleBuilderAllAvailable => 'جميع العناصر متوفرة';
+  @override
+  String get bundleBuilderPartialAvailability => 'تحقق من التوفر مع البائعين';
+  @override
+  String get bundleBuilderMatchedSlots => 'المكونات المطابقة';
+  @override
+  String get bundleBuilderWarranty => 'الضمان';
+  @override
+  String get bundleBuilderInStock => 'متوفر';
+  @override
+  String get bundleBuilderCheckAvailability => 'تأكيد التوفر';
+  @override
+  String get bundleBuilderSellerBreakdown => 'تفصيل البائعين';
+  @override
+  String get bundleBuilderContactSeller => 'تواصل مع البائع';
+
+  @override
+  String get marketplaceCommunityTitle => 'مجتمع السوق';
+  @override
+  String get marketplaceCommunitySubtitle =>
+      'اطرح الأسئلة، شارك العروض، أوصِ بالبائعين، وأبلغ عن الاحتيال.';
+  @override
+  String get marketplaceCommunityJoin => 'انضم إلى المجتمع';
+  @override
+  String get marketplaceCommunityChannels => 'قنوات النقاش';
+  @override
+  String get marketplaceCommunityPostQuestion => 'سؤال';
+  @override
+  String get marketplaceCommunityPostDeal => 'عرض';
+  @override
+  String get marketplaceCommunityPostRecommend => 'توصية';
+  @override
+  String get marketplaceCommunityPostScam => 'بلاغ احتيال';
+
+  @override
+  String get legalSectionTitle => 'القانون والخصوصية';
+
+  @override
+  String get legalSubsectionTitle => 'القانون';
+
+  @override
+  String get privacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get termsOfService => 'شروط الاستخدام';
+
+  @override
+  String get cookiePolicy => 'سياسة ملفات تعريف الارتباط';
+
+  @override
+  String get accountDeletionPolicy => 'حذف الحساب';
+
+  @override
+  String get subscriptionTerms => 'شروط الاشتراك والفوترة';
+
+  @override
+  String get dataExport => 'تصدير بياناتي';
+
+  @override
+  String get contactSupport => 'التواصل مع الدعم';
+
+  @override
+  String get signupTermsAcknowledgment =>
+      'بإنشاء حساب، فإنك توافق على شروط الاستخدام وسياسة الخصوصية.';
+
+  @override
+  String get privacyAndLegal => 'الخصوصية والقانون';
+
+  @override
+  String get privacySettings => 'إعدادات الخصوصية';
+
+  @override
+  String get yourData => 'بياناتك';
+
+  @override
+  String get managePermissions => 'إدارة الأذونات';
+
+  @override
+  String get sellerTerms => 'شروط البائع';
+
+  @override
+  String get communityGuidelines => 'إرشادات المجتمع';
+
+  @override
+  String get legalNotice => 'إشعار قانوني';
+
+  @override
+  String get openSourceLicenses => 'تراخيص المصدر المفتوح';
+
+  @override
+  String get privacyLegalHubIntro =>
+      'راجع سياساتنا وأدر خيارات الخصوصية من مكان واحد.';
+
+  @override
+  String get privacyLegalHubSubtitle =>
+      'السياسات والخصوصية وإدارة بياناتك';
+
+  @override
+  String get privacySectionTitle => 'الخصوصية';
+
+  @override
+  String get privacySettingsIntro =>
+      'تحكم في التفضيلات الاختيارية أدناه. بعض المعالجة مطلوبة لتشغيل حسابك وحماية المنصة.';
+
+  @override
+  String get requiredDataProcessing => 'معالجة البيانات المطلوبة';
+
+  @override
+  String get requiredDataProcessingBody =>
+      'نعالج بيانات حسابك وسجلات الأمان والمحتوى الذي تنشره لتشغيل Dribex ومنع الاحتيال والامتثال للقوانين. لا يمكن إيقاف ذلك أثناء استخدام الخدمة.';
+
+  @override
+  String get optionalPreferences => 'تفضيلات اختيارية';
+
+  @override
+  String get locationAccessDescription =>
+      'يستخدم Dribex موقعك لمساعدتك على اكتشاف المحلات القريبة عند استخدام الخريطة. يمكنك التحكم في ذلك من إعدادات الجهاز.';
+
+  @override
+  String get manageLocationPermission => 'إدارة إذن الموقع';
+
+  @override
+  String get notificationsPermissionDescription =>
+      'تُدار الإشعارات الفورية من إعدادات الجهاز عند توفرها.';
+
+  @override
+  String get manageNotificationPermission => 'فتح إعدادات الجهاز';
+
+  @override
+  String get personalizedRecommendations => 'توصيات مخصصة';
+
+  @override
+  String get personalizedRecommendationsDescription =>
+      'استخدام نشاطك على Dribex لتحسين الاقتراحات. لا نبيع بياناتك.';
+
+  @override
+  String get marketingCommunications => 'رسائل تسويقية';
+
+  @override
+  String get marketingCommunicationsDescription =>
+      'تلقي عروض وتحديثات من Dribex عبر البريد عند توفر هذه الخدمة.';
+
+  @override
+  String get yourDataIntro =>
+      'اعرض ما نخزنه عن حسابك، أو صدّر نسخة، أو اطلب الحذف.';
+
+  @override
+  String get viewAccountInfo => 'معلومات الحساب';
+
+  @override
+  String get dataExportDescription =>
+      'تنزيل نسخة بصيغة JSON من بياناتك إلى الحافظة.';
+
+  @override
+  String get dataExportCopied =>
+      'تم نسخ تصدير بياناتك إلى الحافظة.';
+
+  @override
+  String get requestDataCorrection => 'طلب تصحيح';
+
+  @override
+  String get requestDataCorrectionDescription =>
+      'راسل فريق الخصوصية لتحديث بيانات غير دقيقة.';
+
+  @override
+  String get dataRetentionInfo => 'الاحتفاظ بالبيانات';
+
+  @override
+  String get deleteAccountExplainer =>
+      'يؤدي هذا إلى حذف حسابك ومتجرك ورسائلك وملفك الشخصي. قد نحتفظ بسجلات مطلوبة قانوناً.';
+
+  @override
+  String get signInToManageData =>
+      'سجّل الدخول لعرض بياناتك أو تصديرها أو حذفها.';
+
+  @override
+  String get settingsTitle => 'الإعدادات';
+
+  @override
+  String get accountSectionTitle => 'الحساب';
+
+  @override
+  String get notificationsSectionTitle => 'الإشعارات';
+
+  @override
+  String get notificationsSectionSubtitle =>
+      'تفضيلات الإشعارات والتسويق';
+
+  @override
+  String get privacyAndSecurityTitle => 'الخصوصية والأمان';
+
+  @override
+  String get helpAndSupportTitle => 'المساعدة والدعم';
+
+  @override
+  String get subscriptionManagementTitle => 'اشتراكك';
+  @override
+  String get paymentHistoryTitle => 'سجل المدفوعات';
+
+  @override
+  String get billingSettingsTitle => 'الفوترة والاشتراك';
+
+  @override
+  String get billingSettingsSubtitle =>
+      'إدارة اشتراك Dribex والإلغاء وسجل مدفوعات المنصة.';
+
+  @override
+  String get billingSectionTitle => 'الفوترة والاشتراك';
+
+  @override
+  String get billingSectionSubtitle => 'حالة الاشتراك وسجل المدفوعات';
+
+  @override
+  String get noActiveSubscription => 'لا يوجد اشتراك نشط';
+
+  @override
+  String get noPaymentHistory => 'لا توجد مدفوعات بعد';
+
+  @override
+  String get viewPremiumPlans => 'عرض خطط Premium';
+
+  @override
+  String get billingProviderLabel => 'مزود الدفع';
+
+  @override
+  String get paymentStatusSuccess => 'مدفوع';
+
+  @override
+  String get paymentStatusFailed => 'فشل';
+
+  @override
+  String get paymentStatusCancelled => 'ملغى';
+
+  @override
+  String get paymentStatusPending => 'قيد الانتظار';
+
+  @override
+  String get subscriptionRenewsUntil => 'الوصول حتى';
+
+  @override
+  String get cancelSubscriptionTitle => 'إلغاء الاشتراك';
+
+  @override
+  String get cancelSubscriptionBody =>
+      'يبقى Premium نشطًا حتى نهاية فترة الفوترة الحالية. لن يتم تحصيل رسوم جديدة بعد الإلغاء.';
+
+  @override
+  String get cancelSubscriptionScheduled =>
+      'تم جدولة الإلغاء — يبقى Premium نشطًا حتى نهاية الفترة.';
+
+  @override
+  String get navBoost => 'تعزيز الظهور';
+
+  @override
+  String get boostTitle => 'عزّز ظهور متجرك';
+
+  @override
+  String get boostSubtitle =>
+      'زِد ظهورك في الاكتشاف لفترة محددة. الرسوم تُدفع لـ Dribex مقابل خدمات المنصة فقط.';
+
+  @override
+  String get boostActivated => 'تم تفعيل التعزيز — ستبدأ حملتك قريبًا.';
+
+  @override
+  String get boostCheckoutOpened =>
+      'تم فتح صفحة الدفع. عد إلى هنا بعد إتمام الدفع.';
+
+  @override
+  String get boostCheckoutFailed => 'تم إلغاء دفع التعزيز أو فشل.';
+
+  @override
+  String get noBoostPackages => 'لا توجد باقات تعزيز متاحة حاليًا.';
+
+  @override
+  String get purchaseBoost => 'شراء التعزيز';
+
+  @override
+  String boostDurationDays(int days) => 'المدة: $days يوم';
+
+  @override
+  String get marketDiscoveryTitle => 'الأسواق';
+
+  @override
+  String get marketDiscoveryHomeSubtitle =>
+      'اكتشف أسواق الدار البيضاء واعثر على المحلات قبل أن تذهب.';
+
+  @override
+  String get marketDiscoverySearchHint =>
+      'ابحث عن منتجات أو خدمات أو محلات';
+
+  @override
+  String get popularMarketsTitle => 'أسواق شهيرة في الدار البيضاء';
+
+  @override
+  String marketSellerCount(int count) =>
+      count == 1 ? 'محل واحد مدرج' : '$count محلات مدرجة';
+
+  @override
+  String get marketKnownFor => 'مشهور بـ';
+
+  @override
+  String searchThisMarketHint(String marketName) => 'ابحث في $marketName';
+
+  @override
+  String get openMarketMap => 'فتح الخريطة';
+
+  @override
+  String get marketCategoriesTitle => 'فئات هذا السوق';
+
+  @override
+  String get featuredSellersTitle => 'بائعون مميزون';
+
+  @override
+  String get sponsoredLabel => 'ممول';
+
+  @override
+  String get marketShopsTitle => 'محلات في هذا السوق';
+
+  @override
+  String get allMarketsLabel => 'كل الأسواق';
+
+  @override
+  String get noSellersInMarket => 'لا توجد محلات بعد';
+
+  @override
+  String get noSellersInMarketSubtitle =>
+      'ستظهر محلات هذا السوق هنا عندما ينضم البائعون إلى Dribex.';
+
+  @override
+  String get verificationUnverified => 'غير موثق';
+
+  @override
+  String get verificationPending => 'التحقق قيد المراجعة';
+
+  @override
+  String get verificationBusinessVerified => 'نشاط تجاري موثق';
+
+  @override
+  String get verificationRejected => 'تم رفض التحقق';
+
+  @override
+  String get verificationPhoneVerified => 'هاتف موثق';
+
+  @override
+  String get chooseMarketLabel => 'اختر سوقك';
+
+  @override
+  String get chooseMarketMoreOption => 'المزيد — اكتب اسم السوق';
+
+  @override
+  String get customMarketNameLabel => 'اسم السوق أو الحي';
+
+  @override
+  String get customMarketNameHint => 'مثال: الحي المحمدي، سيدي مومن…';
+
+  @override
+  String get customMarketNameHelp =>
+      'استخدم هذا الخيار إذا كان محلك في سوق آخر بالدار البيضاء غير المذكور أعلاه.';
+
+  @override
+  String get shopLocationTitle => 'موقع المحل في السوق';
+
+  @override
+  String get requestAccountErasure => 'طلب حذف الحساب';
+
+  @override
+  String get requestAccountErasureDescription =>
+      'تقديم طلب رسمي للحذف لمراجعته (منفصل عن الحذف الفوري من التطبيق).';
+
+  @override
+  String get signupTermsPrefix => 'بالمتابعة، فإنك توافق على ';
+
+  @override
+  String get signupTermsMiddle => ' وتقر بـ ';
+
+  @override
+  String get signupTermsSuffix => '.';
+
+  @override
+  String get locationUsageNotice =>
+      'يستخدم Dribex موقعك لمساعدتك على اكتشاف المحلات القريبة.';
+
+  @override
+  String get connectionError =>
+      'تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مجدداً.';
+
+  @override
+  String get apiUnavailable =>
+      'الخدمة غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.';
+
+  @override
+  String requestTimeout(int seconds) =>
+      'انتهت مهلة الطلب بعد ${seconds} ثانية. تحقق من اتصالك وحاول مجدداً.';
+
+  @override
+  String get invalidCredentials =>
+      'البريد الإلكتروني أو كلمة المرور غير صحيحة. تحقق من بياناتك وحاول مجدداً.';
+
+  @override
+  String get invalidEmailFormat =>
+      'أدخل عنوان بريد إلكتروني صالحاً (مثال: you@example.com).';
 }

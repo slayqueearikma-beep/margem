@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,9 +8,11 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/buyer_ui_components.dart';
+import '../../core/widgets/user_safety_sheet.dart';
 import '../../l10n/app_localizations.dart';
 
 final conversationsProvider =
@@ -27,19 +31,41 @@ final conversationsUnreadCountProvider = Provider.autoDispose<AsyncValue<int>>(
 );
 
 class MessagesInboxScreen extends ConsumerStatefulWidget {
-  const MessagesInboxScreen({super.key});
+  const MessagesInboxScreen({super.key, this.embeddedInShell = false});
+
+  final bool embeddedInShell;
 
   @override
   ConsumerState<MessagesInboxScreen> createState() =>
       _MessagesInboxScreenState();
 }
 
-class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
+class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen>
+    with WidgetsBindingObserver {
   final _searchController = TextEditingController();
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshInbox());
+  }
+
+  void _refreshInbox() {
+    ref.invalidate(conversationsProvider);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshInbox();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
   }
@@ -55,48 +81,35 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (!widget.embeddedInShell)
+            BuyerScreenTitle(title: l10n.navMessages),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screenHorizontal,
-              AppSpacing.md,
-              AppSpacing.screenHorizontal,
-              AppSpacing.sm,
-            ),
-            child: Text(
-              l10n.navMessages,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
+            padding: EdgeInsets.symmetric(
               horizontal: AppSpacing.screenHorizontal,
             ),
-            child: TextField(
+            child: BuyerSearchBar(
+              hint: l10n.searchConversations,
               controller: _searchController,
-              onChanged: (value) => setState(() => _query = value.trim().toLowerCase()),
-              decoration: InputDecoration(
-                hintText: l10n.searchConversations,
-                prefixIcon: const Icon(Icons.search_rounded),
-                filled: true,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              onChanged: (value) =>
+                  setState(() => _query = value.trim().toLowerCase()),
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           Expanded(
             child: isGuest
-                ? _GuestMessagesEmpty(onLogin: () => context.push('/login'))
+                ? BuyerEmptyState(
+                    icon: Icons.chat_bubble_outline_rounded,
+                    title: l10n.signInToMessage,
+                    subtitle: l10n.signInToMessageSubtitle,
+                    actionLabel: l10n.logIn,
+                    onAction: () => context.push('/login'),
+                  )
                 : conversationsAsync.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
+                    loading: () => Center(
+                      child: CircularProgressIndicator(
+                        color: context.colors.primary,
+                      ),
+                    ),
                     error: (e, _) => AsyncErrorView.fromError(
                       e,
                       onRetry: () => ref.invalidate(conversationsProvider),
@@ -112,44 +125,36 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
                                       .contains(_query))
                               .toList();
                       if (filtered.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.xl),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  l10n.noConversationsYet,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                                FilledButton.icon(
-                                  onPressed: () => context.push('/search'),
-                                  icon: const Icon(Icons.search_rounded),
-                                  label: Text(l10n.findPeopleToMessage),
-                                ),
-                              ],
-                            ),
-                          ),
+                        return BuyerEmptyState(
+                          icon: Icons.forum_outlined,
+                          title: l10n.noConversationsYet,
+                          actionLabel: l10n.findPeopleToMessage,
+                          onAction: () => context.push('/search'),
                         );
                       }
                       return RefreshIndicator(
+                        color: context.colors.primary,
                         onRefresh: () async =>
                             ref.invalidate(conversationsProvider),
                         child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.screenHorizontal,
+                            vertical: AppSpacing.sm,
+                          ),
                           itemCount: filtered.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: AppSpacing.sm),
                           itemBuilder: (_, index) {
                             final conversation = filtered[index];
                             return _ConversationTile(
                               conversation: conversation,
-                              onTap: () => context.push(
-                                '/messages/${conversation.id}',
-                                extra: conversation,
-                              ),
+                              onTap: () async {
+                                await context.push(
+                                  '/messages/${conversation.id}',
+                                  extra: conversation,
+                                );
+                                if (mounted) _refreshInbox();
+                              },
                             );
                           },
                         ),
@@ -158,46 +163,6 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen> {
                   ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _GuestMessagesEmpty extends StatelessWidget {
-  const _GuestMessagesEmpty({required this.onLogin});
-
-  final VoidCallback onLogin;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.chat_bubble_outline_rounded,
-                size: 48, color: AppColors.primary),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              l10n.signInToMessage,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              l10n.signInToMessageSubtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton(onPressed: onLogin, child: Text(l10n.logIn)),
-          ],
-        ),
       ),
     );
   }
@@ -214,112 +179,145 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final initial = conversation.peerName.isNotEmpty
         ? conversation.peerName.substring(0, 1).toUpperCase()
         : '?';
     final timeLabel = _formatTimestamp(conversation.lastMessageAt);
 
-    return ListTile(
+    return BuyerSurfaceCard(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.screenHorizontal,
-        vertical: 6,
-      ),
-      leading: Stack(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-            child: Text(
-              initial,
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: AppColors.success,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-            ),
-          ),
-        ],
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              conversation.peerName.isEmpty
-                  ? 'Conversation'
-                  : conversation.peerName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight:
-                    conversation.hasUnread ? FontWeight.w700 : FontWeight.w600,
-              ),
-            ),
-          ),
-          Text(
-            timeLabel,
-            style: TextStyle(
-              fontSize: 12,
-              color: conversation.hasUnread
-                  ? AppColors.primary
-                  : AppColors.textSecondary,
-              fontWeight:
-                  conversation.hasUnread ? FontWeight.w700 : FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
-      subtitle: Row(
-        children: [
-          Expanded(
-            child: Text(
-              conversation.lastMessagePreview.isEmpty
-                  ? 'Tap to open conversation'
-                  : conversation.lastMessagePreview,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: conversation.hasUnread
-                    ? Theme.of(context).colorScheme.onSurface
-                    : AppColors.textSecondary,
-                fontWeight:
-                    conversation.hasUnread ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ),
-          if (conversation.hasUnread) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                conversation.unreadCount > 99
-                    ? '99+'
-                    : '${conversation.unreadCount}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: context.colors.primaryMuted,
+                  child: Text(
+                    initial,
+                    style: TextStyle(
+                      color: context.colors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: context.colors.success,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          conversation.peerName.isEmpty
+                              ? l10n.conversationDefault
+                              : conversation.peerName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: conversation.hasUnread
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        timeLabel,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: conversation.hasUnread
+                              ? context.colors.primary
+                              : context.colors.textSecondary,
+                          fontWeight: conversation.hasUnread
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (conversation.sellerId.isNotEmpty) ...[
+                    SizedBox(height: 4),
+                    Text(
+                      l10n.inquiries,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: context.colors.primary,
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          conversation.lastMessagePreview.isEmpty
+                              ? l10n.tapToOpenConversation
+                              : conversation.lastMessagePreview,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: conversation.hasUnread
+                                ? context.colors.textPrimary
+                                : context.colors.textSecondary,
+                            fontWeight: conversation.hasUnread
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      if (conversation.hasUnread) ...[
+                        SizedBox(width: 8),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.colors.primary,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            conversation.unreadCount > 99
+                                ? '99+'
+                                : '${conversation.unreadCount}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -357,20 +355,92 @@ class ConversationThreadScreen extends ConsumerStatefulWidget {
 }
 
 class _ConversationThreadScreenState
-    extends ConsumerState<ConversationThreadScreen> {
+    extends ConsumerState<ConversationThreadScreen> with WidgetsBindingObserver {
   final _controller = TextEditingController();
-  late Future<List<ChatMessageModel>> _future;
+  final _inputFocusNode = FocusNode();
+  final _scrollController = ScrollController();
+  List<ChatMessageModel> _messages = [];
+  bool _loading = true;
+  Object? _loadError;
   bool _sending = false;
+  bool _pollInFlight = false;
+  Timer? _pollTimer;
+  static const _pollInterval = Duration(seconds: 3);
 
   @override
   void initState() {
     super.initState();
-    _future = apiServiceProvider.fetchConversationMessages(widget.conversationId);
+    WidgetsBinding.instance.addObserver(this);
+    _loadMessages();
+    _startPolling();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_inputFocusNode.canRequestFocus) {
+        _inputFocusNode.requestFocus();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadMessages();
+      _startPolling();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _pollTimer?.cancel();
+      _pollTimer = null;
+    }
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _loadMessages(silent: true));
+  }
+
+  Future<void> _loadMessages({bool silent = false}) async {
+    if (_pollInFlight) return;
+    _pollInFlight = true;
+    if (!silent && mounted) {
+      setState(() {
+        _loading = _messages.isEmpty;
+        _loadError = null;
+      });
+    }
+    try {
+      final fetched = await apiServiceProvider
+          .fetchConversationMessages(widget.conversationId);
+      if (!mounted) return;
+      setState(() {
+        _messages = fetched;
+        _loading = false;
+        _loadError = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      if (!silent || _messages.isEmpty) {
+        setState(() {
+          _loading = false;
+          _loadError = error;
+        });
+      }
+    } finally {
+      _pollInFlight = false;
+    }
   }
 
   @override
   void dispose() {
+    ref.invalidate(conversationsProvider);
+    WidgetsBinding.instance.removeObserver(this);
+    _pollTimer?.cancel();
+    if (_inputFocusNode.hasFocus) {
+      _inputFocusNode.unfocus();
+    }
+    _inputFocusNode.dispose();
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -381,10 +451,7 @@ class _ConversationThreadScreenState
     try {
       await apiServiceProvider.replyToConversation(widget.conversationId, body);
       _controller.clear();
-      setState(() {
-        _future =
-            apiServiceProvider.fetchConversationMessages(widget.conversationId);
-      });
+      await _loadMessages(silent: true);
       ref.invalidate(conversationsProvider);
     } on ApiException catch (error) {
       if (mounted) {
@@ -403,75 +470,135 @@ class _ConversationThreadScreenState
     }
   }
 
+  String _formatMessageTime(String raw) {
+    if (raw.isEmpty) return '';
+    final parsed = DateTime.tryParse(raw)?.toLocal();
+    if (parsed == null) return '';
+    final hour = parsed.hour.toString().padLeft(2, '0');
+    final minute = parsed.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final session = ref.watch(userSessionProvider);
+    final authSession = ref.watch(authSessionProvider);
     final title = widget.conversation?.peerName.isNotEmpty == true
         ? widget.conversation!.peerName
         : l10n.navMessages;
+    final peerUserId = widget.conversation?.peerUserId ?? '';
+    final myUserId = authSession?.user.id ?? '';
+    final canModerate = session != null &&
+        !session.isGuest &&
+        peerUserId.isNotEmpty &&
+        myUserId.isNotEmpty &&
+        peerUserId != myUserId;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
+    return BuyerScreenScaffold(
+      appBar: BuyerAppBar(
+        title: title,
+        actions: [
+          if (canModerate)
+            UserSafetyMenuButton(
+              userId: peerUserId,
+              displayName: title,
+              onBlocked: () => context.pop(),
+            ),
+        ],
+      ),
       body: Column(
         children: [
-          Expanded(
-            child: FutureBuilder<List<ChatMessageModel>>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return AsyncErrorView.fromError(
-                    snapshot.error!,
-                    onRetry: () => setState(() {
-                      _future = apiServiceProvider
-                          .fetchConversationMessages(widget.conversationId);
-                    }),
-                  );
-                }
-                final messages = snapshot.data ?? const [];
-                if (messages.isEmpty) {
-                  return Center(child: Text(l10n.noMessagesYet));
-                }
-                final myId = ref.watch(authSessionProvider)?.user.id;
-                return ListView.builder(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: messages.length,
-                  itemBuilder: (_, index) {
-                    final message = messages[index];
-                    final mine =
-                        myId != null && message.senderId.isNotEmpty && message.senderId == myId;
-                    return Align(
-                      alignment:
-                          mine ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.sizeOf(context).width * 0.78,
-                        ),
-                        decoration: BoxDecoration(
-                          color: mine
-                              ? AppColors.primary.withValues(alpha: 0.12)
-                              : AppColors.cardSelected,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          message.body,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+          if (widget.conversation?.sellerId.isNotEmpty == true)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenHorizontal,
+                vertical: AppSpacing.sm,
+              ),
+              color: context.colors.primaryMuted,
+              child: Text(
+                l10n.inquiriesSub,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.colors.textSecondary,
+                ),
+              ),
             ),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _loadError != null
+                    ? AsyncErrorView.fromError(
+                        _loadError!,
+                        onRetry: () => _loadMessages(),
+                      )
+                    : _messages.isEmpty
+                        ? Center(child: Text(l10n.noMessagesYet))
+                        : RefreshIndicator(
+                            color: context.colors.primary,
+                            onRefresh: () => _loadMessages(),
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              itemCount: _messages.length,
+                              itemBuilder: (_, index) {
+                                final message = _messages[index];
+                                final mine = myUserId.isNotEmpty &&
+                                    message.senderId.isNotEmpty &&
+                                    message.senderId == myUserId;
+                                return Align(
+                                  alignment: mine
+                                      ? AlignmentDirectional.centerEnd
+                                      : AlignmentDirectional.centerStart,
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          MediaQuery.sizeOf(context).width * 0.78,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: mine
+                                          ? context.colors.primary
+                                              .withValues(alpha: 0.12)
+                                          : context.colors.surfaceVariant,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: mine
+                                          ? CrossAxisAlignment.end
+                                          : CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          message.body,
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                          ),
+                                        ),
+                                        if (message.createdAt.isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _formatMessageTime(message.createdAt),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: context.colors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
           ),
           SafeArea(
             top: false,
@@ -482,7 +609,7 @@ class _ConversationThreadScreenState
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      autofocus: true,
+                      focusNode: _inputFocusNode,
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _send(),
                       minLines: 1,

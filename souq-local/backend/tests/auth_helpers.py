@@ -1,0 +1,77 @@
+"""Shared helpers for auth tests (signup OTP + register)."""
+
+from httpx import AsyncClient
+
+
+async def register_test_user(
+    client: AsyncClient,
+    *,
+    email: str,
+    password: str = "SecurePass1",
+    account_type: str = "buyer",
+    display_name: str = "Test User",
+    phone: str = "+212600000000",
+    channel: str = "email",
+    accept_policies: bool = True,
+) -> dict:
+    sent = await client.post(
+        "/auth/signup/otp/send",
+        json={"email": email, "phone": phone, "channel": channel},
+    )
+    assert sent.status_code == 200, sent.text
+    code = sent.json().get("dev_code")
+    assert code, "dev_code missing from signup OTP response in test environment"
+
+    verified = await client.post(
+        "/auth/signup/otp/verify",
+        json={"email": email, "code": code, "channel": channel},
+    )
+    assert verified.status_code == 200, verified.text
+    proof = verified.json()["signup_proof"]
+
+    register = await client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": password,
+            "account_type": account_type,
+            "display_name": display_name,
+            "signup_proof": proof,
+        },
+    )
+    assert register.status_code == 201, register.text
+    body = register.json()
+    if accept_policies:
+        headers = {"Authorization": f"Bearer {body['access_token']}"}
+        accept = await client.post(
+            "/legal/accept",
+            headers=headers,
+            json={
+                "policies": [
+                    {"policy_id": "terms_of_service"},
+                    {"policy_id": "privacy_policy"},
+                ],
+                "language": "en",
+                "acknowledged": True,
+            },
+        )
+        assert accept.status_code == 200, accept.text
+    return body
+
+
+async def register_verified_user(
+    client: AsyncClient,
+    *,
+    email: str | None = None,
+    account_type: str = "buyer",
+) -> dict:
+    from uuid import uuid4
+
+    resolved_email = email or f"user-{uuid4().hex[:8]}@example.com"
+    body = await register_test_user(
+        client,
+        email=resolved_email,
+        account_type=account_type,
+        display_name=account_type.title(),
+    )
+    return {"headers": {"Authorization": f"Bearer {body['access_token']}"}, **body}
