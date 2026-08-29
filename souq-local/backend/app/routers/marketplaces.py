@@ -13,6 +13,7 @@ from app.models.marketplace import Marketplace, MarketplaceCategory
 from app.schemas import SellerSummary
 from app.schemas.marketplace import MarketplaceCategoryPublicOut, MarketplaceOut
 from app.services.marketplace_scope import resolve_marketplace_id
+from app.services.search_categories import resolve_listing_category_slugs
 from app.services.seller_marketplace import OTHER_CASABLANCA_MARKETS_SLUG, attach_marketplace_metadata, format_stall_location
 from app.data.marketplace_constants import LAUNCH_CITY
 
@@ -142,7 +143,9 @@ async def list_marketplace_sellers(
         .limit(limit)
     )
     if category:
-        stmt = stmt.join(SellerProfile.categories).where(Category.slug == category.strip())
+        slugs = resolve_listing_category_slugs(category)
+        if slugs:
+            stmt = stmt.join(SellerProfile.categories).where(Category.slug.in_(slugs))
     sellers = list((await session.execute(stmt)).scalars().unique().all())
     return [_seller_summary_out(seller) for seller in sellers]
 

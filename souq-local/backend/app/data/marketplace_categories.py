@@ -34,4 +34,35 @@ LEGACY_CATEGORY_SLUG_MAP: dict[str, str] = {
     "home-garden": "home",
 }
 
+# Marketplace-specific category slugs (per-venue trees) → fundamental listing slugs.
+MARKETPLACE_CATEGORY_TO_FUNDAMENTAL: dict[str, str] = {
+    # Derb Ghallef
+    "phones": "electronics",
+    "gaming": "electronics",
+    "computers": "electronics",
+    "networking": "electronics",
+    "repairs": "electronics",
+    # Derb Omar
+    "construction": "home",
+    "hardware": "home",
+    "plumbing": "home",
+    "electrical": "electronics",
+    # Al Qurayaa (9ri3a)
+    "toyota-parts": "accessories",
+    "bmw-parts": "accessories",
+    "mercedes-parts": "accessories",
+    "tires": "accessories",
+    "mechanics": "accessories",
+    # Habous
+    "traditional-clothing": "clothing",
+    "leather": "accessories",
+    "handicrafts": "accessories",
+    "spices": "food",
+    "gifts": "accessories",
+    "home-decor": "home",
+    # Medina / Bab Marrakech
+    "textiles": "clothing",
+    "household": "home",
+}
+
 MARKETPLACE_CATEGORY_SLUGS: frozenset[str] = frozenset(c.slug for c in MARKETPLACE_CATEGORIES)

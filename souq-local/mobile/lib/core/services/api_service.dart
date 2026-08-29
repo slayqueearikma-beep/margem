@@ -504,9 +504,7 @@ class ApiService {
   }
 
   Future<String?> categoryIdForSlug(String slug, {String? marketplace}) async {
-    final categories = marketplace != null && marketplace.isNotEmpty
-        ? await fetchMarketplaceCategories(marketplace)
-        : await fetchCategories();
+    final categories = await fetchCategories();
     for (final cat in categories) {
       if (cat.slug == slug) return cat.id;
     }

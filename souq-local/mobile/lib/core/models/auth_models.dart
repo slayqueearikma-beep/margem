@@ -472,7 +472,7 @@ const sellerCategoryLabelSlugMap = <String, String>{
   'Clothing': 'clothing',
   'Electronics': 'electronics',
   'Beauty': 'beauty',
-  'Services': 'services',
+  'Services': 'home',
   'Home & Garden': 'home',
   'Health': 'health',
   'Sports': 'sports',

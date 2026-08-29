@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import Category, Product, SellerProfile, Service, VerificationStatus, WarningZone
 from app.schemas import CategoryOut, ProductOut, ServiceOut, WarningZoneOut
+from app.services.search_categories import listing_category_filter
 
 router = APIRouter(tags=["catalog"])
 
@@ -148,10 +149,9 @@ async def list_public_services(
         stmt = stmt.where(Service.is_available.is_(True))
     if city:
         stmt = stmt.where(SellerProfile.city.ilike(_escape_ilike(city[:80])))
-    if category:
-        category_attr = getattr(Service, "category_slug", None)
-        if category_attr is not None:
-            stmt = stmt.where(category_attr == category[:80])
+    category_filter = listing_category_filter(Service.category_slug, category)
+    if category_filter is not None:
+        stmt = stmt.where(category_filter)
     q = q.strip()
     if q:
         pattern = f"%{_escape_ilike(q)}%"
@@ -162,9 +162,6 @@ async def list_public_services(
                 SellerProfile.business_name.ilike(pattern),
             )
         )
-        category_attr = getattr(Service, "category_slug", None)
-        if category_attr is not None:
-            stmt = stmt.where(category_attr.ilike(pattern))
     total = int(await session.scalar(select(func.count()).select_from(stmt.subquery())) or 0)
     rows = (
         await session.execute(

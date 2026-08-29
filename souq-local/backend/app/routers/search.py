@@ -20,6 +20,7 @@ from app.schemas import SellerSummary
 from app.services.geo import haversine_km_sql
 from app.services.marketplace_scope import resolve_marketplace_id
 from app.services.premium import attach_premium_flags, seller_pro_active
+from app.services.search_categories import listing_category_filter, resolve_listing_category_slugs
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -104,7 +105,9 @@ def _provider_filters(
     if category:
         from app.models import Category
 
-        stmt = stmt.join(SellerProfile.categories).where(Category.slug == category[:80])
+        slugs = resolve_listing_category_slugs(category)
+        if slugs:
+            stmt = stmt.join(SellerProfile.categories).where(Category.slug.in_(slugs))
     if min_rating is not None:
         stmt = stmt.where(SellerProfile.average_rating >= min_rating)
     return stmt
@@ -227,8 +230,9 @@ async def search(
             product_stmt = product_stmt.where(
                 Product.is_available.is_(True), Product.is_paused.is_(False)
             )
-        if category:
-            product_stmt = product_stmt.where(Product.category_slug == category[:80])
+        category_filter = listing_category_filter(Product.category_slug, category)
+        if category_filter is not None:
+            product_stmt = product_stmt.where(category_filter)
         if min_price is not None:
             product_stmt = product_stmt.where(
                 Product.pricing_type == PricingType.FIXED, Product.price_mad >= min_price
@@ -311,8 +315,9 @@ async def search(
             service_stmt = service_stmt.where(SellerProfile.marketplace_id == marketplace_id)
         if available_only:
             service_stmt = service_stmt.where(Service.is_available.is_(True))
-        if category:
-            service_stmt = service_stmt.where(Service.category_slug == category[:80])
+        category_filter = listing_category_filter(Service.category_slug, category)
+        if category_filter is not None:
+            service_stmt = service_stmt.where(category_filter)
         if min_price is not None:
             service_stmt = service_stmt.where(
                 Service.pricing_type == PricingType.FIXED, Service.price_mad >= min_price
