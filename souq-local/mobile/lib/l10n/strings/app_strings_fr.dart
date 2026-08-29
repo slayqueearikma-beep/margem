@@ -1749,6 +1749,9 @@ class AppStringsFr extends AppStringsEn {
   String get marketShopsTitle => 'Boutiques dans ce marché';
 
   @override
+  String get allMarketsLabel => 'Tous les marchés';
+
+  @override
   String get noSellersInMarket => 'Aucune boutique répertoriée';
 
   @override
