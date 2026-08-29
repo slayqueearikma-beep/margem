@@ -319,6 +319,11 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
       for (var i = 0; i < digits.length && index + i < 6; i++) {
         _controllers[index + i].text = digits[i];
       }
+      if (digits.length >= 6) {
+        FocusScope.of(context).unfocus();
+        _verify();
+        return;
+      }
       final next = (index + digits.length).clamp(0, 5);
       _focusNodes[next].requestFocus();
       return;
@@ -331,147 +336,162 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
     }
   }
 
+  Widget _buildOtpRow(BuildContext context) {
+    final fieldStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        );
+    final decoration = InputDecoration(
+      counterText: '',
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    return Row(
+      children: [
+        for (var index = 0; index < 6; index++) ...[
+          if (index > 0) const SizedBox(width: 4),
+          Expanded(
+            child: TextField(
+              controller: _controllers[index],
+              focusNode: _focusNodes[index],
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              enabled: !_loading,
+              style: fieldStyle,
+              autofillHints: index == 0
+                  ? const [AutofillHints.oneTimeCode]
+                  : null,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: decoration,
+              onChanged: (value) => _onDigitChanged(index, value),
+              onSubmitted: (_) => _verify(),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final maxHeight =
+        MediaQuery.sizeOf(context).height - viewInsets.bottom - 48;
+
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(DirectionalUi.backArrow(context), size: 18),
-                ),
-                Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(Icons.close_rounded),
-                ),
-              ],
-            ),
-            AppBrandLogo(
-              tier: AppLogoTier.header,
-              includeClearSpace: false,
-            ),
-            SizedBox(height: AppSpacing.md),
-            Text(
-              l10n.signupOtpCodeTitle,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            SizedBox(height: AppSpacing.sm),
-            Text(
-              l10n.signupOtpCodeSentTo(_destinationMasked),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.colors.textSecondary,
-                    height: 1.4,
-                  ),
-            ),
-            TextButton(
-              onPressed:
-                  _loading ? null : () => Navigator.of(context).pop('__change__'),
-              child: Text(l10n.signupOtpChange),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                const digitCount = 6;
-                const gap = 6.0;
-                final totalGap = gap * (digitCount - 1);
-                final boxWidth =
-                    ((constraints.maxWidth - totalGap) / digitCount).clamp(32.0, 44.0);
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(digitCount, (index) {
-                    return Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        end: index == digitCount - 1 ? 0 : gap,
+      child: AnimatedPadding(
+        padding: EdgeInsets.only(bottom: viewInsets.bottom),
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            child: AutofillGroup(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(DirectionalUi.backArrow(context), size: 18),
                       ),
-                      child: SizedBox(
-                        width: boxWidth,
-                        child: TextField(
-                          controller: _controllers[index],
-                          focusNode: _focusNodes[index],
-                          textAlign: TextAlign.center,
-                          keyboardType: TextInputType.number,
-                          maxLength: 6,
-                          enabled: !_loading,
-                          style: Theme.of(context).textTheme.titleMedium,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          decoration: InputDecoration(
-                            counterText: '',
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 12),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          onChanged: (value) => _onDigitChanged(index, value),
-                          onSubmitted: (_) => _verify(),
-                        ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded),
                       ),
-                    );
-                  }),
-                );
-              },
-            ),
-            if (_error != null) ...[
-              SizedBox(height: AppSpacing.sm),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: context.colors.error, fontSize: 13),
-              ),
-            ],
-            SizedBox(height: AppSpacing.md),
-            Text(
-              l10n.signupOtpDidntReceive,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.colors.textSecondary,
+                    ],
                   ),
-            ),
-            TextButton(
-              onPressed: (_resendSeconds > 0 || _resending || _loading)
-                  ? null
-                  : () async {
-                      await _sendCode();
-                      _startResendTimer();
-                    },
-              child: Text(
-                _resendSeconds > 0
-                    ? l10n.signupOtpResendCountdown(_resendSeconds)
-                    : l10n.signupOtpResend,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _loading ? null : _verify,
-                child: _loading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                  const AppBrandLogo(
+                    tier: AppLogoTier.header,
+                    includeClearSpace: false,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    l10n.signupOtpCodeTitle,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    l10n.signupOtpCodeSentTo(_destinationMasked),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: context.colors.textSecondary,
+                          height: 1.4,
                         ),
-                      )
-                    : Text(l10n.signupOtpVerify),
+                  ),
+                  TextButton(
+                    onPressed: _loading
+                        ? null
+                        : () => Navigator.of(context).pop('__change__'),
+                    child: Text(l10n.signupOtpChange),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildOtpRow(context),
+                  if (_error != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(color: context.colors.error, fontSize: 13),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    l10n.signupOtpDidntReceive,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.colors.textSecondary,
+                        ),
+                  ),
+                  TextButton(
+                    onPressed: (_resendSeconds > 0 || _resending || _loading)
+                        ? null
+                        : () async {
+                            await _sendCode();
+                            _startResendTimer();
+                          },
+                    child: Text(
+                      _resendSeconds > 0
+                          ? l10n.signupOtpResendCountdown(_resendSeconds)
+                          : l10n.signupOtpResend,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _loading ? null : _verify,
+                      child: _loading
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(l10n.signupOtpVerify),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
