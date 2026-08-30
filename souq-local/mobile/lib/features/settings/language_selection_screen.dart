@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
-import '../../core/widgets/app_logo_placeholder.dart';
+import '../../core/widgets/margem_background.dart';
 import '../../l10n/app_localizations.dart';
 
 class LanguageOption {
@@ -72,47 +74,73 @@ class _LanguageSelectionScreenState
     final l10n = context.l10n;
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (widget.fromSettings)
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: IconButton(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+      backgroundColor: Colors.transparent,
+      body: MargemBackground(
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.fromSettings)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: IconButton(
+                    onPressed: () => context.pop(),
+                    icon: Icon(DirectionalUi.backArrow(context), size: 20),
+                  ),
                 ),
-              ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screenHorizontal),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (!widget.fromSettings)
-                      const SizedBox(height: AppSpacing.md),
-                    const Center(
-                        child: AppBrandLogo(
-                            variant: AppBrandLogoVariant.full, width: 200)),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      l10n.selectLanguage,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      l10n.selectLanguageSubtitle,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary, height: 1.4),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
+              if (!widget.fromSettings)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenHorizontal,
+                  ),
+                  child: AppBrandHeader(
+                    tier: AppLogoTier.header,
+                    title: l10n.selectLanguage,
+                    subtitle: l10n.selectLanguageSubtitle,
+                  ),
+                ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenHorizontal,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (widget.fromSettings) ...[
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.md),
+                            child: const AppBrandLogo(
+                              tier: AppLogoTier.header,
+                              includeClearSpace: false,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Text(
+                          l10n.selectLanguage,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          l10n.selectLanguageSubtitle,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                                color: AppColors.onSurfaceVariant(context),
+                                height: 1.4,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+                      ] else
+                        const SizedBox(height: AppSpacing.lg),
                     ..._options(l10n).map((option) => _LanguageCard(
                           flag: option.flag,
                           label: option.label,
@@ -141,7 +169,8 @@ class _LanguageSelectionScreenState
                 child: PrimaryButton(
                     label: l10n.continueLabel, onPressed: _continue),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -169,9 +198,7 @@ class _LanguageCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Material(
         color: selected
-            ? (isDark
-                ? AppColors.primary.withValues(alpha: 0.15)
-                : AppColors.cardSelected)
+            ? AppColors.selectedCardSurface(context)
             : (isDark ? AppColors.darkCard : AppColors.cardUnselected),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         child: InkWell(

@@ -13,12 +13,14 @@ class OnboardingIllustration extends StatelessWidget {
     required this.icon,
     this.secondaryIcon,
     this.imageAsset,
+    this.imageFit = BoxFit.cover,
   });
 
   final Color backgroundColor;
   final IconData icon;
   final IconData? secondaryIcon;
   final String? imageAsset;
+  final BoxFit imageFit;
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +33,15 @@ class OnboardingIllustration extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: imageAsset != null
-          ? Image.asset(
-              imageAsset!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (_, __, ___) => _iconFallback(),
+          ? Padding(
+              padding: EdgeInsets.all(imageFit == BoxFit.contain ? 32 : 0),
+              child: Image.asset(
+                imageAsset!,
+                fit: imageFit,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (_, __, ___) => _iconFallback(),
+              ),
             )
           : _iconFallback(),
     );
@@ -108,7 +113,7 @@ class SectionHeader extends StatelessWidget {
             TextButton(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
+                foregroundColor: AppColors.lavender,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 minimumSize: const Size(44, 36),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -150,16 +155,16 @@ class FeaturedBusinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: AppColors.cardSurface(context),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: AppColors.outlineSubtle(context),
         ),
       ),
+      shadowColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -182,7 +187,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                       top: 8,
                       right: 8,
                       child: Material(
-                        color: Colors.white,
+                        color: AppColors.favoriteButton(context),
                         shape: const CircleBorder(),
                         child: InkWell(
                           customBorder: const CircleBorder(),
@@ -194,7 +199,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                                   ? Icons.favorite_rounded
                                   : Icons.favorite_border_rounded,
                               size: 18,
-                              color: AppColors.primary,
+                              color: AppColors.lavender,
                             ),
                           ),
                         ),
@@ -529,7 +534,10 @@ class DashboardMenuTile extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 child: Text(
                   badge!,
-                  style: const TextStyle(fontSize: 10, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
               )
             : Icon(

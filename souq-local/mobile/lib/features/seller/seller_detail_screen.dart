@@ -15,6 +15,7 @@ import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/marketplace_actions.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/product_carousel_card.dart';
+import '../../core/widgets/service_card.dart';
 import '../../l10n/app_localizations.dart';
 import 'rate_seller_sheet.dart';
 
@@ -220,7 +221,6 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
               session!.sellerId!.isNotEmpty &&
               session.sellerId == seller.id;
           final carouselProducts = sortProductsForCarousel(seller.products);
-          final isDark = Theme.of(context).brightness == Brightness.dark;
 
           return CustomScrollView(
             slivers: [
@@ -269,9 +269,7 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                         seller.description,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               height: 1.45,
-                              color: isDark
-                                  ? Colors.white70
-                                  : AppColors.textSecondary,
+                              color: AppColors.onSurfaceVariant(context),
                             ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
@@ -453,21 +451,9 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                       Text(l10n.noServicesListed)
                     else
                       ...seller.services.map(
-                        (service) => ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(service.name,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w700)),
-                          subtitle: Text(service.description),
-                          trailing: service.priceMad != null
-                              ? Text(
-                                  '${service.priceMad!.toStringAsFixed(0)} MAD',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                )
-                              : null,
+                        (service) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: ServiceCard(service: service),
                         ),
                       ),
                     const SizedBox(height: AppSpacing.xl),
@@ -606,8 +592,8 @@ class _SellerHeader extends StatelessWidget {
                   Flexible(
                     child: Text(
                       '${seller.averageRating.toStringAsFixed(1)} · ${l10n.reviewsCount(seller.reviewCount)}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: AppColors.onSurfaceVariant(context),
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -665,7 +651,7 @@ class _MetaPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMuted,
+        color: AppColors.mutedSurface(context),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -675,10 +661,10 @@ class _MetaPill extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: AppColors.onSurfaceVariant(context),
             ),
           ),
         ],
@@ -804,7 +790,7 @@ class _ReviewsPreview extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.surfaceMuted,
+          color: AppColors.mutedSurface(context),
           borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         ),
         child: Column(
@@ -865,8 +851,8 @@ class _ReviewsPreview extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     l10n.reviewsCount(seller.reviewCount),
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: AppColors.onSurfaceVariant(context),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -900,7 +886,7 @@ class _ReviewsPreview extends StatelessWidget {
                               child: LinearProgressIndicator(
                                 value: count / maxCount,
                                 minHeight: 7,
-                                backgroundColor: AppColors.surfaceMuted,
+                                backgroundColor: AppColors.mutedSurface(context),
                                 color: AppColors.star,
                               ),
                             ),
