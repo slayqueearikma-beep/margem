@@ -69,31 +69,35 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   var _fetchGeneration = 0;
   double? _distanceSortLat;
   double? _distanceSortLng;
+  String? _searchMarketplaceSlug;
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(_onSearchFocusChanged);
     _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _clearInvalidMarketplaceSelection();
-      _seedHomeCategoryForCurrentMode();
-      _restoreOrFetch(mode: _mode, sort: _sort);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await ref.read(citiesProvider.future);
+      } on Object {
+        // Search still works with the launch-city fallback.
+      }
+      if (!mounted) return;
+      if (_searchMarketplaceSlug != null && _searchMarketplaceSlug!.isNotEmpty) {
+        try {
+          await ref.read(buyerMarketplacesProvider.future);
+        } on Object {
+          // Best-effort validation for explicit search marketplace scope.
+        }
+        if (!mounted) return;
+        _validateSearchMarketplaceSlug();
+      }
+      await _reload();
     });
   }
 
   SearchFilters _filtersFor(String mode) =>
       _filtersByMode[mode] ?? const SearchFilters();
-
-  void _seedHomeCategoryForCurrentMode() {
-    final homeCategory = ref.read(buyerCategorySlugProvider);
-    if (homeCategory == null || homeCategory.isEmpty) return;
-    final current = _filtersFor(_mode);
-    if (current.category != null && current.category!.isNotEmpty) return;
-    _filtersByMode[_mode] = current.copyWith(
-      category: resolveSearchCategorySlug(homeCategory),
-    );
-  }
 
   String _queryFor(String mode) => _queryByMode[mode] ?? '';
 
@@ -105,11 +109,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       currentMode: _mode,
       filtersByMode: _filtersByMode,
     );
-    if (intent.marketplaceSlug != null) {
-      ref
-          .read(buyerMarketplaceSlugProvider.notifier)
-          .setSlug(intent.marketplaceSlug);
-    }
+    _searchMarketplaceSlug = intent.marketplaceSlug;
     if (_mode != application.mode) {
       _persistModeQuery();
       _persistCurrentSnapshot();
@@ -179,6 +179,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void didUpdateWidget(covariant SearchScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.autofocusSearch && !oldWidget.autofocusSearch) {
+      if (_itemCount == 0 && !_loading && _error == null) {
+        _reload();
+      } else {
+        _restoreOrFetch(mode: _mode, sort: _sort);
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !widget.autofocusSearch) return;
         if (_focusNode.canRequestFocus) {
@@ -198,21 +203,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   String? _activeMarketplace() {
-    final slug = ref.read(buyerMarketplaceSlugProvider);
+    final slug = _searchMarketplaceSlug;
     if (slug == null || slug.isEmpty) return null;
     final marketplaces =
         ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
-    return validatedMarketplaceSlug(slug, marketplaces);
+    return resolveSearchMarketplaceSlug(slug, marketplaces);
   }
 
-  void _clearInvalidMarketplaceSelection() {
-    final slug = ref.read(buyerMarketplaceSlugProvider);
+  void _validateSearchMarketplaceSlug() {
+    final slug = _searchMarketplaceSlug;
     if (slug == null || slug.isEmpty) return;
     final marketplaces =
         ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
     if (marketplaces.isEmpty) return;
-    if (validatedMarketplaceSlug(slug, marketplaces) != null) return;
-    ref.read(buyerMarketplaceSlugProvider.notifier).setSlug(null);
+    if (resolveSearchMarketplaceSlug(slug, marketplaces) != null) return;
+    _searchMarketplaceSlug = null;
   }
 
   String _scopeKeyFor(String mode, String sort) {
@@ -453,7 +458,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _restoreOrFetch({required String mode, required String sort}) {
     final scopeKey = _scopeKeyFor(mode, sort);
-    if (sort != 'distance' && _modeCache.isLoaded(scopeKey)) {
+    final cached = _modeCache.snapshot(scopeKey);
+    if (sort != 'distance' &&
+        cached != null &&
+        _snapshotItemCount(cached, mode) > 0) {
       _restoreSnapshot(scopeKey, mode);
       setState(() {
         _loading = false;
@@ -517,6 +525,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       _reload();
     });
   }
+
+  int _snapshotItemCount(SearchResultsSnapshot snapshot, String mode) =>
+      switch (mode) {
+        'services' => snapshot.services.length,
+        'providers' => snapshot.sellers.length,
+        _ => snapshot.products.length,
+      };
+
+  String _emptyResultsTitle(AppStrings l10n) => switch (_mode) {
+        'services' => l10n.noServicesFound,
+        'providers' => l10n.noBusinessesFound,
+        _ => l10n.noProductsFound,
+      };
 
   String _priceLabel(AppStrings l10n, {required bool isOffer, double? priceMad}) {
     if (isOffer) return l10n.pricingOffer;
@@ -647,13 +668,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 : resolveSearchCategorySlug(item.category);
                             _filtersByMode[_mode] = SearchFilters(category: category);
                             _syncCategoryProvider(category);
-                            ref
-                                .read(buyerMarketplaceSlugProvider.notifier)
-                                .setSlug(
-                                  item.marketplaceSlug.isEmpty
-                                      ? null
-                                      : item.marketplaceSlug,
-                                );
+                            _searchMarketplaceSlug = item.marketplaceSlug.isEmpty
+                                ? null
+                                : item.marketplaceSlug;
                             Navigator.pop(context);
                             _reload();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -704,6 +721,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _applyFilters(SearchFilters result) {
+    final isClear = result.category == null &&
+        result.minPrice == null &&
+        result.maxPrice == null &&
+        result.minRating == null &&
+        !result.deliveryAvailable &&
+        !result.pickupOnly;
+    if (isClear) {
+      _searchMarketplaceSlug = null;
+    }
     final normalized = SearchFilters(
       category: resolveSearchCategorySlug(result.category),
       minPrice: result.minPrice,
@@ -747,7 +773,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                l10n.noBusinessesFound,
+                _emptyResultsTitle(l10n),
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme
@@ -849,7 +875,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             trailing: Icon(
               DirectionalUi.forwardChevron(context),
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
             onTap: () => context.push('/seller/${seller.id}'),
           );
@@ -911,24 +937,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       });
       _reload();
     });
-    ref.listen(buyerMarketplaceSlugProvider, (previous, next) {
-      if (previous != next) _reload();
-    });
     ref.listen(buyerMarketplacesProvider, (previous, next) {
-      final slug = ref.read(buyerMarketplaceSlugProvider);
+      final slug = _searchMarketplaceSlug;
       if (slug == null || slug.isEmpty) return;
       final marketplaces = next.valueOrNull ?? const [];
       if (marketplaces.isEmpty) return;
 
-      final validated = validatedMarketplaceSlug(slug, marketplaces);
+      final validated = resolveSearchMarketplaceSlug(slug, marketplaces);
       if (validated == null) {
-        _clearInvalidMarketplaceSelection();
+        _validateSearchMarketplaceSlug();
         _reload();
         return;
       }
 
       final wasValidated = previous?.valueOrNull != null &&
-          validatedMarketplaceSlug(slug, previous!.valueOrNull ?? const []) !=
+          resolveSearchMarketplaceSlug(
+                slug,
+                previous!.valueOrNull ?? const [],
+              ) !=
               null;
       if (!wasValidated) _reload();
     });

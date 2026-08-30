@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/app_config.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 
 /// Visual hierarchy for the official MarGem mark.
 enum AppLogoTier {
@@ -178,7 +179,7 @@ class AppBrandHeader extends StatelessWidget {
             textAlign: TextAlign.center,
             style: subtitleStyle ??
                 theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.45,
                 ),
           ),

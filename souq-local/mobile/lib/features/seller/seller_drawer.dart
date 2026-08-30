@@ -109,7 +109,7 @@ class SellerDrawer extends ConsumerWidget {
                 children: [
                   FilledButton.tonal(
                     style: FilledButton.styleFrom(
-                      backgroundColor: Colors.white,
+                      backgroundColor: context.colors.surface,
                       foregroundColor: context.colors.primary,
                       minimumSize: const Size.fromHeight(48),
                     ),

@@ -421,3 +421,42 @@ async def test_search_category_filter_with_query_and_pagination(client: AsyncCli
     assert second["has_more"] is False
     returned_ids = {item["id"] for item in body["products"] + second["products"]}
     assert returned_ids == set(created_ids)
+
+
+@pytest.mark.asyncio
+async def test_search_category_excludes_uncategorized_product_for_multi_category_seller(
+    client: AsyncClient,
+):
+    await _seed_catalog_data()
+    seller = await _register_seller(client)
+    categories = await client.get("/categories")
+    assert categories.status_code == 200, categories.text
+    by_slug = {item["slug"]: item["id"] for item in categories.json()}
+    profile = await create_test_seller(
+        client,
+        seller["headers"],
+        **seller_create_payload(
+            category_ids=[by_slug["electronics"], by_slug["food"]],
+        ),
+    )
+
+    product = await client.post(
+        f"/sellers/{profile['id']}/products",
+        headers=seller["headers"],
+        json={"name": "Uncategorized Phone", "price_mad": 999},
+    )
+    assert product.status_code == 201, product.text
+    product_id = product.json()["id"]
+
+    electronics = await client.get(
+        "/search",
+        params={"mode": "products", "category": "electronics", "limit": 20},
+    )
+    food = await client.get(
+        "/search",
+        params={"mode": "products", "category": "food", "limit": 20},
+    )
+    assert electronics.status_code == 200, electronics.text
+    assert food.status_code == 200, food.text
+    assert product_id not in {item["id"] for item in electronics.json()["products"]}
+    assert product_id not in {item["id"] for item in food.json()["products"]}

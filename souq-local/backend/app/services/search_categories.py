@@ -53,19 +53,19 @@ def listing_category_filter(
         .exists()
     )
 
-    seller_category_count = (
-        select(func.count())
-        .select_from(SellerCategory)
+    seller_has_single_category = (
+        select(func.count(SellerCategory.category_id))
         .where(SellerCategory.seller_id == SellerProfile.id)
         .correlate(SellerProfile)
         .scalar_subquery()
+        == 1
     )
 
     return or_(
         func.lower(category_column).in_(slugs),
         and_(
             or_(category_column == "", category_column.is_(None)),
-            seller_category_count == 1,
             seller_category_exists,
+            seller_has_single_category,
         ),
     )

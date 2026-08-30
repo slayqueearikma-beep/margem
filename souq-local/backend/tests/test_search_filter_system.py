@@ -105,7 +105,8 @@ async def test_service_relevance_sort_ranks_name_prefix_first(client: AsyncClien
     )
     assert response.status_code == 200, response.text
     ids = [item["id"] for item in response.json()["services"]]
-    assert ids.index(alpha.json()["id"]) < ids.index(zebra.json()["id"])
+    assert ids.index(alpha.json()["id"]) == 0
+    assert zebra.json()["id"] not in ids
 
 
 @pytest.mark.asyncio
@@ -248,7 +249,6 @@ async def test_sort_relevance_nearest_toggle_preserves_results(client: AsyncClie
 async def test_search_category_price_city_combined_filters(client: AsyncClient):
     await _seed_catalog_data()
     casablanca = await _register_seller(client)
-    rabat = await _register_seller(client)
     electronics_id = await _category_id(client, "electronics")
     casa_profile = await create_test_seller(
         client,
@@ -259,31 +259,17 @@ async def test_search_category_price_city_combined_filters(client: AsyncClient):
             city="Casablanca",
         ),
     )
-    rabat_profile = await create_test_seller(
-        client,
-        rabat["headers"],
-        **seller_create_payload(
-            business_name="Rabat Shop",
-            category_ids=[electronics_id],
-            city="Rabat",
-        ),
-    )
     match = await client.post(
         f"/sellers/{casa_profile['id']}/products",
         headers=casablanca["headers"],
         json={"name": "Casa Phone", "price_mad": 1200, "category_slug": "electronics"},
-    )
-    wrong_city = await client.post(
-        f"/sellers/{rabat_profile['id']}/products",
-        headers=rabat["headers"],
-        json={"name": "Rabat Phone", "price_mad": 1200, "category_slug": "electronics"},
     )
     wrong_price = await client.post(
         f"/sellers/{casa_profile['id']}/products",
         headers=casablanca["headers"],
         json={"name": "Casa Cheap", "price_mad": 50, "category_slug": "electronics"},
     )
-    assert all(r.status_code == 201 for r in (match, wrong_city, wrong_price))
+    assert all(r.status_code == 201 for r in (match, wrong_price))
 
     response = await client.get(
         "/search",
@@ -298,8 +284,20 @@ async def test_search_category_price_city_combined_filters(client: AsyncClient):
     )
     ids = {item["id"] for item in response.json()["products"]}
     assert match.json()["id"] in ids
-    assert wrong_city.json()["id"] not in ids
     assert wrong_price.json()["id"] not in ids
+
+    wrong_city = await client.get(
+        "/search",
+        params={
+            "mode": "products",
+            "q": "Phone",
+            "category": "electronics",
+            "city": "Rabat",
+            "min_price": 1000,
+            "max_price": 1500,
+        },
+    )
+    assert match.json()["id"] not in {item["id"] for item in wrong_city.json()["products"]}
 
 
 @pytest.mark.asyncio
