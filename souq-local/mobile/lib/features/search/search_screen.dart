@@ -875,7 +875,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             trailing: Icon(
               DirectionalUi.forwardChevron(context),
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
             onTap: () => context.push('/seller/${seller.id}'),
           );

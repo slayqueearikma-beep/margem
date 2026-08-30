@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// Fixed splash illustration — cream sky, soft atmosphere, Casablanca skyline.
+/// Fixed splash illustration — cream sky in light mode, deep navy in dark mode.
 class SplashBackdrop extends StatelessWidget {
   const SplashBackdrop({super.key, required this.child});
 
@@ -17,25 +17,36 @@ class SplashBackdrop extends StatelessWidget {
   static const _skyLow = Color(0xFFF3E6D8);
   static const _skyBase = Color(0xFFEFE0D2);
 
+  static const _darkSkyTop = Color(0xFF0B0F14);
+  static const _darkSkyMid = Color(0xFF111827);
+  static const _darkSkyLow = Color(0xFF151B23);
+  static const _darkSkyBase = Color(0xFF1F2937);
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.sizeOf(context);
     final minSkyline = math.min(size.width * 0.34, size.height * 0.36);
     final maxSkyline = math.max(size.width * 0.34, size.height * 0.36);
     final skylineHeight = (size.height * 0.30).clamp(minSkyline, maxSkyline);
+    final baseColor = isDark ? AppColors.darkBackground : AppColors.cream;
+    final gradientColors = isDark
+        ? const [_darkSkyTop, _darkSkyMid, _darkSkyLow, _darkSkyBase]
+        : const [_skyTop, _skyMid, _skyLow, _skyBase];
+    final skylineFade = isDark ? _darkSkyLow : _skyLow;
 
     return ColoredBox(
-      color: AppColors.cream,
+      color: baseColor,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          const DecoratedBox(
+          DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                stops: [0.0, 0.45, 0.78, 1.0],
-                colors: [_skyTop, _skyMid, _skyLow, _skyBase],
+                stops: const [0.0, 0.45, 0.78, 1.0],
+                colors: gradientColors,
               ),
             ),
           ),
@@ -44,8 +55,8 @@ class SplashBackdrop extends StatelessWidget {
             left: size.width * 0.18,
             child: _AtmosphericGlow(
               diameter: size.width * 0.95,
-              color: const Color(0xFFFFF8F2),
-              opacity: 0.55,
+              color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFFFF8F2),
+              opacity: isDark ? 0.35 : 0.55,
             ),
           ),
           Positioned(
@@ -53,8 +64,8 @@ class SplashBackdrop extends StatelessWidget {
             right: -size.width * 0.18,
             child: _AtmosphericGlow(
               diameter: size.width * 0.62,
-              color: const Color(0xFFFFC9A8),
-              opacity: 0.10,
+              color: isDark ? const Color(0xFF3B82F6) : const Color(0xFFFFC9A8),
+              opacity: isDark ? 0.08 : 0.10,
             ),
           ),
           Positioned(
@@ -62,29 +73,34 @@ class SplashBackdrop extends StatelessWidget {
             left: -size.width * 0.22,
             child: _AtmosphericGlow(
               diameter: size.width * 0.52,
-              color: const Color(0xFFB8A0E8),
-              opacity: 0.07,
+              color: isDark ? const Color(0xFF6366F1) : const Color(0xFFB8A0E8),
+              opacity: isDark ? 0.06 : 0.07,
             ),
           ),
-          Positioned(
-            top: size.height * 0.05,
-            left: -size.width * 0.10,
-            child: _CloudBlob(diameter: size.width * 0.78, opacity: 0.36),
-          ),
-          Positioned(
-            top: size.height * 0.14,
-            right: -size.width * 0.12,
-            child: _CloudBlob(diameter: size.width * 0.62, opacity: 0.28),
-          ),
-          Positioned(
-            top: size.height * 0.26,
-            left: size.width * 0.10,
-            child: _CloudBlob(diameter: size.width * 0.44, opacity: 0.22),
-          ),
+          if (!isDark) ...[
+            Positioned(
+              top: size.height * 0.05,
+              left: -size.width * 0.10,
+              child: _CloudBlob(diameter: size.width * 0.78, opacity: 0.36),
+            ),
+            Positioned(
+              top: size.height * 0.14,
+              right: -size.width * 0.12,
+              child: _CloudBlob(diameter: size.width * 0.62, opacity: 0.28),
+            ),
+            Positioned(
+              top: size.height * 0.26,
+              left: size.width * 0.10,
+              child: _CloudBlob(diameter: size.width * 0.44, opacity: 0.22),
+            ),
+          ],
           Positioned(
             top: size.height * 0.10,
             right: size.width * 0.14,
-            child: _BirdFlock(width: size.width * 0.18),
+            child: _BirdFlock(
+              width: size.width * 0.18,
+              isDark: isDark,
+            ),
           ),
           Positioned(
             left: 0,
@@ -95,13 +111,16 @@ class SplashBackdrop extends StatelessWidget {
               fit: StackFit.expand,
               alignment: Alignment.bottomCenter,
               children: [
-                Image.asset(
-                  _skylineAsset,
-                  width: size.width,
-                  height: skylineHeight,
-                  fit: BoxFit.fitWidth,
-                  alignment: Alignment.bottomCenter,
-                  filterQuality: FilterQuality.high,
+                Opacity(
+                  opacity: isDark ? 0.72 : 1.0,
+                  child: Image.asset(
+                    _skylineAsset,
+                    width: size.width,
+                    height: skylineHeight,
+                    fit: BoxFit.fitWidth,
+                    alignment: Alignment.bottomCenter,
+                    filterQuality: FilterQuality.high,
+                  ),
                 ),
                 Positioned(
                   left: 0,
@@ -114,8 +133,8 @@ class SplashBackdrop extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          _skyLow.withValues(alpha: 0.92),
-                          _skyLow.withValues(alpha: 0.0),
+                          skylineFade.withValues(alpha: isDark ? 0.96 : 0.92),
+                          skylineFade.withValues(alpha: 0.0),
                         ],
                       ),
                     ),
@@ -189,9 +208,10 @@ class _CloudBlob extends StatelessWidget {
 }
 
 class _BirdFlock extends StatelessWidget {
-  const _BirdFlock({required this.width});
+  const _BirdFlock({required this.width, required this.isDark});
 
   final double width;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +221,8 @@ class _BirdFlock extends StatelessWidget {
         height: width * 0.35,
         child: CustomPaint(
           painter: _BirdFlockPainter(
-            color: const Color(0xFF8A7B72).withValues(alpha: 0.28),
+            color: (isDark ? const Color(0xFF9CA3AF) : const Color(0xFF8A7B72))
+                .withValues(alpha: isDark ? 0.35 : 0.28),
           ),
         ),
       ),

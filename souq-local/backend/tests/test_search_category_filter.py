@@ -424,7 +424,7 @@ async def test_search_category_filter_with_query_and_pagination(client: AsyncCli
 
 
 @pytest.mark.asyncio
-async def test_search_category_matches_uncategorized_product_for_multi_category_seller(
+async def test_search_category_excludes_uncategorized_product_for_multi_category_seller(
     client: AsyncClient,
 ):
     await _seed_catalog_data()
@@ -448,10 +448,15 @@ async def test_search_category_matches_uncategorized_product_for_multi_category_
     assert product.status_code == 201, product.text
     product_id = product.json()["id"]
 
-    filtered = await client.get(
+    electronics = await client.get(
         "/search",
         params={"mode": "products", "category": "electronics", "limit": 20},
     )
-    assert filtered.status_code == 200, filtered.text
-    ids = {item["id"] for item in filtered.json()["products"]}
-    assert product_id in ids
+    food = await client.get(
+        "/search",
+        params={"mode": "products", "category": "food", "limit": 20},
+    )
+    assert electronics.status_code == 200, electronics.text
+    assert food.status_code == 200, food.text
+    assert product_id not in {item["id"] for item in electronics.json()["products"]}
+    assert product_id not in {item["id"] for item in food.json()["products"]}

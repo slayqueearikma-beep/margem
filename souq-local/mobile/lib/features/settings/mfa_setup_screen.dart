@@ -6,8 +6,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/services/api_service.dart';
 import '../../core/services/mfa_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/utils/mfa_utils.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
@@ -159,6 +159,7 @@ class _MfaSetupScreenState extends ConsumerState<MfaSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colors = context.colors;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.mfaSetupTitle)),
@@ -175,7 +176,7 @@ class _MfaSetupScreenState extends ConsumerState<MfaSetupScreen> {
                     Text(
                       l10n.mfaSetupInstructions,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
+                            color: colors.textSecondary,
                             height: 1.45,
                           ),
                     ),
@@ -186,7 +187,7 @@ class _MfaSetupScreenState extends ConsumerState<MfaSetupScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: colors.border),
                         ),
                         child: QrImageView(
                           data: _otpauthUri!,
@@ -207,9 +208,9 @@ class _MfaSetupScreenState extends ConsumerState<MfaSetupScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceMuted.withValues(alpha: 0.5),
+                        color: colors.surfaceVariant.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: colors.border),
                       ),
                       child: SelectableText(
                         _secret!,

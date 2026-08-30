@@ -8,6 +8,7 @@ import '../../core/services/legal_acceptance_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/splash_backdrop.dart';
 
@@ -24,19 +25,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late final Animation<double> _scale;
   late final Animation<double> _fade;
 
-  static const _overlayStyle = SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-    systemNavigationBarColor: AppColors.cream,
-    systemNavigationBarIconBrightness: Brightness.dark,
-    systemNavigationBarDividerColor: Colors.transparent,
-  );
+  SystemUiOverlayStyle _overlayStyleFor(BuildContext context) {
+    final isDark = context.isDark;
+    final background = isDark ? AppColors.darkBackground : AppColors.cream;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: background,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarDividerColor: Colors.transparent,
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setSystemUIOverlayStyle(_overlayStyle);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 420),
@@ -135,14 +140,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final viewPadding = MediaQuery.viewPaddingOf(context);
     final screenHeight = MediaQuery.sizeOf(context).height;
     final logoSize = AppLogoLayout.sizeFor(context, AppLogoTier.splash);
+    final isDark = context.isDark;
+    final background = isDark ? AppColors.darkBackground : AppColors.cream;
+    final overlayStyle = _overlayStyleFor(context);
 
     // Place the logo slightly above optical center, accounting for skyline mass.
     final logoCenterY = (screenHeight * 0.43) + (viewPadding.top * 0.15);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: _overlayStyle,
+      value: overlayStyle,
       child: ColoredBox(
-        color: AppColors.cream,
+        color: background,
         child: SplashBackdrop(
           child: Stack(
             fit: StackFit.expand,

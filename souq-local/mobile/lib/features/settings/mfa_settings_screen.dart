@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/mfa_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
@@ -161,6 +161,7 @@ class _MfaSettingsScreenState extends ConsumerState<MfaSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colors = context.colors;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.mfaSettingsTitle)),
@@ -172,7 +173,7 @@ class _MfaSettingsScreenState extends ConsumerState<MfaSettingsScreen> {
                 if (_loadError != null) ...[
                   Text(
                     _loadError!,
-                    style: const TextStyle(color: AppColors.danger),
+                    style: TextStyle(color: colors.error),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
@@ -181,13 +182,13 @@ class _MfaSettingsScreenState extends ConsumerState<MfaSettingsScreen> {
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
                     color: _mfaEnabled
-                        ? AppColors.primary.withValues(alpha: 0.08)
-                        : AppColors.surfaceMuted.withValues(alpha: 0.5),
+                        ? colors.primary.withValues(alpha: 0.08)
+                        : colors.surfaceVariant.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: _mfaEnabled
-                          ? AppColors.primary.withValues(alpha: 0.35)
-                          : AppColors.border,
+                          ? colors.primary.withValues(alpha: 0.35)
+                          : colors.border,
                     ),
                   ),
                   child: Row(
@@ -197,8 +198,8 @@ class _MfaSettingsScreenState extends ConsumerState<MfaSettingsScreen> {
                             ? Icons.verified_user_outlined
                             : Icons.shield_outlined,
                         color: _mfaEnabled
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
+                            ? colors.primary
+                            : colors.textSecondary,
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
@@ -220,7 +221,7 @@ class _MfaSettingsScreenState extends ConsumerState<MfaSettingsScreen> {
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
-                                  ?.copyWith(color: AppColors.textSecondary),
+                                  ?.copyWith(color: colors.textSecondary),
                             ),
                           ],
                         ),
@@ -232,8 +233,8 @@ class _MfaSettingsScreenState extends ConsumerState<MfaSettingsScreen> {
                 if (_mfaEnabled)
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.danger,
-                      side: const BorderSide(color: AppColors.danger),
+                      foregroundColor: colors.error,
+                      side: BorderSide(color: colors.error),
                     ),
                     onPressed: _disableMfa,
                     child: Text(l10n.disableMfa),
