@@ -37,7 +37,8 @@ class SellerDetailScreen extends ConsumerStatefulWidget {
 class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
   late Future<SellerModel> _sellerFuture;
   late Future<List<ReviewModel>> _reviewsFuture;
-  var _following = false;
+  bool? _isFollowing;
+  var _followingAction = false;
   var _messaging = false;
 
   bool _isStoreOwner(UserSession? session) {
@@ -53,6 +54,26 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
     _sellerFuture =
         apiServiceProvider.fetchSeller(widget.sellerId, auth: asOwner);
     _reviewsFuture = apiServiceProvider.fetchReviews(widget.sellerId);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadFollowState());
+  }
+
+  Future<void> _loadFollowState() async {
+    final session = ref.read(userSessionProvider);
+    if (session == null || session.isGuest) {
+      if (mounted) setState(() => _isFollowing = false);
+      return;
+    }
+    try {
+      final follows = await apiServiceProvider.listFollows();
+      if (!mounted) return;
+      setState(() {
+        _isFollowing =
+            follows.any((follow) => follow.sellerId == widget.sellerId);
+      });
+    } on Object {
+      if (!mounted) return;
+      setState(() => _isFollowing = null);
+    }
   }
 
   void _reload() {
@@ -155,20 +176,21 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
       await context.push('/login');
       return;
     }
-    setState(() => _following = true);
+    setState(() => _followingAction = true);
     try {
       await apiServiceProvider.followSeller(seller.id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.nowFollowing(seller.businessName))),
       );
+      setState(() => _isFollowing = true);
       _reload();
     } catch (_) {
       if (!mounted) return;
       await showAppErrorDialog(context,
           title: l10n.somethingWentWrong, message: l10n.somethingWentWrong);
     } finally {
-      if (mounted) setState(() => _following = false);
+      if (mounted) setState(() => _followingAction = false);
     }
   }
 
@@ -452,10 +474,16 @@ class _SellerDetailScreenState extends ConsumerState<SellerDetailScreen> {
                         children: [
                           Expanded(
                             child: MarketSecondaryButton(
-                              label: l10n.followBusiness,
-                              icon: Icons.person_add_alt_1_rounded,
-                              loading: _following,
-                              onPressed: () => _followSeller(seller),
+                              label: _isFollowing == true
+                                  ? l10n.nowFollowing(seller.businessName)
+                                  : l10n.followBusiness,
+                              icon: _isFollowing == true
+                                  ? Icons.check_rounded
+                                  : Icons.person_add_alt_1_rounded,
+                              loading: _followingAction || _isFollowing == null,
+                              onPressed: _isFollowing == true
+                                  ? null
+                                  : () => _followSeller(seller),
                             ),
                           ),
                           const SizedBox(width: 10),

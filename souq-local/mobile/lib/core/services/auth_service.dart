@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +22,7 @@ class AuthService {
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
+  static const _cachedAuthUserKey = 'cached_auth_user';
 
   String? get accessToken => _accessToken;
 
@@ -153,6 +156,7 @@ class AuthService {
     _refreshToken = null;
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _cachedAuthUserKey);
     _syncTokenProvider();
   }
 
@@ -166,6 +170,7 @@ class AuthService {
     _refreshToken = null;
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _cachedAuthUserKey);
     _syncTokenProvider();
   }
 
@@ -177,10 +182,12 @@ class AuthService {
     }
     try {
       final me = await _api.getJson('/auth/me', auth: true);
+      final user = AuthUser.fromJson(me);
+      await _cacheAuthUser(user);
       return AuthSession(
         accessToken: _accessToken!,
         refreshToken: _refreshToken ?? '',
-        user: AuthUser.fromJson(me),
+        user: user,
       );
     } on ApiException catch (error) {
       if (error.statusCode == 401 || error.statusCode == 403) {
@@ -188,10 +195,12 @@ class AuthService {
         if (refreshed == true) {
           try {
             final me = await _api.getJson('/auth/me', auth: true);
+            final user = AuthUser.fromJson(me);
+            await _cacheAuthUser(user);
             return AuthSession(
               accessToken: _accessToken!,
               refreshToken: _refreshToken ?? '',
-              user: AuthUser.fromJson(me),
+              user: user,
             );
           } on Object {
             return null;
@@ -200,10 +209,49 @@ class AuthService {
         return null;
       }
       // Transient API errors should not block offline session restore.
-      return null;
+      return _offlineSession();
+    } on Object {
+      return _offlineSession();
+    }
+  }
+
+  Future<AuthSession?> _offlineSession() async {
+    if (_accessToken == null || _accessToken!.isEmpty) return null;
+    final raw = await _storage.read(key: _cachedAuthUserKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final user = AuthUser.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>,
+      );
+      return AuthSession(
+        accessToken: _accessToken!,
+        refreshToken: _refreshToken ?? '',
+        user: user,
+      );
     } on Object {
       return null;
     }
+  }
+
+  Future<void> _cacheAuthUser(AuthUser user) async {
+    await _storage.write(
+      key: _cachedAuthUserKey,
+      value: jsonEncode({
+        'id': user.id,
+        'email': user.email,
+        'account_type': user.accountType,
+        'display_name': user.displayName,
+        'profile_photo_url': user.profilePhotoUrl,
+        'has_seller_profile': user.hasSellerProfile,
+        'legal_acceptance_complete': user.legalAcceptanceComplete,
+        'pending_legal_policies': user.pendingLegalPolicies,
+        'mfa_enabled': user.mfaEnabled,
+        'plus_plus_active': user.plusPlusActive,
+        'show_plus_badge': user.showPlusBadge,
+        'promotional_ads_suppressed': user.promotionalAdsSuppressed,
+        'ads_enabled': user.adsEnabled,
+      }),
+    );
   }
 
   Future<AuthSession> _saveSession(AuthSession session) async {
@@ -211,6 +259,7 @@ class AuthService {
     _refreshToken = session.refreshToken;
     await _storage.write(key: _accessTokenKey, value: _accessToken!);
     await _storage.write(key: _refreshTokenKey, value: _refreshToken!);
+    await _cacheAuthUser(session.user);
     _syncTokenProvider();
     return session;
   }

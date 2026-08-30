@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
+import '../../core/providers/provider_cache.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_spacing.dart';
@@ -17,6 +19,7 @@ import '../../l10n/app_localizations.dart';
 
 final conversationsProvider =
     FutureProvider.autoDispose<List<ConversationModel>>((ref) async {
+  retainProviderCache(ref);
   final session = ref.watch(userSessionProvider);
   if (session == null || session.isGuest) return const [];
   return apiServiceProvider.fetchConversations();
@@ -105,6 +108,7 @@ class _MessagesInboxScreenState extends ConsumerState<MessagesInboxScreen>
                     onAction: () => context.push('/login'),
                   )
                 : conversationsAsync.when(
+                    skipLoadingOnReload: true,
                     loading: () => Center(
                       child: CircularProgressIndicator(
                         color: context.colors.primary,

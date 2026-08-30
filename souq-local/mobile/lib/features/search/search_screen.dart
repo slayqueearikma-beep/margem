@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/models/models.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
 import '../../core/providers/city_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -77,7 +78,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _clearInvalidMarketplaceSelection();
       _seedHomeCategoryForCurrentMode();
-      _reload();
+      _restoreOrFetch(mode: _mode, sort: _sort);
     });
   }
 
@@ -105,9 +106,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       filtersByMode: _filtersByMode,
     );
     if (intent.marketplaceSlug != null) {
-      ref.read(buyerMarketplaceSlugProvider.notifier).state =
-          intent.marketplaceSlug;
-      ref.read(appStorageProvider)?.setMarketplaceSlug(intent.marketplaceSlug!);
+      ref
+          .read(buyerMarketplaceSlugProvider.notifier)
+          .setSlug(intent.marketplaceSlug);
     }
     if (_mode != application.mode) {
       _persistModeQuery();
@@ -211,8 +212,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
     if (marketplaces.isEmpty) return;
     if (validatedMarketplaceSlug(slug, marketplaces) != null) return;
-    ref.read(buyerMarketplaceSlugProvider.notifier).state = null;
-    ref.read(appStorageProvider)?.setMarketplaceSlug('');
+    ref.read(buyerMarketplaceSlugProvider.notifier).setSlug(null);
   }
 
   String _scopeKeyFor(String mode, String sort) {
@@ -647,10 +647,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 : resolveSearchCategorySlug(item.category);
                             _filtersByMode[_mode] = SearchFilters(category: category);
                             _syncCategoryProvider(category);
-                            ref.read(buyerMarketplaceSlugProvider.notifier).state =
-                                item.marketplaceSlug.isEmpty
-                                    ? null
-                                    : item.marketplaceSlug;
+                            ref
+                                .read(buyerMarketplaceSlugProvider.notifier)
+                                .setSlug(
+                                  item.marketplaceSlug.isEmpty
+                                      ? null
+                                      : item.marketplaceSlug,
+                                );
                             Navigator.pop(context);
                             _reload();
                             ScaffoldMessenger.of(context).showSnackBar(

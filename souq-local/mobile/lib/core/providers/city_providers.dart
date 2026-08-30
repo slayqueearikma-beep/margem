@@ -46,8 +46,12 @@ class BuyerCityNotifier extends StateNotifier<String> {
   }
 
   String _resolveCityName(String? value, List<CityModel> cities) {
-    // Casablanca-only launch: keep buyer discovery aligned with backend filters.
-    return findCityByName(cities, AppConfig.launchCity)?.nameEn ?? AppConfig.launchCity;
+    if (value != null && value.trim().isNotEmpty) {
+      final saved = findCityByName(cities, value);
+      if (saved != null) return saved.nameEn;
+    }
+    return findCityByName(cities, AppConfig.launchCity)?.nameEn ??
+        AppConfig.launchCity;
   }
 
   Future<void> setCity(CityModel city) async {

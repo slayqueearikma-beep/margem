@@ -32,6 +32,7 @@ import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/services/upload_service.dart';
 import '../../core/widgets/seller_marketplace_picker.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
 import '../../features/buyer/buyer_home_screen.dart';
 
 class SellerRegistrationScreen extends ConsumerStatefulWidget {

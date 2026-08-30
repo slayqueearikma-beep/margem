@@ -17,6 +17,7 @@ import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/map_widgets.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/providers/city_providers.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
 import '../buyer/buyer_home_screen.dart';
 
 class MapScreen extends ConsumerStatefulWidget {

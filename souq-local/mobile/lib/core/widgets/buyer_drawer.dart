@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/buyer_discovery_providers.dart';
 import '../../features/buyer/buyer_home_screen.dart';
 import '../../features/messages/messages_inbox_screen.dart';
 import '../../core/services/app_storage.dart';

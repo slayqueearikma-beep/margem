@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/buyer_discovery_providers.dart';
+import '../../core/providers/provider_cache.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
@@ -16,6 +18,7 @@ import '../../l10n/app_localizations.dart';
 
 final favoritesProvider =
     FutureProvider.autoDispose<List<FavoriteItemModel>>((ref) {
+  retainProviderCache(ref);
   final session = ref.watch(userSessionProvider);
   if (session == null || session.isGuest) {
     final storage = ref.watch(appStorageProvider);
@@ -51,6 +54,7 @@ class FavoritesScreen extends ConsumerWidget {
     return BuyerScreenScaffold(
       appBar: BuyerAppBar(title: l10n.favorites),
       body: favoritesAsync.when(
+        skipLoadingOnReload: true,
         loading: () => Center(
           child: CircularProgressIndicator(color: context.colors.primary),
         ),

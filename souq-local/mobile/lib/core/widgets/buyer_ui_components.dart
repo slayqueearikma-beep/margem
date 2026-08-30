@@ -404,6 +404,7 @@ class BuyerNearYouCard extends StatelessWidget {
     required this.onTap,
     required this.onFavorite,
     this.sellerAvatarUrl = '',
+    this.favoriteLoading = false,
   });
 
   final String title;
@@ -417,6 +418,7 @@ class BuyerNearYouCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onFavorite;
   final String sellerAvatarUrl;
+  final bool favoriteLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -478,16 +480,25 @@ class BuyerNearYouCard extends StatelessWidget {
                           elevation: 1,
                           child: InkWell(
                             customBorder: CircleBorder(),
-                            onTap: onFavorite,
+                            onTap: favoriteLoading ? null : onFavorite,
                             child: Padding(
                               padding: EdgeInsets.all(6),
-                              child: Icon(
-                                isFavorite
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
-                                size: 18,
-                                color: context.colors.primary,
-                              ),
+                              child: favoriteLoading
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: context.colors.primary,
+                                      ),
+                                    )
+                                  : Icon(
+                                      isFavorite
+                                          ? Icons.favorite_rounded
+                                          : Icons.favorite_border_rounded,
+                                      size: 18,
+                                      color: context.colors.primary,
+                                    ),
                             ),
                           ),
                         ),

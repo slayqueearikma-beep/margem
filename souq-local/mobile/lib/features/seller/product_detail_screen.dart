@@ -48,7 +48,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   late Future<SellerModel> _future;
   bool _contacting = false;
   bool _addingFavorite = false;
-  bool _isFavorite = false;
+  bool? _isFavorite;
   final _galleryController = PageController();
   var _galleryIndex = 0;
 
@@ -65,6 +65,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               .any((item) => item.productId == widget.productId) ??
           false;
     } else {
+      _isFavorite = null;
       WidgetsBinding.instance.addPostFrameCallback((_) => _syncFavoriteState());
     }
     if (session != null && !session.isGuest) {
@@ -81,7 +82,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       final found =
           favorites.any((favorite) => favorite.productId == widget.productId);
       if (mounted) setState(() => _isFavorite = found);
-    } catch (_) {}
+    } on Object {
+      if (mounted) setState(() => _isFavorite = null);
+    }
   }
 
   @override
@@ -490,13 +493,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         child: InkWell(
                           borderRadius:
                               BorderRadius.circular(MarketButtonMetrics.radius),
-                          onTap: _addingFavorite
+                          onTap: _addingFavorite || _isFavorite == null
                               ? null
                               : () => _addToFavorites(product, seller),
                           child: SizedBox(
                             width: MarketButtonMetrics.height,
                             height: MarketButtonMetrics.height,
-                            child: _addingFavorite
+                            child: _addingFavorite || _isFavorite == null
                                 ? Padding(
                                     padding: EdgeInsets.all(14),
                                     child: CircularProgressIndicator(
@@ -505,11 +508,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                 : AnimatedSwitcher(
                                     duration: Duration(milliseconds: 180),
                                     child: Icon(
-                                      _isFavorite
+                                      _isFavorite!
                                           ? Icons.favorite_rounded
                                           : Icons.favorite_border_rounded,
                                       key: ValueKey(_isFavorite),
-                                      color: _isFavorite
+                                      color: _isFavorite!
                                           ? context.colors.error
                                           : context.colors.primary,
                                     ),

@@ -21,6 +21,7 @@ import '../../core/widgets/map_widgets.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/seller_marketplace_picker.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
 import '../buyer/buyer_home_screen.dart';
 import 'seller_account_provider.dart';
 

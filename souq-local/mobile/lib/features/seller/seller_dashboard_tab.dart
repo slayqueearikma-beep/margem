@@ -26,6 +26,7 @@ class SellerDashboardTab extends ConsumerWidget {
     final unreadCount = unreadAsync.valueOrNull ?? 0;
 
     return accountAsync.when(
+      skipLoadingOnReload: true,
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => AsyncErrorView(
         message:

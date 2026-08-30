@@ -11,6 +11,7 @@ import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/models.dart';
 import '../../core/navigation/app_back_handler.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
 import '../../core/providers/city_providers.dart';
 import '../../core/providers/subscription_providers.dart';
 import '../../core/services/api_service.dart';
@@ -32,22 +33,6 @@ import '../messages/messages_inbox_screen.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
 
-final buyerMarketplacesProvider =
-    FutureProvider.autoDispose<List<MarketplaceVenueModel>>(
-        (ref) => apiServiceProvider.fetchMarketplaces(city: ref.watch(buyerCityProvider)));
-
-final buyerMarketplaceSlugProvider = StateProvider<String?>((ref) {
-  return ref.read(appStorageProvider)?.getMarketplaceSlug();
-});
-
-String? validatedMarketplaceSlug(
-  String? slug,
-  List<MarketplaceVenueModel> marketplaces,
-) {
-  if (slug == null || slug.isEmpty) return null;
-  return marketplaces.any((market) => market.slug == slug) ? slug : null;
-}
-
 final buyerCategorySlugProvider = StateProvider<String?>((ref) => null);
 
 /// Home/marketplace navigation into search with explicit mode + filters.
@@ -55,54 +40,6 @@ final buyerSearchIntentProvider =
     StateProvider<SearchNavigationIntent?>((ref) => null);
 
 final buyerTabIndexProvider = StateProvider<int>((ref) => 0);
-
-final buyerSellersProvider =
-    FutureProvider.autoDispose<List<SellerModel>>((ref) async {
-  final city = ref.watch(buyerCityProvider);
-  final marketplaces = await ref.watch(buyerMarketplacesProvider.future);
-  final slug = ref.watch(buyerMarketplaceSlugProvider);
-  final marketplace = validatedMarketplaceSlug(slug, marketplaces);
-  return apiServiceProvider.fetchSellers(
-    city: city,
-    marketplace: marketplace,
-  );
-});
-
-final buyerCategoriesProvider =
-    FutureProvider.autoDispose<List<CategoryModel>>((ref) async {
-  final marketplaces = ref.watch(buyerMarketplacesProvider).valueOrNull ?? const [];
-  final slug = validatedMarketplaceSlug(
-    ref.watch(buyerMarketplaceSlugProvider),
-    marketplaces,
-  );
-  if (slug != null && slug.isNotEmpty) {
-    return apiServiceProvider.fetchMarketplaceCategories(slug);
-  }
-  return apiServiceProvider.fetchCategories();
-});
-
-final buyerFavoriteSellerIdsProvider =
-    FutureProvider.autoDispose<Set<String>>((ref) async {
-  final session = ref.watch(userSessionProvider);
-  if (session == null || session.isGuest) {
-    final local =
-        ref.read(appStorageProvider)?.getGuestFavoriteItems() ?? const [];
-    return local
-        .where((item) => item.sellerId.isNotEmpty && item.productId.isEmpty)
-        .map((item) => item.sellerId)
-        .toSet();
-  }
-  try {
-    final favorites = await apiServiceProvider.fetchFavorites();
-    return favorites
-        .where((item) => item.sellerId.isNotEmpty && item.productId.isEmpty)
-        .map((item) => item.sellerId)
-        .toSet();
-  } catch (error) {
-    // Surface as provider error instead of looking like an empty favorites list.
-    rethrow;
-  }
-});
 
 class BuyerHomeShell extends ConsumerWidget {
   const BuyerHomeShell({super.key});
@@ -175,8 +112,10 @@ class BuyerHomeScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(buyerCategoriesProvider);
     final marketplacesAsync = ref.watch(buyerMarketplacesProvider);
     final selectedMarketplace = ref.watch(buyerMarketplaceSlugProvider);
-    final favoriteIds = ref.watch(buyerFavoriteSellerIdsProvider).valueOrNull ??
-        const <String>{};
+    final favoriteIdsAsync = ref.watch(buyerFavoriteSellerIdsProvider);
+    final favoriteIds = favoriteIdsAsync.valueOrNull;
+    final favoritesLoading =
+        favoriteIds == null && !favoriteIdsAsync.hasError;
     final searchOrigin = ref.watch(buyerSearchLocationProvider).valueOrNull ??
         CityCoordinates.centerFor(city);
     final isGuest = session == null || session.isGuest;
@@ -220,6 +159,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                   child: BuyerLocationRow(city: city, onTap: null),
                 ),
                 marketplacesAsync.when(
+                  skipLoadingOnReload: true,
                   data: (marketplaces) {
                     if (marketplaces.isEmpty) {
                       return const SizedBox.shrink();
@@ -247,15 +187,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                                 label: Text(l10n.allMarketsLabel),
                                 selected: isSelected,
                                 onSelected: (_) {
-                                  ref
-                                      .read(
-                                          buyerMarketplaceSlugProvider.notifier)
-                                      .state = null;
-                                  ref
-                                      .read(appStorageProvider)
-                                      ?.clearMarketplaceSlug();
-                                  ref.invalidate(buyerCategoriesProvider);
-                                  ref.invalidate(buyerSellersProvider);
+                                  selectBuyerMarketplace(ref, null);
                                 },
                               );
                             }
@@ -265,14 +197,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                               label: Text(venue.displayName),
                               selected: isSelected,
                               onSelected: (_) {
-                                ref
-                                    .read(buyerMarketplaceSlugProvider.notifier)
-                                    .state = venue.slug;
-                                ref
-                                    .read(appStorageProvider)
-                                    ?.setMarketplaceSlug(venue.slug);
-                                ref.invalidate(buyerCategoriesProvider);
-                                ref.invalidate(buyerSellersProvider);
+                                selectBuyerMarketplace(ref, venue.slug);
                               },
                             );
                           },
@@ -325,6 +250,7 @@ class BuyerHomeScreen extends ConsumerWidget {
                   ),
                 ),
                 marketplacesAsync.when(
+                  skipLoadingOnReload: true,
                   data: (marketplaces) {
                     if (marketplaces.isEmpty) return const SizedBox.shrink();
                     return Padding(
@@ -350,16 +276,11 @@ class BuyerHomeScreen extends ConsumerWidget {
                               child: Card(
                                 clipBehavior: Clip.antiAlias,
                                 child: InkWell(
-                                  onTap: () {
-                                    ref
-                                        .read(buyerMarketplaceSlugProvider.notifier)
-                                        .state = venue.slug;
-                                    ref
-                                        .read(appStorageProvider)
-                                        ?.setMarketplaceSlug(venue.slug);
-                                    ref.invalidate(buyerCategoriesProvider);
-                                    ref.invalidate(buyerSellersProvider);
-                                    context.push('/marketplace/${venue.slug}');
+                                  onTap: () async {
+                                    await selectBuyerMarketplace(ref, venue.slug);
+                                    if (context.mounted) {
+                                      context.push('/marketplace/${venue.slug}');
+                                    }
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.all(AppSpacing.md),
@@ -449,6 +370,7 @@ class BuyerHomeScreen extends ConsumerWidget {
             ),
           ),
           categoriesAsync.when(
+            skipLoadingOnReload: true,
             data: (categories) {
               final quick = categories.take(4).toList();
               return SliverToBoxAdapter(
@@ -505,6 +427,7 @@ class BuyerHomeScreen extends ConsumerWidget {
             error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
           ),
           sellersAsync.when(
+            skipLoadingOnReload: true,
             data: (sellers) {
               if (sellers.isEmpty) {
                 final hasMarketScope =
@@ -568,10 +491,13 @@ class BuyerHomeScreen extends ConsumerWidget {
                               ? seller.coverImageUrl
                               : seller.logoImageUrl,
                           sellerAvatarUrl: seller.logoImageUrl,
-                          isFavorite: favoriteIds.contains(seller.id),
+                          isFavorite: favoriteIds?.contains(seller.id) ?? false,
+                          favoriteLoading: favoritesLoading,
                           onTap: () => context.push('/seller/${seller.id}'),
-                          onFavorite: () =>
-                              _toggleFavoriteSeller(context, ref, seller),
+                          onFavorite: favoritesLoading
+                              ? () {}
+                              : () =>
+                                  _toggleFavoriteSeller(context, ref, seller),
                         );
                       },
                     ),
@@ -696,7 +622,9 @@ class BuyerHomeScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final session = ref.read(userSessionProvider);
     final storage = ref.read(appStorageProvider);
-    final ids = ref.read(buyerFavoriteSellerIdsProvider).valueOrNull ?? {};
+    final favoriteIdsAsync = ref.read(buyerFavoriteSellerIdsProvider);
+    final ids = favoriteIdsAsync.valueOrNull;
+    if (ids == null) return;
     final isFav = ids.contains(seller.id);
 
     try {

@@ -12,6 +12,7 @@ import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/margem_app_bar.dart';
 import '../../core/widgets/seller_marketplace_picker.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
 import '../../features/buyer/buyer_home_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../legal/legal_config.dart';

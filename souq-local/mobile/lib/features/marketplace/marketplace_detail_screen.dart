@@ -13,6 +13,7 @@ import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/content_widgets.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/seller_trust_indicators.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
 import '../../features/buyer/buyer_home_screen.dart';
 import '../../features/search/search_navigation_intent.dart';
 import '../../l10n/app_localizations.dart';
@@ -132,9 +133,9 @@ class MarketplaceDetailScreen extends ConsumerWidget {
                     if (AppConfig.mapUiEnabled)
                       OutlinedButton.icon(
                         onPressed: () {
-                          ref.read(buyerMarketplaceSlugProvider.notifier).state =
-                              slug;
-                          ref.read(appStorageProvider)?.setMarketplaceSlug(slug);
+                          ref
+                              .read(buyerMarketplaceSlugProvider.notifier)
+                              .setSlug(slug);
                           context.push('/map');
                         },
                         icon: const Icon(Icons.map_outlined),
