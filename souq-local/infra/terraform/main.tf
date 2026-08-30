@@ -179,8 +179,8 @@ resource "azurerm_container_app" "api" {
   }
 
   secret {
-    name                = "smtp-password"
-    key_vault_secret_id = azurerm_key_vault_secret.smtp_password.versionless_id
+    name                = "brevo-api-key"
+    key_vault_secret_id = azurerm_key_vault_secret.brevo_api_key.versionless_id
     identity            = azurerm_user_assigned_identity.api.id
   }
 
@@ -275,28 +275,20 @@ resource "azurerm_container_app" "api" {
         value = var.public_api_url
       }
       env {
-        name  = "SMTP_HOST"
-        value = var.smtp_host
+        name  = "EMAIL_PROVIDER"
+        value = "brevo"
       }
       env {
-        name  = "SMTP_PORT"
-        value = tostring(var.smtp_port)
+        name        = "BREVO_API_KEY"
+        secret_name = "brevo-api-key"
       }
       env {
-        name  = "SMTP_USERNAME"
-        value = var.smtp_username
+        name  = "BREVO_SENDER_EMAIL"
+        value = var.brevo_sender_email
       }
       env {
-        name        = "SMTP_PASSWORD"
-        secret_name = "smtp-password"
-      }
-      env {
-        name  = "SMTP_FROM"
-        value = var.smtp_from
-      }
-      env {
-        name  = "SMTP_USE_TLS"
-        value = tostring(var.smtp_use_tls)
+        name  = "BREVO_SENDER_NAME"
+        value = var.brevo_sender_name
       }
       env {
         name  = "ALLOW_INSECURE_EMAIL_FALLBACK"
@@ -326,6 +318,6 @@ resource "azurerm_container_app" "api" {
     azurerm_key_vault_secret.database_url,
     azurerm_key_vault_secret.jwt_secret,
     azurerm_key_vault_secret.storage_connection,
-    azurerm_key_vault_secret.smtp_password,
+    azurerm_key_vault_secret.brevo_api_key,
   ]
 }
