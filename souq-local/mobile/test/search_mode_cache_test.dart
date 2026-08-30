@@ -41,6 +41,15 @@ void main() {
         mode: 'products',
         sort: 'distance',
         query: 'tagine',
+        lat: 33.5731,
+        lng: -7.5898,
+      );
+      final otherLocation = SearchModeCache.scopeKey(
+        mode: 'products',
+        sort: 'distance',
+        query: 'tagine',
+        lat: 34.0209,
+        lng: -6.8416,
       );
       final otherMode = SearchModeCache.scopeKey(
         mode: 'services',
@@ -63,6 +72,7 @@ void main() {
       expect(otherQuery, isNot(base));
       expect(otherCity, isNot(base));
       expect(otherSort, isNot(base));
+      expect(otherLocation, isNot(otherSort));
       expect(otherMode, isNot(base));
       expect(withCategory, isNot(base));
       expect(withDelivery, isNot(base));

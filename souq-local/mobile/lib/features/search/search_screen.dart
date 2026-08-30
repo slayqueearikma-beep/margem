@@ -66,6 +66,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _services = <SearchServiceModel>[];
   final _sellers = <SellerModel>[];
   var _fetchGeneration = 0;
+  double? _distanceSortLat;
+  double? _distanceSortLng;
 
   @override
   void initState() {
@@ -194,15 +196,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   String? _activeMarketplace() {
-    final marketplaces = ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
-    return validatedMarketplaceSlug(
-      ref.read(buyerMarketplaceSlugProvider),
-      marketplaces,
-    );
+    final slug = ref.read(buyerMarketplaceSlugProvider);
+    if (slug == null || slug.isEmpty) return null;
+    final marketplaces =
+        ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
+    return validatedMarketplaceSlug(slug, marketplaces) ?? slug;
   }
-
-  String? _resolvedCategoryFor(String mode) =>
-      resolveSearchCategorySlug(_activeCategoryFor(mode));
 
   String _scopeKeyFor(String mode, String sort) {
     final filters = _filtersFor(mode);
@@ -218,10 +217,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       minRating: filters.minRating,
       deliveryAvailable: filters.deliveryAvailable,
       pickupOnly: filters.pickupOnly,
+      lat: sort == 'distance' ? _distanceSortLat : null,
+      lng: sort == 'distance' ? _distanceSortLng : null,
     );
   }
 
   String get _currentScopeKey => _scopeKeyFor(_mode, _sort);
+
+  String? _resolvedCategoryFor(String mode) =>
+      resolveSearchCategorySlug(_activeCategoryFor(mode));
+
+  void _scrollResultsToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
+  }
 
   Future<MarketplaceSearchPage> _fetchPage({
     required int offset,
@@ -235,6 +245,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       final origin = await ref.read(buyerSearchLocationProvider.future);
       lat = origin.latitude;
       lng = origin.longitude;
+      _distanceSortLat = lat;
+      _distanceSortLng = lng;
     }
     return apiServiceProvider.searchMarketplace(
       query: _debouncedFor(mode),
@@ -360,6 +372,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     try {
       final page = await _fetchPage(offset: offset, mode: mode, sort: sort);
       if (!mounted || generation != _fetchGeneration) return;
+      if (append && scopeKey != _scopeKeyFor(mode, sort)) return;
       setState(() {
         _applyPage(
           scopeKey: scopeKey,
@@ -398,7 +411,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Future<void> _reload() async {
     _fetchGeneration++;
+    _timer?.cancel();
     _persistModeQuery();
+    _scrollResultsToTop();
     setState(() {
       _modeCache.invalidateMode(_mode);
       switch (_mode) {
@@ -426,13 +441,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _restoreOrFetch({required String mode, required String sort}) {
     final scopeKey = _scopeKeyFor(mode, sort);
-    if (_modeCache.isLoaded(scopeKey)) {
+    if (sort != 'distance' && _modeCache.isLoaded(scopeKey)) {
       _restoreSnapshot(scopeKey, mode);
       setState(() {
         _loading = false;
         _loadingMore = false;
         _error = null;
       });
+      _scrollResultsToTop();
       return;
     }
     setState(() {
@@ -445,6 +461,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _switchMode(String value) {
     if (_mode == value) return;
+    _timer?.cancel();
     _persistModeQuery();
     _persistCurrentSnapshot();
     setState(() => _mode = value);
@@ -457,6 +474,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (_sort == value) return;
     _persistCurrentSnapshot();
     setState(() => _sort = value);
+    _scrollResultsToTop();
     _restoreOrFetch(mode: _mode, sort: value);
   }
 
@@ -465,6 +483,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (_loadingMore || !_modeCache.hasMoreFor(scopeKey) || _loading) {
       return;
     }
+    setState(() => _loadingMore = true);
     await _fetchMode(
       _mode,
       sort: _sort,
@@ -478,9 +497,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _onQueryChanged(String value) {
     _timer?.cancel();
+    final mode = _mode;
+    _queryByMode[mode] = value;
     _timer = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      _queryByMode[_mode] = value;
+      if (!mounted || _mode != mode) return;
       _debounced = value.trim();
       _reload();
     });
@@ -650,7 +670,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Future<void> _openFilters(AppStrings l10n) async {
-    final categories = await apiServiceProvider.fetchCategories();
+    final categories = await ref.read(buyerCategoriesProvider.future);
     if (!mounted) return;
 
     final result = await showModalBottomSheet<SearchFilters>(
@@ -878,6 +898,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
     ref.listen(buyerMarketplaceSlugProvider, (previous, next) {
       if (previous != next) _reload();
+    });
+    ref.listen(buyerMarketplacesProvider, (previous, next) {
+      final slug = ref.read(buyerMarketplaceSlugProvider);
+      if (slug == null || slug.isEmpty) return;
+      final wasValidated = previous?.valueOrNull != null &&
+          validatedMarketplaceSlug(slug, previous!.valueOrNull ?? const []) !=
+              null;
+      final isValidated = next.valueOrNull != null &&
+          validatedMarketplaceSlug(slug, next.valueOrNull ?? const []) != null;
+      if (!wasValidated && isValidated) _reload();
     });
     ref.listen(buyerCityProvider, (previous, next) {
       if (previous != next) _reload();

@@ -81,13 +81,26 @@ async def _category_id(client: AsyncClient, slug: str) -> str:
 
 async def _seed_price_catalog(client: AsyncClient) -> dict:
     await _seed_catalog_data()
-    seller = await _register_seller(client)
     electronics_id = await _category_id(client, "electronics")
-    profile = await create_test_seller(
+
+    product_seller = await _register_seller(client)
+    product_profile = await create_test_seller(
         client,
-        seller["headers"],
+        product_seller["headers"],
         **seller_create_payload(
-            business_name="Price Test Shop",
+            business_name="Price Product Shop",
+            category_ids=[electronics_id],
+            latitude=ORIGIN_LAT + 0.01,
+            longitude=ORIGIN_LNG + 0.01,
+        ),
+    )
+
+    service_seller = await _register_seller(client)
+    service_profile = await create_test_seller(
+        client,
+        service_seller["headers"],
+        **seller_create_payload(
+            business_name="Price Service Shop",
             category_ids=[electronics_id],
             latitude=ORIGIN_LAT + 0.01,
             longitude=ORIGIN_LNG + 0.01,
@@ -96,8 +109,8 @@ async def _seed_price_catalog(client: AsyncClient) -> dict:
 
     async def create_product(name: str, price_mad: float) -> str:
         response = await client.post(
-            f"/sellers/{profile['id']}/products",
-            headers=seller["headers"],
+            f"/sellers/{product_profile['id']}/products",
+            headers=product_seller["headers"],
             json={
                 "name": name,
                 "price_mad": price_mad,
@@ -109,8 +122,8 @@ async def _seed_price_catalog(client: AsyncClient) -> dict:
 
     async def create_service(name: str, **pricing) -> str:
         response = await client.post(
-            f"/sellers/{profile['id']}/services",
-            headers=seller["headers"],
+            f"/sellers/{service_profile['id']}/services",
+            headers=service_seller["headers"],
             json={"name": name, "description": name, "category_slug": "electronics", **pricing},
         )
         assert response.status_code == 201, response.text

@@ -53,10 +53,19 @@ def listing_category_filter(
         .exists()
     )
 
+    seller_category_count = (
+        select(func.count())
+        .select_from(SellerCategory)
+        .where(SellerCategory.seller_id == SellerProfile.id)
+        .correlate(SellerProfile)
+        .scalar_subquery()
+    )
+
     return or_(
         func.lower(category_column).in_(slugs),
         and_(
             or_(category_column == "", category_column.is_(None)),
+            seller_category_count == 1,
             seller_category_exists,
         ),
     )

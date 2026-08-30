@@ -82,6 +82,8 @@ class SearchModeCache {
     double? minRating,
     bool deliveryAvailable = false,
     bool pickupOnly = false,
+    double? lat,
+    double? lng,
   }) {
     return [
       mode,
@@ -95,7 +97,13 @@ class SearchModeCache {
       minRating?.toString() ?? '',
       if (mode == 'products') deliveryAvailable,
       if (mode == 'products') pickupOnly,
+      if (sort == 'distance') _locationKey(lat, lng),
     ].join('\u0001');
+  }
+
+  static String _locationKey(double? lat, double? lng) {
+    if (lat == null || lng == null) return '';
+    return '${lat.toStringAsFixed(4)}:${lng.toStringAsFixed(4)}';
   }
 
   void invalidateAll() => _snapshots.clear();

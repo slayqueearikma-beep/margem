@@ -14,7 +14,7 @@ from sqlalchemy.orm import selectinload
 from app.data.marketplace_constants import LAUNCH_CITY
 from app.database import get_db
 from app.limiter import limiter
-from app.models import PricingType, Product, SellerProfile, Service, VerificationStatus
+from app.models import Product, SellerProfile, Service, VerificationStatus
 from app.schemas import PricingType as PricingTypeSchema
 from app.schemas import SellerSummary
 from app.services.geo import haversine_km_sql
@@ -278,6 +278,8 @@ async def search(
                 lat,
                 lng,
             ).label("distance_km")
+            if radius_km is not None:
+                product_stmt = product_stmt.where(product_distance_expr <= radius_km)
         if sort == "newest":
             product_order = [Product.created_at.desc()]
         elif sort == "popular":
@@ -378,6 +380,9 @@ async def search(
                     SellerProfile.business_name.ilike(pattern),
                 )
             )
+        service_prefix_rank = 0
+        if q:
+            service_prefix_rank = case((Service.name.ilike(f"{_escaped(q)}%"), 1), else_=0)
         total_services = int(
             await session.scalar(select(func.count()).select_from(service_stmt.subquery())) or 0
         )
@@ -389,16 +394,23 @@ async def search(
                 lat,
                 lng,
             ).label("distance_km")
+            if radius_km is not None:
+                service_stmt = service_stmt.where(service_distance_expr <= radius_km)
         if sort == "price_low":
             service_order = [Service.price_mad.asc().nullslast()]
         elif sort == "price_high":
             service_order = [Service.price_mad.desc().nullslast()]
         elif sort == "newest":
             service_order = [Service.created_at.desc()]
+        elif sort == "popular":
+            service_order = [SellerProfile.favorite_count.desc(), SellerProfile.average_rating.desc()]
+        elif sort == "rating":
+            service_order = [SellerProfile.average_rating.desc(), SellerProfile.review_count.desc()]
         elif sort == "distance" and service_distance_expr is not None:
             service_order = [service_distance_expr.asc(), Service.created_at.desc()]
         else:
             service_order = [
+                service_prefix_rank.desc() if q else Service.is_featured.desc(),
                 SellerProfile.is_premium.desc(),
                 SellerProfile.average_rating.desc(),
                 Service.created_at.desc(),
@@ -454,12 +466,18 @@ async def search(
 
     if mode == "products":
         current_total = total_products
+        has_more = offset + limit < current_total
     elif mode == "services":
         current_total = total_services
+        has_more = offset + limit < current_total
     elif mode == "providers":
         current_total = total_sellers
+        has_more = offset + limit < current_total
     else:
         current_total = max(total_products, total_services, total_sellers)
+        has_more = any(
+            offset + limit < total for total in (total_products, total_services, total_sellers)
+        )
 
     return SearchPage(
         sellers=sellers,
@@ -470,5 +488,5 @@ async def search(
         total_services=total_services,
         limit=limit,
         offset=offset,
-        has_more=offset + limit < current_total,
+        has_more=has_more,
     )
