@@ -15,6 +15,7 @@ import '../../core/widgets/network_image_view.dart';
 import '../../core/widgets/seller_trust_indicators.dart';
 import '../../core/providers/buyer_discovery_providers.dart';
 import '../../features/buyer/buyer_home_screen.dart';
+import '../../features/marketplace_community/marketplace_community_actions.dart';
 import '../../features/search/search_navigation_intent.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -126,28 +127,22 @@ class MarketplaceDetailScreen extends ConsumerWidget {
                   onFilter: () => _searchInMarket(context, ref),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: [
-                    if (AppConfig.mapUiEnabled)
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          ref
-                              .read(buyerMarketplaceSlugProvider.notifier)
-                              .setSlug(slug);
-                          context.push('/map');
-                        },
-                        icon: const Icon(Icons.map_outlined),
-                        label: Text(l10n.openMarketMap),
-                      ),
-                    OutlinedButton.icon(
-                      onPressed: () => context.push('/marketplace/$slug/community'),
-                      icon: const Icon(Icons.forum_outlined),
-                      label: Text(l10n.marketplaceCommunityTitle),
+                MarketplaceCommunityActions(marketplaceSlug: slug),
+                const SizedBox(height: AppSpacing.sm),
+                if (AppConfig.mapUiEnabled)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        ref
+                            .read(buyerMarketplaceSlugProvider.notifier)
+                            .setSlug(slug);
+                        context.push('/map');
+                      },
+                      icon: const Icon(Icons.map_outlined),
+                      label: Text(l10n.openMarketMap),
                     ),
-                  ],
-                ),
+                  ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   l10n.marketCategoriesTitle,

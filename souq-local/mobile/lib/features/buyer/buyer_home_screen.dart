@@ -30,6 +30,7 @@ import '../../core/widgets/error_dialog.dart';
 import '../../features/search/search_navigation_intent.dart';
 import '../../l10n/app_localizations.dart';
 import '../messages/messages_inbox_screen.dart';
+import '../marketplace_community/marketplace_community_actions.dart';
 import '../search/search_screen.dart';
 import '../settings/language_settings_tile.dart';
 
@@ -215,15 +216,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                       left: AppSpacing.screenHorizontal,
                       right: AppSpacing.screenHorizontal,
                     ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: () => context.push(
-                          '/marketplace/$selectedMarketplace/community',
-                        ),
-                        icon: const Icon(Icons.forum_outlined),
-                        label: Text(l10n.marketplaceCommunityTitle),
-                      ),
+                    child: MarketplaceCommunityActions(
+                      marketplaceSlug: selectedMarketplace!,
                     ),
                   ),
                 const SizedBox(height: AppSpacing.md),
@@ -324,15 +318,8 @@ class BuyerHomeScreen extends ConsumerWidget {
                                             ],
                                           ),
                                         ),
-                                        IconButton(
-                                          tooltip: l10n.marketplaceCommunityTitle,
-                                          onPressed: () => context.push(
-                                            '/marketplace/${venue.slug}/community',
-                                          ),
-                                          icon: Icon(
-                                            Icons.forum_outlined,
-                                            color: context.colors.primary,
-                                          ),
+                                        MarketplaceCommunityIconAction(
+                                          marketplaceSlug: venue.slug,
                                         ),
                                         Icon(
                                           DirectionalUi.forwardChevron(context),
