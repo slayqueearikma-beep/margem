@@ -58,9 +58,14 @@ class Settings(BaseSettings):
     # Defaults to the JWT key only in development for backwards compatibility.
     upload_token_secret: str = ""
     jwt_algorithm: str = "HS256"
+    jwt_issuer: str = "margem-api"
+    jwt_audience: str = "margem-mobile"
     jwt_access_expire_minutes: int = 60
     jwt_refresh_expire_days: int = 7
     bcrypt_rounds: int = 12
+    login_lockout_threshold: int = 5
+    staff_mfa_required: bool = True
+    mfa_encryption_key: str = ""
 
     azure_storage_connection_string: str = ""
     azure_storage_container: str = "margem-media"
@@ -77,6 +82,10 @@ class Settings(BaseSettings):
     max_request_body_bytes: int = 1_048_576
     redis_url: str = ""
     allow_insecure_email_fallback: bool = False
+    # Number of trusted reverse-proxy hops that append X-Forwarded-For (0 = direct).
+    trusted_proxy_hops: int = 0
+    # Optional comma-separated extra hosts allowed for presigned upload URLs.
+    upload_allowed_hosts: list[str] = []
 
     smtp_host: str = ""
     smtp_port: int = 587
@@ -108,7 +117,7 @@ class Settings(BaseSettings):
             return value.strip().strip('"').strip("'")
         return value
 
-    @field_validator("cors_origins", "allowed_hosts", mode="before")
+    @field_validator("cors_origins", "allowed_hosts", "upload_allowed_hosts", mode="before")
     @classmethod
     def parse_string_list(cls, value: Any) -> list[str]:
         if isinstance(value, str):
@@ -140,6 +149,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
+        if not self.mfa_encryption_key:
+            object.__setattr__(self, "mfa_encryption_key", self.jwt_secret_key)
         if self.app_env in {"production", "prod"}:
             if self.debug:
                 raise ValueError("DEBUG must be false in production")
@@ -147,9 +158,14 @@ class Settings(BaseSettings):
                 raise ValueError("AUTH_DEV_BYPASS must be false in production")
             if len(self.jwt_secret_key) < 32:
                 raise ValueError("JWT_SECRET_KEY must be at least 32 characters in production")
-            # Reject the documented default even when it already meets length checks.
-            if self.jwt_secret_key.startswith("change-this-secret"):
-                raise ValueError("JWT_SECRET_KEY must be rotated away from the default value in production")
+            # Reject documented development secrets even when they meet length checks.
+            insecure_jwt_prefixes = (
+                "change-this-secret",
+                "local-dev-secret",
+                "souq_local_dev",
+            )
+            if any(self.jwt_secret_key.startswith(prefix) for prefix in insecure_jwt_prefixes):
+                raise ValueError("JWT_SECRET_KEY must not use a documented development value in production")
             if self.storage_backend == "local":
                 if not self.upload_token_secret or len(self.upload_token_secret) < 32:
                     raise ValueError("UPLOAD_TOKEN_SECRET must be at least 32 characters in production")

@@ -219,7 +219,7 @@ class _SortChip extends StatelessWidget {
         onSelected: (_) => onTap(),
         selectedColor: AppColors.primary.withValues(alpha: 0.14),
         labelStyle: TextStyle(
-          color: selected ? AppColors.primary : AppColors.textSecondary,
+          color: selected ? AppColors.lavender : AppColors.onSurfaceVariant(context),
           fontWeight: FontWeight.w600,
         ),
       ),

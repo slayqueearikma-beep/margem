@@ -8,7 +8,9 @@ import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/directional_ui.dart';
 import '../../core/widgets/async_error_view.dart';
+import '../../core/widgets/buyer_ui_components.dart';
 import '../../core/widgets/network_image_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../buyer/buyer_home_screen.dart';
@@ -27,12 +29,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Timer? _timer;
   Future<MarketplaceSearchPage>? _future;
   final _focusNode = FocusNode();
-  var _mode = 'products';
+  final _searchController = TextEditingController();
+  var _mode = 'sellers';
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
 
   @override
   void dispose() {
     _timer?.cancel();
     _focusNode.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -48,13 +58,23 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
   }
 
-  Future<MarketplaceSearchPage> _load() {
+  Future<MarketplaceSearchPage> _load() async {
     final city = ref.read(buyerCityProvider);
+    final origin = await ref.read(buyerSearchLocationProvider.future);
     return apiServiceProvider.searchMarketplace(
       query: _debounced,
       mode: _mode,
       city: city,
+      lat: origin.latitude,
+      lng: origin.longitude,
+      sort: 'distance',
     );
+  }
+
+  void _refreshResults() {
+    setState(() {
+      _future = _load();
+    });
   }
 
   void _onQueryChanged(String value) {
@@ -67,88 +87,102 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     });
   }
 
+  String _distanceLabel(double? distanceKm) {
+    if (distanceKm == null) return '';
+    return context.l10n.distanceLabel(distanceKm);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final city = ref.watch(buyerCityProvider);
     ref.listen(buyerCityProvider, (previous, next) {
-      if (previous != next) {
-        setState(() => _future = _load());
-      }
+      if (previous != next) _refreshResults();
     });
-    _future ??= _load();
 
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          BuyerScreenTitle(
+            title: l10n.search,
+            subtitle: city,
+          ),
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+            ),
+            child: Row(
               children: [
-                Text(l10n.search,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: AppSpacing.sm),
+                const Icon(
+                  Icons.near_me_outlined,
+                  size: 14,
+                  color: AppColors.lavender,
+                ),
+                const SizedBox(width: 4),
                 Text(
-                  city,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  l10n.searchSortedByNearest,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceVariant(context),
                       ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                TextField(
-                  focusNode: _focusNode,
-                  autofocus: widget.autofocusSearch,
-                  decoration: InputDecoration(
-                    hintText: l10n.businessKeyword,
-                    prefixIcon: const Icon(Icons.search),
-                  ),
-                  onChanged: _onQueryChanged,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(
-                      value: 'products',
-                      label: Text(l10n.products),
-                      icon: const Icon(Icons.inventory_2_outlined),
-                    ),
-                    ButtonSegment(
-                      value: 'sellers',
-                      label: Text(l10n.seller),
-                      icon: const Icon(Icons.storefront_outlined),
-                    ),
-                  ],
-                  selected: {_mode},
-                  onSelectionChanged: (values) {
-                    setState(() {
-                      _mode = values.first;
-                      _future = _load();
-                    });
-                  },
                 ),
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.md),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+            ),
+            child: BuyerSearchBar(
+              hint: l10n.businessKeyword,
+              controller: _searchController,
+              focusNode: _focusNode,
+              autofocus: widget.autofocusSearch,
+              onChanged: _onQueryChanged,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenHorizontal,
+            ),
+            child: BuyerSegmentedToggle<String>(
+              selected: _mode,
+              onChanged: (value) {
+                setState(() {
+                  _mode = value;
+                  _future = _load();
+                });
+              },
+              segments: [
+                BuyerSegment(
+                  value: 'sellers',
+                  label: l10n.seller,
+                  icon: Icons.storefront_outlined,
+                ),
+                BuyerSegment(
+                  value: 'products',
+                  label: l10n.products,
+                  icon: Icons.inventory_2_outlined,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           Expanded(
             child: FutureBuilder<MarketplaceSearchPage>(
               future: _future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.lavender),
+                  );
                 }
                 if (snapshot.hasError) {
                   return AsyncErrorView.fromError(
                     snapshot.error!,
-                    onRetry: () {
-                      setState(() {
-                        _future = _load();
-                      });
-                    },
+                    onRetry: _refreshResults,
                   );
                 }
                 final page = snapshot.data;
@@ -157,71 +191,101 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ? (page?.products.length ?? 0)
                     : (page?.sellers.length ?? 0);
                 if (count == 0) {
-                  return Center(child: Text(l10n.noBusinessesFound));
+                  return BuyerEmptyState(
+                    icon: Icons.search_off_rounded,
+                    title: l10n.noBusinessesFound,
+                  );
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.screenHorizontal),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenHorizontal,
+                    0,
+                    AppSpacing.screenHorizontal,
+                    AppSpacing.xl,
+                  ),
                   itemCount: count,
                   separatorBuilder: (_, __) =>
                       const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (_, index) {
                     if (isProducts) {
                       final product = page!.products[index];
-                      return ListTile(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                        tileColor: Theme.of(context).cardTheme.color,
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: SizedBox(
-                            width: 52,
-                            height: 52,
-                            child: NetworkImageView(
-                              url: product.imageUrl,
-                              placeholderIcon: Icons.inventory_2_outlined,
+                      final distance = _distanceLabel(product.distanceKm);
+                      final subtitle = [
+                        product.sellerName,
+                        product.sellerCity,
+                        if (distance.isNotEmpty) distance,
+                      ].join(' · ');
+                      return BuyerSurfaceCard(
+                        onTap: () => context.push(
+                          '/product/${product.sellerId}/${product.id}',
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: 4,
+                          ),
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              width: 52,
+                              height: 52,
+                              child: NetworkImageView(
+                                url: product.imageUrl,
+                                placeholderIcon: Icons.inventory_2_outlined,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            product.name,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          subtitle: Text(subtitle),
+                          trailing: Text(
+                            product.priceMad == null
+                                ? '—'
+                                : '${product.priceMad!.toStringAsFixed(0)} MAD',
+                            style: const TextStyle(
+                              color: AppColors.lavender,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
-                        title: Text(product.name,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w700)),
-                        subtitle: Text(
-                            '${product.sellerName} · ${product.sellerCity}'),
-                        trailing: Text(
-                          product.priceMad == null
-                              ? '—'
-                              : '${product.priceMad!.toStringAsFixed(0)} MAD',
-                          style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w800),
-                        ),
-                        onTap: () => context
-                            .push('/product/${product.sellerId}/${product.id}'),
                       );
                     }
                     final seller = page!.sellers[index];
-                    return ListTile(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      tileColor: Theme.of(context).cardTheme.color,
-                      leading: ClipOval(
-                        child: SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: NetworkImageView(
-                            url: seller.coverImageUrl,
-                            placeholderIcon: Icons.storefront_rounded,
+                    final distance = _distanceLabel(seller.distanceKm);
+                    final subtitle = [
+                      seller.city,
+                      '${seller.averageRating} ★',
+                      if (distance.isNotEmpty) distance,
+                    ].join(' · ');
+                    return BuyerSurfaceCard(
+                      onTap: () => context.push('/seller/${seller.id}'),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: 4,
+                        ),
+                        leading: ClipOval(
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: NetworkImageView(
+                              url: seller.coverImageUrl,
+                              placeholderIcon: Icons.storefront_rounded,
+                            ),
                           ),
                         ),
+                        title: Text(
+                          seller.businessName,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text(subtitle),
+                        trailing: Icon(
+                          DirectionalUi.forwardChevron(context),
+                          color: AppColors.textTertiary,
+                        ),
                       ),
-                      title: Text(seller.businessName,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle:
-                          Text('${seller.city} · ${seller.averageRating} ★'),
-                      trailing: const Icon(Icons.chevron_right_rounded,
-                          color: AppColors.textSecondary),
-                      onTap: () => context.push('/seller/${seller.id}'),
                     );
                   },
                 );
