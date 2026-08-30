@@ -1,3 +1,4 @@
+import '../../core/models/models.dart';
 import 'search_category_resolver.dart';
 import 'search_filters.dart';
 
@@ -43,4 +44,13 @@ SearchIntentApplication applySearchNavigationIntent({
     resolvedCategory: resolved,
     filtersByMode: updated,
   );
+}
+
+/// Search marketplace scope is explicit — never inherit the home tab chip.
+String? resolveSearchMarketplaceSlug(
+  String? slug,
+  List<MarketplaceVenueModel> marketplaces,
+) {
+  if (slug == null || slug.isEmpty) return null;
+  return marketplaces.any((market) => market.slug == slug) ? slug : null;
 }

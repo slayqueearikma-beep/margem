@@ -204,7 +204,7 @@ async def list_sellers(
     offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_db),
 ) -> list[SellerProfile]:
-    marketplace_id = await resolve_marketplace_id(session, marketplace)
+    marketplace_id = await resolve_marketplace_id(session, marketplace, strict=False)
     stmt = (
         select(SellerProfile)
         .options(

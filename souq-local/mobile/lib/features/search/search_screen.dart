@@ -110,11 +110,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       filtersByMode: _filtersByMode,
     );
     _searchMarketplaceSlug = intent.marketplaceSlug;
-    if (intent.marketplaceSlug != null) {
-      ref
-          .read(buyerMarketplaceSlugProvider.notifier)
-          .setSlug(intent.marketplaceSlug);
-    }
     if (_mode != application.mode) {
       _persistModeQuery();
       _persistCurrentSnapshot();
@@ -212,7 +207,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (slug == null || slug.isEmpty) return null;
     final marketplaces =
         ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
-    return validatedMarketplaceSlug(slug, marketplaces);
+    return resolveSearchMarketplaceSlug(slug, marketplaces);
   }
 
   void _validateSearchMarketplaceSlug() {
@@ -221,7 +216,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final marketplaces =
         ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
     if (marketplaces.isEmpty) return;
-    if (validatedMarketplaceSlug(slug, marketplaces) != null) return;
+    if (resolveSearchMarketplaceSlug(slug, marketplaces) != null) return;
     _searchMarketplaceSlug = null;
   }
 
@@ -676,15 +671,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             _searchMarketplaceSlug = item.marketplaceSlug.isEmpty
                                 ? null
                                 : item.marketplaceSlug;
-                            if (_searchMarketplaceSlug != null) {
-                              ref
-                                  .read(buyerMarketplaceSlugProvider.notifier)
-                                  .setSlug(_searchMarketplaceSlug);
-                            } else {
-                              ref
-                                  .read(buyerMarketplaceSlugProvider.notifier)
-                                  .setSlug(null);
-                            }
                             Navigator.pop(context);
                             _reload();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -957,7 +943,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       final marketplaces = next.valueOrNull ?? const [];
       if (marketplaces.isEmpty) return;
 
-      final validated = validatedMarketplaceSlug(slug, marketplaces);
+      final validated = resolveSearchMarketplaceSlug(slug, marketplaces);
       if (validated == null) {
         _validateSearchMarketplaceSlug();
         _reload();
@@ -965,7 +951,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       }
 
       final wasValidated = previous?.valueOrNull != null &&
-          validatedMarketplaceSlug(slug, previous!.valueOrNull ?? const []) !=
+          resolveSearchMarketplaceSlug(
+                slug,
+                previous!.valueOrNull ?? const [],
+              ) !=
               null;
       if (!wasValidated) _reload();
     });
