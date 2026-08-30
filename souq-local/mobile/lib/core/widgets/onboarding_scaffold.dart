@@ -30,7 +30,7 @@ class StepProgressBar extends StatelessWidget {
             ),
             height: 4,
             decoration: BoxDecoration(
-              color: isActive ? AppColors.lavender : AppColors.border,
+              color: isActive ? AppColors.lavender : AppColors.outlineSubtle(context),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -59,7 +59,7 @@ class PageDots extends StatelessWidget {
           width: isActive ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: isActive ? AppColors.lavender : AppColors.border,
+            color: isActive ? AppColors.lavender : AppColors.outlineSubtle(context),
             borderRadius: BorderRadius.circular(4),
           ),
         );

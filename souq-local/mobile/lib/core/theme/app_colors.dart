@@ -158,6 +158,9 @@ class AppColors {
   static Color favoriteButton(BuildContext context) =>
       isDark(context) ? darkCard : cream;
 
+  static Color selectedCardSurface(BuildContext context) =>
+      isDark(context) ? lavender.withValues(alpha: 0.15) : cardSelected;
+
   static Color filterChip(BuildContext context) =>
       isDark(context) ? darkSurface : beigeLight;
 

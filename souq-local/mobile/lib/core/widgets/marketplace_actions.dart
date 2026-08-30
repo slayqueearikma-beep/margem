@@ -223,7 +223,7 @@ class MarketInfoChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.primary.withValues(alpha: 0.16)
-            : AppColors.cardSelected,
+            : AppColors.selectedCardSurface(context),
         borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.18),

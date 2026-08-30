@@ -223,7 +223,7 @@ class _ConversationTile extends StatelessWidget {
                           fontSize: 12,
                           color: conversation.hasUnread
                               ? AppColors.lavender
-                              : AppColors.textSecondary,
+                              : AppColors.onSurfaceVariant(context),
                           fontWeight: conversation.hasUnread
                               ? FontWeight.w700
                               : FontWeight.w400,
@@ -420,7 +420,7 @@ class _ConversationThreadScreenState
                               ? AppColors.primary.withValues(alpha: 0.12)
                               : (AppColors.isDark(context)
                                   ? AppColors.darkCard
-                                  : AppColors.cardSelected),
+                                  : AppColors.selectedCardSurface(context)),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(

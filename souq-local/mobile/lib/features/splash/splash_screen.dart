@@ -115,7 +115,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: OnboardingBackdrop(
         child: SafeArea(
           child: FadeTransition(
@@ -154,7 +154,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       l10n.splashTagline,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppColors.navy.withValues(alpha: 0.85),
+                            color: AppColors.onSurfaceVariant(context).withValues(alpha: 0.85),
                             fontWeight: FontWeight.w500,
                             fontSize: 16,
                             height: 1.35,

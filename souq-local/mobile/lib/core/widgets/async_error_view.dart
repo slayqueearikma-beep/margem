@@ -61,7 +61,7 @@ class AsyncErrorView extends StatelessWidget {
                         : message,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: AppColors.onSurfaceVariant(context),
                       height: 1.4,
                     ),
                   ),

@@ -123,7 +123,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 Text(
                   l10n.searchSortedByNearest,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: AppColors.onSurfaceVariant(context),
                       ),
                 ),
               ],

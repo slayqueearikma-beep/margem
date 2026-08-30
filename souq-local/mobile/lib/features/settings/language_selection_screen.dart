@@ -134,7 +134,7 @@ class _LanguageSelectionScreenState
                               .textTheme
                               .bodyMedium
                               ?.copyWith(
-                                color: AppColors.textSecondary,
+                                color: AppColors.onSurfaceVariant(context),
                                 height: 1.4,
                               ),
                         ),
@@ -198,9 +198,7 @@ class _LanguageCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Material(
         color: selected
-            ? (isDark
-                ? AppColors.primary.withValues(alpha: 0.15)
-                : AppColors.cardSelected)
+            ? AppColors.selectedCardSurface(context)
             : (isDark ? AppColors.darkCard : AppColors.cardUnselected),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         child: InkWell(
