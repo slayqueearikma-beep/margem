@@ -336,6 +336,10 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get noBusinessesFound => 'لم يتم العثور على محلات';
   @override
+  String get noProductsFound => 'لم يتم العثور على منتجات';
+  @override
+  String get noServicesFound => 'لم يتم العثور على خدمات';
+  @override
   String get searchSortedByNearest => 'عرض الأقرب أولاً';
   @override
   String get searchSortRelevance => 'الأكثر صلة';

@@ -343,6 +343,10 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get noBusinessesFound => 'Aucun commerce trouvé';
   @override
+  String get noProductsFound => 'Aucun produit trouvé';
+  @override
+  String get noServicesFound => 'Aucun service trouvé';
+  @override
   String get searchSortedByNearest => 'Résultats les plus proches';
   @override
   String get searchSortRelevance => 'Pertinence';

@@ -75,9 +75,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     super.initState();
     _focusNode.addListener(_onSearchFocusChanged);
     _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _clearInvalidMarketplaceSelection();
       _seedHomeCategoryForCurrentMode();
+      final slug = ref.read(buyerMarketplaceSlugProvider);
+      if (slug != null && slug.isNotEmpty) {
+        try {
+          await ref.read(buyerMarketplacesProvider.future);
+        } on Object {
+          // Best-effort: search still works without marketplace scope.
+        }
+        if (!mounted) return;
+        _clearInvalidMarketplaceSelection();
+      }
       _restoreOrFetch(mode: _mode, sort: _sort);
     });
   }
@@ -179,6 +189,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void didUpdateWidget(covariant SearchScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.autofocusSearch && !oldWidget.autofocusSearch) {
+      _restoreOrFetch(mode: _mode, sort: _sort);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !widget.autofocusSearch) return;
         if (_focusNode.canRequestFocus) {
@@ -453,7 +464,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _restoreOrFetch({required String mode, required String sort}) {
     final scopeKey = _scopeKeyFor(mode, sort);
-    if (sort != 'distance' && _modeCache.isLoaded(scopeKey)) {
+    final cached = _modeCache.snapshot(scopeKey);
+    if (sort != 'distance' &&
+        cached != null &&
+        _snapshotItemCount(cached, mode) > 0) {
       _restoreSnapshot(scopeKey, mode);
       setState(() {
         _loading = false;
@@ -517,6 +531,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       _reload();
     });
   }
+
+  int _snapshotItemCount(SearchResultsSnapshot snapshot, String mode) =>
+      switch (mode) {
+        'services' => snapshot.services.length,
+        'providers' => snapshot.sellers.length,
+        _ => snapshot.products.length,
+      };
+
+  String _emptyResultsTitle(AppStrings l10n) => switch (_mode) {
+        'services' => l10n.noServicesFound,
+        'providers' => l10n.noBusinessesFound,
+        _ => l10n.noProductsFound,
+      };
 
   String _priceLabel(AppStrings l10n, {required bool isOffer, double? priceMad}) {
     if (isOffer) return l10n.pricingOffer;
@@ -747,7 +774,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                l10n.noBusinessesFound,
+                _emptyResultsTitle(l10n),
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme

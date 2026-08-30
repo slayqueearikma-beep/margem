@@ -158,6 +158,8 @@ abstract class AppStrings {
   String get applyFilters;
   String get clearFilters;
   String get noBusinessesFound;
+  String get noProductsFound;
+  String get noServicesFound;
   String get searchSortedByNearest;
   String get searchSortRelevance;
   String get searchSortNearest;

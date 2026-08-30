@@ -339,6 +339,10 @@ class AppStringsEn extends AppStrings {
   @override
   String get noBusinessesFound => 'No businesses found';
   @override
+  String get noProductsFound => 'No products found';
+  @override
+  String get noServicesFound => 'No services found';
+  @override
   String get searchSortedByNearest => 'Showing nearest matches';
   @override
   String get searchSortRelevance => 'Relevance';
