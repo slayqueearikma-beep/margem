@@ -20,8 +20,8 @@ void main() {
         'http://192.168.11.103:8000',
       );
       expect(
-        AppConfig.normalizeApiBaseUrl('https://api.margem.ma'),
-        'https://api.margem.ma',
+        AppConfig.normalizeApiBaseUrl('https://api.dribex.ma'),
+        'https://api.dribex.ma',
       );
     });
 
@@ -29,6 +29,72 @@ void main() {
       expect(
         AppConfig.normalizeApiBaseUrl('http://192.168.11.103:8000/'),
         'http://192.168.11.103:8000',
+      );
+    });
+  });
+
+  group('isDevelopmentApiHost', () {
+    test('flags emulator and loopback hosts', () {
+      expect(AppConfig.isDevelopmentApiHost('10.0.2.2'), isTrue);
+      expect(AppConfig.isDevelopmentApiHost('localhost'), isTrue);
+      expect(AppConfig.isDevelopmentApiHost('127.0.0.1'), isTrue);
+      expect(AppConfig.isDevelopmentApiHost('192.168.1.10'), isTrue);
+      expect(AppConfig.isDevelopmentApiHost('api.dribex.ma'), isFalse);
+    });
+  });
+
+  group('validateReleaseApiBaseUrl', () {
+    test('accepts canonical production API URL', () {
+      expect(
+        AppConfig.validateReleaseApiBaseUrl(
+          'https://api.dribex.ma',
+          productionFlag: true,
+        ),
+        'https://api.dribex.ma',
+      );
+    });
+
+    test('rejects development hosts in release validation', () {
+      expect(
+        () => AppConfig.validateReleaseApiBaseUrl(
+          'http://10.0.2.2:8000',
+          productionFlag: false,
+        ),
+        throwsStateError,
+      );
+      expect(
+        () => AppConfig.validateReleaseApiBaseUrl(
+          'http://localhost:8000',
+          productionFlag: false,
+        ),
+        throwsStateError,
+      );
+      expect(
+        () => AppConfig.validateReleaseApiBaseUrl(
+          'http://192.168.1.10:8000',
+          productionFlag: false,
+        ),
+        throwsStateError,
+      );
+    });
+
+    test('rejects non-HTTPS URLs in release validation', () {
+      expect(
+        () => AppConfig.validateReleaseApiBaseUrl(
+          'http://api.dribex.ma',
+          productionFlag: false,
+        ),
+        throwsStateError,
+      );
+    });
+
+    test('requires canonical production URL when productionFlag is true', () {
+      expect(
+        () => AppConfig.validateReleaseApiBaseUrl(
+          'https://api-staging.dribex.ma',
+          productionFlag: true,
+        ),
+        throwsStateError,
       );
     });
   });

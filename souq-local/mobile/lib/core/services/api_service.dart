@@ -1337,8 +1337,8 @@ class ApiService {
       '/billing/checkout/advertising',
       {
         'package_code': packageCode,
-        'success_url': 'margem://seller/boost?checkout=success',
-        'cancel_url': 'margem://seller/boost?checkout=cancelled',
+        'success_url': 'dribex://seller/boost?checkout=success',
+        'cancel_url': 'dribex://seller/boost?checkout=cancelled',
       },
       auth: true,
     );

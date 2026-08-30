@@ -11,7 +11,8 @@
     "prestart": "node scripts/ensure-deps.mjs",
     "start": "node ./node_modules/next/dist/bin/next start",
     "lint": "node ./node_modules/next/dist/bin/next lint",
-    "test:security": "node --test scripts/test-security.mjs"
+    "test:security": "node --test scripts/test-security.mjs",
+    "validate:production": "NODE_ENV=production NEXT_PUBLIC_API_BASE_URL=https://api.dribex.ma NEXT_PUBLIC_SITE_URL=https://dribex.ma node scripts/validate-production-config.mjs"
   },
   "dependencies": {
     "next": "^15.2.4",

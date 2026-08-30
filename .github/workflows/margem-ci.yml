@@ -155,6 +155,7 @@ jobs:
           NEXT_PUBLIC_API_BASE_URL: https://api.dribex.ma
           NEXT_PUBLIC_SITE_URL: https://dribex.ma
           NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
+      - run: npm run validate:production
       - run: npm run test:security
 
   api-image:
@@ -217,5 +218,8 @@ jobs:
             'storeFile=../ci-release.keystore' \
             > android/key.properties
       - name: Assemble signed release APK
-        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.margem.ma --dart-define=PRODUCTION=true
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.dribex.ma --dart-define=PRODUCTION=true
         continue-on-error: false
+      - name: Production safety checks
+        working-directory: ${{ github.workspace }}/souq-local
+        run: ./scripts/validate-production-safety.sh

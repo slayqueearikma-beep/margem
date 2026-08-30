@@ -8,14 +8,19 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+ARG NEXT_PUBLIC_API_BASE_URL
 ARG NEXT_PUBLIC_SITE_URL=https://dribex.ma
 ARG NEXT_PUBLIC_LAUNCH_CITIES=Casablanca
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_LAUNCH_CITIES=$NEXT_PUBLIC_LAUNCH_CITIES
+
+RUN test -n "$NEXT_PUBLIC_API_BASE_URL" \
+  && test "$NEXT_PUBLIC_API_BASE_URL" != "http://localhost:8000" \
+  && node scripts/validate-production-config.mjs
 
 RUN npm run build
 
