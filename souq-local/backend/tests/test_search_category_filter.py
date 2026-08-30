@@ -257,6 +257,27 @@ async def test_search_multiple_categories_only_return_matching_listings(client: 
 
 
 @pytest.mark.asyncio
+async def test_search_ignores_unknown_marketplace_slug(client: AsyncClient):
+    await _seed_catalog_data()
+    seller = await _register_seller(client)
+    profile = await create_test_seller(client, seller["headers"])
+    product = await client.post(
+        f"/sellers/{profile['id']}/products",
+        headers=seller["headers"],
+        json={"name": "Open Listing", "price_mad": 25},
+    )
+    assert product.status_code == 201, product.text
+
+    response = await client.get(
+        "/search",
+        params={"mode": "products", "marketplace": "does-not-exist", "limit": 20},
+    )
+    assert response.status_code == 200, response.text
+    ids = {item["id"] for item in response.json()["products"]}
+    assert product.json()["id"] in ids
+
+
+@pytest.mark.asyncio
 async def test_search_without_category_returns_all_active_listings(client: AsyncClient):
     await _seed_catalog_data()
     seller = await _register_seller(client)

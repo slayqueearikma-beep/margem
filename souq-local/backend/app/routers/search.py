@@ -168,7 +168,7 @@ async def search(
         raise HTTPException(status_code=422, detail="lat and lng are required when sort=distance")
 
     has_origin = lat is not None and lng is not None
-    marketplace_id = await resolve_marketplace_id(session, marketplace)
+    marketplace_id = await resolve_marketplace_id(session, marketplace, strict=False)
     city_name = _city_filter(city)
 
     if mode == "sellers":

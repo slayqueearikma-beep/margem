@@ -75,6 +75,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     _focusNode.addListener(_onSearchFocusChanged);
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _clearInvalidMarketplaceSelection();
       _seedHomeCategoryForCurrentMode();
       _reload();
     });
@@ -200,7 +201,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (slug == null || slug.isEmpty) return null;
     final marketplaces =
         ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
-    return validatedMarketplaceSlug(slug, marketplaces) ?? slug;
+    return validatedMarketplaceSlug(slug, marketplaces);
+  }
+
+  void _clearInvalidMarketplaceSelection() {
+    final slug = ref.read(buyerMarketplaceSlugProvider);
+    if (slug == null || slug.isEmpty) return;
+    final marketplaces =
+        ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
+    if (marketplaces.isEmpty) return;
+    if (validatedMarketplaceSlug(slug, marketplaces) != null) return;
+    ref.read(buyerMarketplaceSlugProvider.notifier).state = null;
+    ref.read(appStorageProvider)?.setMarketplaceSlug('');
   }
 
   String _scopeKeyFor(String mode, String sort) {
@@ -367,12 +379,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       });
     } else if (append) {
       setState(() => _loadingMore = true);
+    } else if (!append && mode == _mode && sort == _sort) {
+      setState(() {
+        _error = null;
+        _loading = true;
+        _loadingMore = false;
+      });
     }
 
     try {
       final page = await _fetchPage(offset: offset, mode: mode, sort: sort);
       if (!mounted || generation != _fetchGeneration) return;
-      if (append && scopeKey != _scopeKeyFor(mode, sort)) return;
+      if (scopeKey != _scopeKeyFor(mode, sort)) return;
       setState(() {
         _applyPage(
           scopeKey: scopeKey,
@@ -385,6 +403,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       });
     } catch (error) {
       if (!mounted || generation != _fetchGeneration) return;
+      if (scopeKey != _scopeKeyFor(mode, sort)) return;
       setState(() {
         if (mode == _mode && sort == _sort) {
           _error = error;
@@ -397,6 +416,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _beginFetch({required bool showLoading}) {
     final generation = ++_fetchGeneration;
+    _modeCache.invalidateMode(_mode);
     final scopeKey = _scopeKeyFor(_mode, _sort);
     _fetchMode(
       _mode,
@@ -410,20 +430,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Future<void> _reload() async {
-    _fetchGeneration++;
+    final generation = ++_fetchGeneration;
     _timer?.cancel();
     _persistModeQuery();
     _scrollResultsToTop();
     setState(() {
       _modeCache.invalidateMode(_mode);
-      switch (_mode) {
-        case 'services':
-          _services.clear();
-        case 'providers':
-          _sellers.clear();
-        default:
-          _products.clear();
-      }
       _error = null;
       _loading = true;
       _loadingMore = false;
@@ -431,10 +443,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     await _fetchMode(
       _mode,
       sort: _sort,
-      scopeKey: _currentScopeKey,
+      scopeKey: _scopeKeyFor(_mode, _sort),
       offset: 0,
       append: false,
-      generation: _fetchGeneration,
+      generation: generation,
       showLoading: false,
     );
   }
@@ -902,12 +914,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     ref.listen(buyerMarketplacesProvider, (previous, next) {
       final slug = ref.read(buyerMarketplaceSlugProvider);
       if (slug == null || slug.isEmpty) return;
+      final marketplaces = next.valueOrNull ?? const [];
+      if (marketplaces.isEmpty) return;
+
+      final validated = validatedMarketplaceSlug(slug, marketplaces);
+      if (validated == null) {
+        _clearInvalidMarketplaceSelection();
+        _reload();
+        return;
+      }
+
       final wasValidated = previous?.valueOrNull != null &&
           validatedMarketplaceSlug(slug, previous!.valueOrNull ?? const []) !=
               null;
-      final isValidated = next.valueOrNull != null &&
-          validatedMarketplaceSlug(slug, next.valueOrNull ?? const []) != null;
-      if (!wasValidated && isValidated) _reload();
+      if (!wasValidated) _reload();
     });
     ref.listen(buyerCityProvider, (previous, next) {
       if (previous != next) _reload();
