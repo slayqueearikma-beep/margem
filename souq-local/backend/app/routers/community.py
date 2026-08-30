@@ -498,6 +498,15 @@ async def community_websocket(
             await websocket.close(code=4401)
             return
         channel = await get_channel(session, channel_id)
+        membership = await session.scalar(
+            select(CommunityMembership).where(
+                CommunityMembership.user_id == user.id,
+                CommunityMembership.city_id == channel.city_id,
+            )
+        )
+        if membership is None:
+            await websocket.close(code=4403)
+            return
         slug = city_slug or (channel.city.slug if channel.city else "")
 
     await community_ws_manager.connect(

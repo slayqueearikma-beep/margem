@@ -152,3 +152,45 @@ async def test_reaction_and_report(client: AsyncClient):
         json={"reason": "spam", "details": "test"},
     )
     assert report.status_code == 201
+
+
+@pytest.mark.asyncio
+async def test_non_member_cannot_read_or_post_channel_messages(client: AsyncClient):
+    member = await _register(client, name="Member")
+    outsider = await _register(client, name="Outsider")
+
+    cities = (await client.get("/community/cities")).json()
+    casablanca = next(c for c in cities if c["slug"] == "casablanca")
+    await client.post(
+        f"/community/cities/{casablanca['slug']}/join",
+        headers=member["headers"],
+        json={"is_home_city": True},
+    )
+
+    channels = (
+        await client.get(
+            f"/community/cities/{casablanca['slug']}/channels",
+            headers=member["headers"],
+        )
+    ).json()
+    general = next(ch for ch in channels if ch["category"] == "general")
+
+    post = await client.post(
+        f"/community/channels/{general['id']}/messages",
+        headers=member["headers"],
+        json={"body": "Members only"},
+    )
+    assert post.status_code == 201
+
+    blocked_read = await client.get(
+        f"/community/channels/{general['id']}/messages",
+        headers=outsider["headers"],
+    )
+    assert blocked_read.status_code == 403
+
+    blocked_post = await client.post(
+        f"/community/channels/{general['id']}/messages",
+        headers=outsider["headers"],
+        json={"body": "Should not post"},
+    )
+    assert blocked_post.status_code == 403

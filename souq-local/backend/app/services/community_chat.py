@@ -145,6 +145,27 @@ async def join_city(
     return membership
 
 
+async def require_city_member(
+    session: AsyncSession,
+    *,
+    city_id: UUID,
+    user_id: UUID,
+) -> CommunityMembership:
+    """Ensure the user joined the city before reading or writing channel content."""
+    membership = await session.scalar(
+        select(CommunityMembership).where(
+            CommunityMembership.user_id == user_id,
+            CommunityMembership.city_id == city_id,
+        )
+    )
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Join this city community to access its channels",
+        )
+    return membership
+
+
 async def get_channel(session: AsyncSession, channel_id: UUID) -> CommunityChannel:
     channel = await session.scalar(
         select(CommunityChannel)
@@ -221,6 +242,7 @@ async def list_messages(
     q: str | None = None,
 ) -> list[CommunityMessageOut]:
     await ensure_not_banned(session, city_id=channel.city_id, user_id=viewer.id)
+    await require_city_member(session, city_id=channel.city_id, user_id=viewer.id)
 
     stmt = (
         select(CommunityMessage)
@@ -289,6 +311,7 @@ async def send_message(
     payload: CommunityMessageCreate,
 ) -> CommunityMessage:
     await ensure_not_banned(session, city_id=channel.city_id, user_id=sender.id)
+    await require_city_member(session, city_id=channel.city_id, user_id=sender.id)
 
     body = payload.body.strip()
     if not body and not payload.attachments:
@@ -371,6 +394,11 @@ async def toggle_reaction(
     user: User,
     emoji: str,
 ) -> list[CommunityReactionOut]:
+    channel = await session.get(CommunityChannel, message.channel_id)
+    if channel is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Channel not found")
+    await require_city_member(session, city_id=channel.city_id, user_id=user.id)
+
     existing = await session.scalar(
         select(CommunityReaction).where(
             CommunityReaction.message_id == message.id,

@@ -96,9 +96,8 @@ async def send_signup_otp(
         )
     else:
         logger.info(
-            "signup_sms_otp to=%s code=%s (SMS provider not configured — check API logs on home server)",
+            "signup_sms_otp to=%s (SMS provider not configured — code not logged)",
             destination,
-            code,
         )
 
     await session.commit()

@@ -158,9 +158,14 @@ class Settings(BaseSettings):
                 raise ValueError("AUTH_DEV_BYPASS must be false in production")
             if len(self.jwt_secret_key) < 32:
                 raise ValueError("JWT_SECRET_KEY must be at least 32 characters in production")
-            # Reject the documented default even when it already meets length checks.
-            if self.jwt_secret_key.startswith("change-this-secret"):
-                raise ValueError("JWT_SECRET_KEY must be rotated away from the default value in production")
+            # Reject documented development secrets even when they meet length checks.
+            insecure_jwt_prefixes = (
+                "change-this-secret",
+                "local-dev-secret",
+                "souq_local_dev",
+            )
+            if any(self.jwt_secret_key.startswith(prefix) for prefix in insecure_jwt_prefixes):
+                raise ValueError("JWT_SECRET_KEY must not use a documented development value in production")
             if self.storage_backend == "local":
                 if not self.upload_token_secret or len(self.upload_token_secret) < 32:
                     raise ValueError("UPLOAD_TOKEN_SECRET must be at least 32 characters in production")
