@@ -10,16 +10,7 @@ import '../../core/theme/theme_context.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/buyer_ui_components.dart';
 import '../../l10n/app_localizations.dart';
-
-final marketplaceCommunityHubProvider = FutureProvider.autoDispose
-    .family<MarketplaceCommunityHubModel, String>((ref, slug) {
-  return apiServiceProvider.fetchMarketplaceCommunityHub(slug, auth: true);
-});
-
-final marketplaceCommunityChannelsProvider = FutureProvider.autoDispose
-    .family<List<MarketplaceCommunityChannelModel>, String>((ref, slug) {
-  return apiServiceProvider.fetchMarketplaceCommunityChannels(slug, auth: true);
-});
+import 'marketplace_community_providers.dart';
 
 class MarketplaceCommunityHubScreen extends ConsumerWidget {
   const MarketplaceCommunityHubScreen({super.key, required this.marketplaceSlug});
@@ -80,6 +71,11 @@ class MarketplaceCommunityHubScreen extends ConsumerWidget {
                   ],
                   if (isGuest) ...[
                     const SizedBox(height: AppSpacing.md),
+                    FilledButton(
+                      onPressed: () => context.push('/login'),
+                      child: Text(l10n.marketplaceCommunityJoin),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(l10n.communityGuestHint, style: TextStyle(color: context.colors.textSecondary)),
                   ],
                 ],
