@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FormEvent, useState } from "react";
+import { useRouter } from "@/i18n/navigation";
 
 export function SearchBar({
   defaultQuery = "",
@@ -11,16 +12,16 @@ export function SearchBar({
   defaultMode?: string;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const t = useTranslations("search");
   const [query, setQuery] = useState(defaultQuery);
   const [mode, setMode] = useState(defaultMode);
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("q", query.trim());
+    const params = new URLSearchParams();
+    const trimmed = query.trim();
+    if (trimmed) params.set("q", trimmed);
     params.set("mode", mode);
-    params.delete("offset");
     router.push(`/search?${params.toString()}`);
   }
 
@@ -33,7 +34,7 @@ export function SearchBar({
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search products, services, or businesses..."
+        placeholder={t("placeholder")}
         className="min-w-0 flex-1 rounded-xl border border-[var(--border)] px-4 py-3 text-sm outline-none ring-[var(--primary)] focus:ring-2"
       />
       <select
@@ -41,16 +42,16 @@ export function SearchBar({
         onChange={(event) => setMode(event.target.value)}
         className="rounded-xl border border-[var(--border)] px-3 py-3 text-sm"
       >
-        <option value="all">All</option>
-        <option value="products">Products</option>
-        <option value="services">Services</option>
-        <option value="sellers">Businesses</option>
+        <option value="all">{t("modeAll")}</option>
+        <option value="products">{t("modeProducts")}</option>
+        <option value="services">{t("modeServices")}</option>
+        <option value="sellers">{t("modeBusinesses")}</option>
       </select>
       <button
         type="submit"
         className="rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white"
       >
-        Search
+        {t("submit")}
       </button>
     </form>
   );

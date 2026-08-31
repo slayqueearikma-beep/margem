@@ -1,5 +1,7 @@
+import createMiddleware from "next-intl/middleware";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { routing } from "./i18n/routing";
 
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
@@ -17,9 +19,9 @@ const CONTENT_SECURITY_POLICY = [
   "upgrade-insecure-requests",
 ].join("; ");
 
-export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
+const intlMiddleware = createMiddleware(routing);
 
+function applySecurityHeaders(response: NextResponse, request: NextRequest) {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -43,6 +45,11 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
+export function middleware(request: NextRequest) {
+  const response = intlMiddleware(request);
+  return applySecurityHeaders(response, request);
+}
+
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|opengraph-image).*)"],
 };

@@ -35,5 +35,24 @@ a {
   .text-balance {
     text-wrap: balance;
   }
+}
 
+[dir="rtl"] {
+  text-align: start;
+}
+
+[dir="rtl"] input[type="search"] {
+  text-align: start;
+}
+
+[dir="rtl"] select {
+  text-align: start;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+[dir="ltr"] .text-right {
+  text-align: right;
 }

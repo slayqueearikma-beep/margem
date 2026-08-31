@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 export function EmptyState({
   title,
@@ -28,20 +28,22 @@ export function EmptyState({
 }
 
 export function ErrorState({
-  title = "Something went wrong",
-  description = "We could not load this page. Please try again in a moment.",
+  title,
+  description,
   retryHref,
+  retryLabel,
 }: {
-  title?: string;
-  description?: string;
+  title: string;
+  description: string;
   retryHref?: string;
+  retryLabel?: string;
 }) {
   return (
     <EmptyState
       title={title}
       description={description}
       actionHref={retryHref}
-      actionLabel={retryHref ? "Try again" : undefined}
+      actionLabel={retryHref ? retryLabel : undefined}
     />
   );
 }

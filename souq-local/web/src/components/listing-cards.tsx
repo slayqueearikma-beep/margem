@@ -1,20 +1,45 @@
-import Link from "next/link";
+"use client";
+
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { MediaImage } from "@/components/media-image";
-import { formatPrice, formatRating, truncate } from "@/lib/format";
+import { createFormatters } from "@/lib/format-i18n";
+import { truncate } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
 import type { ProductSearchOut, SellerSummary, ServiceSearchOut } from "@/lib/types";
 import { TrustBadges } from "./trust-badges";
 
 function AvailabilityBadge({ available }: { available: boolean }) {
+  const t = useTranslations("listing");
   if (available) return null;
   return (
     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-[var(--muted)]">
-      Unavailable
+      {t("unavailable")}
     </span>
   );
 }
 
+function useFormatters() {
+  const locale = useLocale();
+  const t = useTranslations("format");
+  return {
+    locale,
+    ...createFormatters(locale, {
+      priceOnRequest: t("priceOnRequest"),
+      contactForPrice: t("contactForPrice"),
+      priceMad: t("priceMad"),
+      newRating: t("newRating"),
+      verified: t("verified"),
+      verificationPending: t("verificationPending"),
+      unavailable: t("unavailable"),
+      reviews: t("reviews"),
+    }),
+  };
+}
+
 export function ProductCard({ product }: { product: ProductSearchOut }) {
+  const { formatPrice, formatRating } = useFormatters();
+
   return (
     <Link
       href={`/products/${product.id}`}
@@ -55,6 +80,8 @@ export function ProductCard({ product }: { product: ProductSearchOut }) {
 }
 
 export function ServiceCard({ service }: { service: ServiceSearchOut }) {
+  const { formatPrice } = useFormatters();
+
   return (
     <Link
       href={`/services/${service.id}`}
@@ -91,6 +118,8 @@ export function ServiceCard({ service }: { service: ServiceSearchOut }) {
 }
 
 export function SellerCard({ seller }: { seller: SellerSummary }) {
+  const { formatRating, formatReviewCount } = useFormatters();
+
   return (
     <Link
       href={`/sellers/${seller.id}`}
@@ -111,11 +140,9 @@ export function SellerCard({ seller }: { seller: SellerSummary }) {
         <p className="line-clamp-2 text-sm text-[var(--muted)]">{seller.description}</p>
         <div className="flex items-center justify-between text-xs text-[var(--muted)]">
           <span>{seller.city}</span>
-          <span>{seller.review_count} reviews</span>
+          <span>{formatReviewCount(seller.review_count)}</span>
         </div>
-        <TrustBadges
-          verified={seller.verification_status === "verified"}
-        />
+        <TrustBadges verified={seller.verification_status === "verified"} />
       </div>
     </Link>
   );

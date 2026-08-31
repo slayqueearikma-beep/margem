@@ -1,9 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 
 export function SellerSignOutButton() {
   const router = useRouter();
+  const t = useTranslations("sellerPortal");
 
   return (
     <button
@@ -15,7 +17,7 @@ export function SellerSignOutButton() {
         router.refresh();
       }}
     >
-      Sign out
+      {t("signOut")}
     </button>
   );
 }
