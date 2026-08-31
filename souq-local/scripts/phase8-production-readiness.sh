@@ -105,6 +105,21 @@ else
 fi
 
 echo ""
+echo "==> Production safety checks"
+if [[ -x "$ROOT/scripts/validate-production-safety.sh" ]]; then
+  if "$ROOT/scripts/validate-production-safety.sh"; then
+    green "Repository production safety script"
+    pass=$((pass + 1))
+  else
+    red "Repository production safety script"
+    fail=$((fail + 1))
+  fi
+else
+  red "Repository production safety script missing"
+  fail=$((fail + 1))
+fi
+
+echo ""
 if [[ -n "$API_URL" ]]; then
   echo "==> Live API checks ($API_URL)"
   check "API /ready" test "$(curl -fsS -o /dev/null -w '%{http_code}' "$API_URL/ready" 2>/dev/null || echo 000)" = "200"

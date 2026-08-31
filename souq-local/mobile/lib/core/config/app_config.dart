@@ -2,6 +2,18 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
+  /// Canonical production API URL for open beta / production builds.
+  static const String productionApiBaseUrl = 'https://api.dribex.ma';
+
+  /// Emulator loopback default for local development when [apiBaseUrlDefine] is unset.
+  static const String devApiBaseUrlDefault = 'http://10.0.2.2:8000';
+
+  /// Raw compile-time define (empty when omitted from `--dart-define`).
+  static const String apiBaseUrlDefine = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
+
   /// Production API URL. Set at build time:
   /// `flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000`
   ///
@@ -10,19 +22,68 @@ class AppConfig {
   static final String apiBaseUrl = _resolveApiBaseUrl();
 
   static String _resolveApiBaseUrl() {
-    final normalized = normalizeApiBaseUrl(
-      const String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: 'http://10.0.2.2:8000',
-      ),
-    );
-    assert(
-      !isProduction || normalized.startsWith('https://'),
-      'PRODUCTION builds require an HTTPS API_BASE_URL (got: $normalized)',
-    );
-    // Defense in depth for profile/release where asserts are stripped:
-    // main.dart also throws when PRODUCTION or kReleaseMode.
+    final raw = apiBaseUrlDefine.trim();
+    if (isProduction || kReleaseMode) {
+      if (raw.isEmpty) {
+        throw StateError(
+          'Release/PRODUCTION builds require --dart-define=API_BASE_URL=$productionApiBaseUrl',
+        );
+      }
+      return validateReleaseApiBaseUrl(
+        normalizeApiBaseUrl(raw),
+        productionFlag: isProduction,
+      );
+    }
+    return normalizeApiBaseUrl(raw.isEmpty ? devApiBaseUrlDefault : raw);
+  }
+
+  /// Validates API URL for release/production builds. Exposed for unit tests.
+  static String validateReleaseApiBaseUrl(
+    String url, {
+    required bool productionFlag,
+  }) {
+    final normalized = normalizeApiBaseUrl(url);
+    final uri = Uri.tryParse(normalized);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      throw StateError('Invalid API_BASE_URL: $url');
+    }
+    if (!normalized.startsWith('https://')) {
+      throw StateError(
+        'Release/PRODUCTION builds require HTTPS API_BASE_URL. Got: $normalized',
+      );
+    }
+    if (isDevelopmentApiHost(uri.host)) {
+      throw StateError(
+        'Release/PRODUCTION builds must not use development API host: ${uri.host}',
+      );
+    }
+    if (productionFlag && normalized != productionApiBaseUrl) {
+      throw StateError(
+        'PRODUCTION builds require API_BASE_URL=$productionApiBaseUrl. Got: $normalized',
+      );
+    }
     return normalized;
+  }
+
+  /// Returns true for emulator/loopback hosts that must never ship in release.
+  static bool isDevelopmentApiHost(String host) {
+    final h = host.toLowerCase();
+    if (h == 'localhost' || h == '127.0.0.1' || h == '10.0.2.2' || h == '::1') {
+      return true;
+    }
+    if (h.startsWith('192.168.') ||
+        h.startsWith('10.') ||
+        h.startsWith('172.16.') ||
+        h.startsWith('172.17.') ||
+        h.startsWith('172.18.') ||
+        h.startsWith('172.19.') ||
+        h.startsWith('172.2') ||
+        h.startsWith('172.30.') ||
+        h.startsWith('172.31.') ||
+        h.endsWith('.local')) {
+      return true;
+    }
+    return false;
   }
 
   /// Fixes common `API_BASE_URL` typos such as a missing `:` before the port
@@ -30,7 +91,7 @@ class AppConfig {
   /// trailing slashes so path joins stay correct.
   static String normalizeApiBaseUrl(String raw) {
     var url = raw.trim();
-    if (url.isEmpty) return 'http://10.0.2.2:8000';
+    if (url.isEmpty) return devApiBaseUrlDefault;
 
     // Strip trailing slashes (keep scheme://host[:port] form).
     while (url.endsWith('/') && url.length > 1) {

@@ -28,7 +28,7 @@ $COMPOSE ps
 
 echo "Waiting for API readiness..."
 for i in $(seq 1 30); do
-  if $COMPOSE exec -T api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready')" 2>/dev/null; then
+  if $COMPOSE exec -T api python -c "import urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/ready', headers={'Host': 'api.dribex.ma'}))" 2>/dev/null; then
     echo "API ready."
     break
   fi

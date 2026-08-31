@@ -118,19 +118,29 @@ fi
 for key in PUBLIC_API_URL PUBLIC_APP_URL; do
   require_nonempty "$key"
   value="$(get "$key")"
-  if [[ "$value" == http://* ]] && [[ "$value" != http://localhost* ]] && [[ "$value" != http://127.0.0.1* ]]; then
-    errors+=("$key must use HTTPS for public production hosts")
+  if [[ "$value" == http://* ]]; then
+    errors+=("$key must use HTTPS in production")
+  fi
+  if echo "$value" | rg -qi 'localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.|100\.80\.'; then
+    errors+=("$key must not contain development-only hosts")
+  fi
+  if echo "$value" | rg -qi 'margem\.ma'; then
+    errors+=("$key must use dribex.ma production domains")
   fi
 done
 
-# Monetization launch defaults
+# Open beta monetization lock — payments are out of scope.
 payments="$(get PAYMENTS_ENABLED)"
 subs="$(get SUBSCRIPTIONS_ENABLED)"
-if [[ "$payments" == "true" ]]; then
-  warnings+=("PAYMENTS_ENABLED=true — ensure payment provider is configured intentionally")
+payment_provider="$(get PAYMENT_PROVIDER)"
+if [[ "${payments,,}" == "true" ]]; then
+  errors+=("PAYMENTS_ENABLED must be false for open public beta")
 fi
-if [[ "$subs" == "true" ]]; then
-  warnings+=("SUBSCRIPTIONS_ENABLED=true — ensure billing is configured intentionally")
+if [[ "${subs,,}" == "true" ]]; then
+  errors+=("SUBSCRIPTIONS_ENABLED must be false for open public beta")
+fi
+if [[ -n "$payment_provider" && "${payment_provider,,}" != "none" ]]; then
+  errors+=("PAYMENT_PROVIDER must be 'none' for open public beta")
 fi
 if [[ "$(get ADS_ENABLED)" != "true" ]]; then
   warnings+=("ADS_ENABLED is not true — manual advertising will be disabled")
@@ -139,6 +149,24 @@ fi
 # Hosts / CORS
 require_nonempty ALLOWED_HOSTS
 require_nonempty CORS_ORIGINS
+if echo "$(get CORS_ORIGINS)" | rg -q '\*'; then
+  errors+=("CORS_ORIGINS must not use wildcard '*' in production")
+fi
+for key in CORS_ORIGINS ALLOWED_HOSTS; do
+  value="$(get "$key")"
+  if echo "$value" | rg -qi 'localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.|100\.80\.'; then
+    errors+=("$key must not contain development-only hosts")
+  fi
+done
+
+minio_user="$(get MINIO_ROOT_USER)"
+minio_pass="$(get MINIO_ROOT_PASSWORD)"
+if [[ -n "$minio_user" ]] && is_placeholder "$minio_user"; then
+  errors+=("MINIO_ROOT_USER still contains a placeholder value")
+fi
+if [[ -n "$minio_pass" ]] && is_placeholder "$minio_pass"; then
+  errors+=("MINIO_ROOT_PASSWORD still contains a placeholder value")
+fi
 
 if [[ ${#errors[@]} -gt 0 ]]; then
   echo "Production environment validation FAILED:" >&2
