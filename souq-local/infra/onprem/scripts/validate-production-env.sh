@@ -77,10 +77,22 @@ require_distinct() {
   fi
 }
 
+# Core environment
+if [[ "$(get APP_ENV)" != "production" ]]; then
+  errors+=("APP_ENV must be production")
+fi
+if [[ "$(get DEBUG)" == "true" ]]; then
+  errors+=("DEBUG must be false in production")
+fi
+if [[ "$(get LISTING_VIDEO_UPLOADS_ENABLED)" == "true" ]]; then
+  warnings+=("LISTING_VIDEO_UPLOADS_ENABLED=true — ensure video upload security review is complete")
+fi
+
 # Core secrets
-for key in JWT_SECRET_KEY UPLOAD_TOKEN_SECRET MFA_ENCRYPTION_KEY POSTGRES_PASSWORD MINIO_ROOT_PASSWORD; do
+for key in JWT_SECRET_KEY UPLOAD_TOKEN_SECRET MFA_ENCRYPTION_KEY POSTGRES_PASSWORD MINIO_ROOT_PASSWORD REWARDED_AD_SIGNING_SECRET GRAFANA_ADMIN_PASSWORD; do
   require_nonempty "$key"
 done
+require_min_len REWARDED_AD_SIGNING_SECRET 32
 require_min_len JWT_SECRET_KEY 32
 require_min_len UPLOAD_TOKEN_SECRET 32
 require_min_len MFA_ENCRYPTION_KEY 32
@@ -102,10 +114,15 @@ else
   require_nonempty BREVO_SENDER_NAME
 fi
 
-# Rewarded ads signing secret
-if [[ "$(get REWARDED_ADS_ENABLED)" == "true" ]]; then
-  require_nonempty REWARDED_AD_SIGNING_SECRET
-  require_min_len REWARDED_AD_SIGNING_SECRET 32
+# Sentry (recommended for public beta)
+if [[ -z "$(get SENTRY_DSN)" ]]; then
+  warnings+=("SENTRY_DSN is empty — mobile/backend crash reporting will be disabled")
+fi
+
+# MinIO must not be exposed via public nginx /storage/ proxy
+minio_public="$(get MINIO_PUBLIC_URL)"
+if [[ -n "$minio_public" ]]; then
+  errors+=("MINIO_PUBLIC_URL must be unset — media is served via API /media/ only")
 fi
 
 # Admin network guard

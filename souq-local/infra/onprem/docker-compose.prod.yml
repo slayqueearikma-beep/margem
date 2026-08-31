@@ -139,6 +139,8 @@ services:
       NAPS_WEBHOOK_SIGNATURE_HEADER: ${NAPS_WEBHOOK_SIGNATURE_HEADER:-X-NAPS-Signature}
       RATE_LIMIT: ${RATE_LIMIT:-300/minute}
       AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-30/minute}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -210,6 +212,7 @@ services:
     networks: [internal, edge]
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health || exit 1"]
+      # /health is served on port 80 (see nginx.conf) for container health without TLS
       interval: 15s
       timeout: 5s
       retries: 5

@@ -1,45 +1,84 @@
 # Dribex On-Prem Production (Ubuntu)
 
-Production Docker Compose stack for self-hosted deployment on Ubuntu.
+Production Docker Compose stack for **public Internet** deployment.
 
 ## Architecture
 
-```
-Internet → nginx (443) → FastAPI API
-                ↓
-    PostgreSQL | Redis | MinIO | Vault (internal network only)
-                ↓
-    Prometheus | Loki | Grafana (internal — access via SSH tunnel)
+```text
+PUBLIC INTERNET
+      |
+      | HTTPS :443
+      v
+    NGINX  (only public entry point — ports 80/443)
+      |
+      +----> Web :3000
+      |
+      +----> API :8000
+                 |
+     PostgreSQL | Redis | MinIO | Vault (internal network only)
+                 |
+     Prometheus | Loki | Grafana (internal — SSH tunnel for admin)
 ```
 
-Only **nginx** exposes ports 80/443. All other services are on an internal Docker network.
+Only **nginx** exposes host ports `80` and `443`. Postgres, Redis, MinIO, Vault, API, and Web are **not** published on the public interface.
+
+**Tailscale** remains for SSH and private admin access only — not for end-user traffic.
 
 ## Quick start
 
 ```bash
 cd infra/onprem
 cp env.prod.example .env.prod
-# Edit secrets, domain URLs, SMTP, NAPS ePay credentials
+# Edit secrets — never commit .env.prod
 
+./scripts/validate-production-env.sh .env.prod
 ./scripts/deploy.sh
 ```
 
-Place TLS certificates in `nginx/certs/fullchain.pem` and `privkey.pem` (Let's Encrypt recommended).
+## TLS (required for public mobile)
+
+Replace bootstrap self-signed certs before public launch:
+
+1. **Cloudflare Origin Certificate** (if using Cloudflare proxy) — see `docs/PUBLIC_TLS_SETUP.md`
+2. **Let's Encrypt** — if the server is directly reachable on port 443
+
+Install files as:
+
+- `nginx/certs/fullchain.pem`
+- `nginx/certs/privkey.pem`
+
+Then: `docker compose -f docker-compose.prod.yml --env-file .env.prod restart nginx`
+
+## Media / MinIO
+
+Media is served **only through the API** at `/media/{bucket}/{key}` with authorization checks.
+
+- Do **not** set `MINIO_PUBLIC_URL` in production.
+- Nginx does **not** expose `/storage/` (direct MinIO proxy removed).
 
 ## Backups
 
 ```bash
-./scripts/backup.sh          # PostgreSQL dump + MinIO mirror
-./scripts/restore.sh /var/backups/margem/postgres-YYYYMMDD.sql.gz
+./scripts/backup.sh
+./scripts/restore.sh /var/backups/margem/postgres-YYYYMMDD-HHMMSS.sql.gz
 ```
 
-Schedule `backup.sh` via cron. Store backups off-server.
+Backs up PostgreSQL and **all** MinIO buckets via the `minio/mc` sidecar image.
 
-## Storage
+Schedule via cron. Copy `/var/backups/margem` off-server.
 
-Set `STORAGE_BACKEND=minio` in the API environment (configured in `docker-compose.prod.yml`).
+## Public launch verification
 
-`MINIO_PUBLIC_URL` should match the nginx `/storage/` proxy path.
+```bash
+./scripts/verify-public-api.sh
+./scripts/production-gate-check.sh
+```
+
+From repo root (after deploy):
+
+```bash
+./scripts/production-deploy.sh
+```
 
 ## Monitoring
 
@@ -50,10 +89,8 @@ ssh -L 3000:127.0.0.1:3000 user@your-server
 docker compose -f docker-compose.prod.yml --env-file .env.prod port grafana 3000
 ```
 
+Prometheus scrapes the API `/metrics` endpoint on the internal network.
+
 ## Vault
 
-The bundled Vault runs in file-storage mode for bootstrap. For production, initialize Vault properly, enable auto-unseal, and inject secrets via Vault Agent instead of `.env.prod`.
-
-## Legal pages
-
-Terms and privacy are served at `/terms` and `/privacy` by the API.
+The bundled Vault runs in file-storage mode for bootstrap. For hardened production, initialize Vault properly and inject secrets via Vault Agent instead of `.env.prod`.

@@ -23,15 +23,23 @@ class AppConfig {
 
   static String _resolveApiBaseUrl() {
     final raw = apiBaseUrlDefine.trim();
-    if (isProduction || kReleaseMode) {
+    // Release builds always use the canonical production API — no dev/LAN/Tailscale URLs.
+    if (kReleaseMode) {
+      return validateReleaseApiBaseUrl(
+        productionApiBaseUrl,
+        productionFlag: true,
+      );
+    }
+    if (isProduction) {
       if (raw.isEmpty) {
-        throw StateError(
-          'Release/PRODUCTION builds require --dart-define=API_BASE_URL=$productionApiBaseUrl',
+        return validateReleaseApiBaseUrl(
+          productionApiBaseUrl,
+          productionFlag: true,
         );
       }
       return validateReleaseApiBaseUrl(
         normalizeApiBaseUrl(raw),
-        productionFlag: isProduction,
+        productionFlag: true,
       );
     }
     return normalizeApiBaseUrl(raw.isEmpty ? devApiBaseUrlDefault : raw);
@@ -65,11 +73,18 @@ class AppConfig {
     return normalized;
   }
 
-  /// Returns true for emulator/loopback hosts that must never ship in release.
+  /// Returns true for emulator/loopback/Tailscale hosts that must never ship in release.
   static bool isDevelopmentApiHost(String host) {
     final h = host.toLowerCase();
     if (h == 'localhost' || h == '127.0.0.1' || h == '10.0.2.2' || h == '::1') {
       return true;
+    }
+    // Tailscale CGNAT range 100.64.0.0/10
+    if (RegExp(r'^100\.(\d{1,3})\.').hasMatch(h)) {
+      final second = int.tryParse(RegExp(r'^100\.(\d{1,3})\.').firstMatch(h)!.group(1)!);
+      if (second != null && second >= 64 && second <= 127) {
+        return true;
+      }
     }
     if (h.startsWith('192.168.') ||
         h.startsWith('10.') ||

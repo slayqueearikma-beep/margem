@@ -40,7 +40,17 @@ void main() {
       expect(AppConfig.isDevelopmentApiHost('127.0.0.1'), isTrue);
       expect(AppConfig.isDevelopmentApiHost('192.168.1.10'), isTrue);
       expect(AppConfig.isDevelopmentApiHost('api.dribex.ma'), isFalse);
-      expect(AppConfig.isDevelopmentApiHost('100.80.43.124'), isFalse);
+      expect(AppConfig.isDevelopmentApiHost('100.80.43.124'), isTrue);
+    });
+
+    test('rejects Tailscale CGNAT hosts in release validation', () {
+      expect(
+        () => AppConfig.validateReleaseApiBaseUrl(
+          'https://100.80.43.124',
+          productionFlag: false,
+        ),
+        throwsStateError,
+      );
     });
   });
 

@@ -218,7 +218,18 @@ jobs:
             'storeFile=../ci-release.keystore' \
             > android/key.properties
       - name: Assemble signed release APK
-        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.dribex.ma --dart-define=PRODUCTION=true
+        run: |
+          flutter build apk --release \
+            --dart-define=PRODUCTION=true \
+            --dart-define=API_BASE_URL=https://api.dribex.ma \
+            ${{ secrets.SENTRY_DSN && format('--dart-define=SENTRY_DSN={0}', secrets.SENTRY_DSN) || '' }}
+        continue-on-error: false
+      - name: Assemble signed release App Bundle (Play Store)
+        run: |
+          flutter build appbundle --release \
+            --dart-define=PRODUCTION=true \
+            --dart-define=API_BASE_URL=https://api.dribex.ma \
+            ${{ secrets.SENTRY_DSN && format('--dart-define=SENTRY_DSN={0}', secrets.SENTRY_DSN) || '' }}
         continue-on-error: false
       - name: Production safety checks
         working-directory: ${{ github.workspace }}/souq-local

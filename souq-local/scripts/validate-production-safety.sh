@@ -101,8 +101,8 @@ check "Nginx config defines api.dribex.ma and dribex.ma" \
   && rg -q 'server_name api\.dribex\.ma' "$ROOT/infra/onprem/nginx/nginx.conf"
 check "Nginx redirects HTTP to HTTPS" \
   rg -q 'return 301 https://' "$ROOT/infra/onprem/nginx/nginx.conf"
-check "Nginx exposes /storage/ proxy" \
-  rg -q 'location /storage/' "$ROOT/infra/onprem/nginx/nginx.conf"
+check "Nginx does not expose direct MinIO /storage/ proxy" \
+  bash -c '! rg -q "location /storage/" "$1"' _ "$ROOT/infra/onprem/nginx/nginx.conf"
 
 echo ""
 echo "==> Summary: $pass passed, $fail failed"
