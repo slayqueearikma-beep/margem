@@ -9,18 +9,31 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/config/app_config.dart';
 import '../../core/data/city_coordinates.dart';
 import '../../core/models/auth_models.dart';
+import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/navigation/post_auth_navigation.dart';
+import '../../core/services/legal_acceptance_service.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
+import '../../features/legal/signup_terms_footer.dart';
+import '../legal/legal_config.dart';
+import '../legal/legal_documents.dart';
+import '../legal/legal_document_screen.dart';
 import '../../core/widgets/map_widgets.dart';
+import '../../core/models/city_model.dart';
+import '../../core/providers/city_providers.dart';
+import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/services/upload_service.dart';
+import '../../core/widgets/seller_marketplace_picker.dart';
+import '../../core/providers/buyer_discovery_providers.dart';
+import '../../features/buyer/buyer_home_screen.dart';
 
 class SellerRegistrationScreen extends ConsumerStatefulWidget {
   const SellerRegistrationScreen({super.key});
@@ -35,6 +48,7 @@ class _SellerRegistrationScreenState
   static const _totalSteps = 5;
   int _step = 1;
   bool _loading = false;
+  bool _sellerTermsAccepted = false;
 
   // Step 1
   final _businessNameController = TextEditingController();
@@ -44,9 +58,13 @@ class _SellerRegistrationScreenState
 
   // Step 2
   String _category = 'Food';
-  final String _city = AppConfig.launchCity;
+  CityModel? _selectedCity;
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _marketGalleryController = TextEditingController();
+  final _shopNumberController = TextEditingController();
+  final _customMarketNameController = TextEditingController();
+  String? _selectedMarketSlug;
   LatLng _location = CityCoordinates.casablanca;
 
   // Step 3
@@ -87,6 +105,9 @@ class _SellerRegistrationScreenState
     _passwordController.dispose();
     _addressController.dispose();
     _phoneController.dispose();
+    _marketGalleryController.dispose();
+    _shopNumberController.dispose();
+    _customMarketNameController.dispose();
     _descriptionController.dispose();
     for (final p in _products) {
       p.dispose();
@@ -100,6 +121,33 @@ class _SellerRegistrationScreenState
     if (image != null) setState(() => setter(image));
   }
 
+  bool _marketSelectionValid() {
+    final markets = ref.read(buyerMarketplacesProvider).valueOrNull ?? const [];
+    final marketSlug = _selectedMarketSlug ??
+        (markets.isNotEmpty ? markets.first.slug : null);
+    final customMarket = _customMarketNameController.text.trim();
+    final usesCustom =
+        SellerMarketplacePicker.usesCustomMarket(marketSlug, customMarket);
+    if (marketSlug == null || marketSlug.isEmpty) return false;
+    if (usesCustom && customMarket.length < 2) return false;
+    return true;
+  }
+
+  String _selectedMarketLabel(List<MarketplaceVenueModel> markets) {
+    final customMarket = _customMarketNameController.text.trim();
+    if (_selectedMarketSlug == sellerMarketplaceCustomOption ||
+        customMarket.isNotEmpty) {
+      return customMarket;
+    }
+    final slug = _selectedMarketSlug ??
+        (markets.isNotEmpty ? markets.first.slug : null);
+    if (slug == null) return '—';
+    for (final market in markets) {
+      if (market.slug == slug) return market.displayName;
+    }
+    return slug;
+  }
+
   bool _validateStep() {
     switch (_step) {
       case 1:
@@ -109,7 +157,8 @@ class _SellerRegistrationScreenState
             _passwordController.text.length >= 8;
       case 2:
         return _addressController.text.trim().isNotEmpty &&
-            _phoneController.text.trim().isNotEmpty;
+            _phoneController.text.trim().isNotEmpty &&
+            _marketSelectionValid();
       case 3:
         return _descriptionController.text.trim().isNotEmpty;
       case 4:
@@ -122,6 +171,11 @@ class _SellerRegistrationScreenState
   void _next() {
     final l10n = context.l10n;
     if (!_validateStep()) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
+      return;
+    }
+    if (_step == _totalSteps && !_sellerTermsAccepted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.completeRequiredStep)));
       return;
@@ -142,25 +196,46 @@ class _SellerRegistrationScreenState
   }
 
   Future<void> _submit() async {
-    setState(() => _loading = true);
     final l10n = context.l10n;
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    final signupProof = await showSignupVerificationFlow(
+      context: context,
+      email: email,
+      phone: phone,
+    );
+    if (!mounted || signupProof == null) return;
+
+    setState(() => _loading = true);
     try {
       await apiServiceProvider.runSubmit(() async {
         await apiServiceProvider.checkHealth();
 
         final auth = ref.read(authServiceProvider);
         final session = await auth.register(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text,
           accountType: 'seller',
           displayName: _ownerNameController.text.trim(),
+          signupProof: signupProof,
         );
 
         final prefs = await ref.read(sharedPreferencesProvider.future);
         await auth.persistToken(prefs);
 
-        final slug = sellerCategorySlugMap[_category] ?? 'food';
-        final categoryId = await apiServiceProvider.categoryIdForSlug(slug);
+        final customMarket = _customMarketNameController.text.trim();
+        final categorySlug = resolveSellerCategorySlug(_category);
+        final marketSlug = SellerMarketplacePicker.marketplaceSlugForApi(
+          selectedSlug: _selectedMarketSlug,
+          customName: customMarket,
+        );
+        final categoryId = await apiServiceProvider.categoryIdForSlug(
+          categorySlug,
+          marketplace: marketSlug == sellerOtherCasablancaMarketSlug
+              ? null
+              : marketSlug,
+        );
 
         final uploader = ref.read(uploadServiceProvider);
         String coverUrl = '';
@@ -177,7 +252,7 @@ class _SellerRegistrationScreenState
             businessName: _businessNameController.text.trim(),
             description: _descriptionController.text.trim(),
             address: _addressController.text.trim(),
-            city: _city,
+            city: AppConfig.launchCity,
             latitude: _location.latitude,
             longitude: _location.longitude,
             phone: _phoneController.text.trim(),
@@ -191,6 +266,19 @@ class _SellerRegistrationScreenState
                   '${_closeTime.hour.toString().padLeft(2, '0')}:${_closeTime.minute.toString().padLeft(2, '0')}',
             },
             categoryIds: categoryId != null ? [categoryId] : [],
+            marketplaceSlug: SellerMarketplacePicker.marketplaceSlugForApi(
+              selectedSlug: _selectedMarketSlug,
+              customName: customMarket,
+            ),
+            customMarketplaceName:
+                SellerMarketplacePicker.customMarketplaceNameForApi(
+              selectedSlug: _selectedMarketSlug,
+              customName: customMarket,
+            ),
+            marketGallery: _marketGalleryController.text.trim(),
+            shopNumber: _shopNumberController.text.trim(),
+            sellerTermsAcknowledged: true,
+            acceptanceLanguage: LegalConfig.authoritativeLanguageCode,
           ),
         );
         final sellerId = seller.id;
@@ -198,7 +286,8 @@ class _SellerRegistrationScreenState
         for (final product in _products) {
           final name = product.nameController.text.trim();
           if (name.isEmpty) continue;
-          final price = double.tryParse(product.priceController.text.trim());
+          final priceText = product.priceController.text.trim();
+          final price = priceText.isEmpty ? null : double.tryParse(priceText);
           String imageUrl = '';
           if (product.image != null) {
             imageUrl = await uploader.uploadImage(product.image!);
@@ -208,6 +297,7 @@ class _SellerRegistrationScreenState
             ProductCreatePayload(
               name: name,
               description: product.descriptionController.text.trim(),
+              pricingType: price == null ? 'offer' : 'fixed',
               priceMad: price,
               imageUrl: imageUrl,
             ),
@@ -216,15 +306,14 @@ class _SellerRegistrationScreenState
 
         final storage = ref.read(appStorageProvider);
         if (storage == null) {
-          throw ApiException(
-              'App storage is not ready. Please restart the app.');
+          throw ApiException(l10n.appStorageNotReady);
         }
 
         final userSession = UserSession(
           name: _ownerNameController.text.trim(),
           email: session.user.email,
           accountType: AccountType.seller,
-          city: _city,
+          city: AppConfig.launchCity,
           businessName: _businessNameController.text.trim(),
           sellerId: sellerId,
         );
@@ -234,9 +323,10 @@ class _SellerRegistrationScreenState
         await storage.saveAppMode(AppMode.seller);
         ref.read(userSessionProvider.notifier).state = userSession;
         ref.read(authSessionProvider.notifier).state = session;
+        syncLegalAcceptanceFromAuthUser(ref, session.user);
 
         if (!mounted) return;
-        context.go('/seller/dashboard');
+        context.go(await resolveAuthenticatedDestination(ref, storage, userSession));
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -254,6 +344,12 @@ class _SellerRegistrationScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final cities = ref.watch(citiesProvider).valueOrNull;
+    if (_selectedCity == null && cities != null && cities.isNotEmpty) {
+      _selectedCity =
+          findCityByName(cities, AppConfig.launchCity) ?? cities.first;
+      _location = LatLng(_selectedCity!.latitude, _selectedCity!.longitude);
+    }
     return OnboardingScaffold(
       showBack: true,
       onBack: _back,
@@ -261,9 +357,43 @@ class _SellerRegistrationScreenState
       progressTotal: _totalSteps,
       bottom: Column(
         children: [
+          if (_step == _totalSteps) ...[
+            const SignupTermsFooter(),
+            const SizedBox(height: AppSpacing.sm),
+            CheckboxListTile(
+              value: _sellerTermsAccepted,
+              onChanged: _loading
+                  ? null
+                  : (value) => setState(() => _sellerTermsAccepted = value ?? false),
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text('${l10n.signupTermsPrefix} '),
+                  InkWell(
+                    onTap: () =>
+                        openLegalDocument(context, LegalDocumentId.sellerTerms),
+                    child: Text(
+                      l10n.sellerTerms,
+                      style: TextStyle(
+                        color: context.colors.primary,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                  Text(l10n.signupTermsSuffix),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
           PrimaryButton(
             label: _step == _totalSteps ? l10n.submitCreateAccount : l10n.next,
-            onPressed: _next,
+            onPressed: (_step == _totalSteps && !_sellerTermsAccepted) || _loading
+                ? null
+                : _next,
             isLoading: _loading,
           ),
           if (_step < _totalSteps)
@@ -321,6 +451,7 @@ class _SellerRegistrationScreenState
   }
 
   Widget _buildStep2(AppStrings l10n) {
+    final marketsAsync = ref.watch(buyerMarketplacesProvider);
     return Column(
       key: const ValueKey(2),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,6 +459,31 @@ class _SellerRegistrationScreenState
         AppScreenHeader(
             title: l10n.sellerStep2Title, subtitle: l10n.sellerStep2Subtitle),
         const SizedBox(height: AppSpacing.xl),
+        marketsAsync.when(
+          data: (markets) => SellerMarketplacePicker(
+            markets: markets,
+            selectedSlug: _selectedMarketSlug ??
+                (markets.isNotEmpty ? markets.first.slug : null),
+            customNameController: _customMarketNameController,
+            enabled: !_loading,
+            onSlugChanged: (value) => setState(() => _selectedMarketSlug = value),
+          ),
+          loading: () => const LinearProgressIndicator(),
+          error: (_, __) => Text(l10n.somethingWentWrong),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppTextField(
+          label: '${l10n.shopLocationTitle} — Gallery',
+          controller: _marketGalleryController,
+          hint: l10n.addressHint,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppTextField(
+          label: '${l10n.shopLocationTitle} — Shop #',
+          controller: _shopNumberController,
+          hint: l10n.addressHint,
+        ),
+        const SizedBox(height: AppSpacing.md),
         AppTextField(
           label: l10n.businessCategory,
           hint: l10n.categoryLabel(_category),
@@ -348,11 +504,9 @@ class _SellerRegistrationScreenState
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        AppTextField(
-          label: l10n.city,
-          hint: AppConfig.launchCity,
-          readOnly: true,
-          prefixIcon: Icons.location_city_outlined,
+        InputDecorator(
+          decoration: InputDecoration(labelText: l10n.city),
+          child: const Text(AppConfig.launchCity),
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
@@ -366,12 +520,13 @@ class _SellerRegistrationScreenState
             hint: l10n.phoneHint,
             keyboardType: TextInputType.phone),
         const SizedBox(height: AppSpacing.md),
-        StoreLocationPickerTile(
-          label: l10n.storeLocation,
-          hint: l10n.tapMapToSetPin,
-          location: _location,
-          onLocationChanged: (pos) => setState(() => _location = pos),
-        ),
+        if (AppConfig.mapUiEnabled)
+          StoreLocationPickerTile(
+            label: l10n.storeLocation,
+            hint: l10n.tapMapToSetPin,
+            location: _location,
+            onLocationChanged: (pos) => setState(() => _location = pos),
+          ),
       ],
     );
   }
@@ -488,14 +643,14 @@ class _SellerRegistrationScreenState
                           const TextInputType.numberWithOptions(decimal: true)),
                   if (_products.length > 1)
                     Align(
-                      alignment: Alignment.centerRight,
+                      alignment: AlignmentDirectional.centerEnd,
                       child: TextButton(
                         onPressed: () => setState(() {
                           product.dispose();
                           _products.removeAt(index);
                         }),
                         child: Text(l10n.remove,
-                            style: const TextStyle(color: AppColors.danger)),
+                            style: TextStyle(color: context.colors.error)),
                       ),
                     ),
                 ],
@@ -513,36 +668,43 @@ class _SellerRegistrationScreenState
   }
 
   Widget _buildStep5(AppStrings l10n) {
+    final locale = Localizations.localeOf(context).languageCode;
+    final markets = ref.watch(buyerMarketplacesProvider).valueOrNull ?? const [];
+    final cityLabel = _selectedCity?.localizedName(locale) ??
+        findCityByName(ref.watch(citiesProvider).valueOrNull ?? [], AppConfig.launchCity)
+            ?.localizedName(locale) ??
+        AppConfig.launchCity;
     final productCount =
         _products.where((p) => p.nameController.text.isNotEmpty).length;
     return Column(
-      key: const ValueKey(5),
+      key: ValueKey(5),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppScreenHeader(
             title: l10n.sellerStep5Title, subtitle: l10n.sellerStep5Subtitle),
-        const SizedBox(height: AppSpacing.xl),
+        SizedBox(height: AppSpacing.xl),
         _ReviewRow(l10n.reviewBusiness, _businessNameController.text),
         _ReviewRow(l10n.reviewOwner, _ownerNameController.text),
         _ReviewRow(l10n.email, _emailController.text),
         _ReviewRow(l10n.reviewCategory, l10n.categoryLabel(_category)),
-        _ReviewRow(l10n.reviewCity, _city),
+        _ReviewRow(l10n.chooseMarketLabel, _selectedMarketLabel(markets)),
+        _ReviewRow(l10n.reviewCity, cityLabel),
         _ReviewRow(l10n.reviewAddress, _addressController.text),
         _ReviewRow(l10n.reviewPhone, _phoneController.text),
         _ReviewRow(l10n.reviewProducts, l10n.itemsCount(productCount)),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: AppSpacing.lg),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
+            color: context.colors.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, color: AppColors.primary),
+              Icon(Icons.info_outline, color: context.colors.primary),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                  child: Text(l10n.sellerVisibilityNote(_city),
+                  child: Text(l10n.sellerVisibilityNote(cityLabel),
                       style: Theme.of(context).textTheme.bodySmall)),
             ],
           ),
@@ -561,14 +723,14 @@ class _ReviewRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
               width: 100,
               child: Text(label,
-                  style: const TextStyle(color: AppColors.textSecondary))),
+                  style: TextStyle(color: context.colors.textSecondary))),
           Expanded(
               child: Text(value.isEmpty ? '—' : value,
                   style: const TextStyle(fontWeight: FontWeight.w500))),
@@ -596,8 +758,8 @@ class _ImagePickerBox extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
-                ?.copyWith(color: AppColors.textSecondary)),
-        const SizedBox(height: AppSpacing.sm),
+                ?.copyWith(color: context.colors.textSecondary)),
+        SizedBox(height: AppSpacing.sm),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
@@ -605,7 +767,7 @@ class _ImagePickerBox extends StatelessWidget {
             height: height,
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.colors.border),
               borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               color: Theme.of(context).inputDecorationTheme.fillColor,
             ),
@@ -617,12 +779,12 @@ class _ImagePickerBox extends StatelessWidget {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.add_photo_alternate_outlined,
-                          color: AppColors.textSecondary),
-                      const SizedBox(height: 4),
+                      Icon(Icons.add_photo_alternate_outlined,
+                          color: context.colors.textSecondary),
+                      SizedBox(height: 4),
                       Text(context.l10n.upload,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.textSecondary)),
+                          style: TextStyle(
+                              fontSize: 12, color: context.colors.textSecondary)),
                     ],
                   ),
           ),

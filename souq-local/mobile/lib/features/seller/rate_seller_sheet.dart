@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/theme_context.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 
 const int kReviewCommentMaxLength = 500;
@@ -100,7 +100,7 @@ class _RateSellerSheetState extends State<_RateSellerSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.somethingWentWrong),
-          backgroundColor: AppColors.danger,
+          backgroundColor: context.colors.error,
         ),
       );
     }
@@ -114,9 +114,9 @@ class _RateSellerSheetState extends State<_RateSellerSheet> {
     final commentLength = _commentController.text.characters.length;
 
     return AnimatedPadding(
-      duration: const Duration(milliseconds: 180),
+      duration: Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+      padding: EdgeInsets.fromLTRB(20, 4, 20, 20),
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -130,28 +130,28 @@ class _RateSellerSheetState extends State<_RateSellerSheet> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
                 widget.seller.businessName,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
+                duration: Duration(milliseconds: 220),
                 curve: Curves.easeOutCubic,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
                   color: theme.brightness == Brightness.dark
-                      ? AppColors.darkCard
-                      : AppColors.surfaceMuted,
+                      ? context.colors.surface
+                      : context.colors.surfaceVariant,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: theme.brightness == Brightness.dark
-                        ? AppColors.darkBorder
-                        : AppColors.border,
+                        ? context.colors.border
+                        : context.colors.border,
                   ),
                 ),
                 child: Row(
@@ -175,8 +175,8 @@ class _RateSellerSheetState extends State<_RateSellerSheet> {
                     else ...[
                       RatingBarIndicator(
                         rating: overall,
-                        itemBuilder: (_, __) => const Icon(Icons.star_rounded,
-                            color: AppColors.star),
+                        itemBuilder: (_, __) => Icon(Icons.star_rounded,
+                            color: context.colors.star),
                         itemCount: 5,
                         itemSize: 22,
                       ),
@@ -228,7 +228,7 @@ class _RateSellerSheetState extends State<_RateSellerSheet> {
                   _validationMessage = null;
                 }),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               TextField(
                 controller: _commentController,
                 enabled: !_submitting,
@@ -246,11 +246,11 @@ class _RateSellerSheetState extends State<_RateSellerSheet> {
                 ),
               ),
               if (_validationMessage != null) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   _validationMessage!,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.danger,
+                    color: context.colors.error,
                   ),
                 ),
               ],
@@ -309,7 +309,7 @@ class _CategoryRatingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: EdgeInsets.only(bottom: 14),
       child: Semantics(
         label: label,
         child: Column(
@@ -321,7 +321,7 @@ class _CategoryRatingRow extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             RatingBar.builder(
               initialRating: value ?? 0,
               minRating: 1,
@@ -331,10 +331,10 @@ class _CategoryRatingRow extends StatelessWidget {
               glow: false,
               ignoreGestures: !enabled,
               unratedColor: theme.brightness == Brightness.dark
-                  ? AppColors.darkBorder
-                  : AppColors.border,
+                  ? context.colors.border
+                  : context.colors.border,
               itemBuilder: (_, __) =>
-                  const Icon(Icons.star_rounded, color: AppColors.star),
+                  Icon(Icons.star_rounded, color: context.colors.star),
               onRatingUpdate: onChanged,
             ),
           ],

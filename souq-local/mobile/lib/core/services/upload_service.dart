@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
-import '../config/app_config.dart';
 import 'api_service.dart';
+import 'media_url_resolver.dart';
+import 'secure_http_client.dart';
 
 /// Uploads images via the API presign → PUT flow.
 class UploadService {
@@ -11,6 +12,7 @@ class UploadService {
 
   final ApiService _api;
   static const _uploadTimeout = Duration(seconds: 60);
+  final http.Client _uploadClient = createSecureHttpClient();
 
   Future<String> uploadImage(XFile file) async {
     final bytes = await file.readAsBytes();
@@ -64,10 +66,13 @@ class UploadService {
       throw ApiException('Storage did not return upload URLs');
     }
 
-    final isLocalApiUpload = uploadUrl.startsWith(AppConfig.apiBaseUrl);
-    final response = await http
+    UploadUrlGuard.assertTrustedPresignUploadUrl(uploadUrl);
+
+    final resolvedUpload = UploadUrlGuard.resolveUploadUri(uploadUrl);
+    final isLocalApiUpload = resolvedUpload.path.startsWith('/uploads/');
+    final response = await _uploadClient
         .put(
-          Uri.parse(uploadUrl),
+          resolvedUpload,
           headers: {
             'Content-Type': contentType,
             'x-ms-blob-type': 'BlockBlob',
@@ -87,7 +92,15 @@ class UploadService {
       );
     }
 
-    return publicUrl;
+    if (!isLocalApiUpload) {
+      await _api.postJson(
+        '/uploads/validate',
+        {'public_url': publicUrl, 'content_type': contentType},
+        auth: true,
+      );
+    }
+
+    return MediaUrlResolver.resolve(publicUrl);
   }
 
   String _contentTypeFor(String filename) {

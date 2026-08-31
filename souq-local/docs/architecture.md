@@ -1,6 +1,6 @@
-# MarGem — Architecture
+# Dribex — Architecture
 
-MarGem is a **third-party local discovery / connection platform**. Buyers find nearby businesses, compare listings, and contact sellers. Transactions and payments happen **outside** the app. There is no cart, checkout, payment processing, shipping, or in-app refunds.
+Dribex is a **third-party local discovery / connection platform**. Buyers find nearby businesses, compare listings, and contact sellers. Product transactions happen **outside** the app. **Platform service fees** (Dribex Plus subscriptions and seller boost packages) are processed through **NAPS ePay** — not buyer-to-seller checkout.
 
 ## System overview
 
@@ -25,7 +25,7 @@ flowchart TB
 
 ## Auth model
 
-- Primary: email/password with MarGem JWT access + refresh tokens
+- Primary: email/password with Dribex JWT access + refresh tokens
 - Optional: Firebase ID tokens when `FIREBASE_*` is configured
 - Roles: one identity per email; buyer browsing + optional seller storefront (dual-mode)
 - Guests may browse; favorites migrate on signup
@@ -52,7 +52,8 @@ Capability is `SellerProfile` presence (not mutually exclusive account types). C
 | Auth | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/me` |
 | Discovery | `/sellers`, `/sellers/map`, `/categories`, `/favorites/*`, `/follows`, `/contact-events` |
 | Messaging | `/messages/conversations`, `/messages/sellers/{id}`, `/messages/users/{id}` |
-| Seller ops | `/seller/analytics`, `/notifications`, premium plans |
+| Seller ops | `/seller/analytics`, `/notifications`, premium plans, `/billing/checkout/advertising` |
+| Platform billing | `/billing/advertising/packages`, `/billing/checkout/subscription/{plan}`, NAPS webhooks |
 | Admin | `/admin/users`, `/admin/sellers/pending`, verify/status (admin-only writes) |
 | Uploads | `/uploads` → Azure Blob (durable public URLs) |
 
@@ -72,6 +73,9 @@ Capability is `SellerProfile` presence (not mutually exclusive account types). C
 3. **Azure Blob** — listing media
 4. **Compose** — `docker-compose.yml` (dev), `.home.yml` (LAN), `.budget.yml` (single VM)
 5. **CI** — root workflow `.github/workflows/margem-ci.yml`
+6. **Enterprise blueprint (dormant)** — `infra/blueprint/` — future AKS/APIM/Front Door design; **not active**
+
+See [infra/blueprint/README.md](../infra/blueprint/README.md) for the scalability blueprint.
 
 ## Explicit non-goals
 

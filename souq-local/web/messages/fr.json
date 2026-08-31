@@ -1,0 +1,314 @@
+{
+  "meta": {
+    "siteName": "Dribex",
+    "tagline": "Découvrez les trésors cachés du Maroc",
+    "home": {
+      "title": "Dribex — Découvrez les annonces locales",
+      "description": "Parcourez produits, services et commerces locaux vérifiés sur Dribex. Recherchez des annonces à Casablanca sans vous connecter."
+    },
+    "search": {
+      "title": "Rechercher sur la marketplace",
+      "description": "Recherchez des produits, services et commerces locaux sur Dribex."
+    },
+    "products": {
+      "title": "Annonces produits",
+      "description": "Parcourez les annonces produits publiques des vendeurs Dribex."
+    },
+    "productNotFound": {
+      "title": "Produit introuvable",
+      "description": "Cette annonce produit n'est pas disponible."
+    },
+    "services": {
+      "title": "Annonces services",
+      "description": "Parcourez les services publics proposés par les commerces Dribex."
+    },
+    "serviceNotFound": {
+      "title": "Service introuvable",
+      "description": "Cette annonce service n'est pas disponible."
+    },
+    "sellers": {
+      "title": "Annuaire des commerces",
+      "description": "Parcourez les profils publics des vendeurs et commerces sur Dribex."
+    },
+    "sellerNotFound": {
+      "title": "Commerce introuvable",
+      "description": "Ce profil vendeur n'est pas disponible."
+    },
+    "categories": {
+      "title": "Parcourir les catégories",
+      "description": "Explorez les catégories de la marketplace Dribex pour produits et services."
+    },
+    "categoryListings": {
+      "title": "Annonces {category}",
+      "description": "Parcourez les annonces Dribex dans la catégorie {category}."
+    },
+    "cities": {
+      "title": "Découverte par ville",
+      "description": "Explorez les annonces Dribex par ville et localisation."
+    },
+    "cityMarketplace": {
+      "title": "Marketplace {cityName}",
+      "description": "Parcourez les produits et commerces Dribex à {cityName}."
+    },
+    "marketNotFound": {
+      "title": "Marché introuvable",
+      "description": "Ce marché n'est pas disponible."
+    }
+  },
+  "nav": {
+    "home": "Accueil",
+    "search": "Recherche",
+    "categories": "Catégories",
+    "products": "Produits",
+    "services": "Services",
+    "businesses": "Commerces",
+    "cities": "Villes",
+    "explore": "Explorer"
+  },
+  "footer": {
+    "tagline": "Découvrez les trésors cachés du Maroc",
+    "discover": "Découvrir",
+    "searchMarketplace": "Rechercher sur la marketplace",
+    "browseCategories": "Parcourir les catégories",
+    "localBusinesses": "Commerces locaux",
+    "legal": "Mentions légales",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "browseNote": "Parcourez librement sans compte. Connectez-vous sur l'application mobile pour les favoris, la messagerie et les outils vendeur.",
+    "copyright": "© {year} {brand}. Tous droits réservés."
+  },
+  "language": {
+    "label": "Langue",
+    "en": "English",
+    "fr": "Français",
+    "ar": "العربية",
+    "switchTo": "Passer en {language}"
+  },
+  "common": {
+    "tryAgain": "Réessayer",
+    "retry": "Réessayer",
+    "backHome": "Retour à l'accueil",
+    "backHomeShort": "Retour à l'accueil",
+    "viewAll": "Tout voir",
+    "seeAllProducts": "Voir tous les produits",
+    "seeAllServices": "Voir tous les services",
+    "viewDirectory": "Voir l'annuaire",
+    "browseBusinesses": "Parcourir les commerces",
+    "searchMarketplace": "Rechercher sur la marketplace",
+    "searchBusinesses": "Rechercher des commerces",
+    "browseCategories": "Parcourir les catégories",
+    "allCategories": "← Toutes les catégories",
+    "allCities": "← Toutes les villes",
+    "edit": "Modifier",
+    "available": "Disponible",
+    "unavailable": "Indisponible",
+    "product": "Produit",
+    "service": "Service",
+    "products": "Produits",
+    "services": "Services",
+    "businesses": "Commerces",
+    "reviews": "Avis",
+    "category": "Catégorie",
+    "categoryLabel": "Catégorie : {slug}",
+    "coverage": "Zone couverte : {areas}",
+    "soldBy": "Vendu par",
+    "offeredBy": "Proposé par",
+    "phone": "Téléphone : {phone}",
+    "website": "Site web :",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "name": "Nom",
+    "description": "Description",
+    "priceMad": "Prix (MAD)",
+    "imageUrl": "URL de l'image",
+    "somethingWentWrong": "Une erreur s'est produite",
+    "loadPageError": "Impossible de charger cette page. Veuillez réessayer dans un instant.",
+    "unexpectedError": "Erreur inattendue",
+    "renderError": "La vitrine a rencontré un problème lors de l'affichage de cette page.",
+    "returnToDiscovery": "Retour à la découverte"
+  },
+  "home": {
+    "apiUnavailableTitle": "API marketplace indisponible",
+    "publicMarketplace": "Marketplace publique",
+    "heroTitle": "Découvrez des vendeurs locaux de confiance sur {brand}",
+    "heroDescription": "Parcourez produits, services et profils commerciaux de la communauté marketplace marocaine. Aucune connexion requise pour explorer.",
+    "shopByCategory": "Acheter par catégorie",
+    "shopByCategorySubtitle": "Les meilleures façons de commencer à explorer",
+    "featuredProducts": "Produits en vedette",
+    "featuredProductsSubtitle": "Nouvelles annonces de vendeurs locaux",
+    "featuredServices": "Services en vedette",
+    "featuredServicesSubtitle": "Services locaux de commerces vérifiés",
+    "topBusinesses": "Meilleurs commerces",
+    "topBusinessesSubtitle": "Vendeurs vérifiés et bien notés",
+    "markets": "Marchés",
+    "marketsSubtitle": "Explorez les vendeurs par lieu de marché",
+    "categoriesUnavailable": "Catégories indisponibles",
+    "productsUnavailable": "Produits indisponibles",
+    "businessDirectoryUnavailable": "Annuaire des commerces indisponible",
+    "noProductsTitle": "Aucun produit pour le moment",
+    "noProductsDescription": "Les annonces publiques nécessitent des vendeurs actifs à Casablanca avec des produits disponibles et visibles.",
+    "noServicesTitle": "Aucun service pour le moment",
+    "noServicesDescription": "Revenez bientôt : les commerces publient de nouvelles offres.",
+    "noBusinessesTitle": "Aucun commerce pour le moment",
+    "noBusinessesDescription": "Les profils vendeurs publics nécessitent des commerces actifs à Casablanca.",
+    "sellersCountInMarket": "{count} vendeurs · {city}"
+  },
+  "search": {
+    "title": "Recherche",
+    "description": "Trouvez produits, services et commerces sur la marketplace publique.",
+    "unavailableTitle": "Recherche indisponible",
+    "noResultsTitle": "Aucun résultat",
+    "noResultsDescription": "Essayez un autre terme de recherche ou retirez les filtres.",
+    "placeholder": "Rechercher des produits, services ou commerces...",
+    "modeAll": "Tout",
+    "modeProducts": "Produits",
+    "modeServices": "Services",
+    "modeBusinesses": "Commerces",
+    "submit": "Rechercher"
+  },
+  "products": {
+    "title": "Produits",
+    "description": "Annonces produits publiques de vendeurs locaux vérifiés.",
+    "unavailableTitle": "Produits indisponibles",
+    "emptyTitle": "Aucun produit trouvé",
+    "emptyDescription": "Essayez une autre catégorie ou revenez plus tard.",
+    "unavailableDetailTitle": "Produit indisponible",
+    "unavailableDetailDescription": "Impossible de charger ce produit pour le moment.",
+    "contactNote": "Contactez le vendeur via l'application mobile Dribex pour envoyer un message, ajouter aux favoris ou acheter. Le paiement se fait dans l'application — cette page est un aperçu public."
+  },
+  "services": {
+    "title": "Services",
+    "description": "Découvrez les services des commerces locaux sur Dribex.",
+    "unavailableTitle": "Services indisponibles",
+    "emptyTitle": "Aucun service trouvé",
+    "emptyDescription": "Essayez une autre catégorie ou parcourez les profils commerciaux.",
+    "unavailableDetailTitle": "Service indisponible",
+    "unavailableDetailDescription": "Impossible de charger ce service pour le moment.",
+    "contactNote": "Réservez ou renseignez-vous via l'application mobile Dribex. Cette page publique sert uniquement à la découverte."
+  },
+  "sellers": {
+    "title": "Commerces",
+    "description": "Explorez les vitrines vendeurs, les notes et le statut de vérification.",
+    "unavailableTitle": "Annuaire indisponible",
+    "emptyTitle": "Aucun commerce trouvé",
+    "emptyDescription": "Essayez un autre filtre de catégorie ou recherchez sur la marketplace.",
+    "profileUnavailableTitle": "Profil indisponible",
+    "messagingNote": "La messagerie, les favoris et les outils vendeur nécessitent l'application mobile Dribex."
+  },
+  "categories": {
+    "title": "Catégories",
+    "description": "Parcourez les annonces regroupées par catégorie marketplace.",
+    "unavailableTitle": "Catégories indisponibles",
+    "emptyTitle": "Aucune catégorie disponible",
+    "emptyDescription": "Le catalogue marketplace n'a pas encore de catégories.",
+    "detailUnavailableTitle": "Catégorie indisponible",
+    "listingsUnavailableTitle": "Annonces de catégorie indisponibles",
+    "taggedDescription": "Produits, services et commerces associés à {slug}.",
+    "emptyListingsTitle": "Aucune annonce dans cette catégorie",
+    "emptyListingsDescription": "Essayez une autre catégorie ou recherchez sur toute la marketplace."
+  },
+  "cities": {
+    "title": "Villes",
+    "description": "Découvrez l'activité marketplace par ville. Les annonces se concentrent actuellement sur les villes de lancement actives.",
+    "comingSoon": "Bientôt disponible",
+    "comingSoonRibbon": "BIENTÔT",
+    "comingSoonAria": "{cityName} — bientôt disponible",
+    "comingSoonDescription": "Les annonces Dribex à {cityName} arrivent bientôt.",
+    "comingSoonEmptyTitle": "Bientôt disponible",
+    "comingSoonEmptyDescription": "{cityName} n'est pas encore une ville de lancement active. Explorez les annonces à {activeCity} dès aujourd'hui.",
+    "browseActiveCity": "Parcourir {activeCity}",
+    "listingsDescription": "Annonces marketplace publiques disponibles à {cityName}.",
+    "listingsUnavailableTitle": "Annonces de ville indisponibles",
+    "productsInCity": "Produits à {cityName}",
+    "servicesInCity": "Services à {cityName}",
+    "businessesInCity": "Commerces à {cityName}",
+    "emptyListingsTitle": "Aucune annonce publique à {cityName} pour le moment",
+    "emptyListingsDescription": "Revenez bientôt ou explorez d'autres villes."
+  },
+  "marketplaces": {
+    "unavailableTitle": "Marché indisponible",
+    "sellersUnavailableTitle": "Vendeurs indisponibles",
+    "emptyTitle": "Aucun vendeur dans ce marché pour le moment",
+    "emptyDescription": "Explorez d'autres marchés ou recherchez dans l'annuaire complet.",
+    "searchAllListings": "Rechercher toutes les annonces →"
+  },
+  "productDetail": {
+    "label": "Produit",
+    "sellerRating": "{city} · {rating} ★ · {reviewCount} avis"
+  },
+  "serviceDetail": {
+    "label": "Service"
+  },
+  "sellerDetail": {
+    "reviewCount": "{count} avis"
+  },
+  "sellerPortal": {
+    "hubLabel": "Espace vendeur",
+    "hubTitle": "Gérez vos produits et services depuis le web.",
+    "addProduct": "Ajouter un produit",
+    "addService": "Ajouter un service",
+    "yourProducts": "Vos produits",
+    "yourServices": "Vos services",
+    "noProducts": "Aucun produit pour le moment.",
+    "noServices": "Aucun service pour le moment.",
+    "signOut": "Se déconnecter",
+    "loginTitle": "Connexion vendeur",
+    "loginDescription": "Connectez-vous pour gérer vos produits et services sur le web.",
+    "loginFailed": "Échec de la connexion.",
+    "signingIn": "Connexion en cours…",
+    "signIn": "Se connecter",
+    "needMobileApp": "Vous préférez l'application mobile ?",
+    "sellerHubLink": "Espace vendeur",
+    "editProduct": "Modifier le produit",
+    "editService": "Modifier le service",
+    "addProductForm": "Ajouter un produit",
+    "addServiceForm": "Ajouter un service",
+    "pricePlaceholder": "Laisser vide pour un prix sur demande",
+    "availableCheckbox": "Disponible",
+    "saving": "Enregistrement…",
+    "saveChanges": "Enregistrer les modifications",
+    "publishProduct": "Publier le produit",
+    "publishService": "Publier le service",
+    "saveListingError": "Impossible d'enregistrer l'annonce."
+  },
+  "errors": {
+    "apiTemporarilyUnavailable": "L'API marketplace est temporairement indisponible.",
+    "apiUnreachableDev": "L'API Dribex est inaccessible ({apiBase}). Vérifiez que margem-api fonctionne et que le conteneur web peut y accéder sur le réseau Docker.",
+    "apiReturnedError": "L'API marketplace a renvoyé une erreur.",
+    "infrastructureNote": "{detail} Il s'agit d'une erreur d'infrastructure ou d'API — pas d'une marketplace vide."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Page introuvable",
+    "description": "Cette annonce ou page n'est pas disponible. Elle a peut-être été supprimée ou l'URL est incorrecte.",
+    "backHome": "Retour à l'accueil"
+  },
+  "format": {
+    "priceOnRequest": "Prix sur demande",
+    "contactForPrice": "Contactez pour le prix",
+    "priceMad": "{amount} MAD",
+    "newRating": "Nouveau",
+    "verified": "Vérifié",
+    "verificationPending": "Vérification en cours",
+    "unavailable": "Indisponible",
+    "reviews": "{count} avis",
+    "sellersCount": "{count} vendeurs"
+  },
+  "pagination": {
+    "ariaLabel": "Pagination",
+    "results": "{total} résultats",
+    "showingFrom": "Affichage à partir de {start}",
+    "previous": "Précédent",
+    "loadMore": "Charger plus"
+  },
+  "trust": {
+    "verified": "Vérifié"
+  },
+  "listing": {
+    "unavailable": "Indisponible"
+  },
+  "ads": {
+    "label": "Publicité",
+    "ariaLabel": "Publicité"
+  }
+}
