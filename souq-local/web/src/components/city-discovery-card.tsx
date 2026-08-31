@@ -1,4 +1,8 @@
-import Link from "next/link";
+"use client";
+
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { cityDisplayName } from "@/lib/city-name";
 import { isActiveLaunchCity } from "@/lib/launch-cities";
 import type { GeographyCity } from "@/lib/types";
 
@@ -9,49 +13,24 @@ type CityDiscoveryCardProps = {
   city: GeographyCity;
 };
 
-function ComingSoonRibbon() {
+function ComingSoonRibbon({ label }: { label: string }) {
   return (
     <div
       aria-hidden="true"
-      style={{
-        position: "absolute",
-        top: 0,
-        right: 0,
-        width: 76,
-        height: 76,
-        overflow: "hidden",
-        borderTopRightRadius: 16,
-        pointerEvents: "none",
-        zIndex: 10,
-      }}
+      className="pointer-events-none absolute end-0 top-0 z-10 h-[76px] w-[76px] overflow-hidden rounded-se-2xl"
     >
-      <span
-        style={{
-          position: "absolute",
-          top: 14,
-          right: -26,
-          width: 112,
-          transform: "rotate(45deg)",
-          background: "var(--cream)",
-          color: "var(--foreground)",
-          padding: "4px 0",
-          textAlign: "center",
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: "0.1em",
-          lineHeight: 1,
-          boxShadow: "0 1px 2px rgb(17 24 39 / 8%)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        COMING SOON
+      <span className="absolute end-[-26px] top-[14px] w-28 rotate-45 bg-[var(--cream)] px-0 py-1 text-center text-[9px] font-bold leading-none tracking-widest text-[var(--foreground)] shadow-sm">
+        {label}
       </span>
     </div>
   );
 }
 
 export function CityDiscoveryCard({ city }: CityDiscoveryCardProps) {
+  const locale = useLocale();
+  const t = useTranslations("cities");
   const active = isActiveLaunchCity(city);
+  const displayName = cityDisplayName(city, locale);
 
   if (active) {
     return (
@@ -59,7 +38,7 @@ export function CityDiscoveryCard({ city }: CityDiscoveryCardProps) {
         href={`/cities/${city.slug}`}
         className={`${cardClassName} transition hover:border-[var(--primary)] hover:shadow-sm`}
       >
-        <h2 className="text-lg font-semibold">{city.name_en}</h2>
+        <h2 className="text-lg font-semibold">{displayName}</h2>
         {city.region ? (
           <p className="mt-2 text-sm text-[var(--muted)]">{city.region}</p>
         ) : null}
@@ -68,9 +47,9 @@ export function CityDiscoveryCard({ city }: CityDiscoveryCardProps) {
   }
 
   return (
-    <div className={cardClassName} aria-label={`${city.name_en} — coming soon`}>
-      <ComingSoonRibbon />
-      <h2 className="text-lg font-semibold">{city.name_en}</h2>
+    <div className={cardClassName} aria-label={t("comingSoonAria", { cityName: displayName })}>
+      <ComingSoonRibbon label={t("comingSoonRibbon")} />
+      <h2 className="text-lg font-semibold">{displayName}</h2>
       {city.region ? (
         <p className="mt-2 text-sm text-[var(--muted)]">{city.region}</p>
       ) : null}

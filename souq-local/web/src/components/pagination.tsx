@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 type PaginationNavProps = {
   basePath: string;
@@ -33,6 +36,7 @@ export function PaginationNav({
   total,
   params,
 }: PaginationNavProps) {
+  const t = useTranslations("pagination");
   const prevOffset = Math.max(0, offset - limit);
   const nextOffset = offset + limit;
   const showPrev = offset > 0;
@@ -43,10 +47,12 @@ export function PaginationNav({
   return (
     <nav
       className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-6"
-      aria-label="Pagination"
+      aria-label={t("ariaLabel")}
     >
       <p className="text-sm text-[var(--muted)]">
-        {typeof total === "number" ? `${total} results` : `Showing from ${offset + 1}`}
+        {typeof total === "number"
+          ? t("results", { total })
+          : t("showingFrom", { start: offset + 1 })}
       </p>
       <div className="flex gap-2">
         {showPrev ? (
@@ -54,7 +60,7 @@ export function PaginationNav({
             href={buildHref(basePath, prevOffset, params)}
             className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold hover:border-[var(--primary)]"
           >
-            Previous
+            {t("previous")}
           </Link>
         ) : null}
         {showNext ? (
@@ -62,7 +68,7 @@ export function PaginationNav({
             href={buildHref(basePath, nextOffset, params)}
             className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white"
           >
-            Load more
+            {t("loadMore")}
           </Link>
         ) : null}
       </div>

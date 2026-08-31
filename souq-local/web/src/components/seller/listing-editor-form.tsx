@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
 
 type ListingKind = "product" | "service";
 
@@ -26,6 +26,8 @@ export function ListingEditorForm({
   initial,
 }: ListingEditorFormProps) {
   const router = useRouter();
+  const t = useTranslations("sellerPortal");
+  const tCommon = useTranslations("common");
   const isEditing = Boolean(listingId);
 
   const [name, setName] = useState(initial?.name || "");
@@ -35,6 +37,17 @@ export function ListingEditorForm({
   const [isAvailable, setIsAvailable] = useState(initial?.isAvailable ?? true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const title = isEditing
+    ? kind === "product"
+      ? t("editProduct")
+      : t("editService")
+    : kind === "product"
+      ? t("addProductForm")
+      : t("addServiceForm");
+
+  const publishLabel =
+    kind === "product" ? t("publishProduct") : t("publishService");
 
   async function saveListing(event: FormEvent) {
     event.preventDefault();
@@ -77,13 +90,13 @@ export function ListingEditorForm({
       });
       if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as { detail?: string };
-        throw new Error(body.detail || "Could not save listing.");
+        throw new Error(body.detail || t("saveListingError"));
       }
       const saved = (await response.json()) as { id: string };
       router.push(`/${kind}s/${saved.id}`);
       router.refresh();
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Could not save listing.");
+      setError(saveError instanceof Error ? saveError.message : t("saveListingError"));
     } finally {
       setSaving(false);
     }
@@ -92,11 +105,9 @@ export function ListingEditorForm({
   return (
     <form onSubmit={saveListing} className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">
-          {isEditing ? `Edit ${kind}` : `Add ${kind}`}
-        </h1>
+        <h1 className="text-2xl font-bold">{title}</h1>
         <Link href="/seller" className="text-sm font-medium text-[var(--primary)]">
-          Seller hub
+          {t("sellerHubLink")}
         </Link>
       </div>
 
@@ -107,7 +118,7 @@ export function ListingEditorForm({
       ) : null}
 
       <label className="block space-y-1">
-        <span className="text-sm font-medium">Name</span>
+        <span className="text-sm font-medium">{tCommon("name")}</span>
         <input
           required
           value={name}
@@ -117,7 +128,7 @@ export function ListingEditorForm({
       </label>
 
       <label className="block space-y-1">
-        <span className="text-sm font-medium">Description</span>
+        <span className="text-sm font-medium">{tCommon("description")}</span>
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
@@ -127,18 +138,18 @@ export function ListingEditorForm({
       </label>
 
       <label className="block space-y-1">
-        <span className="text-sm font-medium">Price (MAD)</span>
+        <span className="text-sm font-medium">{tCommon("priceMad")}</span>
         <input
           value={priceMad}
           onChange={(event) => setPriceMad(event.target.value)}
           inputMode="decimal"
-          placeholder="Leave empty for price on request"
+          placeholder={t("pricePlaceholder")}
           className="w-full rounded-xl border border-[var(--border)] px-3 py-2"
         />
       </label>
 
       <label className="block space-y-1">
-        <span className="text-sm font-medium">Image URL</span>
+        <span className="text-sm font-medium">{tCommon("imageUrl")}</span>
         <input
           value={imageUrl}
           onChange={(event) => setImageUrl(event.target.value)}
@@ -153,7 +164,7 @@ export function ListingEditorForm({
             checked={isAvailable}
             onChange={(event) => setIsAvailable(event.target.checked)}
           />
-          Available
+          {t("availableCheckbox")}
         </label>
       ) : null}
 
@@ -162,7 +173,7 @@ export function ListingEditorForm({
         disabled={saving}
         className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {saving ? "Saving…" : isEditing ? "Save changes" : `Publish ${kind}`}
+        {saving ? t("saving") : isEditing ? t("saveChanges") : publishLabel}
       </button>
     </form>
   );

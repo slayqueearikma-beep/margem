@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef } from "react";
 import { apiFetch } from "@/lib/api";
 import { getPublicApiBaseUrl } from "@/lib/config";
@@ -27,6 +28,7 @@ function viewerStorageKey(): string {
 }
 
 export function AdvertisementBanner({ ad, placement, className = "" }: AdvertisementBannerProps) {
+  const t = useTranslations("ads");
   const imageUrl = resolveMediaUrl(ad.image_url);
   const videoUrl = ad.video_url ? resolveMediaUrl(ad.video_url) : null;
   const clickHref = ad.click_url || safeExternalHref(ad.target_url);
@@ -76,10 +78,10 @@ export function AdvertisementBanner({ ad, placement, className = "" }: Advertise
   return (
     <aside
       className={`rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-4 ${className}`}
-      aria-label="Advertisement"
+      aria-label={t("ariaLabel")}
     >
       <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-        Advertisement
+        {t("label")}
       </p>
       <Link
         href={resolvedClick}

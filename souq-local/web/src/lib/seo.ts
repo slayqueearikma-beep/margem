@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
 import { getSiteUrl } from "./config";
 
+import { intlLocale } from "@/i18n/locale";
+import type { AppLocale } from "@/i18n/routing";
+
 type PageMetaInput = {
   title: string;
   description: string;
   path?: string;
   image?: string;
   type?: "website" | "article";
+  locale?: AppLocale | string;
 };
+
+function openGraphLocale(locale: string): string {
+  return intlLocale(locale).replace("-", "_");
+}
 
 export function buildPageMetadata({
   title,
@@ -15,6 +23,7 @@ export function buildPageMetadata({
   path = "",
   image,
   type = "website",
+  locale = "ar",
 }: PageMetaInput): Metadata {
   const siteUrl = getSiteUrl();
   const canonical = `${siteUrl}${path.startsWith("/") ? path : `/${path}`}`;
@@ -29,7 +38,7 @@ export function buildPageMetadata({
       description,
       url: canonical,
       siteName: "Dribex",
-      locale: "en_MA",
+      locale: openGraphLocale(locale),
       type,
       images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
