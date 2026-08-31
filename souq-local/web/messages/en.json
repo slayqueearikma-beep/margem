@@ -1,0 +1,313 @@
+{
+  "meta": {
+    "siteName": "Dribex",
+    "tagline": "Discover Morocco's hidden gems",
+    "home": {
+      "title": "Dribex — Discover local marketplace listings",
+      "description": "Browse products, services, and verified local businesses on Dribex. Search Casablanca marketplace listings without signing in."
+    },
+    "search": {
+      "title": "Search the marketplace",
+      "description": "Search Dribex products, services, and local businesses."
+    },
+    "products": {
+      "title": "Product listings",
+      "description": "Browse public product listings from Dribex sellers."
+    },
+    "productNotFound": {
+      "title": "Product not found",
+      "description": "This product listing is unavailable."
+    },
+    "services": {
+      "title": "Service listings",
+      "description": "Browse public services offered by Dribex businesses."
+    },
+    "serviceNotFound": {
+      "title": "Service not found",
+      "description": "This service listing is unavailable."
+    },
+    "sellers": {
+      "title": "Business directory",
+      "description": "Browse public seller and business profiles on Dribex."
+    },
+    "sellerNotFound": {
+      "title": "Business not found",
+      "description": "This seller profile is unavailable."
+    },
+    "categories": {
+      "title": "Browse categories",
+      "description": "Explore Dribex marketplace categories for products and services."
+    },
+    "categoryListings": {
+      "title": "{category} listings",
+      "description": "Browse Dribex marketplace listings in the {category} category."
+    },
+    "cities": {
+      "title": "City discovery",
+      "description": "Explore Dribex marketplace listings by city and location."
+    },
+    "cityMarketplace": {
+      "title": "{cityName} marketplace",
+      "description": "Browse Dribex products and businesses in {cityName}."
+    },
+    "marketNotFound": {
+      "title": "Market not found",
+      "description": "This marketplace is unavailable."
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "categories": "Categories",
+    "products": "Products",
+    "services": "Services",
+    "businesses": "Businesses",
+    "cities": "Cities",
+    "explore": "Explore"
+  },
+  "footer": {
+    "discover": "Discover",
+    "searchMarketplace": "Search marketplace",
+    "browseCategories": "Browse categories",
+    "localBusinesses": "Local businesses",
+    "legal": "Legal",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "browseNote": "Browse publicly without an account. Sign in on the mobile app for favorites, messaging, and seller tools.",
+    "copyright": "© {year} {brand}. All rights reserved."
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Français",
+    "ar": "العربية",
+    "switchTo": "Switch to {language}"
+  },
+  "common": {
+    "tryAgain": "Try again",
+    "retry": "Retry",
+    "backHome": "Back to home",
+    "backHomeShort": "Back home",
+    "viewAll": "View all",
+    "seeAllProducts": "See all products",
+    "seeAllServices": "See all services",
+    "viewDirectory": "View directory",
+    "browseBusinesses": "Browse businesses",
+    "searchMarketplace": "Search marketplace",
+    "searchBusinesses": "Search businesses",
+    "browseCategories": "Browse categories",
+    "allCategories": "← All categories",
+    "allCities": "← All cities",
+    "edit": "Edit",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "product": "Product",
+    "service": "Service",
+    "products": "Products",
+    "services": "Services",
+    "businesses": "Businesses",
+    "reviews": "Reviews",
+    "category": "Category",
+    "categoryLabel": "Category: {slug}",
+    "coverage": "Coverage: {areas}",
+    "soldBy": "Sold by",
+    "offeredBy": "Offered by",
+    "phone": "Phone: {phone}",
+    "website": "Website:",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "description": "Description",
+    "priceMad": "Price (MAD)",
+    "imageUrl": "Image URL",
+    "somethingWentWrong": "Something went wrong",
+    "loadPageError": "We could not load this page. Please try again in a moment.",
+    "unexpectedError": "Unexpected error",
+    "renderError": "The storefront hit a problem while rendering this page.",
+    "returnToDiscovery": "Return to discovery"
+  },
+  "home": {
+    "apiUnavailableTitle": "Marketplace API unavailable",
+    "publicMarketplace": "Public marketplace",
+    "heroTitle": "Discover trusted local sellers on {brand}",
+    "heroDescription": "Browse products, services, and business profiles from Morocco's marketplace community. No login required to explore.",
+    "shopByCategory": "Shop by category",
+    "shopByCategorySubtitle": "Popular ways to start exploring",
+    "featuredProducts": "Featured products",
+    "featuredProductsSubtitle": "Fresh listings from local sellers",
+    "featuredServices": "Featured services",
+    "featuredServicesSubtitle": "Local services from verified businesses",
+    "topBusinesses": "Top businesses",
+    "topBusinessesSubtitle": "Verified and highly rated sellers",
+    "markets": "Markets",
+    "marketsSubtitle": "Explore sellers by market location",
+    "categoriesUnavailable": "Categories unavailable",
+    "productsUnavailable": "Products unavailable",
+    "businessDirectoryUnavailable": "Business directory unavailable",
+    "noProductsTitle": "No products yet",
+    "noProductsDescription": "Public listings require active Casablanca sellers with available, non-hidden products.",
+    "noServicesTitle": "No services yet",
+    "noServicesDescription": "Check back soon as businesses publish new offerings.",
+    "noBusinessesTitle": "No businesses yet",
+    "noBusinessesDescription": "Public seller profiles require active Casablanca businesses.",
+    "sellersCountInMarket": "{count} sellers · {city}"
+  },
+  "search": {
+    "title": "Search",
+    "description": "Find products, services, and businesses across the public marketplace.",
+    "unavailableTitle": "Search unavailable",
+    "noResultsTitle": "No results",
+    "noResultsDescription": "Try a different search term or remove filters.",
+    "placeholder": "Search products, services, or businesses...",
+    "modeAll": "All",
+    "modeProducts": "Products",
+    "modeServices": "Services",
+    "modeBusinesses": "Businesses",
+    "submit": "Search"
+  },
+  "products": {
+    "title": "Products",
+    "description": "Public product listings from verified local sellers.",
+    "unavailableTitle": "Products unavailable",
+    "emptyTitle": "No products found",
+    "emptyDescription": "Try another category or check back later.",
+    "unavailableDetailTitle": "Product unavailable",
+    "unavailableDetailDescription": "We couldn't load this product right now.",
+    "contactNote": "Contact the seller through the Dribex mobile app to message, favorite, or purchase. Checkout and payments stay in the app — this page is a public preview."
+  },
+  "services": {
+    "title": "Services",
+    "description": "Discover services from local businesses on Dribex.",
+    "unavailableTitle": "Services unavailable",
+    "emptyTitle": "No services found",
+    "emptyDescription": "Try another category or browse business profiles for offerings.",
+    "unavailableDetailTitle": "Service unavailable",
+    "unavailableDetailDescription": "We couldn't load this service right now.",
+    "contactNote": "Book or inquire through the Dribex mobile app. This public page is for discovery only."
+  },
+  "sellers": {
+    "title": "Businesses",
+    "description": "Explore seller storefronts, ratings, and verification status.",
+    "unavailableTitle": "Directory unavailable",
+    "emptyTitle": "No businesses found",
+    "emptyDescription": "Try another category filter or search the marketplace.",
+    "profileUnavailableTitle": "Profile unavailable",
+    "messagingNote": "Messaging, favorites, and seller tools require the Dribex mobile app."
+  },
+  "categories": {
+    "title": "Categories",
+    "description": "Browse listings grouped by marketplace category.",
+    "unavailableTitle": "Categories unavailable",
+    "emptyTitle": "No categories available",
+    "emptyDescription": "The marketplace catalog has no categories yet.",
+    "detailUnavailableTitle": "Category unavailable",
+    "listingsUnavailableTitle": "Category listings unavailable",
+    "taggedDescription": "Products, services, and businesses tagged with {slug}.",
+    "emptyListingsTitle": "No listings in this category",
+    "emptyListingsDescription": "Try another category or search across the full marketplace."
+  },
+  "cities": {
+    "title": "Cities",
+    "description": "Discover marketplace activity by city. Listings currently focus on active launch cities.",
+    "comingSoon": "Coming soon",
+    "comingSoonRibbon": "COMING SOON",
+    "comingSoonAria": "{cityName} — coming soon",
+    "comingSoonDescription": "Dribex marketplace listings in {cityName} are coming soon.",
+    "comingSoonEmptyTitle": "Coming soon",
+    "comingSoonEmptyDescription": "{cityName} is not an active launch city yet. Explore listings in {activeCity} today.",
+    "browseActiveCity": "Browse {activeCity}",
+    "listingsDescription": "Public marketplace listings available in {cityName}.",
+    "listingsUnavailableTitle": "City listings unavailable",
+    "productsInCity": "Products in {cityName}",
+    "servicesInCity": "Services in {cityName}",
+    "businessesInCity": "Businesses in {cityName}",
+    "emptyListingsTitle": "No public listings in {cityName} yet",
+    "emptyListingsDescription": "Check back soon or explore other cities."
+  },
+  "marketplaces": {
+    "unavailableTitle": "Market unavailable",
+    "sellersUnavailableTitle": "Sellers unavailable",
+    "emptyTitle": "No sellers in this market yet",
+    "emptyDescription": "Explore other markets or search the full directory.",
+    "searchAllListings": "Search all listings →"
+  },
+  "productDetail": {
+    "label": "Product",
+    "sellerRating": "{city} · {rating} ★ · {reviewCount} reviews"
+  },
+  "serviceDetail": {
+    "label": "Service"
+  },
+  "sellerDetail": {
+    "reviewCount": "{count} reviews"
+  },
+  "sellerPortal": {
+    "hubLabel": "Seller hub",
+    "hubTitle": "Manage your products and services from the web.",
+    "addProduct": "Add product",
+    "addService": "Add service",
+    "yourProducts": "Your products",
+    "yourServices": "Your services",
+    "noProducts": "No products yet.",
+    "noServices": "No services yet.",
+    "signOut": "Sign out",
+    "loginTitle": "Seller sign in",
+    "loginDescription": "Sign in to manage products and services on the web.",
+    "loginFailed": "Login failed.",
+    "signingIn": "Signing in…",
+    "signIn": "Sign in",
+    "needMobileApp": "Need the mobile app instead?",
+    "sellerHubLink": "Seller hub",
+    "editProduct": "Edit product",
+    "editService": "Edit service",
+    "addProductForm": "Add product",
+    "addServiceForm": "Add service",
+    "pricePlaceholder": "Leave empty for price on request",
+    "availableCheckbox": "Available",
+    "saving": "Saving…",
+    "saveChanges": "Save changes",
+    "publishProduct": "Publish product",
+    "publishService": "Publish service",
+    "saveListingError": "Could not save listing."
+  },
+  "errors": {
+    "apiTemporarilyUnavailable": "The marketplace API is temporarily unavailable.",
+    "apiUnreachableDev": "The Dribex API is unreachable ({apiBase}). Ensure margem-api is healthy and the web container can reach it on the Docker network.",
+    "apiReturnedError": "The marketplace API returned an error.",
+    "infrastructureNote": "{detail} This is an infrastructure or API error — not an empty marketplace."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Page not found",
+    "description": "This listing or page is unavailable. It may have been removed or the URL may be incorrect.",
+    "backHome": "Back to home"
+  },
+  "format": {
+    "priceOnRequest": "Price on request",
+    "contactForPrice": "Contact for price",
+    "priceMad": "{amount} MAD",
+    "newRating": "New",
+    "verified": "Verified",
+    "verificationPending": "Verification pending",
+    "unavailable": "Unavailable",
+    "reviews": "{count} reviews",
+    "sellersCount": "{count} sellers"
+  },
+  "pagination": {
+    "ariaLabel": "Pagination",
+    "results": "{total} results",
+    "showingFrom": "Showing from {start}",
+    "previous": "Previous",
+    "loadMore": "Load more"
+  },
+  "trust": {
+    "verified": "Verified"
+  },
+  "listing": {
+    "unavailable": "Unavailable"
+  },
+  "ads": {
+    "label": "Advertisement",
+    "ariaLabel": "Advertisement"
+  }
+}

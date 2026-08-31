@@ -1,0 +1,313 @@
+{
+  "meta": {
+    "siteName": "دريبكس",
+    "tagline": "اكتشف كنوز المغرب المخفية",
+    "home": {
+      "title": "دريبكس — اكتشف الإعلانات المحلية",
+      "description": "تصفّح المنتجات والخدمات والتجّار المحليين الموثوقين على دريبكس. ابحث في إعلانات الدار البيضاء دون تسجيل الدخول."
+    },
+    "search": {
+      "title": "البحث في السوق",
+      "description": "ابحث عن المنتجات والخدمات والتجّار المحليين على دريبكس."
+    },
+    "products": {
+      "title": "إعلانات المنتجات",
+      "description": "تصفّح إعلانات المنتجات العامة من بائعي دريبكس."
+    },
+    "productNotFound": {
+      "title": "المنتج غير موجود",
+      "description": "إعلان هذا المنتج غير متاح."
+    },
+    "services": {
+      "title": "إعلانات الخدمات",
+      "description": "تصفّح الخدمات العامة المقدّمة من تجّار دريبكس."
+    },
+    "serviceNotFound": {
+      "title": "الخدمة غير موجودة",
+      "description": "إعلان هذه الخدمة غير متاح."
+    },
+    "sellers": {
+      "title": "دليل التجّار",
+      "description": "تصفّح الملفات العامة للبائعين والتجّار على دريبكس."
+    },
+    "sellerNotFound": {
+      "title": "التاجر غير موجود",
+      "description": "ملف هذا البائع غير متاح."
+    },
+    "categories": {
+      "title": "تصفّح الفئات",
+      "description": "استكشف فئات سوق دريبكس للمنتجات والخدمات."
+    },
+    "categoryListings": {
+      "title": "إعلانات {category}",
+      "description": "تصفّح إعلانات دريبكس في فئة {category}."
+    },
+    "cities": {
+      "title": "اكتشاف المدن",
+      "description": "استكشف إعلانات دريبكس حسب المدينة والموقع."
+    },
+    "cityMarketplace": {
+      "title": "سوق {cityName}",
+      "description": "تصفّح منتجات وتجّار دريبكس في {cityName}."
+    },
+    "marketNotFound": {
+      "title": "السوق غير موجود",
+      "description": "هذا السوق غير متاح."
+    }
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "search": "بحث",
+    "categories": "الفئات",
+    "products": "المنتجات",
+    "services": "الخدمات",
+    "businesses": "التجّار",
+    "cities": "المدن",
+    "explore": "استكشف"
+  },
+  "footer": {
+    "discover": "اكتشف",
+    "searchMarketplace": "البحث في السوق",
+    "browseCategories": "تصفّح الفئات",
+    "localBusinesses": "التجّار المحليون",
+    "legal": "قانوني",
+    "privacy": "الخصوصية",
+    "terms": "الشروط",
+    "browseNote": "تصفّح بحرية دون حساب. سجّل الدخول عبر تطبيق الهاتف للمفضّلة والمراسلة وأدوات البائع.",
+    "copyright": "© {year} {brand}. جميع الحقوق محفوظة."
+  },
+  "language": {
+    "label": "اللغة",
+    "en": "English",
+    "fr": "Français",
+    "ar": "العربية",
+    "switchTo": "التبديل إلى {language}"
+  },
+  "common": {
+    "tryAgain": "حاول مجدداً",
+    "retry": "إعادة المحاولة",
+    "backHome": "العودة إلى الرئيسية",
+    "backHomeShort": "العودة للرئيسية",
+    "viewAll": "عرض الكل",
+    "seeAllProducts": "عرض كل المنتجات",
+    "seeAllServices": "عرض كل الخدمات",
+    "viewDirectory": "عرض الدليل",
+    "browseBusinesses": "تصفّح التجّار",
+    "searchMarketplace": "البحث في السوق",
+    "searchBusinesses": "البحث عن التجّار",
+    "browseCategories": "تصفّح الفئات",
+    "allCategories": "← جميع الفئات",
+    "allCities": "← جميع المدن",
+    "edit": "تعديل",
+    "available": "متوفر",
+    "unavailable": "غير متوفر",
+    "product": "منتج",
+    "service": "خدمة",
+    "products": "المنتجات",
+    "services": "الخدمات",
+    "businesses": "التجّار",
+    "reviews": "التقييمات",
+    "category": "الفئة",
+    "categoryLabel": "الفئة: {slug}",
+    "coverage": "نطاق التغطية: {areas}",
+    "soldBy": "يُباع بواسطة",
+    "offeredBy": "يُقدَّم بواسطة",
+    "phone": "الهاتف: {phone}",
+    "website": "الموقع الإلكتروني:",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم",
+    "description": "الوصف",
+    "priceMad": "السعر (درهم)",
+    "imageUrl": "رابط الصورة",
+    "somethingWentWrong": "حدث خطأ ما",
+    "loadPageError": "تعذّر تحميل هذه الصفحة. يُرجى المحاولة بعد قليل.",
+    "unexpectedError": "خطأ غير متوقع",
+    "renderError": "واجه المتجر مشكلة أثناء عرض هذه الصفحة.",
+    "returnToDiscovery": "العودة إلى الاستكشاف"
+  },
+  "home": {
+    "apiUnavailableTitle": "واجهة برمجة السوق غير متاحة",
+    "publicMarketplace": "سوق عام",
+    "heroTitle": "اكتشف بائعين محليين موثوقين على {brand}",
+    "heroDescription": "تصفّح المنتجات والخدمات وملفات التجّار من مجتمع السوق المغربي. لا حاجة لتسجيل الدخول للاستكشاف.",
+    "shopByCategory": "تسوّق حسب الفئة",
+    "shopByCategorySubtitle": "طرق شائعة لبدء الاستكشاف",
+    "featuredProducts": "منتجات مميّزة",
+    "featuredProductsSubtitle": "إعلانات جديدة من بائعين محليين",
+    "featuredServices": "خدمات مميّزة",
+    "featuredServicesSubtitle": "خدمات محلية من تجّار موثوقين",
+    "topBusinesses": "أفضل التجّار",
+    "topBusinessesSubtitle": "بائعون موثوقون وذوو تقييم عالٍ",
+    "markets": "الأسواق",
+    "marketsSubtitle": "استكشف البائعين حسب موقع السوق",
+    "categoriesUnavailable": "الفئات غير متاحة",
+    "productsUnavailable": "المنتجات غير متاحة",
+    "businessDirectoryUnavailable": "دليل التجّار غير متاح",
+    "noProductsTitle": "لا توجد منتجات بعد",
+    "noProductsDescription": "تتطلّب الإعلانات العامة بائعين نشطين في الدار البيضاء بمنتجات متاحة وغير مخفية.",
+    "noServicesTitle": "لا توجد خدمات بعد",
+    "noServicesDescription": "عُد قريباً مع نشر التجّار لعروض جديدة.",
+    "noBusinessesTitle": "لا يوجد تجّار بعد",
+    "noBusinessesDescription": "تتطلّب الملفات العامة للبائعين تجّاراً نشطين في الدار البيضاء.",
+    "sellersCountInMarket": "{count} بائع · {city}"
+  },
+  "search": {
+    "title": "بحث",
+    "description": "اعثر على المنتجات والخدمات والتجّار في السوق العام.",
+    "unavailableTitle": "البحث غير متاح",
+    "noResultsTitle": "لا توجد نتائج",
+    "noResultsDescription": "جرّب مصطلح بحث مختلفاً أو أزل عوامل التصفية.",
+    "placeholder": "ابحث عن منتجات أو خدمات أو تجّار...",
+    "modeAll": "الكل",
+    "modeProducts": "المنتجات",
+    "modeServices": "الخدمات",
+    "modeBusinesses": "التجّار",
+    "submit": "بحث"
+  },
+  "products": {
+    "title": "المنتجات",
+    "description": "إعلانات منتجات عامة من بائعين محليين موثوقين.",
+    "unavailableTitle": "المنتجات غير متاحة",
+    "emptyTitle": "لم يُعثر على منتجات",
+    "emptyDescription": "جرّب فئة أخرى أو عُد لاحقاً.",
+    "unavailableDetailTitle": "المنتج غير متاح",
+    "unavailableDetailDescription": "تعذّر تحميل هذا المنتج حالياً.",
+    "contactNote": "تواصل مع البائع عبر تطبيق دريبكس للمراسلة والمفضّلة والشراء. الدفع يتم داخل التطبيق — هذه الصفحة معاينة عامة فقط."
+  },
+  "services": {
+    "title": "الخدمات",
+    "description": "اكتشف خدمات التجّار المحليين على دريبكس.",
+    "unavailableTitle": "الخدمات غير متاحة",
+    "emptyTitle": "لم يُعثر على خدمات",
+    "emptyDescription": "جرّب فئة أخرى أو تصفّح ملفات التجّار.",
+    "unavailableDetailTitle": "الخدمة غير متاحة",
+    "unavailableDetailDescription": "تعذّر تحميل هذه الخدمة حالياً.",
+    "contactNote": "احجز أو استفسر عبر تطبيق دريبكس. هذه الصفحة العامة للاكتشاف فقط."
+  },
+  "sellers": {
+    "title": "التجّار",
+    "description": "استكشف واجهات البائعين والتقييمات وحالة التوثيق.",
+    "unavailableTitle": "الدليل غير متاح",
+    "emptyTitle": "لم يُعثر على تجّار",
+    "emptyDescription": "جرّب فلتر فئة آخر أو ابحث في السوق.",
+    "profileUnavailableTitle": "الملف غير متاح",
+    "messagingNote": "المراسلة والمفضّلة وأدوات البائع تتطلّب تطبيق دريبكس."
+  },
+  "categories": {
+    "title": "الفئات",
+    "description": "تصفّح الإعلانات مجمّعة حسب فئة السوق.",
+    "unavailableTitle": "الفئات غير متاحة",
+    "emptyTitle": "لا توجد فئات متاحة",
+    "emptyDescription": "كتالوج السوق لا يحتوي على فئات بعد.",
+    "detailUnavailableTitle": "الفئة غير متاحة",
+    "listingsUnavailableTitle": "إعلانات الفئة غير متاحة",
+    "taggedDescription": "منتجات وخدمات وتجّار مرتبطون بـ {slug}.",
+    "emptyListingsTitle": "لا توجد إعلانات في هذه الفئة",
+    "emptyListingsDescription": "جرّب فئة أخرى أو ابحث في السوق بالكامل."
+  },
+  "cities": {
+    "title": "المدن",
+    "description": "اكتشف نشاط السوق حسب المدينة. تركّز الإعلانات حالياً على مدن الإطلاق النشطة.",
+    "comingSoon": "قريباً",
+    "comingSoonRibbon": "قريباً",
+    "comingSoonAria": "{cityName} — قريباً",
+    "comingSoonDescription": "إعلانات دريبكس في {cityName} قادمة قريباً.",
+    "comingSoonEmptyTitle": "قريباً",
+    "comingSoonEmptyDescription": "{cityName} ليست مدينة إطلاق نشطة بعد. استكشف الإعلانات في {activeCity} اليوم.",
+    "browseActiveCity": "تصفّح {activeCity}",
+    "listingsDescription": "إعلانات السوق العامة المتاحة في {cityName}.",
+    "listingsUnavailableTitle": "إعلانات المدينة غير متاحة",
+    "productsInCity": "منتجات في {cityName}",
+    "servicesInCity": "خدمات في {cityName}",
+    "businessesInCity": "تجّار في {cityName}",
+    "emptyListingsTitle": "لا توجد إعلانات عامة في {cityName} بعد",
+    "emptyListingsDescription": "عُد قريباً أو استكشف مدناً أخرى."
+  },
+  "marketplaces": {
+    "unavailableTitle": "السوق غير متاح",
+    "sellersUnavailableTitle": "البائعون غير متاحين",
+    "emptyTitle": "لا يوجد بائعون في هذا السوق بعد",
+    "emptyDescription": "استكشف أسواقاً أخرى أو ابحث في الدليل الكامل.",
+    "searchAllListings": "البحث في كل الإعلانات ←"
+  },
+  "productDetail": {
+    "label": "منتج",
+    "sellerRating": "{city} · {rating} ★ · {reviewCount} تقييم"
+  },
+  "serviceDetail": {
+    "label": "خدمة"
+  },
+  "sellerDetail": {
+    "reviewCount": "{count} تقييم"
+  },
+  "sellerPortal": {
+    "hubLabel": "بوابة البائع",
+    "hubTitle": "أدِر منتجاتك وخدماتك من الويب.",
+    "addProduct": "إضافة منتج",
+    "addService": "إضافة خدمة",
+    "yourProducts": "منتجاتك",
+    "yourServices": "خدماتك",
+    "noProducts": "لا توجد منتجات بعد.",
+    "noServices": "لا توجد خدمات بعد.",
+    "signOut": "تسجيل الخروج",
+    "loginTitle": "تسجيل دخول البائع",
+    "loginDescription": "سجّل الدخول لإدارة المنتجات والخدمات من الويب.",
+    "loginFailed": "فشل تسجيل الدخول.",
+    "signingIn": "جارٍ تسجيل الدخول…",
+    "signIn": "تسجيل الدخول",
+    "needMobileApp": "تفضّل تطبيق الهاتف؟",
+    "sellerHubLink": "بوابة البائع",
+    "editProduct": "تعديل المنتج",
+    "editService": "تعديل الخدمة",
+    "addProductForm": "إضافة منتج",
+    "addServiceForm": "إضافة خدمة",
+    "pricePlaceholder": "اتركه فارغاً للسعر عند الطلب",
+    "availableCheckbox": "متوفر",
+    "saving": "جارٍ الحفظ…",
+    "saveChanges": "حفظ التغييرات",
+    "publishProduct": "نشر المنتج",
+    "publishService": "نشر الخدمة",
+    "saveListingError": "تعذّر حفظ الإعلان."
+  },
+  "errors": {
+    "apiTemporarilyUnavailable": "واجهة برمجة السوق غير متاحة مؤقتاً.",
+    "apiUnreachableDev": "واجهة دريبكس غير قابلة للوصول ({apiBase}). تأكد من أن margem-api يعمل وأن حاوية الويب تصل إليه عبر شبكة Docker.",
+    "apiReturnedError": "أعادت واجهة برمجة السوق خطأً.",
+    "infrastructureNote": "{detail} هذا خطأ في البنية التحتية أو الواجهة — وليس سوقاً فارغاً."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "الصفحة غير موجودة",
+    "description": "هذا الإعلان أو الصفحة غير متاح. ربما أُزيل أو أن الرابط غير صحيح.",
+    "backHome": "العودة إلى الرئيسية"
+  },
+  "format": {
+    "priceOnRequest": "السعر عند الطلب",
+    "contactForPrice": "تواصل للسعر",
+    "priceMad": "{amount} درهم",
+    "newRating": "جديد",
+    "verified": "موثّق",
+    "verificationPending": "التوثيق قيد المراجعة",
+    "unavailable": "غير متوفر",
+    "reviews": "{count} تقييم",
+    "sellersCount": "{count} بائع"
+  },
+  "pagination": {
+    "ariaLabel": "التصفح",
+    "results": "{total} نتيجة",
+    "showingFrom": "عرض من {start}",
+    "previous": "السابق",
+    "loadMore": "تحميل المزيد"
+  },
+  "trust": {
+    "verified": "موثّق"
+  },
+  "listing": {
+    "unavailable": "غير متوفر"
+  },
+  "ads": {
+    "label": "إعلان",
+    "ariaLabel": "إعلان"
+  }
+}
