@@ -35,6 +35,11 @@ class MarketplaceCommunityHubScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
           children: [
+            _JoinCommunitySection(
+              marketplaceSlug: marketplaceSlug,
+              hubAsync: hubAsync,
+              isGuest: isGuest,
+            ),
             hubAsync.when(
               data: (hub) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,25 +64,6 @@ class MarketplaceCommunityHubScreen extends ConsumerWidget {
                       _StatChip(label: l10n.communityOnline, value: '${hub.onlineCount}'),
                     ],
                   ),
-                  if (!hub.isMember && !isGuest) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    FilledButton(
-                      onPressed: () async {
-                        await apiServiceProvider.joinMarketplaceCommunity(marketplaceSlug);
-                        ref.invalidate(marketplaceCommunityHubProvider(marketplaceSlug));
-                      },
-                      child: Text(l10n.marketplaceCommunityJoin),
-                    ),
-                  ],
-                  if (isGuest) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    FilledButton(
-                      onPressed: () => context.push('/login'),
-                      child: Text(l10n.marketplaceCommunityJoin),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(l10n.communityGuestHint, style: TextStyle(color: context.colors.textSecondary)),
-                  ],
                 ],
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -141,6 +127,70 @@ class MarketplaceCommunityHubScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _JoinCommunitySection extends ConsumerWidget {
+  const _JoinCommunitySection({
+    required this.marketplaceSlug,
+    required this.hubAsync,
+    required this.isGuest,
+  });
+
+  final String marketplaceSlug;
+  final AsyncValue<MarketplaceCommunityHubModel> hubAsync;
+  final bool isGuest;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+
+    if (isGuest) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FilledButton(
+              onPressed: () => context.push('/login'),
+              child: Text(l10n.marketplaceCommunityJoin),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.communityGuestHint,
+              style: TextStyle(color: context.colors.textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return hubAsync.when(
+      data: (hub) {
+        if (hub.isMember) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          child: SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () async {
+                await apiServiceProvider.joinMarketplaceCommunity(marketplaceSlug);
+                ref.invalidate(marketplaceCommunityHubProvider(marketplaceSlug));
+              },
+              child: Text(l10n.marketplaceCommunityJoin),
+            ),
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.only(bottom: AppSpacing.md),
+        child: SizedBox(
+          height: 48,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }
