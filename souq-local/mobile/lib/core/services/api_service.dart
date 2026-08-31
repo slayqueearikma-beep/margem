@@ -308,9 +308,21 @@ class ApiService {
           throw ApiException(_connectionErrorMessage);
         }
         await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
-      } on http.ClientException {
+      } on HandshakeException {
         if (attempt >= maxAttempts) {
-          throw ApiException(_connectionErrorMessage);
+          throw ApiException(_tlsErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on TlsException {
+        if (attempt >= maxAttempts) {
+          throw ApiException(_tlsErrorMessage);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      } on http.ClientException catch (e) {
+        if (attempt >= maxAttempts) {
+          throw ApiException(
+            _isTlsFailure(e) ? _tlsErrorMessage : _connectionErrorMessage,
+          );
         }
         await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
       } on ApiException {
@@ -348,6 +360,23 @@ class ApiService {
         ? ''
         : '\nTip: API_BASE_URL must include a colon before the port, e.g. http://192.168.1.10:8000';
     return 'Cannot reach the API at $base. Check your network connection and API_BASE_URL.$portTip$tunnelHint';
+  }
+
+  String get _tlsErrorMessage {
+    if (AppConfig.isProduction || kReleaseMode) {
+      return 'Secure connection to the server failed. The app may be outdated or the server certificate is not trusted.';
+    }
+    return 'TLS handshake failed for ${AppConfig.apiBaseUrl}. '
+        'Production mobile builds require a publicly trusted certificate (not self-signed).';
+  }
+
+  bool _isTlsFailure(http.ClientException error) {
+    final lower = error.message.toLowerCase();
+    return lower.contains('handshake') ||
+        lower.contains('certificate') ||
+        lower.contains('cert_') ||
+        lower.contains('ssl') ||
+        lower.contains('tls');
   }
 
   Future<SellerModel> createSeller(SellerCreatePayload payload) async {

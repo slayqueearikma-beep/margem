@@ -8,6 +8,7 @@ import '../services/api_service.dart';
 import '../theme/app_spacing.dart';
 import '../theme/theme_context.dart';
 import '../utils/directional_ui.dart';
+import '../utils/friendly_errors.dart';
 import '../../l10n/app_localizations.dart';
 
 enum SignupVerificationChannel { email, phone }
@@ -281,7 +282,7 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
       setState(() => _destinationMasked = result.destinationMasked);
     } on ApiException catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.message);
+      setState(() => _error = friendlyErrorMessage(e, context.l10n));
     } finally {
       if (mounted) setState(() => _resending = false);
     }
@@ -307,7 +308,7 @@ class _CodeEntryDialogState extends State<_CodeEntryDialog> {
       Navigator.of(context).pop(proof);
     } on ApiException catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.message);
+      setState(() => _error = friendlyErrorMessage(e, context.l10n));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

@@ -31,7 +31,9 @@ String friendlyErrorMessage(Object error, AppStrings l10n) {
     return l10n.requestTimeout(seconds);
   }
   if (lower.contains('cannot reach the server') ||
-      lower.contains('cannot reach the api')) {
+      lower.contains('cannot reach the api') ||
+      lower.contains('secure connection to the server failed') ||
+      lower.contains('tls handshake failed')) {
     return l10n.connectionError;
   }
   if (error.statusCode == 429 || lower.contains('rate limit')) {

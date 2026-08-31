@@ -15,11 +15,12 @@ chmod +x "$ROOT/scripts/validate-production-env.sh"
 
 mkdir -p "$ROOT/nginx/certs"
 if [[ ! -f "$ROOT/nginx/certs/fullchain.pem" ]]; then
-  echo "Generating self-signed TLS cert for bootstrap (replace with Let's Encrypt in production)."
+  echo "Generating self-signed TLS cert for bootstrap (replace with Cloudflare/Let's Encrypt before public mobile beta)."
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout "$ROOT/nginx/certs/privkey.pem" \
     -out "$ROOT/nginx/certs/fullchain.pem" \
-    -subj "/CN=localhost"
+    -subj "/CN=api.dribex.ma" \
+    -addext "subjectAltName=DNS:api.dribex.ma,DNS:dribex.ma,DNS:www.dribex.ma"
 fi
 
 $COMPOSE build api web
