@@ -161,8 +161,8 @@ services:
 
   web:
     build:
-      context: ../..
-      dockerfile: web/Dockerfile
+      context: ../../web
+      dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_BASE_URL: ${PUBLIC_API_URL}
         NEXT_PUBLIC_SITE_URL: ${PUBLIC_APP_URL}
