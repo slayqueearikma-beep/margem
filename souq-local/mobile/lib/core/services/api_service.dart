@@ -366,8 +366,14 @@ class ApiService {
     if (AppConfig.isProduction || kReleaseMode) {
       return 'Secure connection to the server failed. The app may be outdated or the server certificate is not trusted.';
     }
+    final insecureTlsHint = AppConfig.allowInsecureTls
+        ? ''
+        : '\n\nPrivate beta with a self-signed nginx cert? Rebuild with:\n'
+            'flutter run --dart-define=API_BASE_URL=${AppConfig.apiBaseUrl} '
+            '--dart-define=ALLOW_INSECURE_TLS=true';
     return 'TLS handshake failed for ${AppConfig.apiBaseUrl}. '
-        'Production mobile builds require a publicly trusted certificate (not self-signed).';
+        'Production mobile builds require a publicly trusted certificate (not self-signed).'
+        '$insecureTlsHint';
   }
 
   bool _isTlsFailure(http.ClientException error) {

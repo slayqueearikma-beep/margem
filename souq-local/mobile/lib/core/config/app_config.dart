@@ -154,6 +154,12 @@ class AppConfig {
     defaultValue: false,
   );
 
+  /// Accept self-signed TLS for private beta (Tailscale + bootstrap nginx cert).
+  /// Never enabled in PRODUCTION builds.
+  static bool get allowInsecureTls =>
+      !isProduction &&
+      const bool.fromEnvironment('ALLOW_INSECURE_TLS', defaultValue: false);
+
   /// Show demo map pins when the API is unreachable (dev only).
   static const bool demoFallback = bool.fromEnvironment(
     'DEMO_FALLBACK',

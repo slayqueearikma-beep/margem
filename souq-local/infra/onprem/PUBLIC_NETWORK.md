@@ -108,10 +108,29 @@ Or use `scripts/build-production-android.sh`.
 If you are **not** ready for public DNS yet:
 
 1. Install **Tailscale** on the test phone (same account as the server).
-2. Keep DNS on Tailscale IP **only for testers who use Tailscale**.
-3. You still need a **trusted TLS cert** for HTTPS on mobile — self-signed will fail.
+2. Point `api.dribex.ma` / `dribex.ma` to the server Tailscale IP (`100.x.x.x`) via phone hosts, Tailscale DNS, or split DNS.
+3. Confirm in the phone browser: `https://api.dribex.ma/ready` → HTTP 200 JSON.
 
-Public beta requires the public DNS + cert path above.
+**Why the app fails when the browser works:** Chrome may let you accept a self-signed certificate; the Flutter HTTP client rejects it by default.
+
+### Private beta mobile build (self-signed nginx cert)
+
+Do **not** use `PRODUCTION=true` for Tailscale testing. Rebuild with insecure TLS allowed:
+
+```bash
+cd mobile
+flutter run \
+  --dart-define=API_BASE_URL=https://api.dribex.ma \
+  --dart-define=ALLOW_INSECURE_TLS=true
+```
+
+Or install a debug APK:
+
+```bash
+./scripts/build-private-beta-android.sh
+```
+
+`ALLOW_INSECURE_TLS` is ignored when `PRODUCTION=true`. For real launch, use a **trusted** cert (Cloudflare Origin or Let's Encrypt) and the public DNS path above.
 
 ## Tailscale vs public
 

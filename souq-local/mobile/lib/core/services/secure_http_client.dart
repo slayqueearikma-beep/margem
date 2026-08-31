@@ -158,6 +158,12 @@ String _certificatePinSha256(X509Certificate cert) {
 
 /// Optional TLS certificate pinning for release builds.
 http.Client createSecureHttpClient() {
+  if (AppConfig.allowInsecureTls) {
+    final httpClient = HttpClient();
+    httpClient.badCertificateCallback = (_, __, ___) => true;
+    return IOClient(httpClient);
+  }
+
   final pins = AppConfig.certificatePins;
   if (pins.isEmpty || !AppConfig.isProduction) {
     return http.Client();
