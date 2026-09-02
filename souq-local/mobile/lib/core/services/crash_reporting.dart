@@ -14,37 +14,58 @@ class CrashReporting {
     defaultValue: '',
   );
 
+  static const bool _verifyTest = bool.fromEnvironment(
+    'SENTRY_VERIFY_TEST',
+    defaultValue: false,
+  );
+
   static bool get isConfigured => _sentryDsn.isNotEmpty;
   static bool _sentryReady = false;
 
-  static Future<void> ensureInitialized() async {
+  static void _configureOptions(SentryFlutterOptions options) {
+    options.dsn = _sentryDsn;
+    options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
+    options.sendDefaultPii = false;
+    options.environment = kReleaseMode ? 'production' : 'debug';
+    options.beforeSend = (event, hint) => _scrubEvent(event);
+  }
+
+  /// Bootstraps Sentry (when configured) and runs [appRunner] inside Sentry's zone.
+  static Future<void> bootstrap(Future<void> Function() appRunner) async {
     if (!isConfigured) {
       if (kDebugMode) {
         debugPrint('CrashReporting: no SENTRY_DSN — local logging only');
       }
+      await appRunner();
       return;
     }
+
     await SentryFlutter.init(
-      (options) {
-        options.dsn = _sentryDsn;
-        options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
-        options.sendDefaultPii = false;
-        options.environment = kReleaseMode ? 'production' : 'debug';
-        options.beforeSend = (event, hint) {
-          return _scrubEvent(event);
-        };
+      _configureOptions,
+      appRunner: () async {
+        _sentryReady = true;
+        if (kDebugMode) {
+          debugPrint('CrashReporting: Sentry initialized');
+        }
+        if (_verifyTest) {
+          await _sendVerifyEvent();
+        }
+        await appRunner();
       },
     );
-    _sentryReady = true;
-    if (kDebugMode) {
-      debugPrint('CrashReporting: Sentry initialized');
-    }
-    if (const bool.fromEnvironment('SENTRY_VERIFY_TEST', defaultValue: false)) {
-      await Sentry.captureMessage(
-        'dribex_sentry_verify',
-        level: SentryLevel.info,
-      );
-    }
+  }
+
+  static Future<void> _sendVerifyEvent() async {
+    await Sentry.captureException(
+      StateError('dribex_sentry_verify'),
+      stackTrace: StackTrace.current,
+      withScope: (scope) {
+        scope.level = SentryLevel.error;
+        scope.setTag('verify', 'true');
+      },
+    );
+    // Give the SDK time to flush before the user backgrounds the app.
+    await Future<void>.delayed(const Duration(seconds: 3));
   }
 
   static void recordFlutterError(FlutterErrorDetails details) {
@@ -79,7 +100,10 @@ class CrashReporting {
         withScope: (scope) {
           scope.level = fatal ? SentryLevel.fatal : SentryLevel.error;
           if (context != null) {
-            scope.setTag('error_context', context.substring(0, context.length.clamp(0, 80)));
+            scope.setTag(
+              'error_context',
+              context.substring(0, context.length.clamp(0, 80)),
+            );
           }
         },
       );

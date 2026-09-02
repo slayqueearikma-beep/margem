@@ -23,16 +23,16 @@ Future<void> main() async {
     );
   }
 
-  await CrashReporting.ensureInitialized();
+  await CrashReporting.bootstrap(() async {
+    FlutterError.onError = (details) {
+      CrashReporting.recordFlutterError(details);
+      FlutterError.presentError(details);
+    };
+    PlatformDispatcher.instance.onError = (error, stack) {
+      CrashReporting.recordError(error, stack, fatal: true);
+      return true;
+    };
 
-  FlutterError.onError = (details) {
-    CrashReporting.recordFlutterError(details);
-    FlutterError.presentError(details);
-  };
-  PlatformDispatcher.instance.onError = (error, stack) {
-    CrashReporting.recordError(error, stack, fatal: true);
-    return true;
-  };
-
-  runApp(const ProviderScope(child: MarGemApp()));
+    runApp(const ProviderScope(child: MarGemApp()));
+  });
 }

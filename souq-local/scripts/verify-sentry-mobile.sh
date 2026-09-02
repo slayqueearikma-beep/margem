@@ -19,7 +19,7 @@ echo ""
 echo "==> 3. Optional live test event (device/emulator required)"
 echo "Run on a connected device:"
 echo "  SENTRY_VERIFY_TEST=true ./scripts/flutter-production-run.sh --release"
-echo "Then open the Sentry project → Issues and confirm event: dribex_sentry_verify"
+echo "Then open Sentry → Issues (search: dribex_sentry_verify). Keep the app open ~10s."
 
 if command -v adb >/dev/null 2>&1 && adb devices 2>/dev/null | rg -q 'device$'; then
   echo ""
