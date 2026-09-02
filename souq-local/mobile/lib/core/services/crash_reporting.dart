@@ -39,6 +39,12 @@ class CrashReporting {
     if (kDebugMode) {
       debugPrint('CrashReporting: Sentry initialized');
     }
+    if (const bool.fromEnvironment('SENTRY_VERIFY_TEST', defaultValue: false)) {
+      await Sentry.captureMessage(
+        'dribex_sentry_verify',
+        level: SentryLevel.info,
+      );
+    }
   }
 
   static void recordFlutterError(FlutterErrorDetails details) {
