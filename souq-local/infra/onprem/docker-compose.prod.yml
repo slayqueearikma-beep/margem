@@ -5,6 +5,7 @@
 #
 # Public exposure: nginx (80/443) only.
 # Internal: postgres, redis, minio, vault, api, prometheus, grafana, loki.
+# API also joins `edge` (no host ports) for outbound Brevo/Sentry — `internal: true` blocks Internet.
 
 name: margem-prod
 
@@ -148,9 +149,7 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-    networks: [internal]
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/ready', headers={'Host': 'api.dribex.ma'}))\""]
+    networks: [internal, edge]
       interval: 15s
       timeout: 5s
       retries: 5
