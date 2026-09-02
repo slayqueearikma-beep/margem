@@ -5,9 +5,11 @@ import 'package:souq_local/l10n/strings/app_strings.dart';
 import 'package:souq_local/l10n/strings/app_strings_ar.dart';
 
 void main() {
-  test('legal document URLs always use authoritative French path', () {
-    expect(AppConfig.legalDocumentUrl('terms'), contains('/legal/fr/terms'));
-    expect(AppConfig.legalDocumentUrl('privacy'), contains('/legal/fr/privacy'));
+  test('legal document URLs always use API origin French path', () {
+    const api = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8000');
+    final origin = Uri.parse(api).origin;
+    expect(AppConfig.legalDocumentUrl('terms'), '$origin/legal/fr/terms');
+    expect(AppConfig.legalDocumentUrl('privacy'), '$origin/legal/fr/privacy');
     expect(AppConfig.legalContentLanguageCode, 'fr');
   });
 
