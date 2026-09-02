@@ -63,25 +63,29 @@ Docker bypasses UFW for published ports. `DOCKER-USER` blocks accidental exposur
 cd ~/MarGem/souq-local/infra/onprem
 sudo chmod +x scripts/harden-docker-user.sh scripts/rollback-docker-user.sh
 
-# Preview:
-sudo DRY_RUN=1 ./scripts/harden-docker-user.sh
+# 1. Audit (read-only):
+./scripts/audit-docker-exposure.sh
 
-# Apply:
-sudo ./scripts/harden-docker-user.sh
+# 2. Preview (no changes):
+sudo DRY_RUN=1 CONFIRM=1 ./scripts/harden-docker-user.sh
+
+# 3. Apply in memory only (safe — reboot clears unless you persist):
+sudo CONFIRM=1 ./scripts/harden-docker-user.sh
+
+# 4. After verifying HTTPS works, persist across reboot:
+sudo CONFIRM=1 PERSIST_RULES=1 ./scripts/harden-docker-user.sh
 ```
 
-Policy:
+**Lab with extra published ports** (only if you know what you're doing):
 
-1. `RELATED,ESTABLISHED` → RETURN  
-2. `tailscale0` → RETURN (SSH, admin `7215`, API `8000` if published on Tailscale)  
-3. `lo` → RETURN  
-4. TCP `80`, `443` → RETURN (nginx / Cloudflare)  
-5. Everything else → **DROP**
+```bash
+sudo CONFIRM=1 ALLOW_EXTRA_PORTS=7215 ./scripts/harden-docker-user.sh
+```
 
 Rollback:
 
 ```bash
-sudo ./scripts/rollback-docker-user.sh
+sudo CONFIRM=1 ./scripts/rollback-docker-user.sh
 ```
 
 Persist after successful test:
