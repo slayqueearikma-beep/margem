@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/load-env-prod-for-mobile.sh"
 
 API_URL="${API_BASE_URL:-https://api.dribex.ma}"
-PRIVACY="${PRIVACY_POLICY_URL:-https://dribex.ma/legal/fr/privacy}"
+PRIVACY="${PRIVACY_POLICY_URL:-${API_URL}/legal/fr/privacy}"
 MAPS_KEY="${GOOGLE_MAPS_API_KEY:-}"
 SENTRY_VERIFY="${SENTRY_VERIFY_TEST:-}"
 

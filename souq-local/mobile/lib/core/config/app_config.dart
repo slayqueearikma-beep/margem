@@ -183,7 +183,8 @@ class AppConfig {
 
   static bool get allowDemoData => !isProduction && demoFallback;
 
-  /// Privacy policy URL for Play Store listing and in-app link.
+  /// Optional public marketing URL for Play Store / external links.
+  /// In-app legal documents are always loaded from the API (`legalDocumentUrl`).
   static const String privacyPolicyUrl = String.fromEnvironment(
     'PRIVACY_POLICY_URL',
     defaultValue: '',
@@ -192,13 +193,9 @@ class AppConfig {
   /// Legal documents are authoritative in French only (`/legal/fr/{doc}`).
   static const String legalContentLanguageCode = 'fr';
 
-  /// Localized legal document URL served by the API (`/legal/{lang}/{doc}`).
+  /// Legal document URL served by the API (`GET /legal/{lang}/{doc}`).
   static String legalDocumentUrl(String doc, [String? languageCode]) {
     const lang = legalContentLanguageCode;
-    final override = privacyPolicyUrl;
-    if (doc == 'privacy' && override.isNotEmpty) {
-      return override;
-    }
     final origin = Uri.parse(apiBaseUrl).origin;
     return '$origin/legal/$lang/$doc';
   }
