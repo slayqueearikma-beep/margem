@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { BRAND } from "@/lib/config";
-import { brandLogoUrl } from "@/lib/media";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 const navHrefs = [
@@ -23,16 +22,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={brandLogoUrl()}
-            alt={BRAND.name}
-            className="h-10 w-auto object-contain"
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
-          />
+        <Link href="/" className="flex shrink-0 items-center">
           <span className="text-lg font-semibold tracking-tight text-[var(--foreground)]">
             {BRAND.name}
           </span>
