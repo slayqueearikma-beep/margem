@@ -150,6 +150,8 @@ services:
       minio:
         condition: service_healthy
     networks: [internal, edge]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/ready', headers={'Host': 'api.dribex.ma'}))\""]
       interval: 15s
       timeout: 5s
       retries: 5
