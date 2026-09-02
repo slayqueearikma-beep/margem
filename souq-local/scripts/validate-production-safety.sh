@@ -105,6 +105,16 @@ check "Nginx does not expose direct MinIO /storage/ proxy" \
   bash -c '! rg -q "location /storage/" "$1"' _ "$ROOT/infra/onprem/nginx/nginx.conf"
 
 echo ""
+echo "==> Docker port policy"
+check "Production compose port policy script exists" \
+  test -x "$ROOT/infra/onprem/scripts/validate-compose-ports.sh"
+if "$ROOT/infra/onprem/scripts/validate-compose-ports.sh" >/dev/null 2>&1; then
+  green "Production compose publishes only nginx 80/443"
+else
+  red "Production compose publishes only nginx 80/443"
+fi
+
+echo ""
 echo "==> Summary: $pass passed, $fail failed"
 if [[ "$fail" -gt 0 ]]; then
   echo "Production safety validation: FAIL"
