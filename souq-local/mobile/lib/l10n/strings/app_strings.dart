@@ -63,6 +63,12 @@ abstract class AppStrings {
   String get welcomeBack;
   String get loginSubtitle;
   String get logIn;
+  String get continueWithGoogle;
+  String get authDividerOr;
+  String get googleSignInFailed;
+  String get googleLinkAccountTitle;
+  String googleLinkAccountMessage(String emailHint);
+  String get googleLinkAccountAction;
   String get enterEmailPassword;
   String get email;
   String get password;

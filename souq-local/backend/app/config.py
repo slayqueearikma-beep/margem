@@ -110,6 +110,8 @@ class Settings(BaseSettings):
     # messaging users, or creating reputation signals.
     require_verified_email: bool = True
     firebase_credentials_path: str = ""
+    # Comma-separated Google OAuth client IDs (Web + Android + iOS) for ID token verification.
+    google_oauth_client_ids: CommaSeparatedList = []
     jwt_secret_key: str = "change-this-secret-in-production-use-key-vault"
     # Separate key limits the blast radius of a JWT signing-key compromise.
     # Defaults to the JWT key only in development for backwards compatibility.

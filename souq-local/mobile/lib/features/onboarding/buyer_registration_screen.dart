@@ -17,6 +17,8 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/form_widgets.dart';
+import '../../core/widgets/google_sign_in_button.dart';
+import '../../core/auth/google_auth_flow.dart';
 import '../../features/legal/signup_terms_footer.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../core/widgets/signup_verification_dialogs.dart';
@@ -38,6 +40,7 @@ class _BuyerRegistrationScreenState
   final _passwordController = TextEditingController();
   XFile? _profileImage;
   bool _loading = false;
+  bool _googleLoading = false;
 
   @override
   void dispose() {
@@ -138,6 +141,21 @@ class _BuyerRegistrationScreenState
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    if (_loading || _googleLoading) return;
+    setState(() => _googleLoading = true);
+    try {
+      await GoogleAuthFlow.start(
+        context: context,
+        ref: ref,
+        accountType: 'buyer',
+        markOnboardingComplete: true,
+      );
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -161,7 +179,13 @@ class _BuyerRegistrationScreenState
           AppScreenHeader(
               title: l10n.createBuyerAccount,
               subtitle: l10n.createBuyerSubtitle),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.lg),
+          GoogleSignInButton(
+            onPressed: (_loading || _googleLoading) ? null : _signInWithGoogle,
+            isLoading: _googleLoading,
+          ),
+          const AuthDivider(),
+          const SizedBox(height: AppSpacing.lg),
           Center(
             child: GestureDetector(
               onTap: _pickImage,

@@ -129,6 +129,20 @@ class AppStringsAr extends AppStringsEn {
   @override
   String get logIn => 'تسجيل الدخول';
   @override
+  String get continueWithGoogle => 'المتابعة باستخدام Google';
+  @override
+  String get authDividerOr => 'أو';
+  @override
+  String get googleSignInFailed =>
+      'فشل تسجيل الدخول عبر Google. يُرجى المحاولة مرة أخرى.';
+  @override
+  String get googleLinkAccountTitle => 'ربط حسابك';
+  @override
+  String googleLinkAccountMessage(String emailHint) =>
+      'يوجد حساب بالفعل لـ $emailHint. أدخل كلمة مرور Dribex لربط Google.';
+  @override
+  String get googleLinkAccountAction => 'ربط الحساب';
+  @override
   String get enterEmailPassword => 'يرجى إدخال البريد الإلكتروني وكلمة المرور.';
   @override
   String get email => 'البريد الإلكتروني';

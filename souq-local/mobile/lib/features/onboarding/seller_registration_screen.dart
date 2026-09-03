@@ -30,6 +30,8 @@ import '../../core/models/city_model.dart';
 import '../../core/providers/city_providers.dart';
 import '../../core/widgets/signup_verification_dialogs.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
+import '../../core/widgets/google_sign_in_button.dart';
+import '../../core/auth/google_auth_flow.dart';
 import '../../core/services/upload_service.dart';
 import '../../core/widgets/seller_marketplace_picker.dart';
 import '../../core/providers/buyer_discovery_providers.dart';
@@ -48,6 +50,7 @@ class _SellerRegistrationScreenState
   static const _totalSteps = 5;
   int _step = 1;
   bool _loading = false;
+  bool _googleLoading = false;
   bool _sellerTermsAccepted = false;
 
   // Step 1
@@ -341,6 +344,21 @@ class _SellerRegistrationScreenState
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    if (_loading || _googleLoading) return;
+    setState(() => _googleLoading = true);
+    try {
+      await GoogleAuthFlow.start(
+        context: context,
+        ref: ref,
+        accountType: 'seller',
+        markOnboardingComplete: true,
+      );
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -424,7 +442,13 @@ class _SellerRegistrationScreenState
       children: [
         AppScreenHeader(
             title: l10n.sellerStep1Title, subtitle: l10n.sellerStep1Subtitle),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
+        GoogleSignInButton(
+          onPressed: (_loading || _googleLoading) ? null : _signInWithGoogle,
+          isLoading: _googleLoading,
+        ),
+        const AuthDivider(),
+        const SizedBox(height: AppSpacing.lg),
         AppTextField(
             label: l10n.businessName,
             controller: _businessNameController,

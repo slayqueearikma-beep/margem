@@ -1,0 +1,225 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../auth/auth_session_completion.dart';
+import '../models/auth_models.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import '../services/google_sign_in_helper.dart';
+import '../widgets/error_dialog.dart';
+import '../../l10n/app_localizations.dart';
+
+class GoogleAuthFlow {
+  GoogleAuthFlow._();
+
+  static Future<void> start({
+    required BuildContext context,
+    required WidgetRef ref,
+    String accountType = 'buyer',
+    bool markOnboardingComplete = false,
+    void Function(AuthSession session)? onNewSellerAccount,
+  }) async {
+    final l10n = context.l10n;
+    final auth = ref.read(authServiceProvider);
+
+    try {
+      await apiServiceProvider.checkHealth();
+      final idToken = await GoogleSignInHelper.signInAndGetIdToken();
+      var result = await auth.signInWithGoogle(
+        idToken: idToken,
+        accountType: accountType,
+      );
+
+      if (result.linkRequired) {
+        if (!context.mounted) return;
+        final password = await _promptLinkPassword(context, result.emailHint);
+        if (password == null || password.isEmpty) return;
+        result = await auth.linkGoogleAccount(
+          idToken: idToken,
+          password: password,
+        );
+      }
+
+      if (result.mfaRequired) {
+        if (!context.mounted) return;
+        if (result.mfaToken == null || result.mfaToken!.isEmpty) {
+          throw ApiException('Two-factor authentication is required.');
+        }
+        final code = await _promptMfaCode(context);
+        if (code == null || code.isEmpty) return;
+        final session = await auth.completeMfaLogin(
+          mfaToken: result.mfaToken!,
+          code: code,
+        );
+        if (!context.mounted) return;
+        await _finish(
+          context,
+          ref,
+          session,
+          accountType,
+          onNewSellerAccount,
+          markOnboardingComplete: markOnboardingComplete,
+        );
+        return;
+      }
+
+      final session = result.session;
+      if (session == null) {
+        throw ApiException(l10n.googleSignInFailed);
+      }
+      if (!context.mounted) return;
+      await _finish(
+        context,
+        ref,
+        session,
+        accountType,
+        onNewSellerAccount,
+        markOnboardingComplete: markOnboardingComplete,
+      );
+    } on GoogleSignInCancelledException {
+      return;
+    } on MfaRequiredException catch (mfa) {
+      if (!context.mounted) return;
+      final code = await _promptMfaCode(context);
+      if (code == null || code.isEmpty) return;
+      final session = await auth.completeMfaLogin(
+        mfaToken: mfa.mfaToken,
+        code: code,
+      );
+      if (!context.mounted) return;
+      await _finish(
+        context,
+        ref,
+        session,
+        accountType,
+        onNewSellerAccount,
+        markOnboardingComplete: markOnboardingComplete,
+      );
+    } on ApiException catch (error) {
+      if (!context.mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: error.message.isNotEmpty ? error.message : l10n.googleSignInFailed,
+      );
+    } on PlatformException {
+      if (!context.mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.googleSignInFailed,
+      );
+    } on Object {
+      if (!context.mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.serverUnreachable,
+      );
+    }
+  }
+
+  static Future<void> _finish(
+    BuildContext context,
+    WidgetRef ref,
+    AuthSession session,
+    String accountType,
+    void Function(AuthSession session)? onNewSellerAccount, {
+    bool markOnboardingComplete = false,
+  }) async {
+    final isSellerIntent = accountType == 'seller' || accountType == 'provider';
+    final sellerOnboarding = isSellerIntent && !session.user.hasSellerProfile;
+
+    if (sellerOnboarding && onNewSellerAccount != null) {
+      onNewSellerAccount(session);
+      return;
+    }
+
+    await completeAuthenticatedSessionFromContext(
+      ref: ref,
+      context: context,
+      session: session,
+      postAuthRouteOverride:
+          sellerOnboarding ? '/onboarding/become-seller' : null,
+      markOnboardingComplete: markOnboardingComplete,
+    );
+  }
+
+  static Future<String?> _promptLinkPassword(
+    BuildContext context,
+    String? emailHint,
+  ) async {
+    final l10n = context.l10n;
+    final controller = TextEditingController();
+    final password = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.googleLinkAccountTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.googleLinkAccountMessage(emailHint ?? l10n.email),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              obscureText: true,
+              autofillHints: const [AutofillHints.password],
+              decoration: InputDecoration(labelText: l10n.password),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: Text(l10n.googleLinkAccountAction),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return password?.trim();
+  }
+
+  static Future<String?> _promptMfaCode(BuildContext context) async {
+    final l10n = context.l10n;
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.twoFactorAuthTitle),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: InputDecoration(
+            labelText: l10n.twoFactorAuthCodeLabel,
+            counterText: '',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: Text(l10n.signupOtpVerify),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return code;
+  }
+}

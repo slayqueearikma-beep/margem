@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/auth_models.dart';
 import 'api_service.dart';
+import 'google_sign_in_helper.dart';
 
 /// Handles registration, login, refresh rotation, and secure JWT persistence.
 class AuthService {
@@ -80,6 +81,38 @@ class AuthService {
       'code': code.trim(),
     });
     return _saveSession(AuthSession.fromJson(response));
+  }
+
+  Future<GoogleSignInResult> signInWithGoogle({
+    required String idToken,
+    String accountType = 'buyer',
+    String displayName = '',
+  }) async {
+    final response = await _api.postJson('/auth/google', {
+      'id_token': idToken,
+      'account_type': accountType,
+      if (displayName.isNotEmpty) 'display_name': displayName,
+    });
+    final result = GoogleSignInResult.fromJson(response);
+    if (result.session != null) {
+      await _saveSession(result.session!);
+    }
+    return result;
+  }
+
+  Future<GoogleSignInResult> linkGoogleAccount({
+    required String idToken,
+    required String password,
+  }) async {
+    final response = await _api.postJson('/auth/google/link', {
+      'id_token': idToken,
+      'password': password,
+    });
+    final result = GoogleSignInResult.fromJson(response);
+    if (result.session != null) {
+      await _saveSession(result.session!);
+    }
+    return result;
   }
 
   Future<AuthUser> fetchCurrentUser() async {
@@ -158,6 +191,7 @@ class AuthService {
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _cachedAuthUserKey);
     _syncTokenProvider();
+    await GoogleSignInHelper.signOut();
   }
 
   Future<void> deleteAccount({required String password}) async {

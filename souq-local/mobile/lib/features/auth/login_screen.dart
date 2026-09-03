@@ -5,19 +5,18 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/validation/form_validators.dart';
-import '../../core/providers/subscription_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/app_storage.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/navigation/post_auth_navigation.dart';
-import '../../core/services/legal_acceptance_service.dart';
+import '../../core/auth/auth_session_completion.dart';
+import '../../core/auth/google_auth_flow.dart';
 import '../../core/models/auth_models.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
-import '../../core/widgets/margem_background.dart';
+import '../../core/widgets/google_sign_in_button.dart';
 import '../../features/legal/auth_legal_footer.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -32,6 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _loading = false;
+  bool _googleLoading = false;
   bool _obscure = true;
 
   @override
@@ -153,61 +153,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _completeLogin(AuthSession session) async {
-    final l10n = context.l10n;
-    final auth = ref.read(authServiceProvider);
-    final prefs = await ref.read(sharedPreferencesProvider.future);
-    await auth.persistToken(prefs);
-
-    final storage = ref.read(appStorageProvider);
-    if (storage == null) {
-      throw ApiException('App storage is not ready. Please restart the app.');
-    }
-
-    final existing = storage.getSession();
-    var userSession = UserSession(
-      name: session.user.displayName.isNotEmpty
-          ? session.user.displayName
-          : l10n.returningUser,
-      email: session.user.email,
-      accountType: session.user.canSell ? AccountType.seller : AccountType.buyer,
-      city: AppConfig.launchCity,
-      businessName: existing?.businessName,
-      sellerId: existing?.sellerId,
+    await completeAuthenticatedSessionFromContext(
+      ref: ref,
+      context: context,
+      session: session,
     );
+  }
 
-    if (session.user.canSell || session.user.hasSellerProfile) {
-      try {
-        final seller = await apiServiceProvider.fetchMySeller();
-        userSession = userSession.copyWith(
-          accountType: AccountType.seller,
-          sellerId: seller.id,
-          businessName: seller.businessName,
-          city: seller.city,
-        );
-      } on ApiException {
-        // Seller may still need to complete onboarding profile creation.
-      }
+  Future<void> _signInWithGoogle() async {
+    if (_loading || _googleLoading) return;
+    setState(() => _googleLoading = true);
+    try {
+      await GoogleAuthFlow.start(context: context, ref: ref);
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
     }
-
-    final guestItems = guestFavoritesMigrationPayload(storage);
-    if (guestItems.isNotEmpty) {
-      await apiServiceProvider.migrateGuestFavorites(guestItems);
-      await storage.clearGuestFavorites();
-    }
-
-    await storage.saveSession(userSession);
-    if (userSession.hasSellerProfile &&
-        storage.getAppMode(session: userSession) == AppMode.buyer &&
-        session.user.accountType == 'seller') {
-      await storage.saveAppMode(AppMode.seller);
-    }
-    ref.read(userSessionProvider.notifier).state = userSession;
-    ref.read(authSessionProvider.notifier).state = session;
-    invalidateEntitlementProviders(ref);
-    syncLegalAcceptanceFromAuthUser(ref, session.user);
-
-    if (!mounted) return;
-    context.go(await resolveAuthenticatedDestination(ref, storage, userSession));
   }
 
   InputDecoration _fieldDecoration({
@@ -266,6 +226,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
               ),
               SizedBox(height: AppSpacing.xl),
+              GoogleSignInButton(
+                onPressed: (_loading || _googleLoading) ? null : _signInWithGoogle,
+                isLoading: _googleLoading,
+              ),
+              const AuthDivider(),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,

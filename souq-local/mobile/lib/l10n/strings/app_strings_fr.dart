@@ -131,6 +131,20 @@ class AppStringsFr extends AppStringsEn {
   @override
   String get logIn => 'Se connecter';
   @override
+  String get continueWithGoogle => 'Continuer avec Google';
+  @override
+  String get authDividerOr => 'ou';
+  @override
+  String get googleSignInFailed =>
+      'La connexion Google a échoué. Veuillez réessayer.';
+  @override
+  String get googleLinkAccountTitle => 'Associer votre compte';
+  @override
+  String googleLinkAccountMessage(String emailHint) =>
+      'Un compte existe déjà pour $emailHint. Saisissez votre mot de passe Dribex pour associer Google.';
+  @override
+  String get googleLinkAccountAction => 'Associer le compte';
+  @override
   String get enterEmailPassword =>
       'Veuillez saisir votre e-mail et votre mot de passe.';
   @override

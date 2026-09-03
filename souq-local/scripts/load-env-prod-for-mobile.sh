@@ -32,3 +32,8 @@ if [[ -z "${API_BASE_URL:-}" ]]; then
   API_BASE_URL="${API_BASE_URL:-https://api.dribex.ma}"
   export API_BASE_URL
 fi
+
+if [[ -z "${GOOGLE_OAUTH_CLIENT_ID:-}" ]]; then
+  GOOGLE_OAUTH_CLIENT_ID="$(_read_env_prod_var GOOGLE_OAUTH_CLIENT_ID || true)"
+  export GOOGLE_OAUTH_CLIENT_ID
+fi

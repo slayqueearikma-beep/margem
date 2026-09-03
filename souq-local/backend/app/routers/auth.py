@@ -31,6 +31,8 @@ from app.schemas import (
     SignupOtpSendResponse,
     SignupOtpVerifyRequest,
     TokenResponse,
+    GoogleAuthRequest,
+    GoogleLinkRequest,
     UserOut,
     UserRegister,
     UserRegisterFirebase,
@@ -52,6 +54,11 @@ from app.services.mfa import (
     verify_user_mfa,
 )
 from app.services.signup_verification import consume_signup_proof, send_signup_otp, verify_signup_otp
+from app.services.google_auth import (
+    link_google_to_existing_user,
+    resolve_google_auth,
+    verify_google_id_token,
+)
 from app.services.password_policy import validate_password_strength
 from app.services.security import (
     create_access_token,
@@ -321,6 +328,77 @@ async def login(
         )
 
     log_security_event("login_success", user_id=str(user.id))
+    return await _token_response(session, user, request)
+
+
+@router.post("/google", response_model=TokenResponse)
+@limiter.limit(settings.auth_rate_limit)
+async def google_auth(
+    request: Request,
+    payload: GoogleAuthRequest,
+    session: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    identity = verify_google_id_token(payload.id_token)
+    account_type = AccountType(payload.account_type.value)
+    outcome = await resolve_google_auth(
+        session,
+        identity,
+        account_type=account_type,
+        allow_create=True,
+    )
+
+    if outcome.kind == "link_required":
+        await session.rollback()
+        return TokenResponse(
+            link_required=True,
+            email_hint=outcome.email_hint,
+            expires_in=0,
+        )
+
+    assert outcome.user is not None
+    user = outcome.user
+    if user.mfa_enabled:
+        mfa_token = await _issue_auth_token(session, user.id, "mfa_challenge", minutes=5)
+        await session.commit()
+        log_security_event("google_auth_mfa_challenge", user_id=str(user.id))
+        return TokenResponse(
+            mfa_required=True,
+            mfa_token=mfa_token,
+            expires_in=300,
+            user=UserOut.from_user(user, has_seller_profile=False),
+        )
+
+    await record_successful_login(session, user)
+    log_security_event("google_auth_success", user_id=str(user.id))
+    return await _token_response(session, user, request)
+
+
+@router.post("/google/link", response_model=TokenResponse)
+@limiter.limit(settings.auth_rate_limit)
+async def google_link(
+    request: Request,
+    payload: GoogleLinkRequest,
+    session: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    identity = verify_google_id_token(payload.id_token)
+    user = await link_google_to_existing_user(
+        session,
+        identity,
+        password=payload.password,
+    )
+
+    if user.mfa_enabled:
+        mfa_token = await _issue_auth_token(session, user.id, "mfa_challenge", minutes=5)
+        await session.commit()
+        log_security_event("google_link_mfa_challenge", user_id=str(user.id))
+        return TokenResponse(
+            mfa_required=True,
+            mfa_token=mfa_token,
+            expires_in=300,
+            user=UserOut.from_user(user, has_seller_profile=False),
+        )
+
+    log_security_event("google_link_success", user_id=str(user.id))
     return await _token_response(session, user, request)
 
 

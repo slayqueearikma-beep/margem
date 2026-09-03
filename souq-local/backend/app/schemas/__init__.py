@@ -183,6 +183,24 @@ class TokenResponse(BaseModel):
     user: UserOut | None = None
     mfa_required: bool = False
     mfa_token: str | None = None
+    link_required: bool = False
+    email_hint: str | None = None
+
+
+class GoogleAuthRequest(BaseModel):
+    id_token: str = Field(min_length=20, max_length=8192)
+    account_type: AccountType = AccountType.CUSTOMER
+    display_name: str = Field(default="", max_length=120)
+
+    @field_validator("account_type", mode="before")
+    @classmethod
+    def normalize_account_type(cls, value):
+        return _normalize_account_type(value)
+
+
+class GoogleLinkRequest(BaseModel):
+    id_token: str = Field(min_length=20, max_length=8192)
+    password: str = Field(min_length=1, max_length=128)
 
 
 class MfaEnrollOut(BaseModel):

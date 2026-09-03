@@ -142,6 +142,12 @@ class AppConfig {
     defaultValue: '',
   );
 
+  /// Web OAuth client ID used for Google Sign-In ID tokens (serverClientId).
+  static const String googleOAuthClientId = String.fromEnvironment(
+    'GOOGLE_OAUTH_CLIENT_ID',
+    defaultValue: '',
+  );
+
   static bool get hasGoogleMapsApiKey {
     if (googleMapsApiKey.isNotEmpty &&
         googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY') {

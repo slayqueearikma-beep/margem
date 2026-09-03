@@ -28,8 +28,12 @@ from sqlalchemy.pool import NullPool
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def prepare_database():
+async def prepare_database(request):
     """Recreate the async engine per test so connections bind to the active event loop."""
+    if request.node.get_closest_marker("no_db"):
+        yield
+        return
+
     import app.database as database
     from app.config import settings
     from app.models import AdvertisingPackage, Base, SubscriptionPlan

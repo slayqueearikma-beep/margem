@@ -131,6 +131,19 @@ class AppStringsEn extends AppStrings {
   @override
   String get logIn => 'Log in';
   @override
+  String get continueWithGoogle => 'Continue with Google';
+  @override
+  String get authDividerOr => 'or';
+  @override
+  String get googleSignInFailed => 'Google sign-in failed. Please try again.';
+  @override
+  String get googleLinkAccountTitle => 'Link your account';
+  @override
+  String googleLinkAccountMessage(String emailHint) =>
+      'An account already exists for $emailHint. Enter your Dribex password to link Google Sign-In.';
+  @override
+  String get googleLinkAccountAction => 'Link account';
+  @override
   String get enterEmailPassword => 'Please enter your email and password.';
   @override
   String get email => 'Email';

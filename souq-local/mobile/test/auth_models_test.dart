@@ -29,4 +29,52 @@ void main() {
       expect(user.pendingLegalPolicies, hasLength(2));
     });
   });
+
+  group('GoogleSignInResult parsing', () {
+    test('parses link_required response', () {
+      final result = GoogleSignInResult.fromJson({
+        'link_required': true,
+        'email_hint': 'us***@example.com',
+        'expires_in': 0,
+      });
+
+      expect(result.linkRequired, isTrue);
+      expect(result.emailHint, 'us***@example.com');
+      expect(result.session, isNull);
+      expect(result.mfaRequired, isFalse);
+    });
+
+    test('parses mfa_required response', () {
+      final result = GoogleSignInResult.fromJson({
+        'mfa_required': true,
+        'mfa_token': 'mfa-token-abc',
+        'expires_in': 300,
+      });
+
+      expect(result.mfaRequired, isTrue);
+      expect(result.mfaToken, 'mfa-token-abc');
+      expect(result.session, isNull);
+    });
+
+    test('parses successful session response', () {
+      final result = GoogleSignInResult.fromJson({
+        'access_token': 'access',
+        'refresh_token': 'refresh',
+        'token_type': 'bearer',
+        'expires_in': 3600,
+        'user': {
+          'id': '00000000-0000-4000-8000-000000000001',
+          'email': 'google@example.com',
+          'account_type': 'customer',
+          'display_name': 'Google User',
+          'email_verified': true,
+        },
+      });
+
+      expect(result.linkRequired, isFalse);
+      expect(result.session, isNotNull);
+      expect(result.session!.accessToken, 'access');
+      expect(result.session!.user.email, 'google@example.com');
+    });
+  });
 }

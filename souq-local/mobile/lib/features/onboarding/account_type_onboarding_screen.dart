@@ -8,6 +8,8 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/design_system_components.dart';
+import '../../core/widgets/google_sign_in_button.dart';
+import '../../core/auth/google_auth_flow.dart';
 import '../../core/widgets/onboarding_scaffold.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -22,7 +24,10 @@ class AccountTypeOnboardingScreen extends ConsumerStatefulWidget {
 class _AccountTypeOnboardingScreenState
     extends ConsumerState<AccountTypeOnboardingScreen> {
   AccountType? _selected;
+  bool _googleLoading = false;
 
+  String get _accountTypeApiValue =>
+      _selected == AccountType.seller ? 'seller' : 'buyer';
   void _handleBack() {
     if (context.canPop()) {
       context.pop();
@@ -41,6 +46,21 @@ class _AccountTypeOnboardingScreenState
       context.push('/onboarding/buyer-register');
     } else if (_selected == AccountType.seller) {
       context.push('/onboarding/seller-register');
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    if (_googleLoading) return;
+    setState(() => _googleLoading = true);
+    try {
+      await GoogleAuthFlow.start(
+        context: context,
+        ref: ref,
+        accountType: _accountTypeApiValue,
+        markOnboardingComplete: true,
+      );
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
     }
   }
 
@@ -83,7 +103,13 @@ class _AccountTypeOnboardingScreenState
             showLogo: true,
             centered: true,
           ),
-          SizedBox(height: AppSpacing.xl),
+          SizedBox(height: AppSpacing.lg),
+          GoogleSignInButton(
+            onPressed: _googleLoading ? null : _signInWithGoogle,
+            isLoading: _googleLoading,
+          ),
+          const AuthDivider(),
+          SizedBox(height: AppSpacing.md),
           AppSectionLabel(label: l10n.accountTypeSectionLabel),
           SizedBox(height: AppSpacing.md),
           AccountTypeCard(

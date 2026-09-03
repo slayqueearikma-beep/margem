@@ -143,6 +143,8 @@ _LEGAL_ACCEPTANCE_EXEMPT_EXACT = (
     "/auth/refresh",
     "/auth/register",
     "/auth/login",
+    "/auth/google",
+    "/auth/google/link",
     "/auth/register-firebase",
     "/auth/signup/otp/send",
     "/auth/signup/otp/verify",

@@ -123,11 +123,43 @@ class AuthSession {
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
     return AuthSession(
-      accessToken: json['access_token'] as String,
-      refreshToken: json['refresh_token'] as String,
+      accessToken: json['access_token'] as String? ?? '',
+      refreshToken: json['refresh_token'] as String? ?? '',
       expiresIn: json['expires_in'] as int? ?? 3600,
       user: AuthUser.fromJson(json['user'] as Map<String, dynamic>),
     );
+  }
+}
+
+class GoogleSignInResult {
+  const GoogleSignInResult({
+    this.session,
+    this.linkRequired = false,
+    this.emailHint,
+    this.mfaRequired = false,
+    this.mfaToken,
+  });
+
+  final AuthSession? session;
+  final bool linkRequired;
+  final String? emailHint;
+  final bool mfaRequired;
+  final String? mfaToken;
+
+  factory GoogleSignInResult.fromJson(Map<String, dynamic> json) {
+    if (json['link_required'] == true) {
+      return GoogleSignInResult(
+        linkRequired: true,
+        emailHint: json['email_hint'] as String?,
+      );
+    }
+    if (json['mfa_required'] == true) {
+      return GoogleSignInResult(
+        mfaRequired: true,
+        mfaToken: json['mfa_token'] as String?,
+      );
+    }
+    return GoogleSignInResult(session: AuthSession.fromJson(json));
   }
 }
 

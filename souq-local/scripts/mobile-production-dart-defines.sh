@@ -11,6 +11,7 @@ source "$SCRIPT_DIR/load-env-prod-for-mobile.sh"
 API_URL="${API_BASE_URL:-https://api.dribex.ma}"
 PRIVACY="${PRIVACY_POLICY_URL:-${API_URL}/legal/fr/privacy}"
 MAPS_KEY="${GOOGLE_MAPS_API_KEY:-}"
+GOOGLE_OAUTH_ID="${GOOGLE_OAUTH_CLIENT_ID:-}"
 SENTRY_VERIFY="${SENTRY_VERIFY_TEST:-}"
 
 mobile_production_dart_defines() {
@@ -25,6 +26,9 @@ mobile_production_dart_defines() {
   fi
   if [[ -n "$MAPS_KEY" ]]; then
     MOBILE_DART_DEFINES+=("--dart-define=GOOGLE_MAPS_API_KEY=${MAPS_KEY}")
+  fi
+  if [[ -n "$GOOGLE_OAUTH_ID" ]]; then
+    MOBILE_DART_DEFINES+=("--dart-define=GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_ID}")
   fi
   if [[ -n "$SENTRY_VERIFY" ]]; then
     MOBILE_DART_DEFINES+=("--dart-define=SENTRY_VERIFY_TEST=${SENTRY_VERIFY}")
