@@ -1,4 +1,4 @@
-@description('Azure region for all MarGem resources')
+@description('Azure region for all Dribex resources')
 param location string = resourceGroup().location
 
 @description('Environment name: dev, staging, prod')
@@ -20,30 +20,23 @@ param jwtSecretKey string
 @secure()
 param uploadTokenSecret string
 
-@description('SMTP host for transactional email')
-param smtpHost string
-
-@description('SMTP port')
-param smtpPort int = 587
-
-@description('SMTP username')
+@description('Brevo API key for transactional email')
 @secure()
-param smtpUsername string = ''
+param brevoApiKey string
 
-@description('SMTP password')
-@secure()
-param smtpPassword string = ''
+@description('Verified Brevo sender email address')
+param brevoSenderEmail string = 'noreply@dribex.ma'
 
-@description('SMTP from address')
-param smtpFrom string = 'MarGem <noreply@margem.ma>'
+@description('Brevo sender display name')
+param brevoSenderName string = 'Dribex'
 
 @description('Public app URL used in email deep links')
-param publicAppUrl string = 'https://margem.ma'
+param publicAppUrl string = 'https://dribex.ma'
 
 @description('Public API URL')
-param publicApiUrl string = 'https://api.margem.ma'
+param publicApiUrl string = 'https://api.dribex.ma'
 
-@description('Container image for the MarGem API (ACR or Docker Hub)')
+@description('Container image for the Dribex API (ACR or Docker Hub)')
 param apiImage string = 'margemapi:latest'
 
 var namePrefix = 'margem-${environmentName}'
@@ -168,8 +161,8 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storage.listKeys().keys[0].value}'
         }
         {
-          name: 'smtp-password'
-          value: smtpPassword
+          name: 'brevo-api-key'
+          value: brevoApiKey
         }
       ]
     }
@@ -191,18 +184,16 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'UPLOAD_TOKEN_SECRET', secretRef: 'upload-token-secret' }
             { name: 'AZURE_STORAGE_CONNECTION_STRING', secretRef: 'storage-conn' }
             { name: 'AZURE_STORAGE_CONTAINER', value: 'margem-media' }
-            { name: 'CORS_ORIGINS', value: '["https://margem.ma"]' }
-            { name: 'ALLOWED_HOSTS', value: 'api.margem.ma,localhost,127.0.0.1' }
+            { name: 'CORS_ORIGINS', value: '["https://dribex.ma"]' }
+            { name: 'ALLOWED_HOSTS', value: 'api.dribex.ma,dribex.ma,www.dribex.ma,qr.dribex.ma' }
             { name: 'AUTH_RATE_LIMIT', value: '30/minute' }
             { name: 'RATE_LIMIT', value: '300/minute' }
             { name: 'PUBLIC_APP_URL', value: publicAppUrl }
             { name: 'PUBLIC_API_URL', value: publicApiUrl }
-            { name: 'SMTP_HOST', value: smtpHost }
-            { name: 'SMTP_PORT', value: string(smtpPort) }
-            { name: 'SMTP_USERNAME', value: smtpUsername }
-            { name: 'SMTP_PASSWORD', secretRef: 'smtp-password' }
-            { name: 'SMTP_FROM', value: smtpFrom }
-            { name: 'SMTP_USE_TLS', value: 'true' }
+            { name: 'EMAIL_PROVIDER', value: 'brevo' }
+            { name: 'BREVO_API_KEY', secretRef: 'brevo-api-key' }
+            { name: 'BREVO_SENDER_EMAIL', value: brevoSenderEmail }
+            { name: 'BREVO_SENDER_NAME', value: brevoSenderName }
             { name: 'ALLOW_INSECURE_EMAIL_FALLBACK', value: 'false' }
           ]
         }

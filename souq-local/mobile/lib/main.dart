@@ -11,29 +11,28 @@ Future<void> main() async {
 
   // Config-only base URL — never render it in the UI.
   if (kDebugMode) {
-    debugPrint('MarGem API_BASE_URL=${AppConfig.apiBaseUrl}');
+    debugPrint('Dribex API_BASE_URL=${AppConfig.apiBaseUrl}');
   }
 
-  // Release/production builds must not ship with cleartext or emulator defaults.
+  // Release/production builds validate API_BASE_URL during AppConfig initialization.
+  // Keep a defense-in-depth guard for profile/release where asserts are stripped.
   if (AppConfig.isProduction || kReleaseMode) {
-    final api = AppConfig.apiBaseUrl;
-    if (!api.startsWith('https://')) {
-      throw StateError(
-        'Release/PRODUCTION builds require HTTPS API_BASE_URL. Got: $api',
-      );
-    }
+    AppConfig.validateReleaseApiBaseUrl(
+      AppConfig.apiBaseUrl,
+      productionFlag: AppConfig.isProduction,
+    );
   }
 
-  await CrashReporting.ensureInitialized();
+  await CrashReporting.bootstrap(() async {
+    FlutterError.onError = (details) {
+      CrashReporting.recordFlutterError(details);
+      FlutterError.presentError(details);
+    };
+    PlatformDispatcher.instance.onError = (error, stack) {
+      CrashReporting.recordError(error, stack, fatal: true);
+      return true;
+    };
 
-  FlutterError.onError = (details) {
-    CrashReporting.recordFlutterError(details);
-    FlutterError.presentError(details);
-  };
-  PlatformDispatcher.instance.onError = (error, stack) {
-    CrashReporting.recordError(error, stack, fatal: true);
-    return true;
-  };
-
-  runApp(const ProviderScope(child: MarGemApp()));
+    runApp(const ProviderScope(child: MarGemApp()));
+  });
 }

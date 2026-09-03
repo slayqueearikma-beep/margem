@@ -6,3 +6,7 @@
 -dontwarn com.google.android.play.core.splitcompat.SplitCompatApplication
 -dontwarn com.google.android.play.core.splitinstall.**
 -dontwarn com.google.android.play.core.tasks.**
+
+# Sentry (release minify)
+-keep class io.sentry.** { *; }
+-dontwarn io.sentry.**

@@ -43,9 +43,9 @@ resource "azurerm_key_vault_secret" "storage_connection" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
-resource "azurerm_key_vault_secret" "smtp_password" {
-  name         = "smtp-password"
-  value        = var.smtp_password
+resource "azurerm_key_vault_secret" "brevo_api_key" {
+  name         = "brevo-api-key"
+  value        = var.brevo_api_key
   key_vault_id = azurerm_key_vault.kv.id
 }
 
