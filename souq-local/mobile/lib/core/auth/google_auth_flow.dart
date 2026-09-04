@@ -168,7 +168,7 @@ class GoogleAuthFlow {
 
   /// Maps unexpected Google auth errors to user-facing copy (for tests).
   @visibleForTesting
-  static String messageForError(Object error, AppLocalizations l10n) {
+  static String messageForError(Object error, AppStrings l10n) {
     if (error is GoogleSignInNotConfiguredException) {
       return l10n.googleSignInNotConfigured;
     }
