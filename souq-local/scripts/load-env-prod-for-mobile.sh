@@ -47,3 +47,8 @@ if [[ -z "${GOOGLE_OAUTH_CLIENT_ID:-}" ]]; then
   fi
 fi
 export GOOGLE_OAUTH_CLIENT_ID
+
+if [[ -z "${GOOGLE_OAUTH_CLIENT_IDS:-}" ]]; then
+  GOOGLE_OAUTH_CLIENT_IDS="$(_read_env_prod_var GOOGLE_OAUTH_CLIENT_IDS || true)"
+  export GOOGLE_OAUTH_CLIENT_IDS
+fi

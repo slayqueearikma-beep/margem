@@ -50,3 +50,12 @@ if [[ "${1:-}" == "--check-sentry" ]]; then
   echo "SENTRY_DSN: not configured (set in environment or $ENV_FILE)" >&2
   exit 1
 fi
+
+if [[ "${1:-}" == "--check-google-oauth" ]]; then
+  if [[ -n "$GOOGLE_OAUTH_ID" ]]; then
+    echo "GOOGLE_OAUTH_CLIENT_ID: configured"
+    exit 0
+  fi
+  echo "GOOGLE_OAUTH_CLIENT_ID: not configured (set in environment or $ENV_FILE)" >&2
+  exit 1
+fi

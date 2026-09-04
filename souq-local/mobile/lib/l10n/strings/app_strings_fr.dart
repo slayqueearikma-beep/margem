@@ -139,10 +139,13 @@ class AppStringsFr extends AppStringsEn {
       'La connexion Google a échoué. Veuillez réessayer.';
   @override
   String get googleSignInNotConfigured =>
-      'La connexion Google n\'est pas configurée pour cette version de l\'application. Utilisez la dernière version de production ou contactez le support.';
+      'La connexion Google est absente de cette version. Sur l\'ordinateur où vous lancez Flutter, ajoutez GOOGLE_OAUTH_CLIENT_ID dans infra/onprem/.env.prod, puis reconstruisez avec ./scripts/flutter-production-run.sh';
   @override
   String get googleSignInNoIdToken =>
-      'Google n\'a pas renvoyé de jeton de connexion. Mettez à jour Google Play Services et réessayez.';
+      'Google n\'a pas renvoyé de jeton. Dans Google Cloud Console, ajoutez un client OAuth Android pour le package com.margem.app avec l\'empreinte SHA-1, et utilisez l\'ID client Web comme GOOGLE_OAUTH_CLIENT_ID.';
+  @override
+  String get googleSignInDeveloperError =>
+      'OAuth Google mal configuré. Créez un client OAuth Web et un client Android (package com.margem.app + SHA-1), puis définissez GOOGLE_OAUTH_CLIENT_ID avec l\'ID client Web.';
   @override
   String get googleLinkAccountTitle => 'Associer votre compte';
   @override

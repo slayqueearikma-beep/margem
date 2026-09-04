@@ -120,6 +120,13 @@ class GoogleAuthFlow {
         title: l10n.somethingWentWrong,
         message: l10n.googleSignInNoIdToken,
       );
+    } on GoogleSignInDeveloperException {
+      if (!context.mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.googleSignInDeveloperError,
+      );
     } on MfaRequiredException catch (mfa) {
       if (!context.mounted) return;
       final code = await _promptMfaCode(context);
@@ -144,12 +151,14 @@ class GoogleAuthFlow {
         title: l10n.somethingWentWrong,
         message: error.message.isNotEmpty ? error.message : l10n.googleSignInFailed,
       );
-    } on PlatformException {
+    } on PlatformException catch (error) {
       if (!context.mounted) return;
       await showAppErrorDialog(
         context,
         title: l10n.somethingWentWrong,
-        message: l10n.googleSignInFailed,
+        message: GoogleSignInHelper.isDeveloperMisconfiguration(error)
+            ? l10n.googleSignInDeveloperError
+            : l10n.googleSignInFailed,
       );
     } on Object catch (error, stack) {
       CrashReporting.recordError(
@@ -174,6 +183,9 @@ class GoogleAuthFlow {
     }
     if (error is GoogleSignInNoIdTokenException) {
       return l10n.googleSignInNoIdToken;
+    }
+    if (error is GoogleSignInDeveloperException) {
+      return l10n.googleSignInDeveloperError;
     }
     if (error is ApiException) {
       return error.message.isNotEmpty ? error.message : l10n.googleSignInFailed;

@@ -16,6 +16,12 @@ class GoogleSignInNoIdTokenException implements Exception {
   const GoogleSignInNoIdTokenException();
 }
 
+class GoogleSignInDeveloperException implements Exception {
+  const GoogleSignInDeveloperException([this.detail = '']);
+
+  final String detail;
+}
+
 class GoogleSignInHelper {
   GoogleSignInHelper._();
 
@@ -53,9 +59,21 @@ class GoogleSignInHelper {
           error.message?.toLowerCase().contains('cancel') == true) {
         throw const GoogleSignInCancelledException();
       }
+      if (isDeveloperMisconfiguration(error)) {
+        throw GoogleSignInDeveloperException(error.message ?? error.code);
+      }
       rethrow;
     }
   }
+
+  static bool isDeveloperMisconfiguration(PlatformException error) {
+    const developerCodes = {'10', '12500', 'developer_error'};
+    if (developerCodes.contains(error.code)) return true;
+    final message = (error.message ?? '').toLowerCase();
+    return message.contains('developer_error') ||
+        message.contains('misconfigured') ||
+        message.contains('invalid_client') ||
+        message.contains('configuration');
 
   static Future<void> signOut() async {
     try {

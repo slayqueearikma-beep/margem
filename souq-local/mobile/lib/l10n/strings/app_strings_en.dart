@@ -138,10 +138,13 @@ class AppStringsEn extends AppStrings {
   String get googleSignInFailed => 'Google sign-in failed. Please try again.';
   @override
   String get googleSignInNotConfigured =>
-      'Google Sign-In is not set up for this app build. Use the latest production build or contact support.';
+      'Google Sign-In is missing from this app build. On the computer where you run Flutter, add GOOGLE_OAUTH_CLIENT_ID to infra/onprem/.env.prod, then rebuild with ./scripts/flutter-production-run.sh';
   @override
   String get googleSignInNoIdToken =>
-      'Google did not return a sign-in token. Update Google Play Services and try again.';
+      'Google did not return a sign-in token. In Google Cloud Console, add an Android OAuth client for package com.margem.app with your app SHA-1 fingerprint, and use the Web client ID as GOOGLE_OAUTH_CLIENT_ID.';
+  @override
+  String get googleSignInDeveloperError =>
+      'Google OAuth is misconfigured. In Google Cloud Console, create a Web OAuth client and an Android OAuth client (package com.margem.app + SHA-1), then set GOOGLE_OAUTH_CLIENT_ID to the Web client ID.';
   @override
   String get googleLinkAccountTitle => 'Link your account';
   @override

@@ -40,6 +40,13 @@ void main() {
         ),
         l10n.googleSignInNoIdToken,
       );
+      expect(
+        GoogleAuthFlow.messageForError(
+          const GoogleSignInDeveloperException('10'),
+          l10n,
+        ),
+        l10n.googleSignInDeveloperError,
+      );
     });
 
     test('maps ApiException to its message', () {

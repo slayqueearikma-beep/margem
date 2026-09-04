@@ -68,6 +68,7 @@ abstract class AppStrings {
   String get googleSignInFailed;
   String get googleSignInNotConfigured;
   String get googleSignInNoIdToken;
+  String get googleSignInDeveloperError;
   String get googleLinkAccountTitle;
   String googleLinkAccountMessage(String emailHint);
   String get googleLinkAccountAction;

@@ -137,10 +137,13 @@ class AppStringsAr extends AppStringsEn {
       'فشل تسجيل الدخول عبر Google. يُرجى المحاولة مرة أخرى.';
   @override
   String get googleSignInNotConfigured =>
-      'تسجيل الدخول عبر Google غير مهيأ لهذا الإصدار من التطبيق. استخدم أحدث إصدار إنتاج أو تواصل مع الدعم.';
+      'تسجيل الدخول عبر Google غير مضمّن في هذا الإصدار. على جهازك الذي تشغّل عليه Flutter، أضف GOOGLE_OAUTH_CLIENT_ID إلى infra/onprem/.env.prod ثم أعد البناء عبر ./scripts/flutter-production-run.sh';
   @override
   String get googleSignInNoIdToken =>
-      'لم يُرجع Google رمز تسجيل الدخول. حدّث Google Play Services ثم أعد المحاولة.';
+      'لم يُرجع Google رمز تسجيل الدخول. في Google Cloud Console، أضف عميل OAuth لـ Android للحزمة com.margem.app مع بصمة SHA-1، واستخدم معرّف عميل Web كـ GOOGLE_OAUTH_CLIENT_ID.';
+  @override
+  String get googleSignInDeveloperError =>
+      'OAuth Google غير مهيأ بشكل صحيح. أنشئ عميل Web وعميل Android (com.margem.app + SHA-1)، ثم عيّن GOOGLE_OAUTH_CLIENT_ID بمعرّف عميل Web.';
   @override
   String get googleLinkAccountTitle => 'ربط حسابك';
   @override
