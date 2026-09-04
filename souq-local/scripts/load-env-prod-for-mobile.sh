@@ -35,5 +35,15 @@ fi
 
 if [[ -z "${GOOGLE_OAUTH_CLIENT_ID:-}" ]]; then
   GOOGLE_OAUTH_CLIENT_ID="$(_read_env_prod_var GOOGLE_OAUTH_CLIENT_ID || true)"
-  export GOOGLE_OAUTH_CLIENT_ID
 fi
+if [[ -z "${GOOGLE_OAUTH_CLIENT_ID:-}" ]]; then
+  # Mobile uses the Web OAuth client ID (serverClientId). Fall back to the first
+  # entry in GOOGLE_OAUTH_CLIENT_IDS when a dedicated mobile define is omitted.
+  local_ids="$(_read_env_prod_var GOOGLE_OAUTH_CLIENT_IDS || true)"
+  if [[ -n "$local_ids" ]]; then
+    GOOGLE_OAUTH_CLIENT_ID="${local_ids%%,*}"
+    GOOGLE_OAUTH_CLIENT_ID="${GOOGLE_OAUTH_CLIENT_ID#"${GOOGLE_OAUTH_CLIENT_ID%%[![:space:]]*}"}"
+    GOOGLE_OAUTH_CLIENT_ID="${GOOGLE_OAUTH_CLIENT_ID%"${GOOGLE_OAUTH_CLIENT_ID##*[![:space:]]}"}"
+  fi
+fi
+export GOOGLE_OAUTH_CLIENT_ID
