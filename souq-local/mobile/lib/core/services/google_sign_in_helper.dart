@@ -74,6 +74,7 @@ class GoogleSignInHelper {
         message.contains('misconfigured') ||
         message.contains('invalid_client') ||
         message.contains('configuration');
+  }
 
   static Future<void> signOut() async {
     try {
