@@ -7,6 +7,7 @@ import '../models/auth_models.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/google_sign_in_helper.dart';
+import '../services/crash_reporting.dart';
 import '../widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -105,6 +106,20 @@ class GoogleAuthFlow {
       );
     } on GoogleSignInCancelledException {
       return;
+    } on GoogleSignInNotConfiguredException {
+      if (!context.mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.googleSignInNotConfigured,
+      );
+    } on GoogleSignInNoIdTokenException {
+      if (!context.mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.googleSignInNoIdToken,
+      );
     } on MfaRequiredException catch (mfa) {
       if (!context.mounted) return;
       final code = await _promptMfaCode(context);
@@ -136,14 +151,34 @@ class GoogleAuthFlow {
         title: l10n.somethingWentWrong,
         message: l10n.googleSignInFailed,
       );
-    } on Object {
+    } on Object catch (error, stack) {
+      CrashReporting.recordError(
+        error,
+        stack,
+        context: 'GoogleAuthFlow.start',
+      );
       if (!context.mounted) return;
       await showAppErrorDialog(
         context,
         title: l10n.somethingWentWrong,
-        message: l10n.serverUnreachable,
+        message: l10n.googleSignInFailed,
       );
     }
+  }
+
+  /// Maps unexpected Google auth errors to user-facing copy (for tests).
+  @visibleForTesting
+  static String messageForError(Object error, AppLocalizations l10n) {
+    if (error is GoogleSignInNotConfiguredException) {
+      return l10n.googleSignInNotConfigured;
+    }
+    if (error is GoogleSignInNoIdTokenException) {
+      return l10n.googleSignInNoIdToken;
+    }
+    if (error is ApiException) {
+      return error.message.isNotEmpty ? error.message : l10n.googleSignInFailed;
+    }
+    return l10n.googleSignInFailed;
   }
 
   static Future<void> _finish(

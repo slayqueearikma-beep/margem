@@ -148,6 +148,9 @@ class AppConfig {
     defaultValue: '',
   );
 
+  static bool get hasGoogleOAuthClientId =>
+      googleOAuthClientId.trim().isNotEmpty;
+
   static bool get hasGoogleMapsApiKey {
     if (googleMapsApiKey.isNotEmpty &&
         googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY') {

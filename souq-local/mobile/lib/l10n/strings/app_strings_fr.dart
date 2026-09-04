@@ -138,6 +138,12 @@ class AppStringsFr extends AppStringsEn {
   String get googleSignInFailed =>
       'La connexion Google a échoué. Veuillez réessayer.';
   @override
+  String get googleSignInNotConfigured =>
+      'La connexion Google n\'est pas configurée pour cette version de l\'application. Utilisez la dernière version de production ou contactez le support.';
+  @override
+  String get googleSignInNoIdToken =>
+      'Google n\'a pas renvoyé de jeton de connexion. Mettez à jour Google Play Services et réessayez.';
+  @override
   String get googleLinkAccountTitle => 'Associer votre compte';
   @override
   String googleLinkAccountMessage(String emailHint) =>

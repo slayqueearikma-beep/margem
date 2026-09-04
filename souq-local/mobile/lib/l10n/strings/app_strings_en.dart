@@ -137,6 +137,12 @@ class AppStringsEn extends AppStrings {
   @override
   String get googleSignInFailed => 'Google sign-in failed. Please try again.';
   @override
+  String get googleSignInNotConfigured =>
+      'Google Sign-In is not set up for this app build. Use the latest production build or contact support.';
+  @override
+  String get googleSignInNoIdToken =>
+      'Google did not return a sign-in token. Update Google Play Services and try again.';
+  @override
   String get googleLinkAccountTitle => 'Link your account';
   @override
   String googleLinkAccountMessage(String emailHint) =>

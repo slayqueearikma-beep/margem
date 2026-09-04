@@ -37,6 +37,11 @@ mobile_production_dart_defines() {
 
 mobile_production_dart_defines
 
+if [[ -z "$GOOGLE_OAUTH_ID" ]]; then
+  echo "WARNING: GOOGLE_OAUTH_CLIENT_ID is not set — Google Sign-In will fail on device." >&2
+  echo "  Add GOOGLE_OAUTH_CLIENT_ID to ${ENV_FILE} or export it before running." >&2
+fi
+
 if [[ "${1:-}" == "--check-sentry" ]]; then
   if [[ -n "${SENTRY_DSN:-}" ]]; then
     echo "SENTRY_DSN: configured"

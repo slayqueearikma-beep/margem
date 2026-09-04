@@ -8,6 +8,14 @@ class GoogleSignInCancelledException implements Exception {
   const GoogleSignInCancelledException();
 }
 
+class GoogleSignInNotConfiguredException implements Exception {
+  const GoogleSignInNotConfiguredException();
+}
+
+class GoogleSignInNoIdTokenException implements Exception {
+  const GoogleSignInNoIdTokenException();
+}
+
 class GoogleSignInHelper {
   GoogleSignInHelper._();
 
@@ -25,7 +33,7 @@ class GoogleSignInHelper {
 
   static Future<String> signInAndGetIdToken() async {
     if (AppConfig.googleOAuthClientId.isEmpty) {
-      throw StateError('Google Sign-In is not configured for this build.');
+      throw const GoogleSignInNotConfiguredException();
     }
 
     try {
@@ -36,7 +44,7 @@ class GoogleSignInHelper {
       final auth = await account.authentication;
       final idToken = auth.idToken;
       if (idToken == null || idToken.isEmpty) {
-        throw StateError('Google did not return an ID token.');
+        throw const GoogleSignInNoIdTokenException();
       }
       return idToken;
     } on PlatformException catch (error) {

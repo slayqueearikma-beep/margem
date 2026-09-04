@@ -136,6 +136,12 @@ class AppStringsAr extends AppStringsEn {
   String get googleSignInFailed =>
       'فشل تسجيل الدخول عبر Google. يُرجى المحاولة مرة أخرى.';
   @override
+  String get googleSignInNotConfigured =>
+      'تسجيل الدخول عبر Google غير مهيأ لهذا الإصدار من التطبيق. استخدم أحدث إصدار إنتاج أو تواصل مع الدعم.';
+  @override
+  String get googleSignInNoIdToken =>
+      'لم يُرجع Google رمز تسجيل الدخول. حدّث Google Play Services ثم أعد المحاولة.';
+  @override
   String get googleLinkAccountTitle => 'ربط حسابك';
   @override
   String googleLinkAccountMessage(String emailHint) =>
