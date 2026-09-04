@@ -13,14 +13,40 @@ import '../../l10n/app_localizations.dart';
 class GoogleAuthFlow {
   GoogleAuthFlow._();
 
+  /// Returns `buyer` or `seller` for Google auth, or null when [accountType] is missing/unknown.
+  static String? normalizeRegistrationAccountType(String accountType) {
+    final raw = accountType.trim().toLowerCase();
+    switch (raw) {
+      case 'buyer':
+      case 'customer':
+        return 'buyer';
+      case 'seller':
+      case 'provider':
+        return 'seller';
+      default:
+        return null;
+    }
+  }
+
   static Future<void> start({
     required BuildContext context,
     required WidgetRef ref,
-    String accountType = 'buyer',
+    required String accountType,
     bool markOnboardingComplete = false,
     void Function(AuthSession session)? onNewSellerAccount,
   }) async {
     final l10n = context.l10n;
+    final normalizedAccountType = normalizeRegistrationAccountType(accountType);
+    if (normalizedAccountType == null) {
+      if (!context.mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: l10n.chooseAccountTypeSubtitle,
+      );
+      return;
+    }
+
     final auth = ref.read(authServiceProvider);
 
     try {
@@ -28,7 +54,7 @@ class GoogleAuthFlow {
       final idToken = await GoogleSignInHelper.signInAndGetIdToken();
       var result = await auth.signInWithGoogle(
         idToken: idToken,
-        accountType: accountType,
+        accountType: normalizedAccountType,
       );
 
       if (result.linkRequired) {
@@ -57,7 +83,7 @@ class GoogleAuthFlow {
           context,
           ref,
           session,
-          accountType,
+          normalizedAccountType,
           onNewSellerAccount,
           markOnboardingComplete: markOnboardingComplete,
         );
@@ -73,7 +99,7 @@ class GoogleAuthFlow {
         context,
         ref,
         session,
-        accountType,
+        normalizedAccountType,
         onNewSellerAccount,
         markOnboardingComplete: markOnboardingComplete,
       );
@@ -92,7 +118,7 @@ class GoogleAuthFlow {
         context,
         ref,
         session,
-        accountType,
+        normalizedAccountType,
         onNewSellerAccount,
         markOnboardingComplete: markOnboardingComplete,
       );
@@ -128,7 +154,7 @@ class GoogleAuthFlow {
     void Function(AuthSession session)? onNewSellerAccount, {
     bool markOnboardingComplete = false,
   }) async {
-    final isSellerIntent = accountType == 'seller' || accountType == 'provider';
+    final isSellerIntent = accountType == 'seller';
     final sellerOnboarding = isSellerIntent && !session.user.hasSellerProfile;
 
     if (sellerOnboarding && onNewSellerAccount != null) {

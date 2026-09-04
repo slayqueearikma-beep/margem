@@ -165,7 +165,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (_loading || _googleLoading) return;
     setState(() => _googleLoading = true);
     try {
-      await GoogleAuthFlow.start(context: context, ref: ref);
+      await GoogleAuthFlow.start(
+        context: context,
+        ref: ref,
+        accountType: 'buyer',
+      );
     } finally {
       if (mounted) setState(() => _googleLoading = false);
     }
