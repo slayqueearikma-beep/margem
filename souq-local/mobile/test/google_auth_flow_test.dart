@@ -57,6 +57,13 @@ void main() {
         ),
         'Cannot reach the server.',
       );
+      expect(
+        GoogleAuthFlow.messageForError(
+          ApiException('Invalid Google credential', statusCode: 401),
+          l10n,
+        ),
+        l10n.googleSignInInvalidCredential,
+      );
     });
 
     test('falls back to googleSignInFailed for unknown errors', () {

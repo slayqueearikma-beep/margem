@@ -147,6 +147,9 @@ class AppStringsFr extends AppStringsEn {
   String get googleSignInDeveloperError =>
       'OAuth Google mal configuré. Créez un client OAuth Web et un client Android (package com.margem.app + SHA-1), puis définissez GOOGLE_OAUTH_CLIENT_ID avec l\'ID client Web.';
   @override
+  String get googleSignInInvalidCredential =>
+      'Google a accepté la connexion, mais le serveur a rejeté le jeton. Utilisez l\'ID client OAuth Web (pas l\'ID Android seul) dans GOOGLE_OAUTH_CLIENT_ID et GOOGLE_OAUTH_CLIENT_IDS, puis recréez le conteneur API.';
+  @override
   String get googleLinkAccountTitle => 'Associer votre compte';
   @override
   String googleLinkAccountMessage(String emailHint) =>

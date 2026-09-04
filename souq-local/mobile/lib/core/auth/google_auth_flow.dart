@@ -144,21 +144,29 @@ class GoogleAuthFlow {
         onNewSellerAccount,
         markOnboardingComplete: markOnboardingComplete,
       );
-    } on ApiException catch (error) {
-      if (!context.mounted) return;
-      await showAppErrorDialog(
-        context,
-        title: l10n.somethingWentWrong,
-        message: error.message.isNotEmpty ? error.message : l10n.googleSignInFailed,
+    } on ApiException catch (error, stack) {
+      CrashReporting.recordError(
+        error,
+        stack,
+        context: 'GoogleAuthFlow.api:${error.statusCode ?? 0}',
       );
-    } on PlatformException catch (error) {
       if (!context.mounted) return;
       await showAppErrorDialog(
         context,
         title: l10n.somethingWentWrong,
-        message: GoogleSignInHelper.isDeveloperMisconfiguration(error)
-            ? l10n.googleSignInDeveloperError
-            : l10n.googleSignInFailed,
+        message: _apiErrorMessage(error, l10n),
+      );
+    } on PlatformException catch (error, stack) {
+      CrashReporting.recordError(
+        error,
+        stack,
+        context: 'GoogleAuthFlow.platform:${error.code}',
+      );
+      if (!context.mounted) return;
+      await showAppErrorDialog(
+        context,
+        title: l10n.somethingWentWrong,
+        message: GoogleSignInHelper.userMessageForPlatformException(error, l10n),
       );
     } on Object catch (error, stack) {
       CrashReporting.recordError(
@@ -188,9 +196,25 @@ class GoogleAuthFlow {
       return l10n.googleSignInDeveloperError;
     }
     if (error is ApiException) {
-      return error.message.isNotEmpty ? error.message : l10n.googleSignInFailed;
+      return _apiErrorMessage(error, l10n);
     }
     return l10n.googleSignInFailed;
+  }
+
+  static String _apiErrorMessage(ApiException error, AppStrings l10n) {
+    final message = error.message.trim();
+    if (message.isEmpty) return l10n.googleSignInFailed;
+
+    final lower = message.toLowerCase();
+    if (error.statusCode == 401 &&
+        (lower.contains('invalid google credential') ||
+            lower.contains('google email address is not verified'))) {
+      return l10n.googleSignInInvalidCredential;
+    }
+    if (error.statusCode == 503 && lower.contains('not configured')) {
+      return l10n.googleSignInNotConfigured;
+    }
+    return message;
   }
 
   static Future<void> _finish(

@@ -145,6 +145,9 @@ class AppStringsAr extends AppStringsEn {
   String get googleSignInDeveloperError =>
       'OAuth Google غير مهيأ بشكل صحيح. أنشئ عميل Web وعميل Android (com.margem.app + SHA-1)، ثم عيّن GOOGLE_OAUTH_CLIENT_ID بمعرّف عميل Web.';
   @override
+  String get googleSignInInvalidCredential =>
+      'قبل Google تسجيل الدخول لكن الخادم رفض الرمز. استخدم معرّف عميل OAuth Web (وليس معرّف Android فقط) في GOOGLE_OAUTH_CLIENT_ID و GOOGLE_OAUTH_CLIENT_IDS، ثم أعد إنشاء حاوية API.';
+  @override
   String get googleLinkAccountTitle => 'ربط حسابك';
   @override
   String googleLinkAccountMessage(String emailHint) =>

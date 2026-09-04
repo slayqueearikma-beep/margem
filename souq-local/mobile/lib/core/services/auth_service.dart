@@ -93,6 +93,13 @@ class AuthService {
       'account_type': accountType,
       if (displayName.isNotEmpty) 'display_name': displayName,
     });
+    if (response['link_required'] != true &&
+        response['mfa_required'] != true &&
+        response['user'] is! Map<String, dynamic>) {
+      throw ApiException(
+        'Google sign-in response was incomplete. Try again.',
+      );
+    }
     final result = GoogleSignInResult.fromJson(response);
     if (result.session != null) {
       await _saveSession(result.session!);

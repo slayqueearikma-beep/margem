@@ -67,11 +67,11 @@ def verify_google_id_token(id_token: str) -> GoogleIdentity:
             last_error = exc
             continue
 
-    if idinfo is None:
+    if (idinfo is None:
         log_security_event("google_auth_invalid_token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Google credential",
+            detail="Invalid Google credential. Ensure GOOGLE_OAUTH_CLIENT_IDS includes the Web OAuth client ID used as GOOGLE_OAUTH_CLIENT_ID in the mobile app.",
         ) from last_error
 
     issuer = str(idinfo.get("iss") or "")

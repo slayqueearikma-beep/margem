@@ -146,6 +146,9 @@ class AppStringsEn extends AppStrings {
   String get googleSignInDeveloperError =>
       'Google OAuth is misconfigured. In Google Cloud Console, create a Web OAuth client and an Android OAuth client (package com.margem.app + SHA-1), then set GOOGLE_OAUTH_CLIENT_ID to the Web client ID.';
   @override
+  String get googleSignInInvalidCredential =>
+      'Google accepted the sign-in but the server rejected the token. Use the Web OAuth client ID (not the Android-only ID) in GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_IDS, then recreate the API container.';
+  @override
   String get googleLinkAccountTitle => 'Link your account';
   @override
   String googleLinkAccountMessage(String emailHint) =>

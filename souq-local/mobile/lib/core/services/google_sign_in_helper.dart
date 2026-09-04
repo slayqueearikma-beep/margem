@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../config/app_config.dart';
+import '../../l10n/strings/app_strings.dart';
 
 class GoogleSignInCancelledException implements Exception {
   const GoogleSignInCancelledException();
@@ -67,13 +68,34 @@ class GoogleSignInHelper {
   }
 
   static bool isDeveloperMisconfiguration(PlatformException error) {
-    const developerCodes = {'10', '12500', 'developer_error'};
+    const developerCodes = {
+      '10',
+      '12500',
+      'developer_error',
+      'sign_in_failed',
+    };
     if (developerCodes.contains(error.code)) return true;
     final message = (error.message ?? '').toLowerCase();
     return message.contains('developer_error') ||
         message.contains('misconfigured') ||
         message.contains('invalid_client') ||
-        message.contains('configuration');
+        message.contains('configuration') ||
+        message.contains('serverclientid') ||
+        message.contains('12500');
+  }
+
+  static String userMessageForPlatformException(
+    PlatformException error,
+    AppStrings l10n,
+  ) {
+    if (isDeveloperMisconfiguration(error)) {
+      return l10n.googleSignInDeveloperError;
+    }
+    if (error.code == '7' ||
+        (error.message ?? '').toLowerCase().contains('network')) {
+      return l10n.serverUnreachable;
+    }
+    return l10n.googleSignInFailed;
   }
 
   static Future<void> signOut() async {
