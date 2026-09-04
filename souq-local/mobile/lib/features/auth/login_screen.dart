@@ -17,6 +17,7 @@ import '../../core/widgets/app_brand_logo.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/google_sign_in_button.dart';
+import '../../core/widgets/margem_background.dart';
 import '../../features/legal/auth_legal_footer.dart';
 import '../../l10n/app_localizations.dart';
 
