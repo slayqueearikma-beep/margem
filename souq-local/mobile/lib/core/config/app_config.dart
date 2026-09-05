@@ -1,5 +1,19 @@
 /// App configuration — update for your environment.
+import 'package:flutter/foundation.dart';
+
 class AppConfig {
+  /// Canonical production API URL for open beta / production builds.
+  static const String productionApiBaseUrl = 'https://api.dribex.ma';
+
+  /// Emulator loopback default for local development when [apiBaseUrlDefine] is unset.
+  static const String devApiBaseUrlDefault = 'http://10.0.2.2:8000';
+
+  /// Raw compile-time define (empty when omitted from `--dart-define`).
+  static const String apiBaseUrlDefine = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
+
   /// Production API URL. Set at build time:
   /// `flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8000`
   ///
@@ -8,19 +22,83 @@ class AppConfig {
   static final String apiBaseUrl = _resolveApiBaseUrl();
 
   static String _resolveApiBaseUrl() {
-    final normalized = normalizeApiBaseUrl(
-      const String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: 'http://10.0.2.2:8000',
-      ),
-    );
-    assert(
-      !isProduction || normalized.startsWith('https://'),
-      'PRODUCTION builds require an HTTPS API_BASE_URL (got: $normalized)',
-    );
-    // Defense in depth for profile/release where asserts are stripped:
-    // main.dart also throws when PRODUCTION or kReleaseMode.
+    final raw = apiBaseUrlDefine.trim();
+    // Release builds always use the canonical production API — no dev/LAN/Tailscale URLs.
+    if (kReleaseMode) {
+      return validateReleaseApiBaseUrl(
+        productionApiBaseUrl,
+        productionFlag: true,
+      );
+    }
+    if (isProduction) {
+      if (raw.isEmpty) {
+        return validateReleaseApiBaseUrl(
+          productionApiBaseUrl,
+          productionFlag: true,
+        );
+      }
+      return validateReleaseApiBaseUrl(
+        normalizeApiBaseUrl(raw),
+        productionFlag: true,
+      );
+    }
+    return normalizeApiBaseUrl(raw.isEmpty ? devApiBaseUrlDefault : raw);
+  }
+
+  /// Validates API URL for release/production builds. Exposed for unit tests.
+  static String validateReleaseApiBaseUrl(
+    String url, {
+    required bool productionFlag,
+  }) {
+    final normalized = normalizeApiBaseUrl(url);
+    final uri = Uri.tryParse(normalized);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      throw StateError('Invalid API_BASE_URL: $url');
+    }
+    if (!normalized.startsWith('https://')) {
+      throw StateError(
+        'Release/PRODUCTION builds require HTTPS API_BASE_URL. Got: $normalized',
+      );
+    }
+    if (isDevelopmentApiHost(uri.host)) {
+      throw StateError(
+        'Release/PRODUCTION builds must not use development API host: ${uri.host}',
+      );
+    }
+    if (productionFlag && normalized != productionApiBaseUrl) {
+      throw StateError(
+        'PRODUCTION builds require API_BASE_URL=$productionApiBaseUrl. Got: $normalized',
+      );
+    }
     return normalized;
+  }
+
+  /// Returns true for emulator/loopback/Tailscale hosts that must never ship in release.
+  static bool isDevelopmentApiHost(String host) {
+    final h = host.toLowerCase();
+    if (h == 'localhost' || h == '127.0.0.1' || h == '10.0.2.2' || h == '::1') {
+      return true;
+    }
+    // Tailscale CGNAT range 100.64.0.0/10
+    if (RegExp(r'^100\.(\d{1,3})\.').hasMatch(h)) {
+      final second = int.tryParse(RegExp(r'^100\.(\d{1,3})\.').firstMatch(h)!.group(1)!);
+      if (second != null && second >= 64 && second <= 127) {
+        return true;
+      }
+    }
+    if (h.startsWith('192.168.') ||
+        h.startsWith('10.') ||
+        h.startsWith('172.16.') ||
+        h.startsWith('172.17.') ||
+        h.startsWith('172.18.') ||
+        h.startsWith('172.19.') ||
+        h.startsWith('172.2') ||
+        h.startsWith('172.30.') ||
+        h.startsWith('172.31.') ||
+        h.endsWith('.local')) {
+      return true;
+    }
+    return false;
   }
 
   /// Fixes common `API_BASE_URL` typos such as a missing `:` before the port
@@ -28,7 +106,7 @@ class AppConfig {
   /// trailing slashes so path joins stay correct.
   static String normalizeApiBaseUrl(String raw) {
     var url = raw.trim();
-    if (url.isEmpty) return 'http://10.0.2.2:8000';
+    if (url.isEmpty) return devApiBaseUrlDefault;
 
     // Strip trailing slashes (keep scheme://host[:port] form).
     while (url.endsWith('/') && url.length > 1) {
@@ -64,14 +142,34 @@ class AppConfig {
     defaultValue: '',
   );
 
-  static bool get hasGoogleMapsApiKey =>
-      mapsEnabled &&
-      googleMapsApiKey.isNotEmpty &&
-      googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY';
+  /// Web OAuth client ID used for Google Sign-In ID tokens (serverClientId).
+  static const String googleOAuthClientId = String.fromEnvironment(
+    'GOOGLE_OAUTH_CLIENT_ID',
+    defaultValue: '',
+  );
 
-  /// Maps are opt-in. Pass --dart-define=ENABLE_MAPS=true with a valid key.
+  static bool get hasGoogleOAuthClientId =>
+      googleOAuthClientId.trim().isNotEmpty;
+
+  static bool get hasGoogleMapsApiKey {
+    if (googleMapsApiKey.isNotEmpty &&
+        googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY') {
+      return mapsEnabled;
+    }
+    return mapsEnabled && !kIsWeb;
+  }
+
+  /// Maps are enabled by default on native when the manifest supplies a key.
   static const bool mapsEnabled = bool.fromEnvironment(
     'ENABLE_MAPS',
+    defaultValue: true,
+  );
+
+  /// When false, map screens, pickers, and navigation entries are hidden.
+  /// Map APIs, models, and routes remain in the codebase for a future re-launch.
+  /// Set `ENABLE_MAP_UI=true` at build time to show map UI again.
+  static const bool mapUiEnabled = bool.fromEnvironment(
+    'ENABLE_MAP_UI',
     defaultValue: false,
   );
 
@@ -79,6 +177,12 @@ class AppConfig {
     'PRODUCTION',
     defaultValue: false,
   );
+
+  /// Accept self-signed TLS for private beta (Tailscale + bootstrap nginx cert).
+  /// Never enabled in PRODUCTION builds.
+  static bool get allowInsecureTls =>
+      !isProduction &&
+      const bool.fromEnvironment('ALLOW_INSECURE_TLS', defaultValue: false);
 
   /// Show demo map pins when the API is unreachable (dev only).
   static const bool demoFallback = bool.fromEnvironment(
@@ -88,13 +192,36 @@ class AppConfig {
 
   static bool get allowDemoData => !isProduction && demoFallback;
 
-  /// Privacy policy URL for Play Store listing and in-app link.
+  /// Optional public marketing URL for Play Store / external links.
+  /// In-app legal documents are always loaded from the API (`legalDocumentUrl`).
   static const String privacyPolicyUrl = String.fromEnvironment(
     'PRIVACY_POLICY_URL',
-    defaultValue: 'https://margem.app/privacy',
+    defaultValue: '',
   );
 
-  static const String appName = 'MarGem';
+  /// Legal documents are authoritative in French only (`/legal/fr/{doc}`).
+  static const String legalContentLanguageCode = 'fr';
+
+  /// Legal document URL served by the API (`GET /legal/{lang}/{doc}`).
+  static String legalDocumentUrl(String doc, [String? languageCode]) {
+    const lang = legalContentLanguageCode;
+    final origin = Uri.parse(apiBaseUrl).origin;
+    return '$origin/legal/$lang/$doc';
+  }
+
+  static String privacyPolicyUrlFor([String? languageCode]) =>
+      legalDocumentUrl('privacy');
+
+  static String termsUrlFor([String? languageCode]) =>
+      legalDocumentUrl('terms');
+
+  static String cookiePolicyUrlFor([String? languageCode]) =>
+      legalDocumentUrl('cookies');
+
+  static String accountDeletionUrlFor([String? languageCode]) =>
+      legalDocumentUrl('account-deletion');
+
+  static const String appName = 'Dribex';
   static const String appTagline = 'Discover Morocco\'s Hidden Gems';
 
   static const List<String> moroccanCities = [
@@ -103,4 +230,47 @@ class AppConfig {
 
   /// Launch city — MarGem is Casablanca-only for now.
   static const String launchCity = 'Casablanca';
+
+  /// Default map center — Casablanca (production).
+  static const double defaultMapLatitude = 33.5731;
+  static const double defaultMapLongitude = -7.5898;
+
+  /// Public QR link base (HTTPS only in production).
+  static const String qrPublicBaseUrl = String.fromEnvironment(
+    'QR_PUBLIC_BASE_URL',
+    defaultValue: 'https://qr.dribex.ma',
+  );
+
+  /// Extra hosts permitted for presigned image uploads (comma-separated define).
+  static List<String> get allowedUploadHosts {
+    const raw = String.fromEnvironment('ALLOWED_UPLOAD_HOSTS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((h) => h.trim().toLowerCase()).where((h) => h.isNotEmpty).toList();
+  }
+
+  /// Optional MinIO host for direct presigned PUT uploads (from MINIO_PUBLIC_URL define).
+  static String get minioUploadHost {
+    const raw = String.fromEnvironment('MINIO_PUBLIC_URL', defaultValue: '');
+    if (raw.trim().isEmpty) return '';
+    return Uri.tryParse(raw.trim())?.host.toLowerCase() ?? '';
+  }
+
+  /// Optional MinIO endpoint host (from MINIO_ENDPOINT define).
+  static String get minioEndpointHost {
+    const raw = String.fromEnvironment('MINIO_ENDPOINT', defaultValue: '');
+    if (raw.trim().isEmpty) return '';
+    final value = raw.trim();
+    final normalized = value.contains('://') ? value : 'http://$value';
+    return Uri.tryParse(normalized)?.host.toLowerCase() ?? '';
+  }
+
+  /// Optional SHA-256 certificate pins for release TLS pinning.
+  static List<String> get certificatePins {
+    const raw = String.fromEnvironment('CERTIFICATE_PINS', defaultValue: '');
+    if (raw.trim().isEmpty) return const [];
+    return raw.split(',').map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+  }
+
+  /// Maximum guest favorites stored locally before login.
+  static const int maxGuestFavorites = 50;
 }

@@ -1,4 +1,4 @@
-# Tear down MarGem on subscription N when credits/budget are exhausted.
+# Tear down Dribex on subscription N when credits/budget are exhausted.
 # Usage: .\destroy-subscription.ps1 -Sub 1
 
 param(
@@ -21,7 +21,7 @@ if (-not (Test-Path $state)) {
 }
 
 Write-Host ""
-Write-Host "This will DESTROY all MarGem resources in $alias and stop billing for that stack."
+Write-Host "This will DESTROY all Dribex resources in $alias and stop billing for that stack."
 Write-Host "Back up PostgreSQL first if you need your data (see subscriptions/MONTHLY-ROTATION.md)."
 Write-Host ""
 

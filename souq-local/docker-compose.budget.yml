@@ -1,4 +1,4 @@
-# MarGem budget production stack — runs on a single Azure VM
+# Dribex budget production stack — runs on a single Azure VM
 # Used by start_azure_budget.ps1 (do not use for local dev — use docker-compose.yml)
 
 services:
@@ -20,34 +20,39 @@ services:
 
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: margem-api
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      APP_ENV: production
+      APP_ENV: ${APP_ENV:-staging}
       DEBUG: "false"
       AUTH_DEV_BYPASS: "false"
       DATABASE_URL: postgresql+asyncpg://margemadmin:${POSTGRES_PASSWORD}@postgres:5432/margem
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET}
+      ADMIN_DASHBOARD_DIR: /admin-dashboard
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://margem.ma}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.margem.ma}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-brevo}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL:-noreply@dribex.ma}
+      BREVO_SENDER_NAME: ${BREVO_SENDER_NAME:-Dribex}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-true}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
       JWT_REFRESH_EXPIRE_DAYS: "7"
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY}
       RATE_LIMIT: ${RATE_LIMIT:-300/minute}
       AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-30/minute}
+      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-127.0.0.1/32}
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-0}
     depends_on:
       postgres:
         condition: service_healthy

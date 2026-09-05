@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tear down MarGem on subscription N when credits/budget are exhausted.
+# Tear down Dribex on subscription N when credits/budget are exhausted.
 # Usage: ./scripts/destroy-subscription.sh 1
 
 set -euo pipefail
@@ -15,7 +15,7 @@ STATE="$TERRAFORM_DIR/terraform-${ALIAS}.tfstate"
 [[ -f "$STATE" ]] || { echo "No state $STATE — nothing to destroy for $ALIAS" >&2; exit 1; }
 
 echo ""
-echo "This will DESTROY all MarGem resources in $ALIAS."
+echo "This will DESTROY all Dribex resources in $ALIAS."
 echo "Back up PostgreSQL first if needed (see subscriptions/MONTHLY-ROTATION.md)."
 echo ""
 read -r -p "Type $ALIAS to confirm destroy: " confirm

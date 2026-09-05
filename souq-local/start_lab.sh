@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MarGem local lab — start backend (Docker) + Flutter app
+# Dribex local lab — start backend (Docker) + Flutter app
 # Usage: ./start_lab.sh
 #        ./start_lab.sh --no-flutter
 
@@ -10,6 +10,12 @@ MOBILE="$ROOT/mobile"
 LAB_DIR="$ROOT/.lab"
 NO_FLUTTER=false
 DEVICE_ID=""
+
+# JDK 17 for Flutter/Android builds (no manual export needed).
+if [[ -f "$MOBILE/scripts/ensure_java17_env.sh" ]]; then
+  # shellcheck disable=SC1091
+  source "$MOBILE/scripts/ensure_java17_env.sh" || true
+fi
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -26,7 +32,7 @@ get_lan_ip() {
 }
 
 echo ""
-echo "=== MarGem Lab — starting ==="
+echo "=== Dribex Lab — starting ==="
 echo ""
 
 command -v docker >/dev/null || { echo "Docker not found."; exit 1; }
@@ -79,7 +85,7 @@ FLUTTER_ARGS=(run --dart-define="API_BASE_URL=$API_URL")
 [[ -n "$DEVICE_ID" ]] && FLUTTER_ARGS+=(-d "$DEVICE_ID")
 
 if command -v gnome-terminal >/dev/null; then
-  gnome-terminal -- bash -c "cd '$MOBILE'; flutter ${FLUTTER_ARGS[*]}; exec bash"
+  gnome-terminal -- bash -c "source '$MOBILE/scripts/ensure_java17_env.sh' 2>/dev/null || true; cd '$MOBILE'; flutter ${FLUTTER_ARGS[*]}; exec bash"
 elif command -v osascript >/dev/null; then
   osascript -e "tell app \"Terminal\" to do script \"cd '$MOBILE' && flutter ${FLUTTER_ARGS[*]}\""
 else

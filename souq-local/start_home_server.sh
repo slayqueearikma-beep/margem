@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start everything for MarGem home server: Docker (API + Postgres) + Flutter app.
+# Start everything for Dribex home server: Docker (API + Postgres) + Flutter app.
 # Usage:
 #   ./start_home_server.sh           # API + Flutter (if phone connected)
 #   ./start_home_server.sh --build   # Rebuild API image first
@@ -13,6 +13,12 @@ ENV_EXAMPLE="$ROOT/env.home.example"
 COMPOSE_FILE="$ROOT/docker-compose.home.yml"
 RUN_FLUTTER=true
 DOCKER_BUILD=""
+
+# JDK 17 for Flutter/Android builds (no manual export needed).
+if [[ -f "$ROOT/mobile/scripts/ensure_java17_env.sh" ]]; then
+  # shellcheck disable=SC1091
+  source "$ROOT/mobile/scripts/ensure_java17_env.sh" || true
+fi
 
 for arg in "$@"; do
   case "$arg" in
@@ -34,7 +40,7 @@ for arg in "$@"; do
 done
 
 get_lan_ip() {
-  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.' | grep -v '^172\.17\.' | head -n1
+  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.|^100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.' | grep -v '^172\.17\.' | head -n1
 }
 
 has_phone_device() {
@@ -55,7 +61,7 @@ ensure_docker_running() {
 }
 
 echo ""
-echo "=== MarGem Home Server — start all ==="
+echo "=== Dribex Home Server — start all ==="
 echo ""
 
 if ! command -v docker >/dev/null 2>&1; then
@@ -74,11 +80,18 @@ fi
 if [[ ! -f "$ENV_FILE" ]]; then
   if [[ -f "$ENV_EXAMPLE" ]]; then
     cp "$ENV_EXAMPLE" "$ENV_FILE"
-    echo "Created .env.home"
-    echo "Edit passwords, Azure connection string, and ALLOWED_HOSTS, then re-run."
+    echo "Created .env.home from env.home.example"
+    echo "Generate secrets: openssl rand -hex 32 (run three times for JWT, upload, MFA keys)"
+    echo "Edit ALLOWED_HOSTS and PUBLIC_API_URL for your LAN IP, then re-run."
     exit 1
   fi
   echo "Missing .env.home — copy env.home.example and configure it first." >&2
+  exit 1
+fi
+
+echo "Validating .env.home..."
+if ! PYTHONPATH="$ROOT/backend" python3 "$ROOT/backend/scripts/validate_home_env.py" "$ENV_FILE"; then
+  echo "Fix the errors above before starting Docker." >&2
   exit 1
 fi
 
@@ -86,7 +99,10 @@ LAN_IP="$(get_lan_ip || true)"
 LAN_IP="${LAN_IP:-127.0.0.1}"
 API_PORT="$(grep -E '^API_PORT=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
 API_PORT="${API_PORT:-8000}"
+ADMIN_PORT="$(grep -E '^ADMIN_PORT=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
+ADMIN_PORT="${ADMIN_PORT:-8080}"
 API_URL="http://${LAN_IP}:${API_PORT}"
+ADMIN_URL="http://${LAN_IP}:${ADMIN_PORT}"
 
 check_api_health() {
   local port="$1"
@@ -99,6 +115,11 @@ check_api_health() {
   curl -fsS -H "Host: localhost" "http://127.0.0.1:${port}/health" >/dev/null 2>&1 && return 0
   curl -fsS -H "Host: 127.0.0.1" "http://127.0.0.1:${port}/health" >/dev/null 2>&1 && return 0
   return 1
+}
+
+check_admin_health() {
+  local port="$1"
+  curl -fsS -o /dev/null "http://127.0.0.1:${port}/" >/dev/null 2>&1
 }
 
 echo "[1/3] Starting Postgres + API (Docker)..."
@@ -121,16 +142,41 @@ else
   echo "API not ready yet. Check:"
   echo "  docker compose -f docker-compose.home.yml --env-file .env.home logs api"
   echo ""
-  echo "If logs show 400 on /health, add localhost to ALLOWED_HOSTS in .env.home:"
-  echo '  ALLOWED_HOSTS=["localhost","127.0.0.1","192.168.11.103","192.168.11.103:8000"]'
+  echo "If logs show 400 on /health, add your LAN IP to ALLOWED_HOSTS in .env.home:"
+  echo "  ALLOWED_HOSTS=localhost,127.0.0.1,${LAN_IP}"
   exit 1
+fi
+
+admin_ready=false
+for _ in $(seq 1 15); do
+  if check_admin_health "$ADMIN_PORT"; then
+    admin_ready=true
+    break
+  fi
+  sleep 2
+done
+
+if [[ "$admin_ready" != true ]]; then
+  echo ""
+  echo "WARNING: Admin dashboard is not responding on port ${ADMIN_PORT}."
+  echo "  docker compose -f docker-compose.home.yml --env-file .env.home ps"
+  echo "  docker compose -f docker-compose.home.yml --env-file .env.home logs admin"
+  echo "  docker compose -f docker-compose.home.yml --env-file .env.home up -d --build admin"
 fi
 
 echo ""
 echo "  Same Wi-Fi:   $API_URL"
 echo "  This machine: http://localhost:${API_PORT}"
 echo "  Health:       http://localhost:${API_PORT}/health"
-echo "  Images:       Azure Blob (cloud)"
+echo "  Admin UI:     $ADMIN_URL  (must include :${ADMIN_PORT} — not port 80)"
+echo "  Ready:        http://localhost:${API_PORT}/ready"
+STORAGE_BACKEND="$(grep -E '^STORAGE_BACKEND=' "$ENV_FILE" | tail -n1 | cut -d= -f2- || true)"
+STORAGE_BACKEND="${STORAGE_BACKEND:-local}"
+if [[ "$STORAGE_BACKEND" == "azure" ]]; then
+  echo "  Images:       Azure Blob Storage"
+else
+  echo "  Images:       Local disk (./data/media volume)"
+fi
 echo "  Stop all:     ./stop_home_server.sh"
 echo ""
 
