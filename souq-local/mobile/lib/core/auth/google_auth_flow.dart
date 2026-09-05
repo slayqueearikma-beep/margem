@@ -130,12 +130,14 @@ class GoogleAuthFlow {
         title: l10n.somethingWentWrong,
         message: l10n.googleSignInNoIdToken,
       );
-    } on GoogleSignInDeveloperException {
+    } on GoogleSignInDeveloperException catch (error) {
       if (!context.mounted) return;
       await showAppErrorDialog(
         context,
         title: l10n.somethingWentWrong,
-        message: l10n.googleSignInDeveloperError,
+        message: error.isSha1Mismatch
+            ? l10n.googleSignInSha1Mismatch
+            : l10n.googleSignInDeveloperError,
       );
     } on MfaRequiredException catch (mfa) {
       if (!context.mounted) return;
@@ -213,7 +215,9 @@ class GoogleAuthFlow {
       return l10n.googleSignInNoIdToken;
     }
     if (error is GoogleSignInDeveloperException) {
-      return l10n.googleSignInDeveloperError;
+      return error.isSha1Mismatch
+          ? l10n.googleSignInSha1Mismatch
+          : l10n.googleSignInDeveloperError;
     }
     if (error is ApiException) {
       return _apiErrorMessage(error, l10n);

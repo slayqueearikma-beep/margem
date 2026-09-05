@@ -22,6 +22,11 @@ class GoogleSignInDeveloperException implements Exception {
   const GoogleSignInDeveloperException([this.detail = '']);
 
   final String detail;
+
+  bool get isSha1Mismatch =>
+      detail.contains('ApiException: 10') ||
+      detail.contains(': 10:') ||
+      detail == '10';
 }
 
 class GoogleSignInHelper {
@@ -109,7 +114,9 @@ class GoogleSignInHelper {
         message.contains('invalid_client') ||
         message.contains('configuration') ||
         message.contains('serverclientid') ||
-        message.contains('12500');
+        message.contains('12500') ||
+        message.contains('apiexception: 10') ||
+        RegExp(r':\s*10\b').hasMatch(message);
   }
 
   static String userMessageForPlatformException(

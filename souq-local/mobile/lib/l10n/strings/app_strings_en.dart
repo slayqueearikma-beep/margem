@@ -146,6 +146,9 @@ class AppStringsEn extends AppStrings {
   String get googleSignInDeveloperError =>
       'Google OAuth is misconfigured. In Google Cloud Console, create a Web OAuth client and an Android OAuth client (package com.margem.app + SHA-1), then set GOOGLE_OAUTH_CLIENT_ID to the Web client ID.';
   @override
+  String get googleSignInSha1Mismatch =>
+      'Google error 10 (SHA-1 mismatch). In Google Cloud Console, open the Android OAuth client "Dribex", set package com.margem.app, and add your debug SHA-1 from: keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android';
+  @override
   String get googleSignInInvalidCredential =>
       'Google accepted the sign-in but the server rejected the token. Use the Web OAuth client ID (not the Android-only ID) in GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_IDS, then recreate the API container.';
   @override
