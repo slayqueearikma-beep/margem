@@ -76,3 +76,6 @@ echo "==> Google Cloud Console checklist"
 echo "  1. OAuth client type Web application -> use as GOOGLE_OAUTH_CLIENT_ID + in GOOGLE_OAUTH_CLIENT_IDS"
 echo "  2. OAuth client type Android -> package com.margem.app + SHA-1 from your keystore"
 echo "  3. OAuth consent screen published (or add your Google account as test user)"
+echo
+echo "  Debug log filter while testing Google Sign-In:"
+echo "    adb logcat | grep -iE 'DribexGoogleAuth|flutter'"

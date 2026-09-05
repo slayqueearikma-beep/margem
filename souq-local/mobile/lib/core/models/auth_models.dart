@@ -31,9 +31,9 @@ class AuthUser {
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      accountType: json['account_type'] as String,
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      accountType: json['account_type']?.toString() ?? 'customer',
       displayName: json['display_name'] as String? ?? '',
       profilePhotoUrl: json['profile_photo_url'] as String? ?? '',
       hasSellerProfile: json['has_seller_profile'] as bool? ?? false,

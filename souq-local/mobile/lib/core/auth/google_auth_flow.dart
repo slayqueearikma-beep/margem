@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/google_sign_in_helper.dart';
 import '../services/crash_reporting.dart';
+import '../auth/google_auth_logging.dart';
 import '../widgets/error_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -52,10 +54,18 @@ class GoogleAuthFlow {
 
     try {
       await apiServiceProvider.checkHealth();
+      logGoogleAuth('API health OK');
+
       final idToken = await GoogleSignInHelper.signInAndGetIdToken();
+      logGoogleAuth('Calling POST /auth/google');
+
       var result = await auth.signInWithGoogle(
         idToken: idToken,
         accountType: normalizedAccountType,
+      );
+      logGoogleAuth(
+        'Backend response',
+        'link=${result.linkRequired} mfa=${result.mfaRequired} session=${result.session != null}',
       );
 
       if (result.linkRequired) {
@@ -145,6 +155,7 @@ class GoogleAuthFlow {
         markOnboardingComplete: markOnboardingComplete,
       );
     } on ApiException catch (error, stack) {
+      logGoogleAuthError(error, stack, 'api:${error.statusCode ?? 0}');
       CrashReporting.recordError(
         error,
         stack,
@@ -157,6 +168,7 @@ class GoogleAuthFlow {
         message: _apiErrorMessage(error, l10n),
       );
     } on PlatformException catch (error, stack) {
+      logGoogleAuthError(error, stack, 'platform:${error.code}');
       CrashReporting.recordError(
         error,
         stack,
@@ -169,6 +181,7 @@ class GoogleAuthFlow {
         message: GoogleSignInHelper.userMessageForPlatformException(error, l10n),
       );
     } on Object catch (error, stack) {
+      logGoogleAuthError(error, stack, 'unexpected');
       CrashReporting.recordError(
         error,
         stack,
@@ -178,9 +191,16 @@ class GoogleAuthFlow {
       await showAppErrorDialog(
         context,
         title: l10n.somethingWentWrong,
-        message: l10n.googleSignInFailed,
+        message: _unexpectedErrorMessage(error, l10n),
       );
     }
+  }
+
+  static String _unexpectedErrorMessage(Object error, AppStrings l10n) {
+    if (kDebugMode) {
+      return '${l10n.googleSignInFailed}\n\nDebug: ${error.runtimeType}: $error';
+    }
+    return l10n.googleSignInFailed;
   }
 
   /// Maps unexpected Google auth errors to user-facing copy (for tests).

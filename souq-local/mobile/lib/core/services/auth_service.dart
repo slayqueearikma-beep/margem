@@ -100,11 +100,18 @@ class AuthService {
         'Google sign-in response was incomplete. Try again.',
       );
     }
-    final result = GoogleSignInResult.fromJson(response);
-    if (result.session != null) {
-      await _saveSession(result.session!);
+    try {
+      final result = GoogleSignInResult.fromJson(response);
+      if (result.session != null) {
+        await _saveSession(result.session!);
+      }
+      return result;
+    } on Object catch (error) {
+      throw ApiException(
+        'Could not read Google sign-in response. Try again.',
+        statusCode: 200,
+      );
     }
-    return result;
   }
 
   Future<GoogleSignInResult> linkGoogleAccount({
