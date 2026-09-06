@@ -1,0 +1,34 @@
+# Tailscale-only Dribex admin dashboard (NOT public internet).
+#
+# Usage on the Pi:
+#   export TAILSCALE_IP=$(tailscale ip -4)
+#   docker compose -f docker-compose.prod.yml \
+#     -f docker-compose.admin-tailscale.yml \
+#     --env-file .env.prod up -d --build admin
+#
+# Open in browser (device on Tailscale): http://${TAILSCALE_IP}:8080
+#
+# Also add your Tailscale admin origin to CORS_ORIGINS in .env.prod, e.g.:
+#   CORS_ORIGINS=https://dribex.ma,https://www.dribex.ma,http://100.x.x.x:8080
+# And ensure ADMIN_IP_ALLOWLIST includes 100.64.0.0/10 (Tailscale CGNAT).
+
+services:
+  admin:
+    build:
+      context: ../../admin-dashboard
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${TAILSCALE_IP:?set TAILSCALE_IP}:8080:80"
+    environment:
+      MARGEM_API_URL: ${PUBLIC_API_URL:-https://api.dribex.ma}
+      ADMIN_BASIC_AUTH_USER: ${ADMIN_BASIC_AUTH_USER:-}
+      ADMIN_BASIC_AUTH_PASSWORD: ${ADMIN_BASIC_AUTH_PASSWORD:-}
+      ADMIN_ALLOW_PUBLIC: "false"
+      ADMIN_EXTRA_ALLOWED_CIDRS: ${ADMIN_EXTRA_ALLOWED_CIDRS:-100.64.0.0/10}
+      ADMIN_SOURCE_DIR: /admin-source
+    volumes:
+      - ../../admin-dashboard:/admin-source:ro
+    depends_on:
+      api:
+        condition: service_healthy
