@@ -4,28 +4,108 @@ class AuthUser {
     required this.email,
     required this.accountType,
     required this.displayName,
+    this.profilePhotoUrl = '',
     this.hasSellerProfile = false,
+    this.legalAcceptanceComplete = true,
+    this.pendingLegalPolicies = const [],
+    this.mfaEnabled = false,
+    this.plusPlusActive = false,
+    this.showPlusBadge = false,
+    this.promotionalAdsSuppressed = false,
+    this.adsEnabled = true,
   });
 
   final String id;
   final String email;
   final String accountType;
   final String displayName;
+  final String profilePhotoUrl;
   final bool hasSellerProfile;
+  final bool legalAcceptanceComplete;
+  final List<String> pendingLegalPolicies;
+  final bool mfaEnabled;
+  final bool plusPlusActive;
+  final bool showPlusBadge;
+  final bool promotionalAdsSuppressed;
+  final bool adsEnabled;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      accountType: json['account_type'] as String,
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      accountType: json['account_type']?.toString() ?? 'customer',
       displayName: json['display_name'] as String? ?? '',
+      profilePhotoUrl: json['profile_photo_url'] as String? ?? '',
       hasSellerProfile: json['has_seller_profile'] as bool? ?? false,
+      legalAcceptanceComplete:
+          json['legal_acceptance_complete'] as bool? ?? false,
+      pendingLegalPolicies:
+          (json['pending_legal_policies'] as List<dynamic>? ?? const [])
+              .map((item) => item as String)
+              .toList(),
+      mfaEnabled: json['mfa_enabled'] as bool? ?? false,
+      plusPlusActive: json['plus_plus_active'] as bool? ?? false,
+      showPlusBadge: json['show_plus_badge'] as bool? ?? false,
+      promotionalAdsSuppressed:
+          json['promotional_ads_suppressed'] as bool? ?? false,
+      adsEnabled: json['ads_enabled'] as bool? ?? true,
     );
   }
 
-  bool get isBuyer => accountType == 'buyer' || !hasSellerProfile;
-  bool get isSeller => accountType == 'seller' || hasSellerProfile;
-  bool get canSell => hasSellerProfile || accountType == 'seller';
+  AuthUser copyWith({
+    String? id,
+    String? email,
+    String? accountType,
+    String? displayName,
+    String? profilePhotoUrl,
+    bool? hasSellerProfile,
+    bool? legalAcceptanceComplete,
+    List<String>? pendingLegalPolicies,
+    bool? mfaEnabled,
+    bool? plusPlusActive,
+    bool? showPlusBadge,
+    bool? promotionalAdsSuppressed,
+    bool? adsEnabled,
+  }) {
+    return AuthUser(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      accountType: accountType ?? this.accountType,
+      displayName: displayName ?? this.displayName,
+      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
+      hasSellerProfile: hasSellerProfile ?? this.hasSellerProfile,
+      legalAcceptanceComplete:
+          legalAcceptanceComplete ?? this.legalAcceptanceComplete,
+      pendingLegalPolicies: pendingLegalPolicies ?? this.pendingLegalPolicies,
+      mfaEnabled: mfaEnabled ?? this.mfaEnabled,
+      plusPlusActive: plusPlusActive ?? this.plusPlusActive,
+      showPlusBadge: showPlusBadge ?? this.showPlusBadge,
+      promotionalAdsSuppressed:
+          promotionalAdsSuppressed ?? this.promotionalAdsSuppressed,
+      adsEnabled: adsEnabled ?? this.adsEnabled,
+    );
+  }
+
+  bool get isBuyer =>
+      accountType == 'customer' || accountType == 'buyer' || !hasSellerProfile;
+  bool get isSeller =>
+      accountType == 'provider' || accountType == 'seller' || hasSellerProfile;
+  bool get canSell =>
+      hasSellerProfile ||
+      accountType == 'provider' ||
+      accountType == 'seller';
+}
+
+class MfaEnrollResult {
+  const MfaEnrollResult({required this.otpauthUri});
+
+  final String otpauthUri;
+
+  factory MfaEnrollResult.fromJson(Map<String, dynamic> json) {
+    return MfaEnrollResult(
+      otpauthUri: json['otpauth_uri'] as String? ?? '',
+    );
+  }
 }
 
 class AuthSession {
@@ -43,11 +123,43 @@ class AuthSession {
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
     return AuthSession(
-      accessToken: json['access_token'] as String,
-      refreshToken: json['refresh_token'] as String,
+      accessToken: json['access_token'] as String? ?? '',
+      refreshToken: json['refresh_token'] as String? ?? '',
       expiresIn: json['expires_in'] as int? ?? 3600,
       user: AuthUser.fromJson(json['user'] as Map<String, dynamic>),
     );
+  }
+}
+
+class GoogleSignInResult {
+  const GoogleSignInResult({
+    this.session,
+    this.linkRequired = false,
+    this.emailHint,
+    this.mfaRequired = false,
+    this.mfaToken,
+  });
+
+  final AuthSession? session;
+  final bool linkRequired;
+  final String? emailHint;
+  final bool mfaRequired;
+  final String? mfaToken;
+
+  factory GoogleSignInResult.fromJson(Map<String, dynamic> json) {
+    if (json['link_required'] == true) {
+      return GoogleSignInResult(
+        linkRequired: true,
+        emailHint: json['email_hint'] as String?,
+      );
+    }
+    if (json['mfa_required'] == true) {
+      return GoogleSignInResult(
+        mfaRequired: true,
+        mfaToken: json['mfa_token'] as String?,
+      );
+    }
+    return GoogleSignInResult(session: AuthSession.fromJson(json));
   }
 }
 
@@ -96,6 +208,16 @@ class SellerCreatePayload {
     this.logoImageUrl = '',
     this.openingHours,
     this.categoryIds = const [],
+    this.marketplaceSlug,
+    this.customMarketplaceName = '',
+    this.marketZone = '',
+    this.marketStreet = '',
+    this.marketGallery = '',
+    this.shopNumber = '',
+    this.marketFloor = '',
+    this.nearbyLandmark = '',
+    this.sellerTermsAcknowledged = false,
+    this.acceptanceLanguage = 'fr',
   });
 
   final String businessName;
@@ -109,6 +231,16 @@ class SellerCreatePayload {
   final String logoImageUrl;
   final Map<String, dynamic>? openingHours;
   final List<String> categoryIds;
+  final String? marketplaceSlug;
+  final String customMarketplaceName;
+  final String marketZone;
+  final String marketStreet;
+  final String marketGallery;
+  final String shopNumber;
+  final String marketFloor;
+  final String nearbyLandmark;
+  final bool sellerTermsAcknowledged;
+  final String acceptanceLanguage;
 
   Map<String, dynamic> toJson() => {
         'business_name': businessName,
@@ -122,6 +254,18 @@ class SellerCreatePayload {
         'logo_image_url': logoImageUrl,
         if (openingHours != null) 'opening_hours': openingHours,
         'category_ids': categoryIds,
+        if (marketplaceSlug != null && marketplaceSlug!.isNotEmpty)
+          'marketplace_slug': marketplaceSlug,
+        if (customMarketplaceName.isNotEmpty)
+          'custom_marketplace_name': customMarketplaceName,
+        if (marketZone.isNotEmpty) 'market_zone': marketZone,
+        if (marketStreet.isNotEmpty) 'market_street': marketStreet,
+        if (marketGallery.isNotEmpty) 'market_gallery': marketGallery,
+        if (shopNumber.isNotEmpty) 'shop_number': shopNumber,
+        if (marketFloor.isNotEmpty) 'market_floor': marketFloor,
+        if (nearbyLandmark.isNotEmpty) 'nearby_landmark': nearbyLandmark,
+        'seller_terms_acknowledged': sellerTermsAcknowledged,
+        'acceptance_language': acceptanceLanguage,
       };
 }
 
@@ -138,6 +282,14 @@ class SellerUpdatePayload {
     this.logoImageUrl,
     this.openingHours,
     this.categoryIds,
+    this.marketplaceSlug,
+    this.customMarketplaceName,
+    this.marketZone,
+    this.marketStreet,
+    this.marketGallery,
+    this.shopNumber,
+    this.marketFloor,
+    this.nearbyLandmark,
     this.isActive,
   });
 
@@ -152,6 +304,14 @@ class SellerUpdatePayload {
   final String? logoImageUrl;
   final Map<String, dynamic>? openingHours;
   final List<String>? categoryIds;
+  final String? marketplaceSlug;
+  final String? customMarketplaceName;
+  final String? marketZone;
+  final String? marketStreet;
+  final String? marketGallery;
+  final String? shopNumber;
+  final String? marketFloor;
+  final String? nearbyLandmark;
   final bool? isActive;
 
   Map<String, dynamic> toJson() {
@@ -167,6 +327,14 @@ class SellerUpdatePayload {
       if (logoImageUrl != null) 'logo_image_url': logoImageUrl,
       if (openingHours != null) 'opening_hours': openingHours,
       if (categoryIds != null) 'category_ids': categoryIds,
+      if (marketplaceSlug != null) 'marketplace_slug': marketplaceSlug,
+      if (customMarketplaceName != null) 'custom_marketplace_name': customMarketplaceName,
+      if (marketZone != null) 'market_zone': marketZone,
+      if (marketStreet != null) 'market_street': marketStreet,
+      if (marketGallery != null) 'market_gallery': marketGallery,
+      if (shopNumber != null) 'shop_number': shopNumber,
+      if (marketFloor != null) 'market_floor': marketFloor,
+      if (nearbyLandmark != null) 'nearby_landmark': nearbyLandmark,
       if (isActive != null) 'is_active': isActive,
     };
   }
@@ -176,19 +344,31 @@ class ProductCreatePayload {
   const ProductCreatePayload({
     required this.name,
     required this.description,
+    this.pricingType = 'fixed',
     this.priceMad,
+    this.categorySlug = '',
+    this.deliveryAvailable = false,
+    this.pickupOnly = true,
     this.imageUrl = '',
   });
 
   final String name;
   final String description;
+  final String pricingType;
   final double? priceMad;
+  final String categorySlug;
+  final bool deliveryAvailable;
+  final bool pickupOnly;
   final String imageUrl;
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'description': description,
-        if (priceMad != null) 'price_mad': priceMad,
+        'pricing_type': pricingType,
+        if (pricingType == 'fixed' && priceMad != null) 'price_mad': priceMad,
+        if (categorySlug.isNotEmpty) 'category_slug': categorySlug,
+        'delivery_available': deliveryAvailable,
+        'pickup_only': pickupOnly,
         'image_url': imageUrl,
       };
 }
@@ -197,6 +377,7 @@ class ProductUpdatePayload {
   const ProductUpdatePayload({
     this.name,
     this.description,
+    this.pricingType,
     this.priceMad,
     this.imageUrl,
     this.isAvailable,
@@ -205,6 +386,7 @@ class ProductUpdatePayload {
 
   final String? name;
   final String? description;
+  final String? pricingType;
   final double? priceMad;
   final String? imageUrl;
   final bool? isAvailable;
@@ -214,6 +396,7 @@ class ProductUpdatePayload {
     return {
       if (name != null) 'name': name,
       if (description != null) 'description': description,
+      if (pricingType != null) 'pricing_type': pricingType,
       if (clearPrice) 'price_mad': null,
       if (!clearPrice && priceMad != null) 'price_mad': priceMad,
       if (imageUrl != null) 'image_url': imageUrl,
@@ -222,14 +405,113 @@ class ProductUpdatePayload {
   }
 }
 
-/// Maps seller onboarding UI labels to backend category slugs.
+class ServiceCreatePayload {
+  const ServiceCreatePayload({
+    required this.name,
+    required this.description,
+    required this.pricingModel,
+    this.priceMad,
+    this.priceMinMad,
+    this.priceMaxMad,
+    this.imageUrl = '',
+    this.isAvailable = true,
+  });
+
+  final String name;
+  final String description;
+  final String pricingModel;
+  final double? priceMad;
+  final double? priceMinMad;
+  final double? priceMaxMad;
+  final String imageUrl;
+  final bool isAvailable;
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'description': description,
+        'pricing_model': pricingModel,
+        if (priceMad != null) 'price_mad': priceMad,
+        if (priceMinMad != null) 'price_min_mad': priceMinMad,
+        if (priceMaxMad != null) 'price_max_mad': priceMaxMad,
+        'image_url': imageUrl,
+        'is_available': isAvailable,
+      };
+}
+
+class ServiceUpdatePayload {
+  const ServiceUpdatePayload({
+    this.name,
+    this.description,
+    this.pricingModel,
+    this.priceMad,
+    this.priceMinMad,
+    this.priceMaxMad,
+    this.clearPrice = false,
+    this.clearMinPrice = false,
+    this.clearMaxPrice = false,
+    this.imageUrl,
+    this.isAvailable,
+  });
+
+  final String? name;
+  final String? description;
+  final String? pricingModel;
+  final double? priceMad;
+  final double? priceMinMad;
+  final double? priceMaxMad;
+  final bool clearPrice;
+  final bool clearMinPrice;
+  final bool clearMaxPrice;
+  final String? imageUrl;
+  final bool? isAvailable;
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (pricingModel != null) 'pricing_model': pricingModel,
+      if (clearPrice) 'price_mad': null,
+      if (!clearPrice && priceMad != null) 'price_mad': priceMad,
+      if (clearMinPrice) 'price_min_mad': null,
+      if (!clearMinPrice && priceMinMad != null) 'price_min_mad': priceMinMad,
+      if (clearMaxPrice) 'price_max_mad': null,
+      if (!clearMaxPrice && priceMaxMad != null) 'price_max_mad': priceMaxMad,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (isAvailable != null) 'is_available': isAvailable,
+    };
+  }
+}
+
+/// Fundamental marketplace category slugs (API taxonomy).
 const sellerCategorySlugMap = <String, String>{
+  'clothing': 'clothing',
+  'shoes': 'shoes',
+  'perfumes': 'perfumes',
+  'beauty': 'beauty',
+  'electronics': 'electronics',
+  'food': 'food',
+  'home': 'home',
+  'jewelry': 'jewelry',
+  'accessories': 'accessories',
+  'sports': 'sports',
+  'health': 'health',
+  'kids': 'kids',
+};
+
+/// Registration wizard display labels → API slugs.
+const sellerCategoryLabelSlugMap = <String, String>{
   'Food': 'food',
   'Clothing': 'clothing',
   'Electronics': 'electronics',
   'Beauty': 'beauty',
-  'Services': 'services',
+  'Services': 'home',
   'Home & Garden': 'home',
   'Health': 'health',
   'Sports': 'sports',
 };
+
+String resolveSellerCategorySlug(String displayLabel) {
+  return sellerCategoryLabelSlugMap[displayLabel] ??
+      sellerCategorySlugMap[displayLabel.toLowerCase()] ??
+      'food';
+}

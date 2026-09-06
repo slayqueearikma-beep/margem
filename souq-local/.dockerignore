@@ -1,0 +1,39 @@
+# Git and local tooling
+.git
+.github
+.idea
+.vscode
+
+# Python caches and virtualenvs
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.venv
+**/venv
+**/.coverage
+**/htmlcov
+
+# Secrets and local env files
+**/.env
+**/.env.*
+!**/.env.example
+**/*.pem
+**/*.key
+
+# Flutter/mobile build artifacts (not used by API image)
+mobile/build
+mobile/.dart_tool
+mobile/.pub-cache
+mobile/.pub
+
+# Terraform and infra state
+infra/**/.terraform
+infra/**/*.tfstate
+infra/**/*.tfstate.*
+
+# Local runtime data
+.lab
+backups
+**/*.log

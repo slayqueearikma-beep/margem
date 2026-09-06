@@ -57,7 +57,7 @@ variable "upload_token_secret" {
 }
 
 variable "api_image" {
-  description = "Container image for the MarGem API (ACR or Docker Hub)"
+  description = "Container image for the Dribex API (ACR or Docker Hub)"
   type        = string
   default     = "margemapi:latest"
 }
@@ -128,50 +128,31 @@ variable "allowed_hosts" {
 variable "public_app_url" {
   description = "Public app / deep-link base URL used in transactional emails"
   type        = string
-  default     = "https://margem.ma"
+  default     = "https://dribex.ma"
 }
 
 variable "public_api_url" {
   description = "Public HTTPS API base URL"
   type        = string
-  default     = "https://api.margem.ma"
+  default     = "https://api.dribex.ma"
 }
 
-variable "smtp_host" {
-  description = "SMTP host for transactional email (required for production mail delivery)"
+variable "brevo_api_key" {
+  description = "Brevo API key for transactional email (required for production mail delivery)"
   type        = string
-}
-
-variable "smtp_port" {
-  description = "SMTP port"
-  type        = number
-  default     = 587
-}
-
-variable "smtp_username" {
-  description = "SMTP username"
-  type        = string
-  default     = ""
   sensitive   = true
 }
 
-variable "smtp_password" {
-  description = "SMTP password"
+variable "brevo_sender_email" {
+  description = "Verified Brevo sender email address"
   type        = string
-  default     = ""
-  sensitive   = true
+  default     = "noreply@dribex.ma"
 }
 
-variable "smtp_from" {
-  description = "From header for transactional email"
+variable "brevo_sender_name" {
+  description = "Brevo sender display name"
   type        = string
-  default     = "MarGem <noreply@margem.ma>"
-}
-
-variable "smtp_use_tls" {
-  description = "Whether to STARTTLS on the SMTP connection"
-  type        = bool
-  default     = true
+  default     = "Dribex"
 }
 
 variable "enable_key_vault_purge_protection" {

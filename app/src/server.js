@@ -49,6 +49,35 @@ function createTraceContext(req, res, next) {
   next();
 }
 
+function requireMetricsToken(req, res, next) {
+  const expectedToken = process.env.SCAD_METRICS_TOKEN;
+
+  if (!expectedToken && environment === "production") {
+    return res.status(503).json({
+      error: "metrics_not_configured",
+      message: "SCAD_METRICS_TOKEN must be configured in production.",
+    });
+  }
+
+  if (expectedToken) {
+    const bearer = req.headers.authorization;
+    const headerToken = req.headers["x-scad-metrics-token"];
+    const provided =
+      headerToken ||
+      (typeof bearer === "string" && bearer.startsWith("Bearer ")
+        ? bearer.slice("Bearer ".length)
+        : undefined);
+    if (provided !== expectedToken) {
+      return res.status(401).json({
+        error: "unauthorized",
+        message: "A valid metrics token is required.",
+      });
+    }
+  }
+
+  return next();
+}
+
 function requireIngestToken(req, res, next) {
   const expectedToken = process.env.SCAD_INGEST_TOKEN;
 
@@ -207,7 +236,7 @@ export function createApp({ findingsStore = defaultFindingsStore } = {}) {
     res.json(calculateRiskScore(findings));
   });
 
-  app.get("/metrics", async (_req, res, next) => {
+  app.get("/metrics", requireMetricsToken, async (_req, res, next) => {
     try {
       res.set("Content-Type", client.register.contentType);
       res.end(await client.register.metrics());

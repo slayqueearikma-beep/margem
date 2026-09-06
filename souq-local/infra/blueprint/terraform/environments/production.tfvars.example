@@ -1,0 +1,38 @@
+subscription_id     = ""
+blueprint_enabled   = false  # Set true only after security review
+environment_name    = "production"
+activation_phase    = "0"
+location            = "westeurope"
+dr_location         = "francecentral"
+domain_name         = "api.dribex.ma"
+
+module_flags = {
+  networking      = false
+  keyvault        = false
+  postgresql      = false
+  storage         = false
+  monitoring      = false
+  security        = false
+  aks             = false
+  apim            = false
+  frontdoor       = false
+  redis           = false
+  servicebus      = false
+  search          = false
+  ai              = false
+  ddos_protection = false
+}
+
+# Phase 2 example (do not apply without review):
+# module_flags = {
+#   networking = true
+#   keyvault   = true
+#   postgresql = true
+#   storage    = true
+#   monitoring = true
+#   security   = true
+#   aks        = true
+#   redis      = true
+#   apim       = true
+#   frontdoor  = true
+# }

@@ -1,4 +1,4 @@
-# MarGem Mobile — Play Store ready setup
+# Dribex Mobile — Play Store ready setup
 
 ## Prerequisites
 
@@ -27,6 +27,26 @@ Common fixes:
 - Install Android SDK Platform 35 + NDK (Side by side) from Android Studio → SDK Manager
 - Ensure USB debugging works: `adb devices` shows `device`
 - Free RAM if Gradle cannot start (heap is capped at 4G)
+
+### JDK 17 (one-time, Linux)
+
+Gradle/Flutter need JDK 17. Pick **one** approach:
+
+**A. Persist for all terminals (recommended):**
+
+```bash
+cd souq-local/mobile
+./scripts/install_java_env_to_shell.sh
+source ~/.bashrc
+```
+
+**B. Gradle only** — copy `android/local.properties.example` to `android/local.properties` and add:
+
+```properties
+org.gradle.java.home=/usr/lib/jvm/java-17-openjdk-amd64
+```
+
+(`local.properties` is gitignored — machine-specific, do not commit.)
 
 Optional demo map when API is offline (dev only):
 
@@ -71,7 +91,7 @@ Edit `android/key.properties` with your keystore path and passwords.
 flutter build appbundle \
   --dart-define=PRODUCTION=true \
   --dart-define=API_BASE_URL=https://YOUR-API.azurecontainerapps.io \
-  --dart-define=PRIVACY_POLICY_URL=https://margem.app/privacy
+  --dart-define=PRIVACY_POLICY_URL=https://dribex.app/privacy
 ```
 
 Output: `build/app/outputs/bundle/release/app-release.aab`
@@ -80,7 +100,7 @@ Output: `build/app/outputs/bundle/release/app-release.aab`
 
 - [ ] Upload `app-release.aab`
 - [ ] Privacy policy URL (see `PRIVACY_POLICY.md`)
-- [ ] App icon (included — `assets/images/margem_logo.png`)
+- [x] App icons from `brand/margem_logo_icon.png` + full lockup from `brand/margem_logo.png` (`scripts/generate_brand_assets.py`)
 - [ ] Screenshots and store listing
 - [ ] Content rating questionnaire
 

@@ -1,0 +1,132 @@
+# Dribex processing-purpose registry (technical inventory for counsel review)
+# Source: codebase audit 2026-08-17 — NOT a legal determination.
+
+version: "1.0.0"
+controller: "[LEGAL ENTITY NAME — TO BE CONFIRMED BY COUNSEL]"
+jurisdiction: Morocco
+law_reference: Law 09-08 (CNDP)
+
+activities:
+  - id: account_management
+    data:
+      - email
+      - password_hash
+      - display_name
+      - phone
+      - firebase_uid
+    purpose: User authentication and account management
+    collection_points:
+      - mobile registration
+      - mobile login
+      - backend auth API
+    storage:
+      - users table
+    legal_basis_candidate: contract / pre-contractual (Art. 4(b)) — LAWYER REVIEW REQUIRED
+    consent_required: false
+    retention: Account lifetime + legal/tax exceptions per account-deletion policy
+
+  - id: seller_storefront
+    data:
+      - business_name
+      - address
+      - city
+      - phone
+      - logo_image_url
+      - cover_image_url
+    purpose: Marketplace seller profile and discovery
+    collection_points:
+      - seller onboarding
+      - seller settings
+    storage:
+      - seller_profiles table
+      - object storage (Azure/MinIO/local)
+    legal_basis_candidate: contract (Art. 4(b)) — LAWYER REVIEW REQUIRED
+    consent_required: false
+    retention: Until seller deletes storefront or account deletion workflow
+
+  - id: seller_logo_image
+    data:
+      - seller logo photograph (NOT biometric)
+    purpose: Storefront branding and community avatar display
+    note: No facial recognition, embeddings, or biometric authentication
+    classification: Personal data (Art. 1) — ordinary image, NOT sensitive data (Art. 1 §3)
+    storage: "{user_id}/{uuid}-filename" in object storage
+    legal_basis_candidate: contract / legitimate interest — LAWYER REVIEW REQUIRED
+
+  - id: buyer_profile_photo
+    data:
+      - buyer profile photograph (NOT biometric)
+    purpose: Optional account profile identification/display
+    note: No facial recognition or biometric processing; EXIF stripped on upload
+    classification: Personal data (Art. 1 §1) — NOT sensitive/biometric (Art. 1 §3)
+    storage:
+      - users.profile_photo_url
+      - user_media_objects table
+      - object storage prefix {user_id}/
+    legal_basis_candidate: contract / pre-contractual (Art. 4(b)) — LAWYER REVIEW REQUIRED
+    consent_required: not assumed — counsel to confirm for public display scope
+    retention: Active account; deleted on profile removal or account deletion workflow; backups per documented policy
+
+  - id: peer_messaging
+    data:
+      - message body
+      - sender_id
+      - timestamps
+    purpose: Buyer-seller communication
+    storage:
+      - messages
+      - conversations
+    legal_basis_candidate: contract (Art. 4(b)) — LAWYER REVIEW REQUIRED
+
+  - id: marketing_email
+    data:
+      - email
+      - consent records
+    purpose: Direct marketing (optional)
+    legal_basis: consent (Art. 4, 9, 10)
+    consent_required: true
+    collection: privacy settings toggle (unbundled)
+    storage: user_consents table
+    default: opt-out (false)
+
+  - id: personalized_recommendations
+    data:
+      - favorites
+      - recently_viewed
+      - saved_searches
+    purpose: Optional marketplace personalization
+    legal_basis_candidate: consent — LAWYER REVIEW REQUIRED
+    consent_required: true
+    storage: user_consents + behavioral tables
+
+  - id: security_logs
+    data:
+      - ip_address
+      - user_agent
+      - request metadata
+    purpose: Fraud prevention, audit, rate limiting
+    legal_basis_candidate: legitimate interest / legal obligation — LAWYER REVIEW REQUIRED
+    retention: Documented in privacy policy; automated purge NOT implemented
+
+  - id: legal_acceptance
+    data:
+      - policy_id
+      - policy_version
+      - language
+      - ip_address
+      - user_agent
+      - timestamp
+    purpose: Evidence of terms/privacy acknowledgment
+    storage: legal_acceptances table
+    legal_basis_candidate: legal obligation / contract — LAWYER REVIEW REQUIRED
+
+  - id: premium_billing
+    data:
+      - subscription status
+      - NAPS payment reference (when enabled)
+    purpose: Premium subscription billing
+    legal_basis_candidate: contract + legal/tax retention — LAWYER REVIEW REQUIRED
+    retention: Up to 7 years per account-deletion policy — counsel to confirm
+
+cndp_status: "[CNDP DECLARATION/AUTHORIZATION STATUS — TO BE CONFIRMED BY COUNSEL]"
+cndp_receipt_number: "[TO BE CONFIRMED]"

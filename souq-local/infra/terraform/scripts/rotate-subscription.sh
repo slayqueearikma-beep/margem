@@ -29,7 +29,7 @@ fi
 
 echo ""
 echo "=========================================="
-echo " MarGem subscription rotation with data"
+echo " Dribex subscription rotation with data"
 echo " sub${FROM_SUB}  -->  sub${TO_SUB}"
 echo "=========================================="
 echo ""

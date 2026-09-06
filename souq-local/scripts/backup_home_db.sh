@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Backup MarGem Postgres and local media from docker-compose.home.yml.
+# Backup Dribex Postgres and local media from docker-compose.home.yml.
 # Usage: ./scripts/backup_home_db.sh [output-dir]
 
 set -euo pipefail

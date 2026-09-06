@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy (or update) MarGem on subscription N for monthly credit rotation.
+# Deploy (or update) Dribex on subscription N for monthly credit rotation.
 # Usage: ./scripts/switch-subscription.sh 1
 
 set -euo pipefail

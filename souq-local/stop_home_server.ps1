@@ -1,4 +1,4 @@
-# Stop MarGem home server (Docker only — Azure blob stays, ~$1-3/mo)
+# Stop Dribex home server (Docker only — Azure blob stays, ~$1-3/mo)
 # Usage: .\stop_home_server.ps1
 
 $ErrorActionPreference = "Stop"

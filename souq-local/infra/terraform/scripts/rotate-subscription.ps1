@@ -33,7 +33,7 @@ if (-not (Test-Path $toPaths.Tfvars)) {
 
 Write-Host ""
 Write-Host "=========================================="
-Write-Host " MarGem subscription rotation with data"
+Write-Host " Dribex subscription rotation with data"
 Write-Host " sub$FromSub  -->  sub$ToSub"
 Write-Host "=========================================="
 Write-Host ""

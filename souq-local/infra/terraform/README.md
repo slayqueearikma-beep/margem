@@ -1,10 +1,10 @@
-# MarGem — Terraform (Azure)
+# Dribex — Terraform (Azure)
 
-Deploys the full MarGem backend stack on Azure:
+Deploys the full Dribex backend stack on Azure:
 
 | Resource | Purpose |
 |----------|---------|
-| Resource Group | All MarGem resources |
+| Resource Group | All Dribex resources |
 | PostgreSQL Flexible Server | Users, sellers, reviews |
 | Blob Storage | Product/seller images |
 | Key Vault | Secrets (RBAC-enabled) |

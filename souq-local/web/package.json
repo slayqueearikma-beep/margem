@@ -1,0 +1,34 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "setup": "npm install && (test -f .env.local || cp env.example .env.local)",
+    "predev": "node scripts/ensure-deps.mjs",
+    "dev": "node ./node_modules/next/dist/bin/next dev -H ${WEB_DEV_HOST:-0.0.0.0} -p ${WEB_DEV_PORT:-3000}",
+    "prebuild": "node scripts/ensure-deps.mjs",
+    "build": "node ./node_modules/next/dist/bin/next build",
+    "prestart": "node scripts/ensure-deps.mjs",
+    "start": "node ./node_modules/next/dist/bin/next start",
+    "lint": "node ./node_modules/next/dist/bin/next lint",
+    "test:security": "node --test scripts/test-security.mjs",
+    "validate:production": "NODE_ENV=production NEXT_PUBLIC_API_BASE_URL=https://api.dribex.ma NEXT_PUBLIC_SITE_URL=https://dribex.ma node scripts/validate-production-config.mjs"
+  },
+  "dependencies": {
+    "next": "^15.2.4",
+    "next-intl": "^4.3.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^15.2.4",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}

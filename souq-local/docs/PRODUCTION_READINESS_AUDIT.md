@@ -1,4 +1,4 @@
-# MarGem Production Readiness Audit (Full Engineering Review)
+# Dribex Production Readiness Audit (Full Engineering Review)
 
 **Date:** 2026-07-23  
 **Branch:** `cursor/production-readiness-90-f384`  
@@ -9,7 +9,7 @@
 
 ## 1. Executive summary
 
-MarGem is a **local discovery / connection platform** (not checkout e-commerce). The codebase implements sellers, listings, search/map, favorites, follows, messaging, contact events, reviews, Azure uploads, premium *visibility* memberships (billing gated in prod + admin grant), auth lifecycle (verify/reset/delete), and admin/staff ops.
+Dribex is a **local discovery / connection platform** (not checkout e-commerce). The codebase implements sellers, listings, search/map, favorites, follows, messaging, contact events, reviews, Azure uploads, premium *visibility* memberships (billing gated in prod + admin grant), auth lifecycle (verify/reset/delete), and admin/staff ops.
 
 **Deployment Readiness: 92%**
 
@@ -128,7 +128,7 @@ This pass closed: production SMTP enforcement, Azure TF/Bicep SMTP + public URLs
 ## 6. Pull / run (home stack)
 
 ```bash
-cd ~/MarGem && git fetch origin && git checkout cursor/production-readiness-90-f384
+cd ~/Dribex && git fetch origin && git checkout cursor/production-readiness-90-f384
 cd souq-local && docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
 cd mobile && flutter run --dart-define=API_BASE_URL=http://YOUR_LAN_IP:8000
 ```
@@ -137,7 +137,7 @@ Release mobile (store):
 
 ```bash
 flutter build appbundle --release \
-  --dart-define=API_BASE_URL=https://api.margem.ma \
+  --dart-define=API_BASE_URL=https://api.dribex.ma \
   --dart-define=PRODUCTION=true \
   --dart-define=SENTRY_DSN=https://YOUR_DSN
 ```

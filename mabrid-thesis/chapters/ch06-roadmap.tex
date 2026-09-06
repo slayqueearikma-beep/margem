@@ -1,0 +1,114 @@
+\chapter{Feuille de route stratégique et durabilité}
+\label{ch:roadmap}
+
+\section{Introduction}
+
+Le succès à long terme d'une place de marché exige plus qu'une exécution de lancement : il faut une feuille de route crédible pour l'expansion géographique, la viabilité financière et l'innovation dans les services de confiance. Ce chapitre présente la stratégie de croissance de MABRID, la structure des coûts, l'économie de mise à l'échelle et l'horizon des capacités futures.
+
+\section{Stratégie de croissance}
+
+\subsection{Phase 1 : Villes d'ancrage (mois 0--12)}
+
+Lancement dans des centres urbains à forte densité avec concentration de PME et adoption numérique. Accent sur la qualité de l'offre (vendeurs d'ancrage vérifiés), le marketing local et le recrutement de modérateurs communautaires. KPI : activation vendeurs, rétention acheteurs, exhaustivité des annonces.
+
+\subsection{Phase 2 : Expansion nationale (mois 12--36)}
+
+Déploiement dans vingt villes marocaines avec canaux communautaires localisés et campagnes spécifiques par ville. Les partenariats avec les agences municipales de développement économique accélèrent l'intégration des vendeurs.
+
+\subsection{Phase 3 : Expansion internationale sélective (36+ mois)}
+
+Évaluation des marchés du Maghreb (Tunisie, liens avec la diaspora sénégalaise) sous réserve de faisabilité juridique, d'écosystèmes de paiement et de capacité opérationnelle. L'expansion suit le conseil réglementaire, pas le seul opportunisme.
+
+\figureplaceholder{H}{figures/ch06-expansion-map.pdf}{0.82}{Feuille de route d'expansion géographique en trois phases}
+
+\section{Considérations d'expansion nationale et internationale}
+
+L'expansion internationale introduit la résidence des données, la fiscalité, le droit des consommateurs et les exigences de partenariat local. MABRID adopte un modèle \emph{hub-and-spoke} : l'entité marocaine demeure responsable du traitement sauf création de filiales locales.
+
+\section{Viabilité financière}
+
+\subsection{Rappel du modèle de revenus}
+
+Des flux diversifiés réduisent la dépendance à un seul levier de monétisation :
+\begin{itemize}
+  \item Abonnements vendeurs (niveau standard gratuit ; niveaux professionnels payants).
+  \item Premium acheteur (découverte améliorée optionnelle).
+  \item Services de vérification et de confiance.
+  \item Offres entreprise multi-sites.
+  \item Futur : publicité (gouvernée par une politique publicitaire transparente).
+\end{itemize}
+
+\subsection{Économie unitaire}
+
+Le coût d'acquisition client (\gls{cac}) doit rester inférieur à la valeur vie client projetée (\gls{clv}) pour les canaux payants \parencite{skok2014saas}. La croissance organique et par recommandation améliore les marges au fil du temps.
+
+\subsection{Analyse du seuil de rentabilité}
+
+Le seuil de rentabilité est atteint lorsque la marge brute couvre les coûts fixes (personnel, base cloud, juridique, modération). L'analyse de sensibilité modélise des courbes d'adoption conservatrice, de base et optimiste.
+
+\begin{table}[H]
+  \centering
+  \caption{Catégories illustratives de structure de coûts}
+  \label{tab:cost-structure}
+  \begin{tabularx}{\textwidth}{@{}lXr@{}}
+    \toprule
+    \textbf{Catégorie} & \textbf{Composantes} & \textbf{Variable ?} \\
+    \midrule
+    Infrastructure cloud & Calcul, stockage, sortie, outils de sécurité & Partiellement \\
+    Personnel & Ingénierie, modération, support, G\&A & Fixe \\
+    Marketing & Publicité numérique, partenariats, événements & Variable \\
+    Juridique et conformité & Conseil, audits, assurance & Semi-fixe \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Coûts opérationnels et cloud}
+
+Les coûts cloud évoluent avec les utilisateurs et le volume média. La gouvernance FinOps (chapitre~\ref{ch:cloud}) limite les dépenses incontrôlées. Les coûts de modération évoluent avec la taille de la communauté---l'automatisation assiste mais la revue humaine reste essentielle pour les cas nuancés.
+
+\section{Coûts de mise à l'échelle}
+
+À l'échelle, les investissements se déplacent vers l'analyse avancée, les ventes d'entreprise et les hubs régionaux de modération. La planification du capital aligne les tours de financement sur l'atteinte des jalons (nombre de villes, revenus, certification de sécurité).
+
+\section{Innovations futures}
+
+\subsection{Intelligence économique}
+
+Les analyses vendeurs évoluent des vues de base vers l'analyse de cohortes, les benchmarks concurrentiels (agrégés) et l'attribution de campagnes---toujours dans le respect de la confidentialité des acheteurs.
+
+\subsection{Systèmes de confiance}
+
+Vérification d'identité renforcée (contrôles documentaires, intégration au registre des entreprises), score de réputation avec droits de recours, et partenariats d'entiercement optionnels (sous réserve de la réglementation financière).
+
+\subsection{Vérification d'identité}
+
+Vérification par niveaux : courriel (base), téléphone, document d'immatriculation d'entreprise, inspection sur site (premium entreprise). Les badges de vérification communiquent la confiance sans garantir les résultats.
+
+\subsection{Services entreprise}
+
+Gestion de compte dédiée, accès API pour la synchronisation d'inventaire (contratuellement gouverné), support avec SLA et programmes de ville co-marqués.
+
+\section{Durabilité environnementale et sociale}
+
+\subsection{Inclusion numérique}
+
+MABRID soutient les micro-entreprises avec une intégration à faible friction et un support en langues locales (arabe, français, considérations amazighes dans la politique de contenu).
+
+\subsection{Impact environnemental}
+
+Sensibilisation au carbone cloud : privilégier les régions avec engagements en énergies renouvelables lorsque la latence le permet \parencite{microsoftSustainability}. Les opérations en télétravail réduisent les émissions liées aux trajets domicile-travail.
+
+\section{KPI de durabilité}
+
+\begin{itemize}
+  \item Croissance des revenus par rapport au taux de consommation (mois de trésorerie).
+  \item Marge brute par cohorte de vendeurs.
+  \item Pourcentage de vendeurs vérifiés.
+  \item Ratio de couverture modérateurs par ville active.
+  \item Tendance des incidents de sécurité.
+  \item Rétention et diversité des employés.
+\end{itemize}
+
+\section{Conclusion du chapitre}
+
+La feuille de route de MABRID équilibre ambition et réalisme opérationnel. Une croissance géographique par phases, des revenus diversifiés, une maîtrise disciplinée des dépenses cloud et une innovation continue dans les services de confiance offrent une trajectoire crédible vers le leadership national et une présence internationale sélective, tout en maintenant les fondations de gouvernance et de conformité documentées dans l'ensemble de ce rapport.

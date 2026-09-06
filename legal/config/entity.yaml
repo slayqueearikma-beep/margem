@@ -1,0 +1,65 @@
+# Configurable legal entity and contact information.
+# Update this file when business details change; regenerate HTML with generate_legal_html.py.
+# Do not invent registration numbers, licenses, or addresses — use placeholders until confirmed.
+
+platform:
+  name: Dribex
+  tagline: "Discover Morocco's Hidden Gems"
+  description: "a local discovery and marketplace platform for Morocco"
+  platforms:
+    - Android
+    - iOS
+    - Web
+  jurisdiction: Kingdom of Morocco
+  governing_law: laws of the Kingdom of Morocco
+  minimum_age: 16
+  supported_languages:
+    - English
+    - French
+    - Arabic
+
+entity:
+  legal_name: "[REGISTERED LEGAL ENTITY NAME — TO BE CONFIRMED BY COUNSEL]"
+  trading_name: Dribex
+  address_line_1: "[STREET ADDRESS — TO BE CONFIRMED BY COUNSEL]"
+  city: "[CITY — TO BE CONFIRMED BY COUNSEL]"
+  postal_code: "[POSTAL CODE — TO BE CONFIRMED BY COUNSEL]"
+  country: Morocco
+  registration_number: "[RC / ICE / OTHER REGISTRATION — TO BE CONFIRMED BY COUNSEL]"
+  cndp_status: "[CNDP DECLARATION OR AUTHORIZATION STATUS — TO BE CONFIRMED BY COUNSEL]"
+
+contacts:
+  support: support@dribex.ma
+  privacy: privacy@dribex.app
+  legal: legal@dribex.ma
+  dpo: dpo@dribex.app
+  sellers: sellers@dribex.ma
+  billing: billing@dribex.ma
+  safety: safety@dribex.ma
+  copyright: copyright@dribex.ma
+  security: security@dribex.ma
+  accessibility: accessibility@dribex.ma
+  enterprise: enterprise@dribex.ma
+
+urls:
+  website: https://dribex.ma
+  app: https://dribex.app
+  api: https://api.dribex.ma
+  privacy: https://dribex.app/privacy
+  terms: https://dribex.app/terms
+  cookies: https://dribex.app/cookies
+  legal_index: https://dribex.app/legal
+
+version:
+  package: "2.0.0"
+  effective_date: "2026-08-13"
+  last_updated: "2026-08-13"
+  publication_date: "2026-08-13"
+
+response_targets:
+  general_support_days: 2
+  privacy_request_days: 30
+  security_ack_days: 3
+  copyright_days: 5
+  safety_hours_min: 24
+  safety_hours_max: 72

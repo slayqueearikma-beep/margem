@@ -1,0 +1,90 @@
+# Dribex public web storefront
+
+Production-ready Next.js App Router frontend for `https://dribex.ma`. It consumes the existing Dribex REST API and does not duplicate backend business logic.
+
+## Local development
+
+```bash
+cd souq-local
+docker compose up -d postgres api
+docker compose exec api sh -c "cd /app && PYTHONPATH=. python scripts/seed_marketplace_demo.py"
+
+./scripts/dev-web.sh
+```
+
+Or manually:
+
+```bash
+cd web
+cp env.example .env.local
+npm install   # required once — do not use sudo
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+### After `git pull`, UI still looks the same?
+
+`git pull` only updates files on disk. The process serving port **3000** must be restarted:
+
+| How you run the website | What to run after pull |
+| --- | --- |
+| Docker (`margem-web`) | `docker compose up -d --build web` from `souq-local/` |
+| Host dev (`npm run dev`) | Stop the dev server, `rm -rf web/.next`, then `./scripts/dev-web.sh` |
+
+Hard-refresh the browser (Ctrl+Shift+R). If port 3000 is already taken by Docker, `./scripts/dev-web.sh` will refuse to start — stop Docker web first or rebuild the container instead.
+
+### No businesses or products showing?
+
+1. **Rebuild web after pull** (see above) — the Docker image used to bake empty pages at build time; current builds fetch live API data on each request.
+2. **Check the API directly** on the server:
+   ```bash
+   curl -s "http://127.0.0.1:8000/search?mode=all&limit=3" | head
+   curl -s "http://127.0.0.1:8000/sellers?limit=3" | head
+   ```
+   If these return `[]`, the database has no public listings yet.
+3. **Public search only includes active sellers in Casablanca** (`city` must match, `is_active=true`). Mobile sellers in other cities or inactive profiles will not appear on the website.
+4. **Tailscale/LAN access**: copy `souq-local/.env.example` to `souq-local/.env`, set your IP, then `docker compose up -d --build web api`.
+
+## Environment variables
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Canonical public site URL (`https://dribex.ma`) |
+| `NEXT_PUBLIC_API_BASE_URL` | Browser-facing API base for media URLs and client fetches |
+| `API_BASE_URL` | Server-side API base (use `http://api:8000` in Docker) |
+| `NEXT_PUBLIC_LAUNCH_CITIES` | Comma-separated launch cities for city discovery fallback |
+
+## Docker
+
+```bash
+cd souq-local
+docker compose up -d --build
+```
+
+Services:
+
+- `web` → `http://localhost:3000`
+- `api` → `http://localhost:8000`
+
+## Production routing
+
+Terminate TLS at nginx and route:
+
+- `dribex.ma` → `web:3000`
+- `api.dribex.ma` → `api:8000`
+
+Set `CORS_ORIGINS` to include `https://dribex.ma` and `https://www.dribex.ma`.
+
+## Public pages
+
+- `/` home/discovery
+- `/search` search
+- `/categories`, `/categories/[slug]`
+- `/products`, `/products/[id]`
+- `/services`, `/services/[id]`
+- `/sellers`, `/sellers/[id]`
+- `/cities`, `/cities/[slug]`
+- `/marketplaces/[slug]` when marketplace APIs are enabled
+
+Authentication-required actions remain in the mobile app.

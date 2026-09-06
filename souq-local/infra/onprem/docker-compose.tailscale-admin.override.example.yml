@@ -1,0 +1,23 @@
+# Optional override — bind admin/API to Tailscale only (NOT public 0.0.0.0).
+#
+# Production default: API and web are NOT host-published; nginx proxies everything.
+# Use this ONLY if you need direct host access for debugging/admin over Tailscale.
+#
+# Usage:
+#   export TAILSCALE_IP=$(tailscale ip -4)
+#   docker compose -f docker-compose.prod.yml \
+#     -f docker-compose.tailscale-admin.override.example.yml \
+#     --env-file .env.prod up -d
+#
+# Never publish: 5432, 6379, 9000, 9090, 8200, 3100 to the host.
+
+services:
+  api:
+    ports:
+      - "${TAILSCALE_IP:?set TAILSCALE_IP}:8000:8000"
+
+  # Example: standalone admin dashboard on host port 7215 (Tailscale only)
+  # admin:
+  #   image: your-admin-image
+  #   ports:
+  #     - "${TAILSCALE_IP:?set TAILSCALE_IP}:7215:7215"

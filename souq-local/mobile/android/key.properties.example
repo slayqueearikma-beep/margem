@@ -1,4 +1,9 @@
 # Copy to android/key.properties for Play Store release signing (never commit key.properties)
+#
+# Create the keystore once from the mobile/ folder:
+#   keytool -genkey -v -keystore margem-release.keystore -alias margem -keyalg RSA -keysize 2048 -validity 10000
+#
+# storeFile paths are relative to the android/ folder (../margem-release.keystore -> mobile/margem-release.keystore)
 storePassword=YOUR_KEYSTORE_PASSWORD
 keyPassword=YOUR_KEY_PASSWORD
 keyAlias=margem

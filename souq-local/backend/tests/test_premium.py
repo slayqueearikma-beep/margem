@@ -5,7 +5,7 @@ from app.services.premium import apply_seller_premium_expiry, is_premium_active
 
 def test_is_premium_active_respects_expiry():
     now = datetime(2026, 7, 21, tzinfo=UTC)
-    assert is_premium_active(is_premium=True, premium_until=None, now=now) is True
+    assert is_premium_active(is_premium=True, premium_until=None, now=now) is False
     assert (
         is_premium_active(
             is_premium=True,
@@ -43,3 +43,12 @@ def test_apply_seller_premium_expiry_clears_stale_flags():
     assert apply_seller_premium_expiry(seller, persist=True) is False
     assert seller.is_premium is False
     assert owner.is_premium is False
+
+
+def test_buyer_plus_does_not_make_seller_premium():
+    owner = _Owner(is_premium=True, premium_until=datetime.now(UTC) + timedelta(days=7))
+    seller = _Seller(is_premium=False, user=owner)
+    assert apply_seller_premium_expiry(seller, persist=False) is False
+    assert seller.is_premium is False
+    assert getattr(seller, "is_seller_pro") is False
+    assert getattr(seller, "is_buyer_plus") is True

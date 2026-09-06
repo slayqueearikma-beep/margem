@@ -11,6 +11,8 @@ import app.database as database
 from app.config import Settings
 from app.main import app
 from app.models import AuthToken, SellerProfile, User, UserStatus
+from tests.auth_helpers import register_test_user
+from tests.settings_helpers import _PROD_BREVO, _PROD_NAPS
 
 pytestmark = pytest.mark.usefixtures("prepare_database")
 
@@ -25,41 +27,42 @@ async def client():
 async def _register(client: AsyncClient, account_type: str = "buyer") -> dict:
     email = f"{account_type}-{uuid4().hex[:8]}@example.com"
     password = "SecurePass1"
-    res = await client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-            "account_type": account_type,
-            "display_name": account_type.title(),
-        },
+    body = await register_test_user(
+        client,
+        email=email,
+        password=password,
+        account_type=account_type,
+        display_name=account_type.title(),
     )
-    assert res.status_code == 201, res.text
     return {
         "email": email,
         "password": password,
-        "headers": {"Authorization": f"Bearer {res.json()['access_token']}"},
-        "refresh": res.json()["refresh_token"],
+        "headers": {"Authorization": f"Bearer {body['access_token']}"},
+        "refresh": body["refresh_token"],
     }
 
 
-def test_production_requires_smtp_host():
-    with pytest.raises(ValidationError, match="SMTP_HOST"):
+def test_production_requires_brevo_api_key():
+    with pytest.raises(ValidationError, match="BREVO_API_KEY"):
         Settings(
             _env_file=None,
             app_env="production",
             debug=False,
             auth_dev_bypass=False,
             jwt_secret_key="a-real-production-secret-key-32chars-min",
+            upload_token_secret="a-separate-production-upload-secret-32chars",
+            mfa_encryption_key="a-separate-production-mfa-encryption-key32",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
             azure_storage_connection_string=(
                 "DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net"
             ),
-            smtp_host="",
+            brevo_api_key="",
             allow_insecure_email_fallback=False,
             public_app_url="https://margem.ma",
             public_api_url="https://api.margem.ma",
+            admin_ip_allowlist=["10.0.0.0/8"],
+            **_PROD_NAPS,
         )
 
 
@@ -69,18 +72,23 @@ def test_production_allows_email_fallback_flag():
         app_env="production",
         debug=False,
         auth_dev_bypass=False,
+        admin_require_staff_mfa=True,
         jwt_secret_key="a-real-production-secret-key-32chars-min",
+        upload_token_secret="a-separate-production-upload-secret-32chars",
+        mfa_encryption_key="a-separate-production-mfa-encryption-key32",
         cors_origins=["https://margem.ma"],
         allowed_hosts=["api.margem.ma"],
         azure_storage_connection_string=(
             "DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net"
         ),
-        smtp_host="",
         allow_insecure_email_fallback=True,
         public_app_url="https://margem.ma",
         public_api_url="https://api.margem.ma",
+        admin_ip_allowlist=["10.0.0.0/8"],
+        **_PROD_NAPS,
     )
     assert settings.allow_insecure_email_fallback is True
+    assert settings.effective_email_provider == "log"
 
 
 def test_production_rejects_http_public_urls():
@@ -91,14 +99,18 @@ def test_production_rejects_http_public_urls():
             debug=False,
             auth_dev_bypass=False,
             jwt_secret_key="a-real-production-secret-key-32chars-min",
+            upload_token_secret="a-separate-production-upload-secret-32chars",
+            mfa_encryption_key="a-separate-production-mfa-encryption-key32",
             cors_origins=["https://margem.ma"],
             allowed_hosts=["api.margem.ma"],
             azure_storage_connection_string=(
                 "DefaultEndpointsProtocol=https;AccountName=x;AccountKey=y;EndpointSuffix=core.windows.net"
             ),
-            smtp_host="smtp.example.com",
+            **_PROD_BREVO,
             public_app_url="https://margem.ma",
             public_api_url="http://api.margem.ma",
+            admin_ip_allowlist=["10.0.0.0/8"],
+            **_PROD_NAPS,
         )
 
 
@@ -141,7 +153,8 @@ async def test_email_verify_request_and_confirm(client: AsyncClient):
 async def test_password_reset_flow(client: AsyncClient):
     user = await _register(client, "buyer")
     requested = await client.post("/auth/password-reset/request", json={"email": user["email"]})
-    assert requested.status_code == 204, requested.text
+    assert requested.status_code == 200, requested.text
+    assert requested.json()["message"]
 
     async with database.SessionLocal() as session:
         from app.routers.auth import _issue_auth_token
@@ -185,6 +198,9 @@ async def test_delete_account_removes_seller_storefront(client: AsyncClient):
             "whatsapp_number": "+212600000066",
             "payment_methods": ["cash"],
             "delivery_methods": ["in_store"],
+            "marketplace_slug": "other-casablanca-markets",
+            "seller_terms_acknowledged": True,
+            "acceptance_language": "en"
         },
     )
     assert profile.status_code == 201, profile.text
@@ -213,8 +229,35 @@ async def test_delete_account_removes_seller_storefront(client: AsyncClient):
 async def test_subscribe_premium_blocked_in_production(client: AsyncClient, monkeypatch):
     from app.config import settings
 
-    monkeypatch.setattr(settings, "app_env", "production")
     user = await _register(client, "buyer")
-    res = await client.post("/subscriptions/subscribe/buyer_premium", headers=user["headers"])
+    monkeypatch.setattr(settings, "app_env", "production")
+    res = await client.post(
+        "/subscriptions/subscribe/buyer_premium",
+        headers=user["headers"],
+        json={"subscription_terms_accepted": True},
+    )
     assert res.status_code == 503
     assert "billing" in res.json()["detail"].lower() or "provider" in res.json()["detail"].lower() or "admin" in res.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_revoke_session_invalidates_access_token(client: AsyncClient):
+    user = await _register(client, "buyer")
+    headers = user["headers"]
+    access_token = headers["Authorization"].removeprefix("Bearer ")
+
+    sessions = await client.get("/auth/sessions", headers=headers)
+    assert sessions.status_code == 200, sessions.text
+    session_id = sessions.json()[0]["id"]
+
+    me = await client.get("/auth/me", headers=headers)
+    assert me.status_code == 200
+
+    revoked = await client.delete(f"/auth/sessions/{session_id}", headers=headers)
+    assert revoked.status_code == 204, revoked.text
+
+    stale = await client.get(
+        "/auth/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert stale.status_code == 401

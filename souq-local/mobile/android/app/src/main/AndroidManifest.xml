@@ -2,11 +2,15 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <application
-        android:label="MarGem"
+        android:label="Dribex"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
         android:networkSecurityConfig="@xml/network_security_config"
         android:usesCleartextTraffic="false">
         <activity
@@ -27,7 +31,7 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
-            <!-- Enable Flutter engine deep linking for margem:// and https://margem.ma -->
+            <!-- Enable Flutter engine deep linking for dribex:// and https://dribex.ma -->
             <meta-data
               android:name="flutter_deeplinking_enabled"
               android:value="true" />
@@ -40,28 +44,28 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="margem" android:host="app" android:pathPrefix="/reset-password"/>
-                <data android:scheme="margem" android:host="app" android:pathPrefix="/verify-email"/>
+                <data android:scheme="dribex" android:host="app" android:pathPrefix="/reset-password"/>
+                <data android:scheme="dribex" android:host="app" android:pathPrefix="/verify-email"/>
             </intent-filter>
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data
                     android:scheme="https"
-                    android:host="margem.ma"
+                    android:host="dribex.ma"
                     android:pathPrefix="/reset-password"/>
                 <data
                     android:scheme="https"
-                    android:host="margem.ma"
+                    android:host="dribex.ma"
                     android:pathPrefix="/verify-email"/>
                 <data
                     android:scheme="https"
-                    android:host="www.margem.ma"
+                    android:host="www.dribex.ma"
                     android:pathPrefix="/reset-password"/>
                 <data
                     android:scheme="https"
-                    android:host="www.margem.ma"
+                    android:host="www.dribex.ma"
                     android:pathPrefix="/verify-email"/>
             </intent-filter>
         </activity>

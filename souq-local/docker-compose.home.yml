@@ -1,4 +1,4 @@
-# MarGem home server — laptop runs API + Postgres + local image storage
+# Dribex home server — laptop runs API + Postgres + local image storage
 # Usage: docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
 #
 # Default STORAGE_BACKEND=local stores images on the laptop (no Azure required).
@@ -23,35 +23,44 @@ services:
 
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: margem-home-api
     restart: unless-stopped
     ports:
       - "${API_PORT:-8000}:8000"
     environment:
-      APP_ENV: production
+      APP_ENV: ${APP_ENV:-development}
       DEBUG: "false"
       AUTH_DEV_BYPASS: "false"
       DATABASE_URL: postgresql+asyncpg://margemadmin:${POSTGRES_PASSWORD}@postgres:5432/margem
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       UPLOAD_TOKEN_SECRET: ${UPLOAD_TOKEN_SECRET}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
       STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
       LOCAL_MEDIA_ROOT: /data/media
+      SERVE_EMBEDDED_ADMIN: "false"
+      ADMIN_DASHBOARD_DIR: ""
+      ADMIN_REQUIRE_STAFF_MFA: ${ADMIN_REQUIRE_STAFF_MFA:-true}
       AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING:-}
       AZURE_STORAGE_CONTAINER: margem-media
       CORS_ORIGINS: ${CORS_ORIGINS}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-MarGem <noreply@margem.ma>}
-      # Never log authentication tokens as an implicit fallback. Set this
-      # explicitly to true only for an isolated development emergency.
-      ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-false}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+      ADMIN_IP_ALLOWLIST: ${ADMIN_IP_ALLOWLIST:-127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-0}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-brevo}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL:-noreply@dribex.ma}
+      BREVO_SENDER_NAME: ${BREVO_SENDER_NAME:-Dribex}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      EMAIL_SEND_TIMEOUT_SECONDS: ${EMAIL_SEND_TIMEOUT_SECONDS:-20}
+      EMAIL_MAX_RETRIES: ${EMAIL_MAX_RETRIES:-2}
+      EMAIL_RETRY_DELAY_SECONDS: ${EMAIL_RETRY_DELAY_SECONDS:-0.75}
+      # Home LAN without Brevo: tokens are logged server-side only.
+      ALLOW_INSECURE_EMAIL_FALLBACK: ${ALLOW_INSECURE_EMAIL_FALLBACK:-true}
+      PUBLIC_API_URL: ${WEB_PUBLIC_API_URL:-${PUBLIC_API_URL:-http://localhost:8000}}
+      PUBLIC_APP_URL: ${WEB_PUBLIC_SITE_URL:-${PUBLIC_APP_URL:-http://localhost:8000}}
       JWT_ACCESS_EXPIRE_MINUTES: "60"
       JWT_REFRESH_EXPIRE_DAYS: "7"
       RATE_LIMIT: ${RATE_LIMIT:-300/minute}
@@ -67,6 +76,51 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
+
+  admin:
+    build:
+      context: ./admin-dashboard
+      dockerfile: Dockerfile
+    container_name: margem-home-admin
+    restart: unless-stopped
+    ports:
+      - "${ADMIN_PORT:-8080}:80"
+    environment:
+      MARGEM_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+      ADMIN_BASIC_AUTH_USER: ${ADMIN_BASIC_AUTH_USER:-}
+      ADMIN_BASIC_AUTH_PASSWORD: ${ADMIN_BASIC_AUTH_PASSWORD:-}
+      ADMIN_ALLOW_PUBLIC: ${ADMIN_ALLOW_PUBLIC:-false}
+      ADMIN_EXTRA_ALLOWED_CIDRS: ${ADMIN_EXTRA_ALLOWED_CIDRS:-}
+      ADMIN_SOURCE_DIR: /admin-source
+    volumes:
+      - ./admin-dashboard:/admin-source:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${WEB_PUBLIC_API_URL:-${PUBLIC_API_URL:-http://localhost:8000}}
+        NEXT_PUBLIC_SITE_URL: ${WEB_PUBLIC_SITE_URL:-${PUBLIC_APP_URL:-http://localhost:3000}}
+        NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
+    container_name: margem-home-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      DRIBEX_WEB_IN_DOCKER: "1"
+      API_BASE_URL: http://api:8000
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${WEB_PUBLIC_API_URL:-${PUBLIC_API_URL:-http://localhost:8000}}
+      NEXT_PUBLIC_SITE_URL: ${WEB_PUBLIC_SITE_URL:-${PUBLIC_APP_URL:-http://localhost:3000}}
+      NEXT_PUBLIC_LAUNCH_CITIES: Casablanca
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   margem_home_pg:

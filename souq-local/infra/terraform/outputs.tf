@@ -20,7 +20,7 @@ output "application_insights_connection_string" {
 }
 
 output "api_url" {
-  description = "Public HTTPS URL for the MarGem API"
+  description = "Public HTTPS URL for the Dribex API"
   value       = "https://${azurerm_container_app.api.ingress[0].fqdn}"
 }
 

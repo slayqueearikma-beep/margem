@@ -15,4 +15,19 @@ class LocationService {
     return permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
   }
+
+  /// Current device position, or null when unavailable or denied.
+  static Future<Position?> getCurrentPosition() async {
+    if (!await ensurePermission()) return null;
+    try {
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+    } on Object {
+      return null;
+    }
+  }
 }

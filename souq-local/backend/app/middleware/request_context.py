@@ -15,8 +15,8 @@ logger = logging.getLogger("margem.access")
 
 def _safe_log_path(path: str) -> str:
     """Keep short-lived bearer upload tokens out of centralized access logs."""
-    if path.startswith("/uploads/local/"):
-        return "/uploads/local/[REDACTED]"
+    if path.startswith("/uploads/local/") or path.startswith("/uploads/storage/"):
+        return path.rsplit("/", 1)[0] + "/[REDACTED]"
     return path
 
 

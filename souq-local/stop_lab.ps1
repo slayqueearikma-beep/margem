@@ -1,11 +1,11 @@
-# MarGem local lab — stop backend + Flutter
+# Dribex local lab — stop backend + Flutter
 # Usage: .\stop_lab.ps1
 
 $ErrorActionPreference = "Stop"
 $Root = $PSScriptRoot
 
 Write-Host ""
-Write-Host "=== MarGem Lab — stopping ===" -ForegroundColor Cyan
+Write-Host "=== Dribex Lab — stopping ===" -ForegroundColor Cyan
 Write-Host ""
 
 Push-Location $Root

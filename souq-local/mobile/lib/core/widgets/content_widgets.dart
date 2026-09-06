@@ -1,44 +1,45 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
+import '../utils/directional_ui.dart';
 import 'achievement_badges.dart';
 import 'network_image_view.dart';
 
 class OnboardingIllustration extends StatelessWidget {
-  const OnboardingIllustration({
+  OnboardingIllustration({
     super.key,
-    required this.backgroundColor,
+    Color? backgroundColor,
     required this.icon,
     this.secondaryIcon,
     this.imageAsset,
-  });
+    this.imageFit = BoxFit.contain,
+  }) : backgroundColor = backgroundColor;
 
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final IconData icon;
   final IconData? secondaryIcon;
   final String? imageAsset;
+  final BoxFit imageFit;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppSpacing.illustrationRadius),
+    return ColoredBox(
+      color: backgroundColor ?? context.colors.surface,
+      child: SizedBox(
+        height: 300,
+        width: double.infinity,
+        child: imageAsset != null
+            ? Image.asset(
+                imageAsset!,
+                fit: imageFit,
+                alignment: Alignment.center,
+                filterQuality: FilterQuality.high,
+                errorBuilder: (_, __, ___) => _iconFallback(),
+              )
+            : _iconFallback(),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: imageAsset != null
-          ? Image.asset(
-              imageAsset!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (_, __, ___) => _iconFallback(),
-            )
-          : _iconFallback(),
     );
   }
 
@@ -94,7 +95,7 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+          EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
         children: [
           Text(
@@ -103,12 +104,12 @@ class SectionHeader extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
           ),
-          const Spacer(),
+          Spacer(),
           if (actionLabel != null)
             TextButton(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
+                foregroundColor: context.colors.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 minimumSize: const Size(44, 36),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -152,14 +153,15 @@ class FeaturedBusinessCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: isDark ? context.colors.surface : Colors.white,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.border,
+          color: isDark ? context.colors.border : context.colors.divider,
         ),
       ),
+      shadowColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -183,18 +185,18 @@ class FeaturedBusinessCard extends StatelessWidget {
                       right: 8,
                       child: Material(
                         color: Colors.white,
-                        shape: const CircleBorder(),
+                        shape: CircleBorder(),
                         child: InkWell(
-                          customBorder: const CircleBorder(),
+                          customBorder: CircleBorder(),
                           onTap: onFavorite,
                           child: Padding(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all(8),
                             child: Icon(
                               isFavorite
                                   ? Icons.favorite_rounded
                                   : Icons.favorite_border_rounded,
                               size: 18,
-                              color: AppColors.primary,
+                              color: context.colors.primary,
                             ),
                           ),
                         ),
@@ -204,7 +206,7 @@ class FeaturedBusinessCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                padding: EdgeInsets.fromLTRB(12, 10, 12, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -212,26 +214,26 @@ class FeaturedBusinessCard extends StatelessWidget {
                       businessName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       category,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: context.colors.textSecondary,
                         fontSize: 12,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(Icons.star_rounded,
-                            size: 14, color: AppColors.star),
+                        Icon(Icons.star_rounded,
+                            size: 14, color: context.colors.star),
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
@@ -300,7 +302,7 @@ class SellerCard extends StatelessWidget {
                   url: imageUrl, placeholderIcon: Icons.storefront_rounded),
             ),
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -309,7 +311,7 @@ class SellerCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           businessName,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 16),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -325,27 +327,27 @@ class SellerCard extends StatelessWidget {
                     ],
                   ),
                   if (!compact) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(
+                          color: context.colors.textSecondary, fontSize: 13),
                     ),
                   ],
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.star_rounded,
-                          size: 14, color: AppColors.star),
-                      const SizedBox(width: 4),
+                      Icon(Icons.star_rounded,
+                          size: 14, color: context.colors.star),
+                      SizedBox(width: 4),
                       Text('$rating ($reviewCount)',
-                          style: const TextStyle(fontSize: 13)),
-                      const Spacer(),
+                          style: TextStyle(fontSize: 13)),
+                      Spacer(),
                       Text(city,
-                          style: const TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13)),
+                          style: TextStyle(
+                              color: context.colors.textSecondary, fontSize: 13)),
                     ],
                   ),
                 ],
@@ -382,7 +384,7 @@ class StatCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.hardEdge,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        padding: EdgeInsets.fromLTRB(12, 10, 12, 10),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Column(
@@ -390,7 +392,7 @@ class StatCard extends StatelessWidget {
               children: [
                 Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Icon(icon, color: AppColors.primary, size: 20),
+                  child: Icon(icon, color: context.colors.primary, size: 20),
                 ),
                 const SizedBox(height: 8),
                 Align(
@@ -479,18 +481,18 @@ class DashboardMenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      margin: EdgeInsets.only(bottom: AppSpacing.sm),
       child: ListTile(
         onTap: comingSoon ? null : onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: Container(
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+            color: context.colors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: AppColors.primary),
+          child: Icon(icon, color: context.colors.primary),
         ),
         title: Row(
           children: [
@@ -499,20 +501,20 @@ class DashboardMenuTile extends StatelessWidget {
                 title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
             if (comingSoon) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.15),
+                  color: context.colors.warning.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(context.l10n.soon,
-                    style: const TextStyle(
-                        fontSize: 10, color: AppColors.warning)),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.warning)),
               ),
             ],
           ],
@@ -521,22 +523,18 @@ class DashboardMenuTile extends StatelessWidget {
           subtitle,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 13, height: 1.25),
+          style: TextStyle(fontSize: 13, height: 1.25),
         ),
         trailing: badge != null
             ? CircleAvatar(
                 radius: 12,
-                backgroundColor: AppColors.primary,
+                backgroundColor: context.colors.primary,
                 child: Text(
                   badge!,
                   style: const TextStyle(fontSize: 10, color: Colors.white),
                 ),
               )
-            : Icon(
-                Directionality.of(context) == TextDirection.rtl
-                    ? Icons.chevron_left_rounded
-                    : Icons.chevron_right_rounded,
-              ),
+            : Icon(DirectionalUi.forwardChevron(context)),
       ),
     );
   }

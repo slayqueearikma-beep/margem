@@ -1,4 +1,4 @@
-# Stop or delete MarGem budget Azure resources
+# Stop or delete Dribex budget Azure resources
 # Usage: .\stop_azure_budget.ps1 -Deallocate    # pause VM, keep data (~$3/mo disk only)
 #        .\stop_azure_budget.ps1 -Destroy       # delete everything
 

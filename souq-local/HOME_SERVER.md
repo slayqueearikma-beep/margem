@@ -1,4 +1,4 @@
-# MarGem Home Server — Laptop API + local (or Azure) images
+# Dribex Home Server — Laptop API + local (or Azure) images
 
 Run the API and database on **your laptop**. Images default to **local disk** on the
 laptop (no Azure required). Optionally point `STORAGE_BACKEND=azure` at Blob (~$1–3/month).
@@ -104,6 +104,70 @@ docker compose -f docker-compose.home.yml --env-file .env.home down
 .\stop_home_server.ps1
 ```
 
+## Admin dashboard (web)
+
+Staff admin is **not** in the mobile app. It runs as a **separate web dashboard** on its own port:
+
+`http://<laptop-lan-ip>:8080` (e.g. `http://192.168.11.101:8080`)
+
+The mobile app talks to the API on port **8000** only. Admin uses port **8080** and calls the API in the background.
+
+1. Register an account in the mobile app (role cannot be set at signup).
+2. Promote that email to admin:
+
+```bash
+DRIBEXM_PROFILE=home ./scripts/docker-admin.sh promote-admin you@example.com
+```
+
+3. Open the admin URL in a browser (phone or laptop on the same Wi‑Fi) and log in.
+
+Ensure `.env.home` allows cross-origin requests from the admin port:
+
+```env
+CORS_ORIGINS=http://192.168.11.101:8000,http://192.168.11.101:8080
+ADMIN_PORT=8080
+```
+
+**If the admin page does not load**, rebuild and start both services:
+
+```bash
+git pull
+docker compose -f docker-compose.home.yml --env-file .env.home up -d --build
+MARGEM_API_URL=http://192.168.11.101:8000 MARGEM_ADMIN_URL=http://192.168.11.101:8080 \
+  DRIBEXM_PROFILE=home ./scripts/docker-admin.sh check-admin
+```
+
+Legacy note: home compose disables embedded `/admin` on the API — **use port 8080 only**.
+
+### Admin security (maximum hardening)
+
+The admin container applies several layers by default:
+
+| Layer | What it does |
+|-------|----------------|
+| **Private IP only** | Blocks access from the public internet (`ADMIN_ALLOW_PUBLIC=false`) |
+| **HTTP Basic Auth** | Second password gate before Dribex login (`ADMIN_BASIC_AUTH_*`) |
+| **Security headers + CSP** | Reduces XSS / clickjacking risk |
+| **Rate limiting** | nginx limits requests to the admin UI |
+| **No embedded admin on API** | `/admin` is not served on port 8000 |
+| **Origin guard** | Admin API rejects browser calls from unknown origins |
+| **Session token** | JWT stored in `sessionStorage` (cleared when browser tab closes) |
+| **MFA for staff** | `ADMIN_REQUIRE_STAFF_MFA=true` requires MFA for admin/support |
+
+Add to `.env.home`:
+
+```env
+ADMIN_BASIC_AUTH_USER=margem
+ADMIN_BASIC_AUTH_PASSWORD=your-strong-gate-password
+ADMIN_REQUIRE_STAFF_MFA=true
+ADMIN_ALLOW_PUBLIC=false
+CORS_ORIGINS=http://192.168.11.101:8000,http://192.168.11.111:8080
+```
+
+On your phone you will enter **two passwords**: Basic Auth gate, then Dribex admin login.
+
+**Never** expose port 8080 through Cloudflare or port-forwarding. Keep admin on LAN only.
+
 ## Backups (home server)
 
 ```bash
@@ -203,6 +267,51 @@ flutter run --dart-define=API_BASE_URL=http://100.x.x.x:8000
 | **Home + Blob** | ~$3-8 | If laptop stays on | Tailscale |
 | `start_lab.ps1` | $0 | No (dev only) | LAN only |
 | `start_azure_budget.ps1` | ~$15-25 | Yes | Public IP |
+
+## Troubleshooting home API (`margem-home-api` Error)
+
+Docker Compose marks the API as **Error** when the container exits or never passes the
+`/ready` healthcheck (~5 minutes). The database can be healthy while the API still fails.
+
+**Step 1 — get the real error:**
+
+```bash
+cd ~/MarGem/souq-local
+docker logs margem-home-api --tail 100
+```
+
+Or use the diagnostic script:
+
+```bash
+chmod +x scripts/diagnose_home_api.sh
+MARGEM_PROFILE=home ./scripts/docker-admin.sh diagnose
+```
+
+**Step 2 — match the log message:**
+
+| Log message | Fix |
+|-------------|-----|
+| `password authentication failed for user "margemadmin"` | `.env.home` password changed but the Postgres volume still has the old one. Run `./scripts/reset_home_db_password.sh` then restart API. |
+| `Settings validation failed` / `MFA_ENCRYPTION_KEY must differ` | Generate three **different** secrets with `openssl rand -hex 32`. Set `APP_ENV=development` for LAN home. |
+| `Alembic migration failed` / `Can't locate revision` | `git pull origin cursor/final-integration-ee43` then rebuild: `docker compose -f docker-compose.home.yml --env-file .env.home up -d --build api` |
+| `Media directory not writable` | `docker run --rm --user root -v souq-local_margem_home_media:/data alpine sh -c "chown -R 999:999 /data && chmod -R u+rwX /data"` |
+| `MINIO_ENDPOINT is not configured` | Set `STORAGE_PROVIDER=local` and `STORAGE_BACKEND=local` in `.env.home` |
+| `PAYMENT_PROVIDER=manual is not allowed in production` | Set `APP_ENV=development` in `.env.home` (home LAN default) |
+
+**Step 3 — verify endpoints:**
+
+```bash
+curl http://127.0.0.1:8000/health    # database only
+curl http://127.0.0.1:8000/ready     # must be 200 for Docker healthcheck
+```
+
+If `/health` works but `/ready` returns 503, check the JSON body for `"schema": "missing"` or `"media": "error"`.
+
+**Start API only (skip admin dependency):**
+
+```bash
+docker compose -f docker-compose.home.yml --env-file .env.home up -d --no-deps api
+```
 
 ## Keep laptop awake (Linux)
 

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../models/models.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/theme_context.dart';
 import 'network_image_view.dart';
 
 class ProductCarouselCard extends StatelessWidget {
@@ -36,7 +36,7 @@ class ProductCarouselCard extends StatelessWidget {
     final cardWidth = width ?? ((screenW - 48) / 3).clamp(118.0, 168.0);
 
     final card = Material(
-      color: isDark ? AppColors.darkCard : Colors.white,
+      color: isDark ? context.colors.surface : Colors.white,
       elevation: 0,
       borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
       clipBehavior: Clip.antiAlias,
@@ -46,7 +46,7 @@ class ProductCarouselCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
             border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.border,
+              color: context.colors.border,
             ),
             boxShadow: isDark
                 ? null
@@ -54,7 +54,7 @@ class ProductCarouselCard extends StatelessWidget {
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 14,
-                      offset: const Offset(0, 6),
+                      offset: Offset(0, 6),
                     ),
                   ],
           ),
@@ -76,14 +76,14 @@ class ProductCarouselCard extends StatelessWidget {
                         right: 8,
                         child: Material(
                           color: Colors.white.withValues(alpha: 0.92),
-                          shape: const CircleBorder(),
+                          shape: CircleBorder(),
                           child: InkWell(
-                            customBorder: const CircleBorder(),
+                            customBorder: CircleBorder(),
                             onTap: onFavorite,
                             child: Padding(
-                              padding: const EdgeInsets.all(6),
+                              padding: EdgeInsets.all(6),
                               child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 180),
+                                duration: Duration(milliseconds: 180),
                                 child: Icon(
                                   isFavorite
                                       ? Icons.favorite_rounded
@@ -91,8 +91,8 @@ class ProductCarouselCard extends StatelessWidget {
                                   key: ValueKey(isFavorite),
                                   size: 18,
                                   color: isFavorite
-                                      ? AppColors.danger
-                                      : AppColors.textSecondary,
+                                      ? context.colors.error
+                                      : context.colors.textSecondary,
                                 ),
                               ),
                             ),
@@ -100,7 +100,7 @@ class ProductCarouselCard extends StatelessWidget {
                         ),
                       ),
                     if (verified)
-                      const Positioned(
+                      Positioned(
                         top: 8,
                         left: 8,
                         child: Icon(
@@ -113,7 +113,7 @@ class ProductCarouselCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -121,42 +121,42 @@ class ProductCarouselCard extends StatelessWidget {
                       product.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
                         height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     Text(
                       product.priceMad == null
                           ? '—'
                           : '${product.priceMad!.toStringAsFixed(0)} MAD',
-                      style: const TextStyle(
-                        color: AppColors.primary,
+                      style: TextStyle(
+                        color: context.colors.primary,
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       ),
                     ),
                     if (rating != null && rating! > 0) ...[
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Row(
                         children: [
                           RatingBarIndicator(
                             rating: rating!,
-                            itemBuilder: (_, __) => const Icon(
+                            itemBuilder: (_, __) => Icon(
                               Icons.star_rounded,
-                              color: AppColors.star,
+                              color: context.colors.star,
                             ),
                             itemCount: 5,
                             itemSize: 12,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(
                             rating!.toStringAsFixed(1),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

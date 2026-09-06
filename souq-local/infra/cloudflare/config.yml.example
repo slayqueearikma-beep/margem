@@ -1,0 +1,12 @@
+# Cloudflare Tunnel config — copy to /etc/cloudflared/config.yml
+tunnel: CHANGE_ME_TUNNEL_UUID
+credentials-file: /etc/cloudflared/CHANGE_ME_TUNNEL_UUID.json
+
+ingress:
+  - hostname: api.dribex.ma
+    service: http://127.0.0.1:8080
+  - hostname: qr.dribex.ma
+    service: http://127.0.0.1:8080
+  - hostname: dribex.ma
+    service: http://127.0.0.1:8080
+  - service: http_status:404

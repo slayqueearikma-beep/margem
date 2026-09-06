@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stop MarGem home server containers (Azure blob stays active).
+# Stop Dribex home server containers (local media and DB volumes persist).
 # Usage: ./stop_home_server.sh
 
 set -euo pipefail
@@ -17,5 +17,5 @@ else
   docker compose -f "$COMPOSE_FILE" down
 fi
 
-echo "Stopped. Azure blob storage is still active (minimal cost)."
+echo "Stopped. Database and media volumes are preserved on this machine."
 echo ""

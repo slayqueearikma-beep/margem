@@ -50,7 +50,8 @@ android {
             if (keyPropertiesFile.exists()) {
                 keyAlias = keyProperties["keyAlias"] as String
                 keyPassword = keyProperties["keyPassword"] as String
-                storeFile = file(keyProperties["storeFile"] as String)
+                // Paths in key.properties are relative to the android/ folder (not app/).
+                storeFile = rootProject.file(keyProperties["storeFile"] as String)
                 storePassword = keyProperties["storePassword"] as String
             }
         }
@@ -85,6 +86,19 @@ gradle.taskGraph.whenReady {
             "Release builds require android/key.properties (see key.properties.example). " +
                 "Do not ship with the debug keystore. Debug builds (flutter run) do not need it."
         )
+    }
+    if (releasing && keyPropertiesFile.exists()) {
+        val storePath = keyProperties["storeFile"] as String?
+        val storeFile = storePath?.let { rootProject.file(it) }
+        if (storeFile == null || !storeFile.exists()) {
+            throw GradleException(
+                "Release keystore not found at ${storeFile?.absolutePath ?: storePath}. " +
+                    "Create it with: cd mobile && keytool -genkey -v -keystore margem-release.keystore " +
+                    "-alias margem -keyalg RSA -keysize 2048 -validity 10000 " +
+                    "Then set storeFile=../margem-release.keystore in android/key.properties " +
+                    "(path is relative to the android/ folder)."
+            )
+        }
     }
 }
 

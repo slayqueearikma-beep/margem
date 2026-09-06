@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MarGem local lab — cross-platform stop script.
+"""Dribex local lab — cross-platform stop script.
 
 Usage:
   python stop_lab.py
@@ -18,7 +18,7 @@ LAB_DIR = ROOT / ".lab"
 
 
 def main() -> int:
-    print("\n=== MarGem Lab — stopping ===\n")
+    print("\n=== Dribex Lab — stopping ===\n")
 
     if shutil.which("docker"):
         print("[1/2] Stopping Docker containers...")

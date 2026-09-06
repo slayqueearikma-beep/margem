@@ -1,4 +1,4 @@
-# MarGem local lab — start backend (Docker) + Flutter app
+# Dribex local lab — start backend (Docker) + Flutter app
 # Usage: .\start_lab.ps1
 #        .\start_lab.ps1 -NoFlutter    # backend only
 
@@ -26,7 +26,7 @@ function Get-LanIp {
 }
 
 Write-Host ""
-Write-Host "=== MarGem Lab — starting ===" -ForegroundColor Cyan
+Write-Host "=== Dribex Lab — starting ===" -ForegroundColor Cyan
 Write-Host ""
 
 # Docker

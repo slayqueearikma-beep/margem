@@ -1,0 +1,4 @@
+# Pillow for scripts/generate_brand_assets.py
+# Ubuntu (no pip):  sudo apt install python3-pil
+# Or run:           ./scripts/generate_brand_assets.sh
+Pillow>=10.0.0

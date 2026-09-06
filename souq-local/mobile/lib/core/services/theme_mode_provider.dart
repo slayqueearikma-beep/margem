@@ -5,8 +5,11 @@ import 'app_storage.dart';
 
 final themeModeProvider =
     StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  final storage = ref.watch(appStorageProvider);
-  return ThemeModeNotifier(storage);
+  final notifier = ThemeModeNotifier(ref.read(appStorageProvider));
+  ref.listen<AppStorage?>(appStorageProvider, (_, next) {
+    notifier.updateStorage(next);
+  });
+  return notifier;
 });
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {

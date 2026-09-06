@@ -9,122 +9,15 @@ import '../../core/models/auth_models.dart';
 import '../../core/models/models.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/upload_service.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/theme_context.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/async_error_view.dart';
 import '../../core/widgets/error_dialog.dart';
 import '../../core/widgets/network_image_view.dart';
+import '../../core/widgets/margem_app_bar.dart';
 import '../../l10n/app_localizations.dart';
 import 'seller_account_provider.dart';
-
-class SellerProductsScreen extends ConsumerWidget {
-  const SellerProductsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final accountAsync = ref.watch(sellerAccountProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.productManagement),
-        actions: [
-          IconButton(
-            tooltip: l10n.addProduct,
-            onPressed: () => context.push('/seller/products/new'),
-            icon: const Icon(Icons.add_rounded),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/seller/products/new'),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addProduct),
-      ),
-      body: accountAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => AsyncErrorView.fromError(
-          error,
-          onRetry: () => ref.invalidate(sellerAccountProvider),
-        ),
-        data: (account) {
-          final products = account.profile.products;
-          if (products.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.inventory_2_outlined, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(l10n.noProductsYet, textAlign: TextAlign.center),
-                    const SizedBox(height: AppSpacing.lg),
-                    FilledButton(
-                      onPressed: () => context.push('/seller/products/new'),
-                      child: Text(l10n.addProduct),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(sellerAccountProvider),
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.md,
-                AppSpacing.screenHorizontal,
-                100,
-              ),
-              itemCount: products.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return Card(
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(AppSpacing.sm),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: SizedBox(
-                        width: 56,
-                        height: 56,
-                        child: NetworkImageView(
-                          url: product.imageUrl,
-                          placeholderIcon: Icons.shopping_bag_outlined,
-                        ),
-                      ),
-                    ),
-                    title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (product.priceMad != null)
-                          Text('${product.priceMad!.toStringAsFixed(0)} MAD'),
-                        Text(
-                          product.isAvailable ? l10n.available : l10n.unavailable,
-                          style: TextStyle(
-                            color: product.isAvailable ? AppColors.success : AppColors.warning,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => context.push('/seller/products/${product.id}'),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
 
 class SellerProductEditorScreen extends ConsumerStatefulWidget {
   const SellerProductEditorScreen({super.key, this.productId});
@@ -209,6 +102,7 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
             ProductUpdatePayload(
               name: name,
               description: _descriptionController.text.trim(),
+              pricingType: priceText.isEmpty ? 'offer' : 'fixed',
               priceMad: price,
               clearPrice: priceText.isEmpty,
               imageUrl: imageUrl,
@@ -221,6 +115,7 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
             ProductCreatePayload(
               name: name,
               description: _descriptionController.text.trim(),
+              pricingType: price == null ? 'offer' : 'fixed',
               priceMad: price,
               imageUrl: imageUrl,
             ),
@@ -229,7 +124,6 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
       });
 
       ref.invalidate(sellerAccountProvider);
-      ref.invalidate(sellerAnalyticsProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.productSaved)));
       context.pop();
@@ -284,14 +178,14 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
       return accountAsync.when(
         loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
         error: (error, _) => Scaffold(
-          appBar: AppBar(),
+          appBar: MarGemAppBar(),
           body: AsyncErrorView.fromError(error, onRetry: () => ref.invalidate(sellerAccountProvider)),
         ),
         data: (account) {
           final product = account.profile.products.where((p) => p.id == widget.productId).firstOrNull;
           if (product == null) {
             return Scaffold(
-              appBar: AppBar(),
+              appBar: MarGemAppBar(),
               body: Center(child: Text(l10n.somethingWentWrong)),
             );
           }
@@ -306,8 +200,8 @@ class _SellerProductEditorScreenState extends ConsumerState<SellerProductEditorS
 
   Widget _buildForm(AppStrings l10n) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isEditing ? l10n.editProduct : l10n.addProduct),
+      appBar: MarGemAppBar(
+        semanticLabel: widget.isEditing ? l10n.editProduct : l10n.addProduct,
         actions: [
           if (widget.isEditing)
             IconButton(

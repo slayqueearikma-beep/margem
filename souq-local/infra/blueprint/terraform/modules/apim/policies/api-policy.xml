@@ -1,0 +1,35 @@
+<!--
+  APIM inbound policies — preserves Dribex FastAPI JWT validation (no app change).
+  Rate limits mirror backend defaults: 300/min global, stricter on /auth via separate API.
+-->
+<policies>
+  <inbound>
+    <base />
+    <set-header name="X-Correlation-ID" exists-action="skip">
+      <value>@(Guid.NewGuid().ToString())</value>
+    </set-header>
+    <rate-limit calls="300" renewal-period="60" />
+    <cors allow-credentials="true">
+      <allowed-origins>
+        <origin>https://dribex.ma</origin>
+        <origin>https://dribex.app</origin>
+      </allowed-origins>
+      <allowed-methods>
+        <method>GET</method>
+        <method>POST</method>
+        <method>PATCH</method>
+        <method>DELETE</method>
+        <method>OPTIONS</method>
+      </allowed-methods>
+      <allowed-headers>
+        <header>*</header>
+      </allowed-headers>
+    </cors>
+  </inbound>
+  <backend><base /></backend>
+  <outbound>
+    <base />
+    <cache-store duration="60" />
+  </outbound>
+  <on-error><base /></on-error>
+</policies>
