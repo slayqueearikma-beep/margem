@@ -67,7 +67,7 @@ def verify_google_id_token(id_token: str) -> GoogleIdentity:
             last_error = exc
             continue
 
-    if (idinfo is None:
+    if idinfo is None:
         log_security_event("google_auth_invalid_token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
